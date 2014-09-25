@@ -1,0 +1,179 @@
+<style>	
+	#player-profile .profile {
+		margin-right: 20px;
+		width: 300px;
+	}
+	
+	#player-profile .profile table th {
+		text-align: left;
+		width: 100px;
+	}
+	
+	#player-profile .chars {
+		flex: 5;
+	}
+	
+	#player-profile .char {
+		padding-left: 90px;
+		min-height: 125px;
+		transition: border ease .3s;
+		width: 300px;
+		margin: 0 6px 6px 0;
+		float: left;
+	}
+	
+	#player-profile .char.inactive {
+		padding-left: 20px;
+		/*opacity: .75;*/
+	}
+	
+	#player-profile .char.inactive:hover {
+		/*opacity: 1;*/
+	}
+	
+	#player-profile .char:hover {
+		border: 2px solid #426585;
+	}
+	
+	#player-profile .char .img-wrapper {
+		position: absolute;
+		top: 15px;
+		left: 15px;
+		perspective: 200px;
+	}
+	
+	#player-profile .char.inactive .img-wrapper > img {
+		/*width: 0px;*/
+		transform: rotateY(-90deg);
+		opacity: 0;
+	}
+	
+	#player-profile .char .img-wrapper > img {
+		width: 60px;
+		height: 60px;
+		border: 1px solid rgba(0, 0, 0, 0.1);
+	}
+	
+	#player-profile .char .name {
+		font-size: 18px;
+	}
+	
+	#player-profile .char .name i {
+		font-size: 14px;
+		float: right;
+		margin-top: 2px;
+	}
+	
+	#player-profile .char.add {
+		padding: 20px;
+		text-align: center;
+		/*transition: all ease .3s;*/
+		opacity: .5;
+	}
+	
+	#player-profile .char.add:hover {
+		opacity: .999;
+	}
+	
+	#player-profile .char .actions {
+		position: absolute;
+		bottom: 15px;
+		left: 15px;
+		right: 15px;
+		text-align: right;
+	}
+	
+	#player-profile .char .update {
+		opacity: .5;
+	}
+	
+	#player-profile .char .role {
+		float: left;
+	}
+	
+	#player-profile .char .role img {
+		width: 15px;
+		height: 15px; 
+		top: -1px;
+		margin-right: 3px;
+		opacity: 0.5;
+		transition: opacity ease .3s;
+	}
+	
+	#player-profile .char .role img.active, #player-profile .char .role img:hover {
+		opacity: 1;
+	}
+</style>
+
+<div class="tools-main" id="player-profile">
+	<div class="tiles" ng-include="'/views/player-menu.html'"></div>
+	
+	<div class="profile">
+		<h2>{{ profile.name }}</h2>
+		<div class="box">
+			<h3>Profile</h3>
+			<table>
+				<tr>
+					<th>Username</th>
+					<td>{{ profile.name }}</td>
+				</tr>
+				<tr>
+					<th>BattleTag</th>
+					<td>{{ profile.battletag || "—" }}</td>
+				</tr>
+				<tr>
+					<th>Rank</th>
+					<td>{{ profile.rank }}</td>
+				</tr>
+			</table>
+			
+			<h3>Stats</h3>
+			<table>
+				<tr>
+					<th>Joined</th>
+					<td>—</td>
+				</tr>
+				<tr>
+					<th>Last login</th>
+					<td>—</td>
+				</tr>
+				<tr>
+					<th>Forum posts</th>
+					<td>—</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	
+	<div class="chars">		
+		<h2>Characters</h2>
+		<div class="box char animated" ng-repeat="char in chars" ng-class="{ inactive: !char.active }">
+			<div class="img-wrapper">
+				<img class="animated" ng-src="http://eu.battle.net/static-render/eu/{{ char.thumbnail }}">
+			</div>
+			<div class="infos">
+				<div class="name">
+					<i ng-class="{ 'awe-star': char.main, 'awe-star-empty': !char.main && char.active, 'awe-moon': !char.active }"></i>
+					<span class="c{{ char.class }}">{{ char.name }}</span>
+				</div>
+				<div class="sub">{{ char.level }} {{ gameData.races[char.race].name }} {{ gameData.classes[char['class']].name }}</div>
+			</div>
+			<div class="update">{{ timeago(char.last_update) }}</div>
+			<div class="actions" ng-if="editable">
+				<div class="role">
+					<img src="/assets/role/TANK.png" ng-class="{ active: char.role == 'TANK' }" ng-click="role(char.id, 'TANK')">
+					<img src="/assets/role/HEALING.png" ng-class="{ active: char.role == 'HEALING' }" ng-click="role(char.id, 'HEALING')">
+					<img src="/assets/role/DPS.png" ng-class="{ active: char.role == 'DPS' }" ng-click="role(char.id, 'DPS')">
+				</div>
+				<button ng-if="!char.main && char.active" ng-click="$.exec('promoteChar', char.id)">Main</button>
+				<button ng-if="!char.main && char.active" ng-click="$.exec('disableChar', char.id)">Disable</button>
+				<button ng-if="!char.active" ng-click="$.exec('enableChar', char.id)">Enable</button>
+				<button ng-if="!char.active" ng-click="$.exec('removeChar', char.id)">Remove</button>
+				<button ng-if="char.active" ng-click="$.exec('updateChar', char.id)">Update</button>
+			</div>
+		</div>
+		<button ng-if="editable && chars.length < 15" class="box char add" ng-click="addChar()">
+			<i class="awe-plus"></i> Add character
+		</button>
+	</div>
+</div>

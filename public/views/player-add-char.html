@@ -1,0 +1,98 @@
+<style>
+	#player-add-char form {
+		width: 300px;
+		margin-bottom: 6px;
+	}
+	
+	#player-add-char input, #player-add-char select {
+		width: 100%;
+	}
+	
+	#player-add-char .char {
+		padding-left: 90px;
+		min-height: 100px;
+		transition: border ease .3s;
+		width: 300px;
+		margin-bottom: 6px;
+	}
+	
+	#player-add-char .char > img {
+		position: absolute;
+		top: 15px;
+		left: 15px;
+		border: 1px solid rgba(0, 0, 0, 0.1);
+		width: 60px;
+	}
+	
+	#player-add-char .char .name {
+		font-size: 18px;
+	}
+	
+	#player-add-char button {
+		float: right;
+		margin-left: 15px;
+	}
+	
+	#player-add-char .role {
+		margin-top: 5px;
+	}
+	
+	#player-add-char .role img {
+		width: 21px;
+		border: 2px solid transparent;
+		padding: 2px;
+		margin-left: 5px;
+		top: -1px;
+	}
+	
+	#player-add-char .role img.active {
+		border-color: #4a7ca2;
+		border-radius: 15px;
+	}
+	
+	#player-add-char .role img:hover {
+		border-color: #6ac0ff;
+		border-radius: 15px;
+	}
+</style>
+
+<div id="player-add-char" ng-controller="PlayerAddCharCtrl">
+	<div class="welcome-text" ng-if="embedWelcome">
+		<h3>You're almost ready!</h3>
+		<p>Please select the first character to link with your account to get started.</p>
+	</div>
+	<form class="box" ng-submit="load()">
+		<label>
+			Server
+			<select ng-model="server" required>
+				<option ng-repeat="(slug, infos) in gameData.servers" value="{{ slug }}">{{ infos.name }}</option>
+			</select>
+		</label>
+		<label>
+			Character name
+			<input type="text" id="add-char-name" ng-model="name" required>
+		</label>
+		<div class="overflow">
+			<button ng-disabled="loading">Load</button>
+			<button ng-disabled="loading" ng-click="modal()" type="button" ng-if="!embedWelcome">Cancel</button>
+		</div>
+	</form>
+	<div style="width: 300px;" ng-if="char">
+		<div class="box char clearfix">
+			<img ng-src="http://eu.battle.net/static-render/eu/{{ char.thumbnail }}">
+			<div class="infos">
+				<div class="name">
+					<span class="c{{ char.class }}">{{ char.name }}</span>
+				</div>
+				<div class="sub">{{ char.level }} {{ gameData.races[char.race].name }} {{ gameData.classes[char['class']].name }}</div>
+				<label class="role">
+					Role:
+					<img src="/assets/role/TANK.png" ng-class="{ active: role == 'TANK' }" ng-click="setRole('TANK')">
+					<img src="/assets/role/HEALING.png" ng-class="{ active: role == 'HEALING' }" ng-click="setRole('HEALING')">
+					<img src="/assets/role/DPS.png" ng-class="{ active: role == 'DPS' }" ng-click="setRole('DPS')">
+				</label>
+			</div>
+			<button class="confirm" ng-click="confirm()" ng-disabled="loading">Confirm</button>
+		</div>
+	</div>
+</div>

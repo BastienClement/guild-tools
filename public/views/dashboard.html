@@ -1,0 +1,129 @@
+﻿<style>
+	#dashboard-live {
+		flex: 1;
+		margin-right: 6px;
+	}
+	
+	#dashboard-center {
+		flex: 1.5;
+		display: flex;
+		flex-direction: column;
+	}
+	
+	#dashboard-events {
+		flex: 1;
+	}
+	
+	#dashboard-shoutbox {
+		flex: 1.5;
+		margin-top: 6px;
+	}
+	
+	#dashboard-right {
+		width: 300px;
+		margin-left: 6px;
+		display: flex;
+		flex-direction: column;
+	}
+	
+	#dashboard-right > div {
+		margin-bottom: 6px;
+	}
+	
+	#dashboard-connected {
+		flex: 1;
+		margin-bottom: 0 !important;
+	}
+	
+	#dashboard .box {
+		padding: 20px;
+	}
+</style>
+
+<div id="dashboard" class="tools-main">
+	<div class="tiles">
+		<div class="tile" ng-click="breadcrumb.push('/player/profile')">
+			<img src="/assets/images/icons/helm.png">
+			Player
+		</div>
+		
+		<div class="tile" ng-click="breadcrumb.push('/calendar')">
+			<img src="/assets/images/icons/calendar.png">
+			Calendar
+		</div>
+
+		<!--<div class="tile" ng-click="breadcrumb.push('/forum')">
+			<img src="/assets/images/icons/forum.png">
+			Social
+		</div>-->
+
+		<!--<div class="tile" ng-click="breadcrumb.push('/roster')">
+			<img src="/assets/images/icons/roster.png">
+			Roster
+		</div>-->
+
+		<!--<div class="tile" ng-click="breadcrumb.push('/blueprints')">
+			<img src="/assets/images/icons/blueprint.png">
+			Whiteboard
+		</div>-->
+	</div>
+	
+	<div class="box" id="dashboard-live">
+		<h2>Scratch Feed&#0153;</h2>
+		<div class="dashboard-connected-user">
+			<br>
+			<br>
+			Posts MMO Champion<br>
+			Blue posts Blizzard<br>
+			Posts Battle.net<br>
+			Actualité de guilde<br>
+			Activité forum
+		</div>
+	</div>
+			
+	<div id="dashboard-center">
+		<div class="box" id="dashboard-events">
+			<h2>Scratch Now&#0153;</h2>
+			<div class="dashboard-connected-user">
+				Events à venir, apply en cours, streams online
+			</div>
+		</div>
+		
+		<div class="box" id="dashboard-shoutbox">
+			<h2>Scratch Talk&#0153;</h2>
+			<div class="dashboard-connected-user">
+				Shoutbox
+			</div>
+		</div>
+	</div>
+	
+	<div id="dashboard-right">
+		<div class="box">
+			<h2>Utilisateur</h2>
+			<div class="dashboard-connected-user">
+				Panneau de l'utilisateur
+				(perso principal, accès MP, logout)
+			</div>
+		</div>
+		
+		<div class="box">
+			<h2>Informations</h2>
+			<div class="dashboard-connected-user" contenteditable>
+				Message de guilde de la part des officiers
+			</div>
+		</div>
+		
+		<div class="box" id="dashboard-connected">
+			<h2>Utilisateurs connectés</h2>
+			<div class="dashboard-connected-user" ng-repeat="player in $.online | orderBy:onlineSort">
+				<div class="status-dot"></div> {{ player.name }}
+			</div>
+			<!--<div class="dashboard-connected-user">
+				<div class="status-dot away"></div> Kkcx
+			</div>
+			<div class="dashboard-connected-user">
+				<div class="status-dot busy"></div> Reya
+			</div>-->
+		</div>
+	</div>
+</div>

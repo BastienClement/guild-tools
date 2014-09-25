@@ -1,0 +1,11 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+GET   /assets/*file   controllers.Assets.at(path="/public", file)
+GET   /views/*file    controllers.Assets.at(path="/public/views", file)
+
+GET   /socket         controllers.Application.socket
+
+GET   /               controllers.Application.index
+GET   /*path          controllers.Application.catchall(path)

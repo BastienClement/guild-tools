@@ -1,0 +1,55 @@
+.app header {
+	transition: background ease .25s, border-color ease .25s;
+	-webkit-app-region: drag;
+}
+
+.app.blur header {
+	background: #12374d;
+	border-bottom-color: #154059;
+}
+
+.app #left-controls,
+.app #breadcrumb,
+.app #right-controls {
+	-webkit-app-region: no-drag;
+}
+
+.app #right-controls {
+	right: 120px;
+}
+
+.app #window-controls {
+	position: absolute;
+	top: 9px;
+	right: 10px;
+	-webkit-app-region: no-drag;
+}
+
+.app #window-controls span {
+	display: inline-block;
+	background: none;
+	border: none;
+	outline: none;
+	padding: 5px;
+	transition: background-color ease .3s;
+	background-color: transparent;
+	float: left;
+}
+
+.app #window-controls span:hover {
+	/*background-color: #246a93;*/
+}
+
+.app.blur #window-controls span:hover {
+	/*background-color: #154059;*/
+}
+
+.app #window-controls i {
+	color: #eee;
+	font-size: 15px;
+	transition: color ease .3s;
+}
+
+.app #window-controls i:hover {
+	color: #fff;
+}
