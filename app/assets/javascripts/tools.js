@@ -1,6 +1,7 @@
 
 var GuildTools = angular.module("GuildTools", ["ngRoute", "ngAnimate"]);
 var GuildToolsScope = null;
+var GuildToolsLocation = null;
 
 //
 // Routing
@@ -161,6 +162,7 @@ GuildTools.filter("capitalize", function () {
 //
 GuildTools.controller("GlobalCtrl", function($scope, $location) {
 	GuildToolsScope = $scope;
+	GuildToolsLocation = $location;
 	
 	$scope.safeApply = function(fn) {
 		var phase = this.$root.$$phase;
@@ -276,7 +278,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location) {
 			updateTitle: updateTitle,
 			
 			push: function(path, override, replace) {
-				if (!$.user || !$.user.chars.length) return;
+				if (!$.user || !$.user.ready) return;
 				
 				var target = resolve(path, override);
 				if (!target || stack[stack.length - 1].path === path) return;
@@ -315,7 +317,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location) {
 			},
 			
 			rewind: function(target) {
-				if (!$.user || !$.user.chars.length) return;
+				if (!$.user || !$.user.ready) return;
 				if (target === stack[stack.length-1].location || target === stack[stack.length-1].path) return;
 				
 				for (var i = 0; ; --i) {
@@ -342,8 +344,9 @@ GuildTools.controller("GlobalCtrl", function($scope, $location) {
 	
 	$scope.restrict = function() {
 		if ($.user) {
-			if (!$.user.chars || !$.user.chars.length) {
+			if (!$.user.ready) {
 				$location.path("/welcome").replace();
+				return true;
 			} else {
 				return false;
 			}
@@ -355,10 +358,10 @@ GuildTools.controller("GlobalCtrl", function($scope, $location) {
 	
 	$scope.gameData = {};
 	
-	$.call("fetchGameData", function(err, data) {
+	/*$.call("fetchGameData", function(err, data) {
 		if (err) return $scope.breadcrumb.rewind('/dashboard');
 		$scope.gameData = data;
-	});
+	});*/
 	
 	var current_ctx = null;
 	var ctx_params = null;
@@ -532,7 +535,6 @@ GuildTools.controller("TitleBarCtrl", function($scope) {
 					ga('send', 'event', 'app-menu', 'action', 'logout', {
 						hitCallback: function() {
 							$.error = function() {};
-							$.exec('close');
 							localStorage.removeItem("session.token");
 							location.reload();
 						}
@@ -577,7 +579,6 @@ GuildTools.controller("TitleBarCtrl", function($scope) {
 			icon: "awe-logout", text: "Logout", action: function() {
 				$.exec("logout", function() {
 					$.error = function() {};
-					$.exec('close');
 					localStorage.removeItem("session.token");
 					location.reload();
 				});
@@ -590,6 +591,11 @@ GuildTools.controller("TitleBarCtrl", function($scope) {
 // Login Screen
 //
 GuildTools.controller("LoginCtrl", function($scope, $location) {
+	if ($.user) {
+		$location.path("/dashboard").replace();
+		return;
+	}
+	
 	$scope.inflight = false;
 	$scope.user = localStorage.getItem("login.user");
 	$scope.pass = "";
@@ -602,10 +608,9 @@ GuildTools.controller("LoginCtrl", function($scope, $location) {
 		if ($scope.inflight) return;
 		$scope.inflight = true;
 		
-		$.call("prepareLogin", $scope.user, function(err, res) {
+		$.call("login:prepare", { user: $scope.user }, function(err, res) {
 			if (!res) {
 				$scope.inflight = false;
-				//$scope.error = "Cet identifiant n'existe pas";
 				$scope.user = "";
 				$scope.pass = "";
 				_("#login-user").focus();
@@ -613,26 +618,15 @@ GuildTools.controller("LoginCtrl", function($scope, $location) {
 			}
 			
 			var pass = CryptoJS.MD5(phpbb_hash($scope.pass, res.setting) + res.salt).toString();
-			$.call("login", $scope.user, pass, function(err, res) {
+			$.call("login:exec", { user: $scope.user, pass: pass }, function(err, res) {
 				$scope.inflight = false;
 				
-				if (!res) {
-					//$scope.error = "Mot de passe incorrect";
+				if (res && res.session) {
+					localStorage.setItem("session.token", res.session);
+					$.wsAuth(true);
+				} else {
 					$scope.pass = "";
 					_("#login-pass").focus();
-					return;
-				}
-				
-				$.user = res.user;
-				$.user.chars = res.chars;
-				localStorage.setItem("session.token", res.token);
-				ga('set', 'userId', $.user.id);
-				ga('send', 'event', 'session', 'begin', $.anonSessId());
-				
-				if (res.chars.length) {
-					$location.path("/dashboard").replace();
-				} else {
-					$location.path("/welcome").replace();
 				}
 			});
 		});

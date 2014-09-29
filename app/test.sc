@@ -1,15 +1,20 @@
 import scala.util.Random
 import java.security.SecureRandom
 import java.math.BigInteger
+import play.api.libs.json.Json
+
+abstract class AFooBar(val title: String)
+case class EnglishName(name: Seq[String])
+case class FooBar(name: EnglishName, surname: EnglishName) extends AFooBar("Mr.")
 
 object Test {
-	import java.security.MessageDigest
-
-	def md5(s: String) = {
-		val bytes = MessageDigest.getInstance("MD5").digest(s.getBytes)
-		bytes.map("%1$02x".format(_)).mkString
-	}                                         //> md5: (s: String)String
-
-	md5("The quick brown fox jumps over the lazy dog")
-                                                  //> res0: String = 9e107d9d372bb6826bd81d3542a419d6
+	val foo = FooBar(EnglishName(Seq("Bastien", "Michel", "Tibault")), EnglishName(Seq("Clément")))
+                                                  //> foo  : FooBar = FooBar(EnglishName(List(Bastien, Michel, Tibault)),EnglishNa
+                                                  //| me(List(ClÃ©ment)))
+	implicit val EN = Json.format[EnglishName]//> EN  : play.api.libs.json.OFormat[EnglishName] = play.api.libs.json.OFormat$$
+                                                  //| anon$1@4b1c1ea0
+	implicit val FB = Json.format[FooBar]     //> FB  : play.api.libs.json.OFormat[FooBar] = play.api.libs.json.OFormat$$anon$
+                                                  //| 1@2bbf4b8b
+	Json.toJson(foo)                          //> res0: play.api.libs.json.JsValue = {"name":{"name":["Bastien","Michel","Tiba
+                                                  //| ult"]},"surname":{"name":["ClÃ©ment"]}}
 }

@@ -1,5 +1,6 @@
 package gt
 
+import Utils.using
 import scala.collection.mutable
 
 object MapBuilder {
@@ -9,11 +10,12 @@ object MapBuilder {
 }
 
 class MapBuilder[A, B](val producer: (A) => Option[B]) extends mutable.HashMap[A, B] {
-	override def get(key: A): Option[B] = this.synchronized {
+	override def get(key: A): Option[B] = synchronized {
 		super[HashMap].get(key) orElse {
-			val value = producer(key)
-			if (value.isDefined) this(key) = value.get
-			value
+			using(producer(key)) {
+				case Some(value) => this(key) = value
+				case None => /* nothing */
+			}
 		}
 	}
 }

@@ -12,10 +12,11 @@ _(function() { ready = true; });
 $.init = function() {
 	if ($$) $$.init(dead);
 	if (dead) return;
+	console.log("run init");
 	
 	$.wsConnect(function(e) {
 		$.error(
-			"Unnable to connect to the server",
+			"Unable to connect to the server",
 			"Please check your internet connection and your firewall configuration (port 2292) and try again.",
 			e.reason || "unknown error"
 		);
@@ -82,12 +83,13 @@ for (var i = 0; i < features.length; ++i) {
 (function() {
 
 var ws = null;
-var state = 0;
 var tries = 0;
 var calls = [];
 var inflight = 0;
 var queue = [];
 var sockid = null;
+var init_done = false;
+var reason = null;
 
 $.getInflight = function() {
 	return inflight;
@@ -212,6 +214,7 @@ $.wsConnect = function(err) {
 			);
 		}
 		
+		ws.onclose = $.wsReconnect;
 		ws.onmessage = function(msg) {
 			try {
 				msg = JSON.parse(msg.data);
@@ -224,7 +227,7 @@ $.wsConnect = function(err) {
 			var cmd = msg.$;
 			var id  = msg["#"];
 			var arg = msg["&"];
-			var handler = calls[id];
+			var handler = typeof id === "number" ? calls[id] : null;
 			
 			switch (cmd) {
 				case "ack":
@@ -253,52 +256,70 @@ $.wsConnect = function(err) {
 					delete calls[msg.results];
 					break;
 				
+				case "close":
+					reason = arg;
+					break;
+				
 				default:
 					var method = $.wsAPI[cmd];
 					if (!method) return;
 					
 					try {
 						method.call(null, arg);
-						if (GuildToolsScope) {
-							GuildToolsScope.safeApply();
-						}
+						if (GuildToolsScope) GuildToolsScope.safeApply();
 					} catch (e) {
 						console.error(e);
 					}
 			}
 		};
 		
-		$.call("auth", { session: localStorage.getItem("session.token"), socket: sockid }, function(err, res) {
-			if (err) return;
-			if (res.resume) {
-				for (var i = 0; i < queue.length; ++i) {
-					$.wsSend(queue[i]);
-				}
-				if($.user) ga('send', 'event', 'session', 'resume', $.anonSessId());
-				queue = [];
-			} else if (sockid !== null) {
-				sockid = res.socket;
-				$.user = res.user;
-				if($.user) {
-					ga('set', 'userId', $.user.id);
-					ga('send', 'event', 'session', 'resync', $.anonSessId());
-				}
-				GuildToolsScope.syncContext();
-			} else {
-				sockid = res.socket;
-				$.user = res.user;
-				if($.user) {
-					ga('set', 'userId', $.user.id);
-					ga('send', 'event', 'session', 'continue', $.anonSessId());
-				}
-				angular.bootstrap(document, ["GuildTools"]);
-				_("body").append("<div id='loading-done'></div>");
-			}
-			
-			GuildToolsScope.popupErrorText = null;
-			GuildToolsScope.safeApply();
-		});
+		$.wsAuth();
 	};
+};
+
+$.wsAuth = function(redirect) {
+	$.call("auth", { session: localStorage.getItem("session.token"), socket: sockid }, function(err, res) {
+		if (err) return;
+		if (res.resume) {
+			for (var i = 0; i < queue.length; ++i) {
+				$.wsSend(queue[i]);
+			}
+			if($.user) ga('send', 'event', 'session', 'resume', $.anonSessId());
+			queue = [];
+		} else if (sockid !== null) {
+			sockid = res.socket;
+			$.user = res.user;
+			if($.user) {
+				ga('set', 'userId', $.user.id);
+				ga('send', 'event', 'session', 'resync', $.anonSessId());
+			}
+			GuildToolsScope.syncContext();
+		} else {
+			sockid = res.socket;
+			$.user = res.user;
+			if($.user) {
+				ga('set', 'userId', $.user.id);
+				ga('send', 'event', 'session', 'continue', $.anonSessId());
+			}
+		}
+		
+		if(!init_done) {
+			init_done = true;
+			angular.bootstrap(document, ["GuildTools"]);
+			_("body").append("<div id='loading-done'></div>");
+		}
+		
+		GuildToolsScope.popupErrorText = null;
+		GuildToolsScope.safeApply(function() {
+			if (!$.user) {
+				GuildToolsLocation.path("/login").replace();
+			} else if (!$.user.ready) {
+				GuildToolsLocation.path("/welcome").replace();
+			} else if (redirect) {
+				GuildToolsLocation.path("/dashboard").replace();
+			}
+		});
+	});
 };
 
 $.wsSend = function(m) {
@@ -312,12 +333,14 @@ $.wsSend = function(m) {
 $.wsReconnect = function(e) {
 	if (dead) return;
 	
-	if (e && e.wasClean) {
-		return $.error(
+	if (reason !== null) {
+		$.error(
 			"You have been disconnected from the server",
 			"The server has closed the connection in response to an error.",
-			(e.reason || "unknow") + " (Error #" + (e.code || 0) + ")"
+			reason
 		);
+		reason = null;
+		return;
 	}
 	
 	GuildToolsScope.popupErrorText = "Reconnecting...";
