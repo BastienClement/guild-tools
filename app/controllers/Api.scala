@@ -10,7 +10,7 @@ import play.api.mvc.{Action, Controller, RequestHeader}
 
 object Api extends Controller {
 	def catchall(path: String) = Action {
-		Ok(Json.obj("error" -> "Undefined API call"))
+		NotFound(Json.obj("error" -> "Undefined API call"))
 	}
 
 	def gamedata = Cached((_: RequestHeader) => "api/gamedata", 3600) {
@@ -28,14 +28,10 @@ object Api extends Controller {
 					row[Int]("id").toString -> Map("name" -> row[String]("name"), "side" -> row[String]("side"))
 				}
 
-				val realms_map = Map[String, Map[String, String]]() ++ realms
-				val classes_map = Map[String, Map[String, String]]() ++ classes
-				val races_map = Map[String, Map[String, String]]() ++ races
-
 				Ok(Json.obj(
-					"realms" -> realms_map,
-					"classes" -> classes_map,
-					"races" -> races_map))
+					"realms" -> realms.toMap[String, Map[String, String]],
+					"classes" -> classes.toMap[String, Map[String, String]],
+					"races" -> races.toMap[String, Map[String, String]]))
 			}
 		}
 	}
