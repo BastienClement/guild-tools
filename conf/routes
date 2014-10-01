@@ -7,5 +7,8 @@ GET   /views/*file    controllers.Assets.at(path="/public/views", file)
 
 GET   /socket         controllers.Application.socket
 
+GET   /api/gamedata   controllers.Api.gamedata
+GET   /api/*path      controllers.Api.catchall(path)
+
 GET   /               controllers.Application.index
 GET   /*path          controllers.Application.catchall(path)

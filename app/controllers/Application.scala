@@ -1,11 +1,10 @@
 package controllers
 
-import play.api.Play.current
-import play.api.libs.json.JsValue
-import play.api.mvc.{ Action, Controller, WebSocket }
-
 import actors.SocketHandler
 import akka.actor.Props
+import play.api.Play.current
+import play.api.libs.json.JsValue
+import play.api.mvc.{Action, Controller, WebSocket}
 
 object Application extends Controller {
 	def index() = Action {
@@ -18,11 +17,4 @@ object Application extends Controller {
 		out =>
 			Props(new SocketHandler(out, request.remoteAddress))
 	}
-
-	/*def test = Action {
-		/*DB.withConnection { implicit c =>
-			val res = SQL("SELECT * FROM phpbb_users WHERE username = {user}").on("user" -> "Blash").apply().head
-			Ok(res[Long]("user_id").toString)
-		}*/
-	}*/
 }
