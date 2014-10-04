@@ -145,7 +145,7 @@
 		</div>
 		<div id="breadcrumb" ng-if="$.user">
 			<ul>
-				<li class="animated" ng-repeat="entry in breadcrumb.stack">
+				<li class="animated" ng-repeat="entry in breadcrumb.stack" ng-if="entry.name != ''">
 					<i class="awe-angle-right"></i>
 					<span ng-click="breadcrumb.rewind(entry.location)">
 						<img ng-src="/assets/images/icons/{{ entry.icon }}.png">

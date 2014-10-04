@@ -163,11 +163,11 @@
 					<img src="/assets/images/roles/HEALING.png" ng-class="{ active: char.role == 'HEALING' }" ng-click="role(char.id, 'HEALING')">
 					<img src="/assets/images/roles/DPS.png" ng-class="{ active: char.role == 'DPS' }" ng-click="role(char.id, 'DPS')">
 				</div>
-				<button ng-if="!char.main && char.active" ng-click="$.exec('promoteChar', char.id)">Main</button>
-				<button ng-if="!char.main && char.active" ng-click="$.exec('disableChar', char.id)">Disable</button>
-				<button ng-if="!char.active" ng-click="$.exec('enableChar', char.id)">Enable</button>
-				<button ng-if="!char.active" ng-click="$.exec('removeChar', char.id)">Remove</button>
-				<button ng-if="char.active" ng-click="$.exec('updateChar', char.id)">Update</button>
+				<button ng-if="!char.main && char.active" ng-click="$.exec('profile:promote', { id: char.id })">Main</button>
+				<button ng-if="!char.main && char.active" ng-click="$.exec('profile:disable', { id: char.id })">Disable</button>
+				<button ng-if="!char.active" ng-click="$.exec('profile:enable', { id: char.id })">Enable</button>
+				<button ng-if="!char.active" ng-click="$.exec('profile:remove', { id: char.id })">Remove</button>
+				<button ng-if="char.active" ng-click="$.exec('profile:update', { id: char.id })">Update</button>
 			</div>
 		</div>
 		<button ng-if="editable && chars.length < 15" class="box char add" ng-click="addChar()">

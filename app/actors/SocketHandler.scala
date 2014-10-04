@@ -14,6 +14,7 @@ import scala.util.{ Failure, Success }
 class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 	with AuthHandler
 	with EventsHandler
+	with ChatHandler
 	with ProfileHandler {
 	// Debug socket ID
 	val id = Utils.randomToken()
@@ -118,6 +119,9 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		// Events
 		case Message("events:bind", arg) => handleEventsBind(arg)
 		case Message("events:unbind", _) => handleEventsUnbind()
+
+		// Chat system
+		case Message("chat:onlines", _) => handleChatOnlines()
 
 		// Profile
 		case Message("profile:load", arg) => handleProfileLoad(arg)

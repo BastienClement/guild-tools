@@ -7,33 +7,31 @@ import play.api.Play.current
 import play.api.libs.json._
 import scala.annotation.tailrec
 import scala.collection.mutable
-
 import models._
 import models.mysql._
-import java.util.Date
-import java.sql.Timestamp
+import api.Message
 
 object User {
-	val users = MapBuilder((id: Int) => { createByID(id) })
+	var onlines = Map[Int, User]()
 
-	def findByID(id: Int): Option[User] = users.get(id)
-
-	def findBySession(session: String): Option[User] = {
-		DB.withSession { implicit s =>
-			Sessions.filter(_.token === session).firstOption flatMap { session =>
-				findByID(session.user)
+	def findByID(id: Int): Option[User] = {
+		onlines.get(id) orElse {
+			try {
+				val user = new User(id)
+				Some(user)
+			} catch {
+				case e: Throwable => None
 			}
 		}
 	}
 
-	def createByID(id: Int): Option[User] = {
-		try {
-			Some(new User(id))
-		} catch {
-			case e: Throwable => None
+	def findBySession(session: String): Option[User] = {
+		DB.withSession { implicit s =>
+			val user = for (s <- Sessions if s.token === session) yield s.user
+			user.firstOption flatMap (findByID(_))
 		}
 	}
-	
+
 	val developers = Set(1647)
 	val officier_groups = Set(11)
 }
@@ -54,8 +52,8 @@ class User(val id: Int) {
 		color = user.color
 
 		// Check if at least one caracter is registered for this user
-		val char = Chars.filter(_.owner === id).firstOption
-		ready = char.isDefined
+		val char = for (c <- Chars if c.owner === id) yield c.id
+		ready = char.firstOption.isDefined
 	}
 
 	val sockets = mutable.Set[Socket]()
@@ -64,8 +62,8 @@ class User(val id: Int) {
 		using(Socket.create(this, session, handler)) { new_socket =>
 			sockets.synchronized { sockets += new_socket }
 			DB.withSession { implicit s =>
-				val q = Sessions.filter(s => s.token === session && s.user === id).map(_.last_access)
-				q.update(new Timestamp(new Date().getTime()))
+				val l_a = for (s <- Sessions if s.token === session && s.user === id) yield s.last_access
+				l_a.update(NOW())
 			}
 		}
 	}
@@ -78,21 +76,33 @@ class User(val id: Int) {
 			}
 		}
 	}
+	
+	def !(m: Message) = sockets foreach (_ ! m)
 
 	def dispose(): Unit = {
-		User.users -= id
+		User.onlines -= id
+		User.onlines.values foreach {
+			_ ! Message("chat:onlines:update", Json.obj("type" -> "offline", "data" -> id))
+		}
 		Logger.info("Disposed user: " + toJson())
 	}
-	
-	def isOfficer: Boolean = User.officier_groups.exists(_ == group) || User.developers.exists(_ == id)
+
+	def isDev: Boolean = User.developers.exists(_ == id)
+	def isOfficer: Boolean = User.officier_groups.exists(_ == group) || isDev
 
 	def toJson(): JsObject = Json.obj(
-			"id" -> id,
-			"name" -> name,
-			"group" -> group,
-			"color" -> color,
-			"ready" -> ready,
-			"officer" -> isOfficer)
+		"id" -> id,
+		"name" -> name,
+		"group" -> group,
+		"color" -> color,
+		"ready" -> ready,
+		"officer" -> isOfficer,
+		"dev" -> isDev)
+		
+	User.onlines.values foreach {
+		_ ! Message("chat:onlines:update", Json.obj("type" -> "online", "data" -> toJson()))
+	}
 
+	User.onlines += (id -> this)
 	Logger.info("Created user: " + toJson())
 }

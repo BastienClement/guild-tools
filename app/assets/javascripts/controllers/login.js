@@ -3,6 +3,8 @@ GuildTools.controller("LoginCtrl", function($scope, $location) {
 		$location.path("/dashboard").replace();
 		return;
 	}
+	
+	$scope.setContext();
 
 	$scope.inflight = false;
 	$scope.user = localStorage.getItem("login.user");

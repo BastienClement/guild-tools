@@ -1,8 +1,9 @@
 package gt
 
 import Utils.using
+import api._
+import play.api.libs.json._
 import akka.actor.{ ActorRef, actorRef2Scala }
-import api.{ CloseMessage, OutgoingMessage }
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.duration.DurationInt
@@ -24,6 +25,9 @@ object Socket {
 	}
 
 	def findByID(id: String): Option[Socket] = sockets.get(id)
+	
+	def !(m: Message): Unit = sockets.values.par foreach { _ ! m }
+	def !!(e: Event): Unit = sockets.values.par foreach { _ !! e }
 }
 
 class Socket private (val token: String, val user: User, val session: String, var handler: ActorRef) {
@@ -61,6 +65,15 @@ class Socket private (val token: String, val user: User, val session: String, va
 			handler ! m
 		} else {
 			queue.enqueue(m)
+		}
+	}
+	
+	/**
+	 * Check if event is this socket listen to an event and send it
+	 */
+	def !!(e: Event): Unit = {
+		if (boundEvents.contains(e.name)) {
+			this ! Message("event:dispatch", Json.obj("name" -> e.name, "arg" -> e.arg))
 		}
 	}
 

@@ -76,6 +76,17 @@ for (var i = 0; i < features.length; ++i) {
 	}
 }
 
+$.syncOnlines = function() {
+	$.exec("chat:onlines", function(err, data) {
+		if (err) return;
+		$.online = data;
+		$.onlineMap = {};
+		$.online.forEach(function(player) {
+			$.onlineMap[player.id] = player;
+		});
+	});
+};
+
 //
 // Web socket
 //
@@ -95,26 +106,19 @@ $.getInflight = function() {
 };
 
 $.wsAPI = {
-	ping: function(cb) {
+	"ping": function(cb) {
 		cb();
 	},
 	
-	error: function(text) {
+	"error": function(text) {
 		if (typeof GuildToolsScope === "object") {
 			GuildToolsScope.error(text);
 		}
 	},
 	
-	updateOnline: function(type, data) {
-		switch (type) {
-			case "sync":
-				$.online = data;
-				$.onlineMap = {};
-				$.online.forEach(function(player) {
-					$.onlineMap[player.id] = player;
-				});
-				break;
-			
+	"chat:onlines:update": function(msg) {
+		var data = msg.data;
+		switch (msg.type) {
 			case "online":
 				if ($.onlineMap[data.id]) {
 					var player = $.onlineMap[data.id];
@@ -136,12 +140,8 @@ $.wsAPI = {
 		}
 	},
 	
-	updateChars: function(chars) {
-		if ($.user) $.user.chars = chars;
-	},
-	
-	contextMessage: function(ctx, msg, args) {
-		GuildToolsScope.handleMessage(ctx, msg, args);
+	"event:dispatch": function(e) {
+		GuildToolsScope.dispatchEvent(e.event, e.arg);
 	}
 };
 
@@ -289,6 +289,7 @@ $.wsAuth = function(redirect) {
 			sockid = res.socket;
 			$.user = res.user;
 			if($.user) {
+				$.syncOnlines();
 				ga('set', 'userId', $.user.id);
 				ga('send', 'event', 'session', 'resync', $.anonSessId());
 			}
@@ -297,6 +298,7 @@ $.wsAuth = function(redirect) {
 			sockid = res.socket;
 			$.user = res.user;
 			if($.user) {
+				$.syncOnlines();
 				ga('set', 'userId', $.user.id);
 				ga('send', 'event', 'session', 'continue', $.anonSessId());
 			}

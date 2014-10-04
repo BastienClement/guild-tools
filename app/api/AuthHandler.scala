@@ -62,8 +62,8 @@ trait AuthHandler { this: SocketHandler =>
 		val user = (arg \ "user").as[String].toLowerCase
 
 		DB.withSession { implicit s =>
-			val password = Users.filter(_.name_clean === user).map(_.pass).firstOption
-			password map { pass =>
+			val password = for (u <- Users if u.name_clean === user) yield u.pass
+			password.firstOption map { pass =>
 				val setting = pass.slice(0, 12)
 				MessageResults(Json.obj("setting" -> setting, "salt" -> auth_salt))
 			} getOrElse {
@@ -84,12 +84,11 @@ trait AuthHandler { this: SocketHandler =>
 		auth_salt = Utils.randomToken()
 
 		DB.withSession { implicit s =>
-			val user_credentials = Users.filter(_.name_clean === user).map(u => (u.pass, u.id)).firstOption 
-			user_credentials filter { case (pass_ref, id) =>
+			val user_credentials = for (u <- Users if u.name_clean === user) yield (u.pass, u.id)
+			user_credentials.firstOption filter { case (pass_ref, id) =>
 				pass == Utils.md5(pass_ref + salt)
 			} map { case (pass_ref, id) =>
-				@tailrec
-				def createSession(attempt: Int = 1): Option[String] = {
+				@tailrec def createSession(attempt: Int = 1): Option[String] = {
 					val token = Utils.randomToken()
 					val query = sqlu"INSERT INTO gt_sessions SET token = $token, user = $id, ip = $remoteAddr, created = NOW(), last_access = NOW()"
 
@@ -123,9 +122,11 @@ trait AuthHandler { this: SocketHandler =>
 	def handleLogout(): MessageResponse = {
 		if (socket != null) {
 			DB.withSession { implicit s =>
-				Sessions.filter(_.token === socket.session).delete
-				this.socket = null
-				this.dispatcher = unauthenticatedDispatcher
+				val session = for (s <- Sessions if s.token === socket.session) yield s
+				session.delete
+				socket.dispose()
+				socket = null
+				dispatcher = unauthenticatedDispatcher
 				MessageSuccess()
 			}
 		} else {

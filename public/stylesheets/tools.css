@@ -543,11 +543,11 @@ header {
 }
 
 .authenticated .main-view {
-	left: 70px;
+	left: 62px;
 }
 
 .main-view.animated.ng-enter {
-	transition: opacity ease-out .3s .2s;
+	transition: opacity ease-out .3s .5s;
 }
 
 #modal {
