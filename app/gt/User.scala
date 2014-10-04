@@ -2,15 +2,15 @@ package gt
 
 import Utils.using
 import akka.actor.ActorRef
-import anorm.ParameterValue.toParameterValue
-import anorm.SqlStringInterpolation
 import play.api.Logger
 import play.api.Play.current
-import play.api.db.DB
-import play.api.libs.json.{ JsObject, Json }
-import play.api.libs.json.Json.toJsFieldJsValueWrapper
+import play.api.libs.json._
 import scala.annotation.tailrec
 import scala.collection.mutable
+import models._
+import models.MySQL._
+import java.util.Date
+import java.sql.Timestamp
 
 object User {
 	val users = MapBuilder((id: Int) => { createByID(id) })
@@ -18,10 +18,9 @@ object User {
 	def findByID(id: Int): Option[User] = users.get(id)
 
 	def findBySession(session: String): Option[User] = {
-		DB.withConnection { implicit c =>
-			val row = SQL"SELECT user FROM gt_sessions WHERE token = $session LIMIT 1".singleOpt()
-			row.flatMap { row =>
-				findByID(row[Int]("user"))
+		DB.withSession { implicit s =>
+			Sessions.filter(_.token === session).firstOption flatMap { session =>
+				findByID(session.user)
 			}
 		}
 	}
@@ -44,14 +43,16 @@ class User(val id: Int) {
 	updatePropreties()
 
 	def updatePropreties(): Unit = {
-		DB.withConnection { implicit c =>
-			val user_row = SQL"SELECT username, group_id, user_colour FROM phpbb_users WHERE user_id = $id LIMIT 1".single()
-			name = user_row[String]("username")
-			group = user_row[Int]("group_id")
-			color = user_row[String]("user_colour")
+		DB.withSession { implicit s =>
+			val user = Users.filter(_.id === id).first
+
+			name = user.name
+			group = user.group
+			color = user.color
 
 			// Check if at least one caracter is registered for this user
-			ready = SQL"SELECT id FROM gt_chars WHERE owner = $id LIMIT 1".singleOpt().isDefined
+			val char = Chars.filter(_.owner === id).firstOption
+			ready = char.isDefined
 		}
 	}
 
@@ -60,8 +61,9 @@ class User(val id: Int) {
 	def createSocket(session: String, handler: ActorRef): Socket = {
 		using(Socket.create(this, session, handler)) { new_socket =>
 			sockets.synchronized { sockets += new_socket }
-			DB.withConnection { implicit c =>
-				SQL"UPDATE gt_sessions SET last_access = NOW() WHERE token = $session AND user = $id LIMIT 1".executeUpdate()
+			DB.withSession { implicit s =>
+				val q = Sessions.filter(s => s.token === session && s.user === id).map(_.last_access)
+				q.update(new Timestamp(new Date().getTime()))
 			}
 		}
 	}
@@ -72,6 +74,12 @@ class User(val id: Int) {
 			if (sockets.size < 1) {
 				dispose()
 			}
+		}
+	}
+
+	def chars = {
+		DB.withSession { implicit c =>
+			
 		}
 	}
 

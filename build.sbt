@@ -15,4 +15,6 @@ libraryDependencies ++= Seq(
 
 libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.27"
 
+libraryDependencies += "com.typesafe.play" %% "play-slick" % "0.8.0"
+
 pipelineStages := Seq(digest, gzip)

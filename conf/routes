@@ -10,5 +10,7 @@ GET   /socket         controllers.Application.socket
 GET   /api/gamedata   controllers.Api.gamedata
 GET   /api/*path      controllers.Api.catchall(path)
 
+GET   /test           controllers.Application.test
+
 GET   /               controllers.Application.index
 GET   /*path          controllers.Application.catchall(path)
