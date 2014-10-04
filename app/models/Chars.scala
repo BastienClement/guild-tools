@@ -1,6 +1,6 @@
 package models
 
-import MySQL._
+import mysql._
 
 case class Char(
 		id: Int,
@@ -39,6 +39,4 @@ class Chars(tag: Tag) extends Table[Char](tag, "gt_chars") {
 	def * = (id, name, server, owner, main, active, klass, race, gender, level, achievements, thumbnail, ilvl, role) <> (Char.tupled, Char.unapply)
 }
 
-object Chars extends TableQuery(new Chars(_)) {
-
-}
+object Chars extends TableQuery(new Chars(_))

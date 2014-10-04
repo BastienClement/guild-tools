@@ -114,6 +114,9 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 	def authenticatedDispatcher: MessageDispatcher = {
 		// Auth
 		case Message("logout", _) => handleLogout()
+		
+		// Profile
+		case Message("profile:load", arg) => handleProfileLoad(arg)
 
 		// Default
 		case _ => MessageFailure("UNAVAILABLE")

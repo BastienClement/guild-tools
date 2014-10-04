@@ -1,10 +1,8 @@
 package models
 
-import MySQL._
+import mysql._
 
-case class User(id: Int, name: String, group: Int, color: String, pass: String, name_clean: String) {
-	def toPublic: PublicUser = PublicUser(id, name, group, color)
-}
+case class User(id: Int, name: String, group: Int, color: String)
 
 case class PublicUser(id: Int, name: String, group: Int, color: String)
 
@@ -17,9 +15,7 @@ class Users(tag: Tag) extends Table[User](tag, "phpbb_users") {
 	def pass = column[String]("user_password")
 	def name_clean = column[String]("username_clean")
 
-	def * = (id, name, group, color, pass, name_clean) <> (User.tupled, User.unapply)
+	def * = (id, name, group, color) <> (User.tupled, User.unapply)
 }
 
-object Users extends TableQuery(new Users(_)) {
-	
-}
+object Users extends TableQuery(new Users(_))

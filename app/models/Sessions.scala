@@ -1,6 +1,6 @@
 package models
 
-import MySQL._
+import mysql._
 import java.sql.Timestamp
 
 case class Session(token: String, user: Int, ip: String, created: Timestamp, last_access: Timestamp)
@@ -15,6 +15,4 @@ class Sessions(tag: Tag) extends Table[Session](tag, "gt_sessions") {
 	def * = (token, user, ip, created, last_access) <> (Session.tupled, Session.unapply)
 }
 
-object Sessions extends TableQuery(new Sessions(_)) {
-
-}
+object Sessions extends TableQuery(new Sessions(_))

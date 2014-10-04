@@ -7,7 +7,7 @@ import play.api.libs.json.JsValue
 import play.api.mvc.{Action, Controller, WebSocket}
 
 import models._
-import models.MySQL._
+import models.mysql._
 
 object Application extends Controller {
 	def index() = Action {

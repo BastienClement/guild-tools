@@ -1,9 +1,11 @@
 import play.api.Play.current
-import scala.slick.lifted.SimpleFunction
-import java.sql.Timestamp
+import play.api.libs.json._
 
 package object models {
 	val DB = play.api.db.slick.DB
-	val MySQL = scala.slick.driver.MySQLDriver.simple
+	val mysql = scala.slick.driver.MySQLDriver.simple
 	val sql = scala.slick.jdbc.StaticQuery
+
+	implicit val userJsonFormat = Json.format[User]
+	implicit val charJsonFormat = Json.format[Char]
 }
