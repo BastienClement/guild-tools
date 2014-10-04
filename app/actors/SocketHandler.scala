@@ -1,20 +1,20 @@
 package actors
 
-import akka.actor.{Actor, ActorRef, PoisonPill, actorRef2Scala}
-import api.{AuthHandler, CloseMessage, Message, MessageFailure, MessageResponse, MessageResults, MessageSilent, MessageSuccess, ProfileHandler}
-import gt.{Socket, Utils}
+import akka.actor.{ Actor, ActorRef, PoisonPill, actorRef2Scala }
+import api._
+import gt.{ Socket, Utils }
 import gt.Global.ExecutionContext
 import java.util.concurrent.atomic.AtomicInteger
 import play.api.Logger
-import play.api.libs.json.{JsNull, JsValue, Json}
+import play.api.libs.json.{ JsNull, JsValue, Json }
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
+import scala.util.{ Failure, Success }
 
 class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 	with AuthHandler
-	with ProfileHandler
-{
+	with EventsHandler
+	with ProfileHandler {
 	// Debug socket ID
 	val id = Utils.randomToken()
 
@@ -34,7 +34,7 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 	val concurrentDispatch = new AtomicInteger(0)
 
 	// Attached socket object
-	var socket: Option[Socket] = None
+	var socket: Socket = null
 
 	def receive = {
 		// Incoming message
@@ -114,7 +114,11 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 	def authenticatedDispatcher: MessageDispatcher = {
 		// Auth
 		case Message("logout", _) => handleLogout()
-		
+
+		// Events
+		case Message("events:bind", arg) => handleEventsBind(arg)
+		case Message("events:unbind", _) => handleEventsUnbind()
+
 		// Profile
 		case Message("profile:load", arg) => handleProfileLoad(arg)
 
@@ -124,8 +128,8 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 
 	override def postStop(): Unit = {
 		Logger.debug(s"Socket close: $remoteAddr-$id")
-		if (socket.isDefined) {
-			socket.get.detach()
+		if (socket != null) {
+			socket.detach()
 		}
 	}
 }

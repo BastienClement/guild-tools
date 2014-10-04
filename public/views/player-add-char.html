@@ -65,7 +65,7 @@
 		<label>
 			Server
 			<select ng-model="server" required>
-				<option ng-repeat="(slug, infos) in gameData.servers" value="{{ slug }}">{{ infos.name }}</option>
+				<option ng-repeat="(slug, infos) in gameData.realms" value="{{ slug }}">{{ infos.name }}</option>
 			</select>
 		</label>
 		<label>
@@ -87,9 +87,9 @@
 				<div class="sub">{{ char.level }} {{ gameData.races[char.race].name }} {{ gameData.classes[char['class']].name }}</div>
 				<label class="role">
 					Role:
-					<img src="/assets/role/TANK.png" ng-class="{ active: role == 'TANK' }" ng-click="setRole('TANK')">
-					<img src="/assets/role/HEALING.png" ng-class="{ active: role == 'HEALING' }" ng-click="setRole('HEALING')">
-					<img src="/assets/role/DPS.png" ng-class="{ active: role == 'DPS' }" ng-click="setRole('DPS')">
+					<img src="/assets/images/roles/TANK.png" ng-class="{ active: role == 'TANK' }" ng-click="setRole('TANK')">
+					<img src="/assets/images/roles/HEALING.png" ng-class="{ active: role == 'HEALING' }" ng-click="setRole('HEALING')">
+					<img src="/assets/images/roles/DPS.png" ng-class="{ active: role == 'DPS' }" ng-click="setRole('DPS')">
 				</label>
 			</div>
 			<button class="confirm" ng-click="confirm()" ng-disabled="loading">Confirm</button>

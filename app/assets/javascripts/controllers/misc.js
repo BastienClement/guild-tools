@@ -10,7 +10,7 @@ GuildTools.controller("WelcomeCtrl", function($scope, $location) {
 GuildTools.controller("DashboardCtrl", function($scope, $location) {
 	if ($scope.restrict()) return;
 
-	$.exec("resetContext");
+	$.exec("events:unbind");
 
 	$scope.go = function(path) {
 		$location.path(path);

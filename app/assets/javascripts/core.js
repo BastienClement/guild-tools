@@ -12,7 +12,6 @@ _(function() { ready = true; });
 $.init = function() {
 	if ($$) $$.init(dead);
 	if (dead) return;
-	console.log("run init");
 	
 	$.wsConnect(function(e) {
 		$.error(

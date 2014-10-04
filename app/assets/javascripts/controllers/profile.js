@@ -11,11 +11,11 @@ GuildTools.controller("ProfileCtrl", function($scope, $location, $routeParams) {
 	$scope.profile = {};
 	$scope.chars = [];
 
-	$scope.setContext("profile:load", [userid], {
+	$scope.setContext("profile:load", { id: userid }, {
 		$: function(res) {
-			$scope.profile = profile;
-			$scope.chars = chars;
-			$scope.breadcrumb.override({ name: profile.name });
+			$scope.profile = res.user;
+			$scope.chars = res.chars;
+			$scope.breadcrumb.override({ name: res.user.name });
 		},
 
 		CharUpdated: function(id, change) {
@@ -57,23 +57,23 @@ GuildTools.controller("ProfileCtrl", function($scope, $location, $routeParams) {
 	});
 
 	$scope.remove = function(id) {
-		$.call("removeChar", id);
+		$.call("profile:remove", { id: id });
 	};
 
 	$scope.enable = function(id) {
-		$.call("enableChar", id);
+		$.call("profile:enable", { id: id });
 	};
 
 	$scope.disable = function(id) {
-		$.call("disableChar", id);
+		$.call("profile:disable", { id: id });
 	};
 
 	$scope.promote = function(id) {
-		$.call("promoteChar", id);
+		$.call("profile:promote", { id: id });
 	};
 
 	$scope.role = function(id, role) {
-		$.call("switchCharRole", id, role);
+		$.call("profile:role", { id: id, role: role });
 	};
 
 	$scope.addChar = function() {

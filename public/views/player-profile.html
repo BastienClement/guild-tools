@@ -159,9 +159,9 @@
 			<div class="update">{{ timeago(char.last_update) }}</div>
 			<div class="actions" ng-if="editable">
 				<div class="role">
-					<img src="/assets/role/TANK.png" ng-class="{ active: char.role == 'TANK' }" ng-click="role(char.id, 'TANK')">
-					<img src="/assets/role/HEALING.png" ng-class="{ active: char.role == 'HEALING' }" ng-click="role(char.id, 'HEALING')">
-					<img src="/assets/role/DPS.png" ng-class="{ active: char.role == 'DPS' }" ng-click="role(char.id, 'DPS')">
+					<img src="/assets/images/roles/TANK.png" ng-class="{ active: char.role == 'TANK' }" ng-click="role(char.id, 'TANK')">
+					<img src="/assets/images/roles/HEALING.png" ng-class="{ active: char.role == 'HEALING' }" ng-click="role(char.id, 'HEALING')">
+					<img src="/assets/images/roles/DPS.png" ng-class="{ active: char.role == 'DPS' }" ng-click="role(char.id, 'DPS')">
 				</div>
 				<button ng-if="!char.main && char.active" ng-click="$.exec('promoteChar', char.id)">Main</button>
 				<button ng-if="!char.main && char.active" ng-click="$.exec('disableChar', char.id)">Disable</button>

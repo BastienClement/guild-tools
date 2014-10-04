@@ -16,7 +16,8 @@ case class Char(
 		achievements: Int,
 		thumbnail: String,
 		ilvl: Int,
-		role: String) {
+		role: String,
+		last_update: Long) {
 	val klass = `class`
 }
 
@@ -35,8 +36,9 @@ class Chars(tag: Tag) extends Table[Char](tag, "gt_chars") {
 	def thumbnail = column[String]("thumbnail")
 	def ilvl = column[Int]("ilvl")
 	def role = column[String]("role")
+	def last_update = column[Long]("last_update")
 
-	def * = (id, name, server, owner, main, active, klass, race, gender, level, achievements, thumbnail, ilvl, role) <> (Char.tupled, Char.unapply)
+	def * = (id, name, server, owner, main, active, klass, race, gender, level, achievements, thumbnail, ilvl, role, last_update) <> (Char.tupled, Char.unapply)
 }
 
 object Chars extends TableQuery(new Chars(_))

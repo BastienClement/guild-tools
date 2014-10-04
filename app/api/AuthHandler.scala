@@ -26,7 +26,7 @@ trait AuthHandler { this: SocketHandler =>
 				Socket.findByID(_)
 			} map { socket =>
 				socket.updateHandler(self)
-				this.socket = Some(socket)
+				this.socket = socket
 				this.dispatcher = authenticatedDispatcher
 				Json.obj("resume" -> true)
 			}
@@ -37,7 +37,7 @@ trait AuthHandler { this: SocketHandler =>
 			session_id flatMap { session =>
 				User.findBySession(session) map (_.createSocket(session, self))
 			} map { socket =>
-				this.socket = Some(socket)
+				this.socket = socket
 				this.dispatcher = authenticatedDispatcher
 				Json.obj(
 					"socket" -> socket.token,
@@ -121,20 +121,15 @@ trait AuthHandler { this: SocketHandler =>
 	 * $:logout
 	 */
 	def handleLogout(): MessageResponse = {
-		this.socket match {
-			case Some(socket) => {
-				DB.withSession { implicit s =>
-					Sessions.filter(_.token === socket.session).delete
-					this.socket = None
-					this.dispatcher = unauthenticatedDispatcher
-					MessageSuccess()
-				}
+		if (socket != null) {
+			DB.withSession { implicit s =>
+				Sessions.filter(_.token === socket.session).delete
+				this.socket = null
+				this.dispatcher = unauthenticatedDispatcher
+				MessageSuccess()
 			}
-
-			case None => {
-				MessageFailure("NO_SESSION")
-			}
+		} else {
+			MessageFailure("NO_SESSION")
 		}
-
 	}
 }

@@ -48,6 +48,8 @@ class Socket private (val token: String, val user: User, val session: String, va
 	val disposeTimeout = FuseTimer.create(30.seconds) {
 		dispose()
 	}
+	
+	var boundEvents = Set[String]()
 
 	/**
 	 * Send message to the socket or enqueue it if not open

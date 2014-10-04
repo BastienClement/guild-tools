@@ -117,7 +117,7 @@
 		});
 	</script>
 </head>
-<body class="loading live" ng-controller="GlobalCtrl" ng-class="{ 'modal-visible': modalView }">
+<body class="loading live" ng-controller="GlobalCtrl" ng-class="{ 'modal-visible': modalView, 'authenticated': $.user }">
 	<div id="loading-cover"></div>
 	<div id="loading-error">
 		<div id="loading-error-frame">
@@ -180,7 +180,7 @@
 			</li>
 			
 			<li ng-click="breadcrumb.push('/player/profile')">
-				<img src="/assets/images/icons/helm.png">
+				<img src="/assets/images/icons/helm2.png">
 				<div>Player</div>
 			</li>
 		

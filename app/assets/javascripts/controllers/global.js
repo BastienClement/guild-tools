@@ -1,4 +1,4 @@
-GuildTools.controller("GlobalCtrl", function($scope, $location) {
+GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	GuildToolsScope = $scope;
 	GuildToolsLocation = $location;
 
@@ -41,7 +41,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location) {
 		var location_data = [
 			["/welcome", "planet", "Getting Started"],
 
-			[/^\/player\/profile(\/\d+)?$/, "helm", ""],
+			[/^\/player\/profile(\/\d+)?$/, "helm2", ""],
 
 			["/calendar", "calendar", "Calendar"],
 			[/^\/calendar\/event\/\d+$/, "events", ""],
@@ -201,36 +201,65 @@ GuildTools.controller("GlobalCtrl", function($scope, $location) {
 		$scope.gameData = data;
 	});*/
 
-	var current_ctx = null;
+	$http({
+		url: "/api/gamedata",
+		dataType: "json",
+		method: "GET"
+	}).success(function(data) {
+		$scope.gameData = data;
+	});
+
+	var ctx_loader = null;
 	var ctx_params = null;
+	var ctx_valid = false;
+	var ctx_inflight = false;
 	var ctx_handlers = {};
 
-	$scope.setContext = function(ctx, params, handlers) {
-		current_ctx = ctx;
+	$scope.setContext = function(loader, params, handlers) {
+		ctx_loader = loader;
 		ctx_params = params;
+		ctx_handlers = handlers;
 
-		if (!ctx) {
-			$.exec("resetContext");
+		if (!loader) {
+			$.exec("events:unbind");
+			ctx_valid = false;
 			return;
 		}
 
-		ctx_handlers = handlers;
 		$scope.syncContext();
 	};
 
 	$scope.syncContext = function() {
-		$.call("setContext", current_ctx, ctx_params, function(err, args) {
-			if (err || !args) return $scope.breadcrumb.rewind("/dashboard");
-			if (typeof ctx_handlers.$ === "function") {
-				ctx_handlers.$.apply(null, args);
-			}
+		if (ctx_inflight) return;
+		
+		ctx_inflight = true;
+		ctx_valid = false;
+		
+		var events = Object.keys(ctx_handlers).filter(function(e) { return e !== "$"; });
+		
+		function error() {
+			ctx_inflight = false;
+			$scope.error("Error while switching contexts");
+			$scope.breadcrumb.rewind("/dashboard");
+		}
+		
+		$.call(ctx_loader, ctx_params, function(err, res) {
+			if (err) return error();
+			$.call("events:bind", { events: events }, function(err) {
+				if (err) return error();
+				ctx_valid = true;
+				ctx_inflight = false;
+				if (typeof ctx_handlers.$ === "function") {
+					ctx_handlers.$(res);
+				}
+			});
 		});
 	};
 
-	$scope.handleMessage = function(ctx, msg, args) {
-		if (current_ctx !== ctx) return;
-		if (!ctx_handlers[msg]) return;
-		ctx_handlers[msg].apply(null, args);
+	$scope.dispatchEvent = function(event, arg) {
+		if (!ctx_valid) return;
+		if (!ctx_handlers[event]) return;
+		ctx_handlers[event](arg);
 	};
 
 	$scope.menuContent = null;
