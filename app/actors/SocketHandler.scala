@@ -6,8 +6,7 @@ import gt.{ Socket, Utils }
 import gt.Global.ExecutionContext
 import java.util.concurrent.atomic.AtomicInteger
 import play.api.Logger
-import play.api.libs.json.{ JsNull, JsValue, Json }
-import play.api.libs.json.Json.toJsFieldJsValueWrapper
+import play.api.libs.json._
 import scala.concurrent.Future
 import scala.util.{ Failure, Success }
 
@@ -28,7 +27,7 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 	Logger.debug(s"Socket open: $remoteAddr-$id")
 
 	// Current message handler
-	type MessageDispatcher = PartialFunction[Message, MessageResponse]
+	type MessageDispatcher = Function2[String, JsValue, MessageResponse]
 	var dispatcher: MessageDispatcher = unauthenticatedDispatcher
 
 	// Parallel requests counter
@@ -48,7 +47,7 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 				try {
 					val cmd = (message \ "$").as[String]
 					val arg = (message \ "&")
-					dispatcher(Message(cmd, arg))
+					dispatcher(cmd, arg)
 				} finally {
 					concurrentDispatch.decrementAndGet()
 				}
@@ -58,18 +57,26 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 				case Success(msg) => {
 					Logger.debug(s"<<< $msg")
 					msg match {
-						case MessageSuccess() =>
+						case _ if id == JsNull => {
+							/* client is not interested by the result */
+						}
+
+						case MessageSuccess() => {
 							out ! Json.obj("$" -> "ack", "#" -> id, "&" -> JsNull)
-						case MessageResults(res) =>
+						}
+
+						case MessageResults(res) => {
 							out ! Json.obj("$" -> "res", "#" -> id, "&" -> res)
-						case MessageFailure(err, message) =>
+						}
+
+						case MessageFailure(err, message) => {
 							out ! Json.obj(
 								"$" -> "nok",
 								"#" -> id,
 								"&" -> Json.obj(
 									"e" -> err,
 									"m" -> message))
-						case MessageSilent() => /* silent */
+						}
 					}
 				}
 
@@ -89,13 +96,15 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 
 		// Close message
 		case CloseMessage(arg) => {
-			out ! Json.obj("$" -> "close", "&" -> arg, "#" -> JsNull)
+			out ! Json.obj("$" -> "close", "&" -> arg)
 			self ! PoisonPill
 		}
 
 		// Outgoing message
 		case Message(cmd, arg) => {
-			out ! Json.obj("$" -> cmd, "&" -> arg, "#" -> JsNull)
+			val msg = Json.obj("$" -> cmd, "&" -> arg)
+			Logger.debug(s"<<< $msg")
+			out ! msg
 		}
 	}
 
@@ -103,30 +112,24 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		// Prevent concurrent requests before authentication
 		case _ if (concurrentDispatch.get() > 1) => MessageFailure("ANON_CONCURRENT")
 
-		// Auth
-		case Message("auth", arg) => handleAuth(arg)
-		case Message("login:prepare", arg) => handleLoginPrepare(arg)
-		case Message("login:exec", arg) => handleLoginExec(arg)
+		case ("auth", arg) => handleAuth(arg)
+		case ("login:prepare", arg) => handleLoginPrepare(arg)
+		case ("login:exec", arg) => handleLoginExec(arg)
 
-		// Default
 		case _ => MessageFailure("UNAVAILABLE")
 	}
 
 	def authenticatedDispatcher: MessageDispatcher = {
-		// Auth
-		case Message("logout", _) => handleLogout()
+		case ("logout", _) => handleLogout()
 
-		// Events
-		case Message("events:bind", arg) => handleEventsBind(arg)
-		case Message("events:unbind", _) => handleEventsUnbind()
+		case ("events:bind", arg) => handleEventsBind(arg)
+		case ("events:unbind", _) => handleEventsUnbind()
+		case ("chat:onlines", _) => handleChatOnlines()
+		case ("profile:load", arg) => handleProfileLoad(arg)
+		case ("profile:enable", arg) => handleProfileEnable(arg, true)
+		case ("profile:disable", arg) => handleProfileEnable(arg, false)
+		case ("profile:promote", arg) => handleProfilePromote(arg)
 
-		// Chat system
-		case Message("chat:onlines", _) => handleChatOnlines()
-
-		// Profile
-		case Message("profile:load", arg) => handleProfileLoad(arg)
-
-		// Default
 		case _ => MessageFailure("UNAVAILABLE")
 	}
 

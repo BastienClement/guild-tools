@@ -216,6 +216,15 @@
 		</ul>
 	</nav>
 	
+	<nav id="topbar">
+		<ul ng-if="$.user" class="animated">
+			<li ng-click="breadcrumb.rewind('/')" class="active">Lorem</li>
+			<li ng-click="breadcrumb.rewind('/')">Ipsum</li>
+			<li ng-click="breadcrumb.rewind('/')">Dolores</li>
+			<li ng-click="breadcrumb.rewind('/')">Sit</li>
+		</ul>
+	</nav>
+	
 	<div class="main-view animated" ng-view></div>
 	
 	<div id="error-popup" class="animated" ng-if="popupErrorText">

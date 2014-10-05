@@ -19,15 +19,7 @@ object Utils {
 	 * Return the Akka system schduler
 	 */
 	def scheduler = Akka.system().scheduler
-
-	/**
-	 * Execute some async code with the given value and return that value
-	 */
-	def using[T](value: T)(body: T => Unit): T = {
-		Future { body(value) }
-		value
-	}
-
+	
 	/**
 	 * MD5 hash with hex string result
 	 */

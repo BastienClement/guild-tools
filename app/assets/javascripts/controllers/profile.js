@@ -15,16 +15,24 @@ GuildTools.controller("ProfileCtrl", function($scope, $location, $routeParams) {
 		$: function(res) {
 			$scope.profile = res.user;
 			$scope.chars = res.chars;
+			
+			$scope.chars.sort(function(a, b) {
+				if (a.main !== b.main) return a.main ? -1 : 1;
+				if (a.active !== b.active) return a.active ? -1 : 1;
+				return a.name.localeCompare(b.name);
+			});
+			
 			$scope.breadcrumb.override({ name: res.user.name });
 		},
 
-		CharUpdated: function(id, change) {
+		"char:update": function(char) {
 			for (var i = 0; i < $scope.chars.length; ++i) {
-				var char = $scope.chars[i];
-				if (char.id === id) {
-					for (var key in change) {
-						char[key] = change[key];
+				var c = $scope.chars[i];
+				if (c.id === char.id) {
+					for (var key in char) {
+						c[key] = char[key];
 					}
+					console.log(c);
 					return;
 				}
 			}

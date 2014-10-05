@@ -17,5 +17,5 @@
 	<logger name="application" level="DEBUG">
 		<appender-ref ref="STDOUT" />
 	</logger>
-
+	
 </configuration>

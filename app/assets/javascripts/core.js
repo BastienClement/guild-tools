@@ -140,8 +140,8 @@ $.wsAPI = {
 		}
 	},
 	
-	"event:dispatch": function(e) {
-		GuildToolsScope.dispatchEvent(e.event, e.arg);
+	"event:dispatch": function(event) {
+		GuildToolsScope.dispatchEvent(event.name, event.arg);
 	}
 };
 

@@ -1,6 +1,5 @@
 package gt
 
-import Utils.using
 import akka.actor.ActorRef
 import play.api.Logger
 import play.api.Play.current
@@ -14,10 +13,15 @@ import api.Message
 object User {
 	var onlines = Map[Int, User]()
 
-	def findByID(id: Int): Option[User] = {
+	def disposed(user: User): Unit = onlines.synchronized {
+		onlines -= user.id
+	}
+
+	def findByID(id: Int): Option[User] = onlines.synchronized {
 		onlines.get(id) orElse {
 			try {
 				val user = new User(id)
+				User.onlines += (id -> user)
 				Some(user)
 			} catch {
 				case e: Throwable => None
@@ -42,11 +46,25 @@ class User(val id: Int) {
 	var color = ""
 	var ready = false
 
+	var developer = false
+	var officer = false
+
+	var sockets = Set[Socket]()
+
 	updatePropreties()
 
-	def updatePropreties(): Unit = DB.withSession { implicit s =>
-		val user = Users.filter(_.id === id).first
+	User.onlines.values foreach {
+		_ ! Message("chat:onlines:update", Json.obj("type" -> "online", "data" -> toJson()))
+	}
 
+	Logger.info("Created user: " + toJson())
+
+	/**
+	 * Fetch user propreties
+	 */
+	def updatePropreties(): Unit = DB.withSession { implicit s =>
+		// Basic attributes
+		val user = Users.filter(_.id === id).first
 		name = user.name
 		group = user.group
 		color = user.color
@@ -54,20 +72,32 @@ class User(val id: Int) {
 		// Check if at least one caracter is registered for this user
 		val char = for (c <- Chars if c.owner === id) yield c.id
 		ready = char.firstOption.isDefined
+
+		// Access rights
+		developer = User.developers.exists(_ == id)
+		officer = developer || User.officier_groups.exists(_ == group)
 	}
 
-	val sockets = mutable.Set[Socket]()
-
+	/**
+	 * Create a new socket object for this user
+	 */
 	def createSocket(session: String, handler: ActorRef): Socket = {
-		using(Socket.create(this, session, handler)) { new_socket =>
-			sockets.synchronized { sockets += new_socket }
-			DB.withSession { implicit s =>
-				val l_a = for (s <- Sessions if s.token === session && s.user === id) yield s.last_access
-				l_a.update(NOW())
-			}
+		// Create and register a new socket
+		val socket = Socket.create(this, session, handler)
+		sockets.synchronized { sockets += socket }
+
+		// Update gt_sessions.last_access
+		DB.withSession { implicit s =>
+			val l_a = for (s <- Sessions if s.token === session && s.user === id) yield s.last_access
+			l_a.update(NOW())
 		}
+
+		socket
 	}
 
+	/**
+	 * Remove a dead socket from this user
+	 */
 	def removeSocket(socket: Socket): Unit = {
 		sockets.synchronized {
 			sockets -= socket
@@ -76,33 +106,36 @@ class User(val id: Int) {
 			}
 		}
 	}
-	
+
+	/**
+	 * Send a message to every socket for this user
+	 */
 	def !(m: Message) = sockets foreach (_ ! m)
 
-	def dispose(): Unit = {
-		User.onlines -= id
+	/**
+	 * No more socket available, user is now disconnected
+	 */
+	private def dispose(): Unit = {
+		// Remove this user from online list
+		User.disposed(this)
+
+		// Broadcast offline event
 		User.onlines.values foreach {
 			_ ! Message("chat:onlines:update", Json.obj("type" -> "offline", "data" -> id))
 		}
+
 		Logger.info("Disposed user: " + toJson())
 	}
 
-	def isDev: Boolean = User.developers.exists(_ == id)
-	def isOfficer: Boolean = User.officier_groups.exists(_ == group) || isDev
-
+	/**
+	 * Generate the JSON representation for this user
+	 */
 	def toJson(): JsObject = Json.obj(
 		"id" -> id,
 		"name" -> name,
 		"group" -> group,
 		"color" -> color,
 		"ready" -> ready,
-		"officer" -> isOfficer,
-		"dev" -> isDev)
-		
-	User.onlines.values foreach {
-		_ ! Message("chat:onlines:update", Json.obj("type" -> "online", "data" -> toJson()))
-	}
-
-	User.onlines += (id -> this)
-	Logger.info("Created user: " + toJson())
+		"officer" -> officer,
+		"dev" -> developer)
 }

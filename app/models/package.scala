@@ -8,7 +8,7 @@ package object models {
 	val DB = play.api.db.slick.DB
 	val mysql = scala.slick.driver.MySQLDriver.simple
 	val sql = scala.slick.jdbc.StaticQuery
-	
+
 	def NOW() = new Timestamp(new Date().getTime())
 
 	implicit val userJsonFormat = Json.format[User]

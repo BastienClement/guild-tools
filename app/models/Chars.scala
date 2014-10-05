@@ -1,6 +1,10 @@
 package models
 
 import mysql._
+import scala.slick.jdbc.JdbcBackend.SessionDef
+import api.Event
+import gt.Socket
+import play.api.libs.json._
 
 case class Char(
 		id: Int,
@@ -41,4 +45,9 @@ class Chars(tag: Tag) extends Table[Char](tag, "gt_chars") {
 	def * = (id, name, server, owner, main, active, klass, race, gender, level, achievements, thumbnail, ilvl, role, last_update) <> (Char.tupled, Char.unapply)
 }
 
-object Chars extends TableQuery(new Chars(_))
+object Chars extends TableQuery(new Chars(_)) {
+	def notifyUpdate(id: Int)(implicit s: SessionDef): Unit = {
+		val char = for (c <- Chars if c.id === id) yield c
+		char.firstOption foreach (Socket !! Event("char:update", _))
+	}
+}

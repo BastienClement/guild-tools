@@ -1,6 +1,5 @@
 package gt
 
-import Utils.using
 import api._
 import play.api.libs.json._
 import akka.actor.{ ActorRef, actorRef2Scala }
@@ -9,18 +8,28 @@ import scala.collection.mutable
 import scala.concurrent.duration.DurationInt
 
 object Socket {
-	val sockets = mutable.Map[String, Socket]()
+	var sockets = Map[String, Socket]()
+	
+	def disposed(socket: Socket): Unit = sockets.synchronized {
+		sockets -= socket.token
+	}
 
-	@tailrec def create(user: User, session: String, handler: ActorRef): Socket = {
-		val token = Utils.randomToken()
-
-		// Check uniqueness of this token 
-		if (sockets contains token) {
-			create(user, session, handler)
-		} else {
-			using(new Socket(token, user, session, handler)) { socket =>
+	def create(user: User, session: String, handler: ActorRef): Socket = {
+		@tailrec def loop(): Socket = {
+			val token = Utils.randomToken()
+	
+			// Check uniqueness of this token 
+			if (sockets contains token) {
+				loop()
+			} else {
+				val socket = new Socket(token, user, session, handler)
 				sockets += (token -> socket)
+				socket
 			}
+		}
+		
+		sockets.synchronized {
+			loop()
 		}
 	}
 
@@ -118,8 +127,8 @@ class Socket private (val token: String, val user: User, val session: String, va
 	 */
 	def dispose(): Unit = {
 		if (dead) return
-		Socket.sockets -= token
-		user.removeSocket(this)
 		dead = true
+		Socket.sockets.synchronized { Socket.sockets -= token }
+		user.removeSocket(this)
 	}
 }

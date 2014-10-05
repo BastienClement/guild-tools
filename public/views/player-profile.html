@@ -16,7 +16,7 @@
 	#player-profile .char {
 		padding-left: 90px;
 		min-height: 125px;
-		transition: border ease .3s;
+		transition: all ease-out .3s;
 		width: 300px;
 		margin: 0 6px 6px 0;
 		float: left;
@@ -97,7 +97,7 @@
 		top: -1px;
 		margin-right: 3px;
 		opacity: 0.5;
-		transition: opacity ease .3s;
+		transition: opacity ease-out .3s;
 	}
 	
 	#player-profile .char .role img.active, #player-profile .char .role img:hover {
@@ -143,7 +143,7 @@
 		</div>
 	</div>
 	
-	<div class="chars">		
+	<div class="chars">
 		<h2>Characters</h2>
 		<div class="box char animated" ng-repeat="char in chars" ng-class="{ inactive: !char.active }">
 			<div class="img-wrapper">
@@ -163,11 +163,11 @@
 					<img src="/assets/images/roles/HEALING.png" ng-class="{ active: char.role == 'HEALING' }" ng-click="role(char.id, 'HEALING')">
 					<img src="/assets/images/roles/DPS.png" ng-class="{ active: char.role == 'DPS' }" ng-click="role(char.id, 'DPS')">
 				</div>
-				<button ng-if="!char.main && char.active" ng-click="$.exec('profile:promote', { id: char.id })">Main</button>
-				<button ng-if="!char.main && char.active" ng-click="$.exec('profile:disable', { id: char.id })">Disable</button>
-				<button ng-if="!char.active" ng-click="$.exec('profile:enable', { id: char.id })">Enable</button>
-				<button ng-if="!char.active" ng-click="$.exec('profile:remove', { id: char.id })">Remove</button>
-				<button ng-if="char.active" ng-click="$.exec('profile:update', { id: char.id })">Update</button>
+				<button ng-if="!char.main && char.active" ng-click="$.call('profile:promote', { id: char.id })">Main</button>
+				<button ng-if="!char.main && char.active" ng-click="$.call('profile:disable', { id: char.id })">Disable</button>
+				<button ng-if="!char.active" ng-click="$.call('profile:enable', { id: char.id })">Enable</button>
+				<button ng-if="!char.active" ng-click="$.call('profile:remove', { id: char.id })">Remove</button>
+				<button ng-if="char.active" ng-click="$.call('profile:update', { id: char.id })">Update</button>
 			</div>
 		</div>
 		<button ng-if="editable && chars.length < 15" class="box char add" ng-click="addChar()">
