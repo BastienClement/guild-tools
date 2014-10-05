@@ -41,11 +41,10 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 		var location_data = [
 			["/welcome", "planet", "Getting Started"],
 
-			[/^\/player\/profile(\/\d+)?$/, "helm2", ""],
+			[/^\/profile(\/\d+)?$/, "helm2", ""],
 
 			["/calendar", "calendar", "Calendar"],
 			[/^\/calendar\/event\/\d+$/, "events", ""],
-			["/calendar/slacks", "afk", "Absences"],
 
 			["/social", "forum", "Social"],
 			["/roster", "roster", "Roster"],
@@ -115,11 +114,14 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 			stack: stack,
 			updateTitle: updateTitle,
 
-			push: function(path, override, replace) {
+			push: function(path, override, replace, test) {
 				if (!$.user || !$.user.ready) return;
 
 				var target = resolve(path, override);
 				if (!target || stack[stack.length - 1].path === path) return;
+				if (test) return true;
+				
+				if (path === "/") return $scope.breadcrumb.rewind("/");
 
 				for (var i = 0; i < stack.length; ++i) {
 					if (stack[i].location === target.location) {
@@ -170,6 +172,13 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 				}
 
 				updateTitle();
+			},
+			
+			reset: function(path) {
+				if ($scope.breadcrumb.push(path, false, false, true)) {
+					$scope.breadcrumb.rewind("/");
+					$scope.breadcrumb.push(path);
+				}
 			},
 
 			current: function(path) {
@@ -371,5 +380,48 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 			$scope.popupErrorText = null;
 			$scope.safeApply();
 		}, 5000);
+	};
+	
+	$scope.navigator = null;
+	$scope.navigator_current = null;
+	$scope.navigator_tab = null;
+	
+	var navigators = {
+		"dashboard": [],
+		
+		"profile": [],
+		
+		"calendar": [
+			["main", "Calendar", "/calendar"]
+		]
+	};
+	
+	$scope.setNavigator = function(name, tab, overrides) {
+		$scope.navigator_current = name;
+		$scope.navigator_tab = tab;
+		
+		if (name && navigators[name]) {
+			$scope.navigator = [];
+			navigators[name].forEach(function(item) {
+				var id = item[0];
+				var name = item[1];
+				var action = item[2];
+				
+				if (overrides && overrides[id]) {
+					name = overrides[id][0];
+					action = overrides[id][1];
+				}
+				
+				$scope.navigator.push([id, name, function() {
+					if (typeof action === "function") {
+						try { action(); } catch(e) {}
+					} else {
+						$scope.breadcrumb.push(action);
+					}
+				}]);
+			});
+		} else {
+			$scope.navigator = null;
+		}
 	};
 });

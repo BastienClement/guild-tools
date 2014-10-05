@@ -117,7 +117,7 @@
 		});
 	</script>
 </head>
-<body class="loading live" ng-controller="GlobalCtrl" ng-class="{ 'modal-visible': modalView, 'authenticated': $.user }">
+<body class="loading live" ng-controller="GlobalCtrl" ng-class="{ 'modal-visible': modalView, 'authenticated': $.user, 'navigator': navigator }">
 	<div id="loading-cover"></div>
 	<div id="loading-error">
 		<div id="loading-error-frame">
@@ -145,7 +145,7 @@
 		</div>
 		<div id="breadcrumb" ng-if="$.user">
 			<ul>
-				<li class="animated" ng-repeat="entry in breadcrumb.stack" ng-if="entry.name != ''">
+				<li ng-repeat="entry in breadcrumb.stack" ng-if="entry.name != ''">
 					<i class="awe-angle-right"></i>
 					<span ng-click="breadcrumb.rewind(entry.location)">
 						<img ng-src="/assets/images/icons/{{ entry.icon }}.png">
@@ -179,37 +179,37 @@
 				<div>Dashboard</div>
 			</li>
 			
-			<li ng-click="breadcrumb.push('/player/profile')">
+			<li ng-click="breadcrumb.reset('/profile')">
 				<img src="/assets/images/icons/helm2.png">
 				<div>Player</div>
 			</li>
 		
-			<li ng-click="breadcrumb.push('/calendar')">
+			<li ng-click="breadcrumb.reset('/calendar')">
 				<img src="/assets/images/icons/calendar.png">
 				<div>Calendar</div>
 			</li>
 			
-			<li ng-click="breadcrumb.push('/_')">
+			<li ng-click="breadcrumb.reset('/_')">
 				<img src="/assets/images/icons/afk.png">
 				<div>Absences</div>
 			</li>
 			
-			<li ng-click="breadcrumb.push('/_')">
+			<li ng-click="breadcrumb.reset('/_')">
 				<img src="/assets/images/icons/whishlist.png">
 				<div>Whishlists</div>
 			</li>
 			
-			<li ng-click="breadcrumb.push('/_')">
+			<li ng-click="breadcrumb.reset('/_')">
 				<img src="/assets/images/icons/roster.png">
 				<div>Roster</div>
 			</li>
 			
-			<li ng-click="breadcrumb.push('/_')">
+			<li ng-click="breadcrumb.reset('/_')">
 				<img src="/assets/images/icons/forum.png">
 				<div>Forum</div>
 			</li>
 			
-			<li ng-click="breadcrumb.push('/_')">
+			<li ng-click="breadcrumb.reset('/_')">
 				<img src="/assets/images/icons/blueprint.png">
 				<div>Blueprint</div>
 			</li>
@@ -217,11 +217,8 @@
 	</nav>
 	
 	<nav id="topbar">
-		<ul ng-if="$.user" class="animated">
-			<li ng-click="breadcrumb.rewind('/')" class="active">Lorem</li>
-			<li ng-click="breadcrumb.rewind('/')">Ipsum</li>
-			<li ng-click="breadcrumb.rewind('/')">Dolores</li>
-			<li ng-click="breadcrumb.rewind('/')">Sit</li>
+		<ul ng-if="navigator">
+			<li ng-repeat="entry in navigator" ng-click="entry[2]()" ng-class="{ active: entry[0] == navigator_tab }">{{ entry[1] }}</li>
 		</ul>
 	</nav>
 	

@@ -6,10 +6,12 @@ import akka.actor.{ ActorRef, actorRef2Scala }
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.duration.DurationInt
+import Global.ExecutionContext
+import scala.concurrent.Future
 
 object Socket {
 	var sockets = Map[String, Socket]()
-	
+
 	def disposed(socket: Socket): Unit = sockets.synchronized {
 		sockets -= socket.token
 	}
@@ -17,7 +19,7 @@ object Socket {
 	def create(user: User, session: String, handler: ActorRef): Socket = {
 		@tailrec def loop(): Socket = {
 			val token = Utils.randomToken()
-	
+
 			// Check uniqueness of this token 
 			if (sockets contains token) {
 				loop()
@@ -27,33 +29,25 @@ object Socket {
 				socket
 			}
 		}
-		
+
 		sockets.synchronized {
 			loop()
 		}
 	}
 
 	def findByID(id: String): Option[Socket] = sockets.get(id)
-	
-	def !(m: Message): Unit = sockets.values.par foreach { _ ! m }
-	def !!(e: Event): Unit = sockets.values.par foreach { _ !! e }
+
+	def !(m: Message): Unit = Future { sockets.values.par foreach { _ ! m } }
+	def !!(e: Event): Unit = Future { sockets.values.par foreach { _ !! e } }
 }
 
 class Socket private (val token: String, val user: User, val session: String, var handler: ActorRef) {
-	/**
-	 * Socket is open as long as the websocket handler is alive
-	 */
 	var open = true
-
-	/**
-	 * Socket is dead when disposed
-	 */
 	var dead = false
 
-	/**
-	 * Message queue if handler is temporarily offline
-	 */
 	val queue = mutable.Queue[OutgoingMessage]()
+
+	var boundEvents = Set[String]()
 
 	/**
 	 * Socket can be rebound for up to 30 secs after handler death
@@ -61,8 +55,6 @@ class Socket private (val token: String, val user: User, val session: String, va
 	val disposeTimeout = FuseTimer.create(30.seconds) {
 		dispose()
 	}
-	
-	var boundEvents = Set[String]()
 
 	/**
 	 * Send message to the socket or enqueue it if not open
@@ -73,10 +65,10 @@ class Socket private (val token: String, val user: User, val session: String, va
 		} else if (open) {
 			handler ! m
 		} else {
-			queue.enqueue(m)
+			queue.synchronized { queue.enqueue(m) }
 		}
 	}
-	
+
 	/**
 	 * Check if event is this socket listen to an event and send it
 	 */
@@ -107,8 +99,10 @@ class Socket private (val token: String, val user: User, val session: String, va
 			open = true
 
 			// Send queued messages
-			queue.dequeueAll(m => open) foreach { m =>
-				handler ! m
+			queue.synchronized {
+				queue.dequeueAll(m => open) foreach { m =>
+					handler ! m
+				}
 			}
 		}
 	}
@@ -128,7 +122,7 @@ class Socket private (val token: String, val user: User, val session: String, va
 	def dispose(): Unit = {
 		if (dead) return
 		dead = true
-		Socket.sockets.synchronized { Socket.sockets -= token }
+		Socket.disposed(this)
 		user.removeSocket(this)
 	}
 }

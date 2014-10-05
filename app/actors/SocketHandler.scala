@@ -9,6 +9,7 @@ import play.api.Logger
 import play.api.libs.json._
 import scala.concurrent.Future
 import scala.util.{ Failure, Success }
+import gt.User
 
 class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 	with AuthHandler
@@ -35,6 +36,7 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 
 	// Attached socket object
 	var socket: Socket = null
+	def user: User = socket.user
 
 	def receive = {
 		// Incoming message
@@ -129,6 +131,10 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		case ("profile:enable", arg) => handleProfileEnable(arg, true)
 		case ("profile:disable", arg) => handleProfileEnable(arg, false)
 		case ("profile:promote", arg) => handleProfilePromote(arg)
+		case ("profile:remove", arg) => handleProfileRemove(arg)
+		case ("profile:role", arg) => handleProfileRole(arg)
+		case ("profile:check", arg) => handleProfileCheck(arg)
+		case ("profile:register", arg) => handleProfileRegister(arg)
 
 		case _ => MessageFailure("UNAVAILABLE")
 	}

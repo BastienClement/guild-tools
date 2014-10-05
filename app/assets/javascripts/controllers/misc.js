@@ -4,6 +4,7 @@ GuildTools.controller("WelcomeCtrl", function($scope, $location) {
 		return;
 	}
 
+	$scope.setNavigator();
 	$scope.embedWelcome = true;
 });
 
@@ -16,6 +17,7 @@ GuildTools.controller("DashboardCtrl", function($scope, $location) {
 		$location.path(path);
 	};
 
+	$scope.setNavigator();
 	$scope.onlineSort = "name";
 });
 

@@ -408,7 +408,7 @@ header {
 #left-controls {
 	position: absolute;
 	top: 10px;
-	left: 15px;
+	left: 10px;
 }
 
 #left-controls img {
@@ -433,7 +433,7 @@ header {
 #breadcrumb {
 	position: absolute;
 	top: 15px;
-	left: 90px;
+	left: 85px;
 	font-size: 14px;
 }
 
@@ -537,10 +537,16 @@ header {
 	top: 52px;
 	left: 62px;
 	right: 0px;
-	height: 35px;
 	background-color: rgba(99, 180, 255, 0.13);
 	z-index: 15;
 	display: flex;
+	height: 35px;
+	opacity: 0;
+	transition: opacity ease-out .2s;
+}
+
+.navigator #topbar {
+	opacity: 1;
 }
 
 #topbar ul {
@@ -588,8 +594,12 @@ header {
 	left: 0px;
 	right: 0px;
 	padding-top: 52px;
-	padding-top: 87px;
 	z-index: 5;
+	transition: all ease-out .3s !important;
+}
+
+.navigator .main-view {
+	padding-top: 87px;
 }
 
 .authenticated .main-view {
@@ -597,7 +607,7 @@ header {
 }
 
 .main-view.animated.ng-enter {
-	transition: opacity ease-out .3s .5s;
+	transition: all ease-out .3s .5s !important;
 }
 
 #modal {

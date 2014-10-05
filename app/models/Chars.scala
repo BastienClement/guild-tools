@@ -7,26 +7,26 @@ import gt.Socket
 import play.api.libs.json._
 
 case class Char(
-		id: Int,
-		name: String,
-		server: String,
-		owner: Int,
-		main: Boolean,
-		active: Boolean,
-		`class`: Int,
-		race: Int,
-		gender: Int,
-		level: Int,
-		achievements: Int,
-		thumbnail: String,
-		ilvl: Int,
-		role: String,
-		last_update: Long) {
-	val klass = `class`
+	id: Int,
+	name: String,
+	server: String,
+	owner: Int,
+	main: Boolean,
+	active: Boolean,
+	`class`: Int,
+	race: Int,
+	gender: Int,
+	level: Int,
+	achievements: Int,
+	thumbnail: String,
+	ilvl: Int,
+	role: String,
+	last_update: Long) {
+	val clazz = `class`
 }
 
 class Chars(tag: Tag) extends Table[Char](tag, "gt_chars") {
-	def id = column[Int]("id", O.PrimaryKey)
+	def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
 	def name = column[String]("name")
 	def server = column[String]("server")
 	def owner = column[Int]("owner")
@@ -46,8 +46,16 @@ class Chars(tag: Tag) extends Table[Char](tag, "gt_chars") {
 }
 
 object Chars extends TableQuery(new Chars(_)) {
+	def notifyCreate(char: Char): Unit = {
+		Socket !! Event("char:create", char)
+	}
+
 	def notifyUpdate(id: Int)(implicit s: SessionDef): Unit = {
 		val char = for (c <- Chars if c.id === id) yield c
 		char.firstOption foreach (Socket !! Event("char:update", _))
+	}
+
+	def notifyDelete(id: Int): Unit = {
+		Socket !! Event("char:delete", id)
 	}
 }

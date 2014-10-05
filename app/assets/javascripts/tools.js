@@ -20,7 +20,7 @@ GuildTools.config(function($routeProvider, $locationProvider, $animateProvider) 
 		templateUrl: "/assets/views/dashboard.html",
 		controller: "DashboardCtrl"
 	})
-	.when("/player/profile/:id?", {
+	.when("/profile/:id?", {
 		templateUrl: "/assets/views/player-profile.html",
 		controller: "ProfileCtrl"
 	})
@@ -31,10 +31,6 @@ GuildTools.config(function($routeProvider, $locationProvider, $animateProvider) 
 	.when("/calendar/event/:id", {
 		templateUrl: "/assets/views/calendar-event.html",
 		controller: "CalendarEventCtrl"
-	})
-	.when("/calendar/slacks", {
-		templateUrl: "/assets/views/slacks.html",
-		controller: "SlacksCtrl"
 	})
 	.when("/forum", {
 		templateUrl: "/assets/views/forum.html",

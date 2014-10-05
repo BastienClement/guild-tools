@@ -5,9 +5,9 @@ import akka.actor.Props
 import play.api.Play.current
 import play.api.libs.json.JsValue
 import play.api.mvc.{Action, Controller, WebSocket}
-
 import models._
 import models.mysql._
+import gt.Bnet
 
 object Application extends Controller {
 	def index() = Action {
@@ -22,9 +22,7 @@ object Application extends Controller {
 	}
 	
 	def test = Action {
-		DB.withSession { implicit s =>
-			val q = for (s <- Sessions if s.token === "session" && s.user === 5) yield s.last_access
-			Ok(q.toString)
-		}
+		//Ok(Bnet.query("/character/illidan/Blãsh", ("fields" -> "items")))
+		Ok("")
 	}
 }

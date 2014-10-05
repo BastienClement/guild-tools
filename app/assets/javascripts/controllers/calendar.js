@@ -8,6 +8,8 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 	var now = new Date();	
 	$scope.month = now.getMonth();
 	$scope.year = now.getFullYear();
+	
+	$scope.setNavigator("calendar", "main");
 
 	$scope.monthNext = function() { 
 		$scope.month += 1;
@@ -51,7 +53,7 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 	}
 
 	$scope.buildCalendar = function() {
-		$scope.setContext("calendar:main", [$scope.month + 1, $scope.year], {
+		/*$scope.setContext("calendar:main", [$scope.month + 1, $scope.year], {
 			$: function(events) {
 				$scope.events = {};
 				events.forEach(pushEvent);
@@ -84,7 +86,7 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 					}
 				}
 			}
-		});
+		});*/
 
 		var last_month = new Date($scope.year, $scope.month, 0);
 		var days_in_last_month = last_month.getDate();
@@ -237,6 +239,8 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 
 GuildTools.controller("CalendarAddEventCtrl", function($scope) {
 	if ($scope.restrict()) return;
+	
+	$scope.setNavigator("calendar", "main");
 
 	$scope.working = false;
 	$scope.step = 1;

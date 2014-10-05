@@ -10,6 +10,8 @@ GuildTools.controller("ProfileCtrl", function($scope, $location, $routeParams) {
 
 	$scope.profile = {};
 	$scope.chars = [];
+	
+	$scope.setNavigator();
 
 	$scope.setContext("profile:load", { id: userid }, {
 		$: function(res) {
@@ -37,20 +39,8 @@ GuildTools.controller("ProfileCtrl", function($scope, $location, $routeParams) {
 				}
 			}
 		},
-
-		MainChanged: function(new_main) {
-			for (var i = 0; i < $scope.chars.length; ++i) {
-				var char = $scope.chars[i];
-				char.main = (char.id == new_main);
-			}
-
-			$scope.chars.sort(function(a, b) {
-				if (a.main !== b.main) return a.main ? -1 : 1;
-				return 0;
-			});
-		},
-
-		CharRemoved: function(id) {
+		
+		"char:delete": function(id) {
 			for (var i = 0; i < $scope.chars.length; ++i) {
 				if ($scope.chars[i].id === id) {
 					$scope.chars.splice(i, 1);
@@ -59,8 +49,10 @@ GuildTools.controller("ProfileCtrl", function($scope, $location, $routeParams) {
 			}
 		},
 
-		CharAdded: function(char) {
-			$scope.chars.push(char);
+		"char:create": function(char) {
+			if (char.owner === userid) {
+				$scope.chars.push(char);
+			}
 		}
 	});
 
@@ -97,34 +89,32 @@ GuildTools.controller("ProfileCtrl", function($scope, $location, $routeParams) {
 //--------------------------------------------------------------------------------------------------
 
 GuildTools.controller("PlayerAddCharCtrl", function($scope, $location) {
-	if ($scope.restrict()) return;
-
 	$scope.char = null;
 	$scope.loading = false;
 	$scope.role = "DPS";
 
 	$scope.setRole = function(role) {
-		console.log("set role");
 		$scope.role = role;
 	};
 
 	function error(text, keepname) {
 		$scope.loading = false;
+		$scope.error(text);
 		if (!keepname) {
 			$scope.name = "";
 			_("#add-char-name").focus();
-			$scope.error(text);
 		}
 	}
 
 	$scope.load = function() {
+		console.log("load");
 		if ($scope.loading) return;
 		$scope.char = null;
 		$scope.loading = true;
 
 		$.bnQuery("character/" + $scope.server + "/" + $scope.name, function(char) {
 			if (!char) return error("Unable to load requested character.");
-			$.call("charIsAvailable", $scope.server, $scope.name, function(err, available) {
+			$.call("profile:check", { server: $scope.server, name: $scope.name }, function(err, available) {
 				if (!available) return error("This character is already registered to someone else and is not available.");
 				$scope.loading = false;
 				$scope.char = char;
@@ -137,14 +127,14 @@ GuildTools.controller("PlayerAddCharCtrl", function($scope, $location) {
 		if ($scope.loading || !$scope.char) return;
 		$scope.loading = true;
 
-		$.call("addChar", $scope.char.server, $scope.char.name, $scope.role, function(err, invalid) {
-			if (err || invalid)  return error("An error occured while linking this character to your account.", true);
+		$.call("profile:register", { server: $scope.char.server, char: $scope.char.name, role: $scope.role }, function(err) {
+			if (err) return error("An error occured while linking this character to your account.", true);
 			if ($scope.embedWelcome) {
+				$.user.ready = true;
 				$location.path("/dashboard");
 			} else {
 				$scope.modal();
 			}
-			//$scope.breadcrumb.push("/player/profile");
 		});
 	};
 });

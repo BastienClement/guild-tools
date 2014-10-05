@@ -8,7 +8,9 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 import models._
 import models.mysql._
-import api.Message
+import api._
+import Global.ExecutionContext
+import scala.concurrent.Future
 
 object User {
 	var onlines = Map[Int, User]()
@@ -108,9 +110,10 @@ class User(val id: Int) {
 	}
 
 	/**
-	 * Send a message to every socket for this user
+	 * Send a message or an event to every socket for this user
 	 */
-	def !(m: Message) = sockets foreach (_ ! m)
+	def !(m: Message): Unit = Future { sockets foreach (_ ! m) }
+	def !!(e: Event): Unit = Future { sockets foreach (_ !! e) }
 
 	/**
 	 * No more socket available, user is now disconnected
