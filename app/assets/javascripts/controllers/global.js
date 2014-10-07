@@ -242,12 +242,6 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 		ctx_inflight = true;
 		ctx_valid = false;
 
-		function error() {
-			ctx_inflight = false;
-			$scope.error("Error while switching contexts");
-			$scope.breadcrumb.rewind("/dashboard");
-		}
-
 		$.call(ctx_loader, ctx_params, function(err, res) {
 			if (err) {
 				ctx_inflight = false;

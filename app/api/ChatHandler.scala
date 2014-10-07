@@ -11,7 +11,7 @@ trait ChatHandler {
 	 * $:chat:onlines
 	 */
 	def handleChatOnlines(): MessageResponse = {
-		val users = User.onlines.values map (_.toJson)
+		val users = User.onlines.values map (_.asJson)
 		MessageResults(JsArray(users.toSeq))
 	}
 }

@@ -395,7 +395,7 @@ var $ = {};
 			};
 
 			script.onload = function() {
-				to = setTimeout(function() {
+				setTimeout(function() {
 					$.bnHandler(null);
 				}, 500);
 			};

@@ -32,7 +32,7 @@ object User {
 	def findBySession(session: String): Option[User] = {
 		DB.withSession { implicit s =>
 			val user = for (s <- Sessions if s.token === session) yield s.user
-			user.firstOption flatMap (findByID(_))
+			user.firstOption flatMap (findByID)
 		}
 	}
 
@@ -54,10 +54,10 @@ class User(val id: Int) {
 	updatePropreties()
 
 	User.onlines.values foreach {
-		_ ! Message("chat:onlines:update", Json.obj("type" -> "online", "data" -> toJson()))
+		_ ! Message("chat:onlines:update", Json.obj("type" -> "online", "data" -> asJson))
 	}
 
-	Logger.info("Created user: " + toJson())
+	Logger.info("Created user: " + asJson)
 
 	/**
 	 * Fetch user propreties
@@ -74,8 +74,8 @@ class User(val id: Int) {
 		ready = char.firstOption.isDefined
 
 		// Access rights
-		developer = User.developers.exists(_ == id)
-		officer = developer || User.officier_groups.exists(_ == group)
+		developer = User.developers.contains(id)
+		officer = developer || User.officier_groups.contains(group)
 	}
 
 	/**
@@ -125,13 +125,13 @@ class User(val id: Int) {
 			_ ! Message("chat:onlines:update", Json.obj("type" -> "offline", "data" -> id))
 		}
 
-		Logger.info("Disposed user: " + toJson())
+		Logger.info("Disposed user: " + asJson)
 	}
 
 	/**
 	 * Generate the JSON representation for this user
 	 */
-	def toJson(): JsObject = Json.obj(
+	def asJson: JsObject = Json.obj(
 		"id" -> id,
 		"name" -> name,
 		"group" -> group,

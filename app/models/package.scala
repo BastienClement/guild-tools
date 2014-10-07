@@ -9,7 +9,7 @@ package object models {
 	val mysql = scala.slick.driver.MySQLDriver.simple
 	val sql = scala.slick.jdbc.StaticQuery
 
-	def NOW() = new Timestamp(new Date().getTime())
+	def NOW() = new Timestamp(new Date().getTime)
 
 	implicit val userJsonFormat = Json.format[User]
 	implicit val charJsonFormat = Json.format[Char]

@@ -39,8 +39,8 @@ trait ProfileHandler {
 
 			case CharUpdateEvent(char) => watched_chars.contains(char.id)
 
-			case CharDeleteEvent(id) => doIf(watched_chars.contains(id)) {
-				watched_chars.synchronized { watched_chars -= id }
+			case CharDeleteEvent(char_id) => doIf(watched_chars.contains(char_id)) {
+				watched_chars.synchronized { watched_chars -= char_id }
 			}
 		}
 
@@ -158,7 +158,7 @@ trait ProfileHandler {
 					thumbnail = (char \ "thumbnail").as[String],
 					ilvl = (char \ "items" \ "averageItemLevel").as[Int],
 					role = role,
-					last_update = (new Date()).getTime())
+					last_update = (new Date()).getTime)
 
 				val id: Int = (Chars returning Chars.map(_.id)) += template
 				Chars.notifyCreate(template.copy(id = id))

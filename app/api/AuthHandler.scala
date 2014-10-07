@@ -44,7 +44,7 @@ trait AuthHandler {
 				s.user.updatePropreties()
 				Json.obj(
 					"socket" -> s.token,
-					"user" -> s.user.toJson())
+					"user" -> s.user.asJson)
 			}
 		}
 
