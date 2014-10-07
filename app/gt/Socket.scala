@@ -47,7 +47,9 @@ class Socket private (val token: String, val user: User, val session: String, va
 
 	val queue = mutable.Queue[OutgoingMessage]()
 
-	var boundEvents = Set[String]()
+	type EventFilter = PartialFunction[Event, Boolean]
+	val FilterNone: EventFilter = { case _ => false }
+	var eventFilter: EventFilter = FilterNone
 
 	/**
 	 * Socket can be rebound for up to 30 secs after handler death
@@ -73,8 +75,8 @@ class Socket private (val token: String, val user: User, val session: String, va
 	 * Check if event is this socket listen to an event and send it
 	 */
 	def !!(e: Event): Unit = {
-		if (boundEvents.contains(e.name)) {
-			this ! Message("event:dispatch", Json.obj("name" -> e.name, "arg" -> e.arg))
+		if (eventFilter.applyOrElse(e, FilterNone)) {
+			this ! Message("event:dispatch", e.asJson)
 		}
 	}
 

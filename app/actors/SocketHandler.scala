@@ -13,7 +13,6 @@ import gt.User
 
 class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 	with AuthHandler
-	with EventsHandler
 	with ChatHandler
 	with ProfileHandler {
 	// Debug socket ID
@@ -63,7 +62,7 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 							/* client is not interested by the result */
 						}
 
-						case MessageSuccess() => {
+						case MessageSuccess => {
 							out ! Json.obj("$" -> "ack", "#" -> id, "&" -> JsNull)
 						}
 
@@ -115,18 +114,17 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		case _ if (concurrentDispatch.get() > 1) => MessageFailure("ANON_CONCURRENT")
 
 		case ("auth", arg) => handleAuth(arg)
-		case ("login:prepare", arg) => handleLoginPrepare(arg)
-		case ("login:exec", arg) => handleLoginExec(arg)
+		case ("auth:prepare", arg) => handleAuthPrepare(arg)
+		case ("auth:login", arg) => handleAuthLogin(arg)
 
 		case _ => MessageFailure("UNAVAILABLE")
 	}
 
 	def authenticatedDispatcher: MessageDispatcher = {
-		case ("logout", _) => handleLogout()
+		case ("auth:logout", _) => handleAuthLogout()
 
-		case ("events:bind", arg) => handleEventsBind(arg)
-		case ("events:unbind", _) => handleEventsUnbind()
 		case ("chat:onlines", _) => handleChatOnlines()
+
 		case ("profile:load", arg) => handleProfileLoad(arg)
 		case ("profile:enable", arg) => handleProfileEnable(arg, true)
 		case ("profile:disable", arg) => handleProfileEnable(arg, false)
@@ -136,7 +134,13 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		case ("profile:check", arg) => handleProfileCheck(arg)
 		case ("profile:register", arg) => handleProfileRegister(arg)
 
+		case ("events:unbind", _) => handleEventUnbind()
 		case _ => MessageFailure("UNAVAILABLE")
+	}
+
+	def handleEventUnbind(): MessageResponse = {
+		socket.eventFilter = socket.FilterNone
+		MessageSuccess
 	}
 
 	override def postStop(): Unit = {

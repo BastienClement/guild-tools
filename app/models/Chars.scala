@@ -2,7 +2,7 @@ package models
 
 import mysql._
 import scala.slick.jdbc.JdbcBackend.SessionDef
-import api.Event
+import api._
 import gt.Socket
 import play.api.libs.json._
 
@@ -47,15 +47,15 @@ class Chars(tag: Tag) extends Table[Char](tag, "gt_chars") {
 
 object Chars extends TableQuery(new Chars(_)) {
 	def notifyCreate(char: Char): Unit = {
-		Socket !! Event("char:create", char)
+		Socket !! CharCreateEvent(char)
 	}
 
 	def notifyUpdate(id: Int)(implicit s: SessionDef): Unit = {
 		val char = for (c <- Chars if c.id === id) yield c
-		char.firstOption foreach (Socket !! Event("char:update", _))
+		char.firstOption foreach (Socket !! CharUpdateEvent(_))
 	}
 
 	def notifyDelete(id: Int): Unit = {
-		Socket !! Event("char:delete", id)
+		Socket !! CharDeleteEvent(id)
 	}
 }

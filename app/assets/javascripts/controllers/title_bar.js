@@ -19,7 +19,7 @@ GuildTools.controller("TitleBarCtrl", function($scope) {
 		},
 		{
 			icon: "awe-logout", text: "Logout", action: function() {
-				$.exec("logout", function() {
+				$.exec("auth:logout", function() {
 					ga('send', 'event', 'app-menu', 'action', 'logout', {
 						hitCallback: function() {
 							$.error = function() {};
@@ -65,7 +65,7 @@ GuildTools.controller("TitleBarCtrl", function($scope) {
 		{ separator: true, order: 4 },*/
 		{
 			icon: "awe-logout", text: "Logout", action: function() {
-				$.exec("logout", function() {
+				$.exec("auth:logout", function() {
 					$.error = function() {};
 					localStorage.removeItem("session.token");
 					location.reload();

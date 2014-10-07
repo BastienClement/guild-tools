@@ -34,7 +34,6 @@ GuildTools.controller("ProfileCtrl", function($scope, $location, $routeParams) {
 					for (var key in char) {
 						c[key] = char[key];
 					}
-					console.log(c);
 					return;
 				}
 			}
@@ -50,9 +49,7 @@ GuildTools.controller("ProfileCtrl", function($scope, $location, $routeParams) {
 		},
 
 		"char:create": function(char) {
-			if (char.owner === userid) {
-				$scope.chars.push(char);
-			}
+			$scope.chars.push(char);
 		}
 	});
 
@@ -107,7 +104,6 @@ GuildTools.controller("PlayerAddCharCtrl", function($scope, $location) {
 	}
 
 	$scope.load = function() {
-		console.log("load");
 		if ($scope.loading) return;
 		$scope.char = null;
 		$scope.loading = true;

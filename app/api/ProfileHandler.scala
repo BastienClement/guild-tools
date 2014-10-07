@@ -7,6 +7,7 @@ import models.mysql._
 import models.sql._
 import gt.Bnet
 import java.util.Date
+import gt.Utils.doIf
 
 trait ProfileHandler { this: SocketHandler =>
 	/**
@@ -28,6 +29,20 @@ trait ProfileHandler { this: SocketHandler =>
 		val user = Users.filter(_.id === user_id).first
 		val chars = Chars.filter(_.owner === user_id).list
 
+		var watched_chars = chars.map(_.id).toSet
+
+		socket.eventFilter = {
+			case CharCreateEvent(char) => doIf(char.owner == user_id) {
+				watched_chars.synchronized { watched_chars += char.id }
+			}
+
+			case CharUpdateEvent(char) => watched_chars.contains(char.id)
+
+			case CharDeleteEvent(id) => doIf(watched_chars.contains(id)) {
+				watched_chars.synchronized { watched_chars -= id }
+			}
+		}
+
 		MessageResults(Json.obj("user" -> user, "chars" -> chars.toSeq))
 	}
 
@@ -41,7 +56,7 @@ trait ProfileHandler { this: SocketHandler =>
 
 		if (active.update(state) > 0) {
 			Chars.notifyUpdate(char)
-			MessageSuccess()
+			MessageSuccess
 		} else {
 			MessageFailure("UNABLE_TO_UPDATE")
 		}
@@ -66,7 +81,7 @@ trait ProfileHandler { this: SocketHandler =>
 			Chars.notifyUpdate(char.id)
 		}
 
-		MessageSuccess()
+		MessageSuccess
 	}
 
 	/**
@@ -78,7 +93,7 @@ trait ProfileHandler { this: SocketHandler =>
 
 		if (char.delete > 0) {
 			Chars.notifyDelete(id)
-			MessageSuccess()
+			MessageSuccess
 		} else {
 			MessageFailure("CHAR_NOT_FOUND")
 		}
@@ -94,7 +109,7 @@ trait ProfileHandler { this: SocketHandler =>
 		val row = for (c <- Chars if c.id === id && c.owner === user.id && c.role =!= role) yield c.role
 		if (row.update(role) > 0) {
 			Chars.notifyUpdate(id)
-			MessageSuccess()
+			MessageSuccess
 		} else {
 			MessageFailure("CHAR_NOT_FOUND")
 		}
@@ -151,7 +166,7 @@ trait ProfileHandler { this: SocketHandler =>
 					user.updatePropreties()
 				}
 
-				MessageSuccess()
+				MessageSuccess
 			}
 		} getOrElse {
 			MessageFailure("CHAR_NOT_FOUND")

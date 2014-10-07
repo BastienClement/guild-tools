@@ -244,8 +244,6 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 		ctx_inflight = true;
 		ctx_valid = false;
 		
-		var events = Object.keys(ctx_handlers).filter(function(e) { return e !== "$"; });
-		
 		function error() {
 			ctx_inflight = false;
 			$scope.error("Error while switching contexts");
@@ -253,15 +251,17 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 		}
 		
 		$.call(ctx_loader, ctx_params, function(err, res) {
-			if (err) return error();
-			$.call("events:bind", { events: events }, function(err) {
-				if (err) return error();
+			if (err) {
+				ctx_inflight = false;
+				$scope.error("Error while switching contexts");
+				$scope.breadcrumb.rewind("/dashboard");
+			} else {
 				ctx_valid = true;
 				ctx_inflight = false;
 				if (typeof ctx_handlers.$ === "function") {
 					ctx_handlers.$(res);
 				}
-			});
+			}
 		});
 	};
 

@@ -58,7 +58,7 @@ trait AuthHandler { this: SocketHandler =>
 	/**
 	 * $:login:prepare
 	 */
-	def handleLoginPrepare(arg: JsValue): MessageResponse = Utils.atLeast(250.milliseconds) {
+	def handleAuthPrepare(arg: JsValue): MessageResponse = Utils.atLeast(250.milliseconds) {
 		val user = (arg \ "user").as[String].toLowerCase
 
 		DB.withSession { implicit s =>
@@ -75,7 +75,7 @@ trait AuthHandler { this: SocketHandler =>
 	/**
 	 * $:login:exec
 	 */
-	def handleLoginExec(arg: JsValue): MessageResponse = Utils.atLeast(500.milliseconds) {
+	def handleAuthLogin(arg: JsValue): MessageResponse = Utils.atLeast(500.milliseconds) {
 		val user = (arg \ "user").as[String].toLowerCase
 		val pass = (arg \ "pass").as[String].toLowerCase
 
@@ -121,7 +121,7 @@ trait AuthHandler { this: SocketHandler =>
 	/**
 	 * $:logout
 	 */
-	def handleLogout(): MessageResponse = {
+	def handleAuthLogout(): MessageResponse = {
 		if (socket != null) {
 			DB.withSession { implicit s =>
 				val session = for (s <- Sessions if s.token === socket.session) yield s
@@ -129,7 +129,7 @@ trait AuthHandler { this: SocketHandler =>
 				socket.dispose()
 				socket = null
 				dispatcher = unauthenticatedDispatcher
-				MessageSuccess()
+				MessageSuccess
 			}
 		} else {
 			MessageFailure("NO_SESSION")

@@ -18,7 +18,7 @@ GuildTools.controller("LoginCtrl", function($scope, $location) {
 		if ($scope.inflight) return;
 		$scope.inflight = true;
 
-		$.call("login:prepare", { user: $scope.user }, function(err, res) {
+		$.call("auth:prepare", { user: $scope.user }, function(err, res) {
 			if (!res) {
 				$scope.inflight = false;
 				$scope.user = "";
@@ -28,7 +28,7 @@ GuildTools.controller("LoginCtrl", function($scope, $location) {
 			}
 
 			var pass = CryptoJS.MD5(phpbb_hash($scope.pass, res.setting) + res.salt).toString();
-			$.call("login:exec", { user: $scope.user, pass: pass }, function(err, res) {
+			$.call("auth:login", { user: $scope.user, pass: pass }, function(err, res) {
 				$scope.inflight = false;
 
 				if (res && res.session) {

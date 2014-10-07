@@ -19,7 +19,7 @@ object Utils {
 	 * Return the Akka system schduler
 	 */
 	def scheduler = Akka.system().scheduler
-	
+
 	/**
 	 * MD5 hash with hex string result
 	 */
@@ -44,5 +44,17 @@ object Utils {
 		}
 
 		Await.result(p.future, Duration.Inf)
+	}
+
+	/**
+	 * Do something conditionally but return the boolean value
+	 */
+	def doIf(pred: => Boolean)(body: => Unit): Boolean = {
+		if (pred) {
+			body
+			true
+		} else {
+			false
+		}
 	}
 }
