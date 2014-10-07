@@ -1,15 +1,13 @@
 package gt
 
 import akka.actor.ActorRef
-import play.api.Logger
-import play.api.Play.current
-import play.api.libs.json._
-import scala.annotation.tailrec
-import scala.collection.mutable
+import api._
+import gt.Global.ExecutionContext
 import models._
 import models.mysql._
-import api._
-import Global.ExecutionContext
+import play.api.Logger
+import play.api.libs.json._
+
 import scala.concurrent.Future
 
 object User {

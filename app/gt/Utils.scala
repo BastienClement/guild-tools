@@ -1,12 +1,14 @@
 package gt
 
-import Global.ExecutionContext
 import java.math.BigInteger
-import java.security.{ MessageDigest, SecureRandom }
+import java.security.{MessageDigest, SecureRandom}
+
+import gt.Global.ExecutionContext
 import play.libs.Akka
-import scala.concurrent.{ Await, Future, Promise }
-import scala.concurrent.duration.{ Duration, FiniteDuration }
-import scala.util.{ Failure, Success }
+
+import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.{Await, Future, Promise}
+import scala.util.{Failure, Success}
 
 object Utils {
 	/**

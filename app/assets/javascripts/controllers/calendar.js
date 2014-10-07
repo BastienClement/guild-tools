@@ -5,13 +5,13 @@
 GuildTools.controller("CalendarCtrl", function($scope) {
 	if ($scope.restrict()) return;
 
-	var now = new Date();	
+	var now = new Date();
 	$scope.month = now.getMonth();
 	$scope.year = now.getFullYear();
-	
+
 	$scope.setNavigator("calendar", "main");
 
-	$scope.monthNext = function() { 
+	$scope.monthNext = function() {
 		$scope.month += 1;
 		if ($scope.month > 11) {
 			$scope.month = 0;
@@ -53,7 +53,7 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 	}
 
 	$scope.buildCalendar = function() {
-		/*$scope.setContext("calendar:main", [$scope.month + 1, $scope.year], {
+		$scope.setContext("calendar:load", { month: $scope.month + 1, year: $scope.year }, {
 			$: function(events) {
 				$scope.events = {};
 				events.forEach(pushEvent);
@@ -86,7 +86,7 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 					}
 				}
 			}
-		});*/
+		});
 
 		var last_month = new Date($scope.year, $scope.month, 0);
 		var days_in_last_month = last_month.getDate();
@@ -102,21 +102,21 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 
 		var today = new Date();
 
-		for(var r = 0; r < 6; r++) {
-			if(!$scope.data[r]) $scope.data[r] = [];
+		for (var r = 0; r < 6; r++) {
+			if (!$scope.data[r]) $scope.data[r] = [];
 
-			for(var c = 0; c < 7; c++) {
-				if(!$scope.data[r][c]) $scope.data[r][c] = {};
+			for (var c = 0; c < 7; c++) {
+				if (!$scope.data[r][c]) $scope.data[r][c] = {};
 
 				var day = 7 * r + c - first_month_day + 1;
 				var month = $scope.month;
 				var year = $scope.year;
 
-				if(day < 1) {
+				if (day < 1) {
 					day = days_in_last_month + day;
 					month = last_month_id;
 					year = last_month_year;
-				} else if(day > days_in_month) {
+				} else if (day > days_in_month) {
 					day = day - days_in_month;
 					month = next_month_id;
 					year = next_month_year;
@@ -199,15 +199,19 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 
 	$scope.formatTime = function(time) {
 		var str = time.toString();
-		return str.slice(0,-2) + ':' + str.slice(-2);
+		return str.slice(0, -2) + ':' + str.slice(-2);
 	};
 
 	$scope.typeLabel = function(t) {
 		switch (t) {
-		case 1: return "Guild event";
-		case 2: return "Public event";
-		case 3: return "Private event";
-		case 4: return "Announce";
+			case 1:
+				return "Guild event";
+			case 2:
+				return "Public event";
+			case 3:
+				return "Private event";
+			case 4:
+				return "Announce";
 		}
 	};
 
@@ -219,16 +223,21 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 		}
 
 		switch (e.answer) {
-		case 1: return "accepted";
-		case 2: return "declined";
+			case 1:
+				return "accepted";
+			case 2:
+				return "declined";
 		}
 	};
 
 	$scope.stateLabel = function(a) {
 		switch (a) {
-		case 1: return "Accepted";
-		case 2: return "Declined";
-		default: return "Non register";
+			case 1:
+				return "Accepted";
+			case 2:
+				return "Declined";
+			default:
+				return "Non register";
 		}
 	};
 });
@@ -239,7 +248,7 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 
 GuildTools.controller("CalendarAddEventCtrl", function($scope) {
 	if ($scope.restrict()) return;
-	
+
 	$scope.setNavigator("calendar", "main");
 
 	$scope.working = false;
@@ -270,7 +279,9 @@ GuildTools.controller("CalendarAddEventCtrl", function($scope) {
 		var first_month_day = ((new Date(year, month, 1).getDay()) + 6) % 7;
 
 		var today = new Date();
-		var calendar = [[]];
+		var calendar = [
+			[]
+		];
 		var cur_line = 0;
 
 		function pushDay(day) {
@@ -288,8 +299,8 @@ GuildTools.controller("CalendarAddEventCtrl", function($scope) {
 
 		for (d = 0; d < days_in_month; ++d) {
 			pushDay({
-				old: (year <= today.getFullYear() && month <= today.getMonth() && (d+1) < today.getDate()),
-				today: (year == today.getFullYear() && month == today.getMonth() && (d+1) == today.getDate()),
+				old: (year <= today.getFullYear() && month <= today.getMonth() && (d + 1) < today.getDate()),
+				today: (year == today.getFullYear() && month == today.getMonth() && (d + 1) == today.getDate()),
 				id: year + "-" + zero_pad(month + 1) + "-" + zero_pad(d + 1),
 				text: (d + 1)
 			});
@@ -307,14 +318,18 @@ GuildTools.controller("CalendarAddEventCtrl", function($scope) {
 	var lastClick = null;
 
 	$scope.isSelected = function(id) {
-		return selected.some(function(d) { return d === id; });
+		return selected.some(function(d) {
+			return d === id;
+		});
 	};
 
 	$scope.select = function(ev, id) {
 		ev.preventDefault();
 
 		if ($scope.isSelected(id)) {
-			selected = selected.filter(function(d) { return d !== id; });
+			selected = selected.filter(function(d) {
+				return d !== id;
+			});
 			lastClick = null;
 			return;
 		}
@@ -329,7 +344,7 @@ GuildTools.controller("CalendarAddEventCtrl", function($scope) {
 
 		if (ev.ctrlKey && $.user.officer) {
 			selected.push(id);
-		} else if(ev.shiftKey && lastClick && $.user.officer) {
+		} else if (ev.shiftKey && lastClick && $.user.officer) {
 			if (id === lastClick) return;
 			var d1 = new Date(id);
 			var d2 = new Date(lastClick);
@@ -340,7 +355,7 @@ GuildTools.controller("CalendarAddEventCtrl", function($scope) {
 			var day = from;
 			var end = toId(to);
 
-			for (var i = 0;; ++i) {
+			for (var i = 0; ; ++i) {
 				if (i > 62) {
 					selected = [];
 					break;
@@ -444,10 +459,10 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		raw_answers.forEach(function(answer) {
 			if (!answer.chars.length) {
 				answer.main = {
-						name: answer.username,
-						main: 1,
-						"class": 99,
-						role: "UNKNOW"
+					name: answer.username,
+					main: 1,
+					"class": 99,
+					role: "UNKNOW"
 				};
 			} else {
 				answer.chars.some(function(char) {
@@ -567,7 +582,9 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	};
 
 	$scope.active_tab = "Raid";
-	$scope.tabs = [{ title: "Raid" }];
+	$scope.tabs = [
+		{ title: "Raid" }
+	];
 
 	$scope.eventTimeFormat = function() {
 		if (!$scope.event) return "00:00";
@@ -579,9 +596,12 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	$scope.eventStateFormat = function() {
 		if (!$scope.event) return "Unknown";
 		switch ($scope.event.state) {
-		case 0: return "Open";
-		case 1: return "Locked";
-		case 2: return "Canceled";
+			case 0:
+				return "Open";
+			case 1:
+				return "Locked";
+			case 2:
+				return "Canceled";
 		}
 	};
 
@@ -593,26 +613,38 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	$scope.eventMenu = function(ev) {
 		var menu = [
 			{
-				icon: "awe-lock-open-alt", text: "Open", action: function() {
+				icon: "awe-lock-open-alt",
+				text: "Open",
+				action: function() {
 					//$.call("deleteEvent", event.id);
-				}, order: 1
+				},
+				order: 1
 			},
 			{
-				icon: "awe-lock", text: "Lock", action: function() {
+				icon: "awe-lock",
+				text: "Lock",
+				action: function() {
 					//$.call("deleteEvent", event.id);
-				}, order: 2
+				},
+				order: 2
 			},
 			{
-				icon: "awe-cancel", text: "Cancel", action: function() {
+				icon: "awe-cancel",
+				text: "Cancel",
+				action: function() {
 					//$.call("deleteEvent", event.id);
-				}, order: 3
+				},
+				order: 3
 			},
 			{ separator: true, order: 10 },
 			{
-				icon: "awe-trash", text: "Delete", action: function() {
+				icon: "awe-trash",
+				text: "Delete",
+				action: function() {
 					if (confirm("Are you sure?"))
 						$.call("deleteEvent", event.id);
-				}, order: 11
+				},
+				order: 11
 			}
 		];
 
@@ -620,15 +652,15 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	};
 
 	$scope.raidbuffs = {
-			stats: [1126, false],
-			stamina: [21562, false],
-			ap: [19506, false],
-			sp: [1459, false],
-			crit: [116781, false],
-			haste: [116956, false],
-			mastery: [19740, false],
-			multistrike: [166916, false],
-			versatility: [167187, false]
+		stats: [1126, false],
+		stamina: [21562, false],
+		ap: [19506, false],
+		sp: [1459, false],
+		crit: [116781, false],
+		haste: [116956, false],
+		mastery: [19740, false],
+		multistrike: [166916, false],
+		versatility: [167187, false]
 	};
 
 	var buffs_table = [
@@ -668,7 +700,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		{ b: "versatility", c: 2, r: "DPS", w: 167187, i: "versatility_paladin_dps" },
 		{ b: "versatility", c: 1, r: "DPS", w: 167188, i: "versatility_warrior_dps" },
 		{ b: "versatility", c: 6, r: "DPS", w: 55610, i: "versatility_dk_dps" },
-		{ b: "versatility", c: 11, w: 1126, i: "versatility_druid" },
+		{ b: "versatility", c: 11, w: 1126, i: "versatility_druid" }
 	];
 
 	$scope.getBuffIcon = function(key) {

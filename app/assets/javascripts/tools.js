@@ -1,4 +1,3 @@
-
 var GuildTools = angular.module("GuildTools", ["ngRoute", "ngAnimate"]);
 var GuildToolsScope = null;
 var GuildToolsLocation = null;
@@ -8,51 +7,51 @@ var GuildToolsLocation = null;
 
 GuildTools.config(function($routeProvider, $locationProvider, $animateProvider) {
 	$routeProvider
-	.when("/login", {
-		templateUrl: "/assets/views/login.html",
-		controller: "LoginCtrl"
-	})
-	.when("/welcome", {
-		templateUrl: "/assets/views/welcome.html",
-		controller: "WelcomeCtrl"
-	})
-	.when("/dashboard", {
-		templateUrl: "/assets/views/dashboard.html",
-		controller: "DashboardCtrl"
-	})
-	.when("/profile/:id?", {
-		templateUrl: "/assets/views/player-profile.html",
-		controller: "ProfileCtrl"
-	})
-	.when("/calendar", {
-		templateUrl: "/assets/views/calendar.html",
-		controller: "CalendarCtrl"
-	})
-	.when("/calendar/event/:id", {
-		templateUrl: "/assets/views/calendar-event.html",
-		controller: "CalendarEventCtrl"
-	})
-	.when("/forum", {
-		templateUrl: "/assets/views/forum.html",
-		controller: "ForumCtrl"
-	})
-	.when("/roster", {
-		templateUrl: "/assets/views/roster.html",
-		controller: "RosterCtrl"
-	})
-	.when("/whishlist", {
-		templateUrl: "/assets/views/whishlist.html",
-		controller: "WhishlistCtrl"
-	})
-	.when("/blueprints", {
-		templateUrl: "/assets/views/blueprints.html",
-		controller: "BlueprintsCtrl"
-	})
-	.otherwise({
-		redirectTo: function() {
-			return $.user ? "/dashboard" : "/login";
-		}
-	});
+		.when("/login", {
+			templateUrl: "/assets/views/login.html",
+			controller: "LoginCtrl"
+		})
+		.when("/welcome", {
+			templateUrl: "/assets/views/welcome.html",
+			controller: "WelcomeCtrl"
+		})
+		.when("/dashboard", {
+			templateUrl: "/assets/views/dashboard.html",
+			controller: "DashboardCtrl"
+		})
+		.when("/profile/:id?", {
+			templateUrl: "/assets/views/player-profile.html",
+			controller: "ProfileCtrl"
+		})
+		.when("/calendar", {
+			templateUrl: "/assets/views/calendar.html",
+			controller: "CalendarCtrl"
+		})
+		.when("/calendar/event/:id", {
+			templateUrl: "/assets/views/calendar-event.html",
+			controller: "CalendarEventCtrl"
+		})
+		.when("/forum", {
+			templateUrl: "/assets/views/forum.html",
+			controller: "ForumCtrl"
+		})
+		.when("/roster", {
+			templateUrl: "/assets/views/roster.html",
+			controller: "RosterCtrl"
+		})
+		.when("/whishlist", {
+			templateUrl: "/assets/views/whishlist.html",
+			controller: "WhishlistCtrl"
+		})
+		.when("/blueprints", {
+			templateUrl: "/assets/views/blueprints.html",
+			controller: "BlueprintsCtrl"
+		})
+		.otherwise({
+			redirectTo: function() {
+				return $.user ? "/dashboard" : "/login";
+			}
+		});
 
 	$locationProvider.html5Mode(true);
 	$animateProvider.classNameFilter(/animated/);
@@ -64,7 +63,7 @@ GuildTools.directive("ngContextmenu", function($parse) {
 		element.bind("contextmenu", function(event) {
 			scope.$apply(function() {
 				event.preventDefault();
-				fn(scope, {$event:event});
+				fn(scope, {$event: event});
 			});
 		});
 	};
@@ -147,7 +146,7 @@ GuildTools.directive("ngTooltip", function() {
 	};
 });
 
-GuildTools.filter("capitalize", function () {
+GuildTools.filter("capitalize", function() {
 	return function(input) {
 		return input.charAt(0).toUpperCase() + input.slice(1).toLowerCase();
 	};

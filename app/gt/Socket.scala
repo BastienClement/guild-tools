@@ -1,13 +1,13 @@
 package gt
 
+import akka.actor.{ActorRef, actorRef2Scala}
 import api._
-import play.api.libs.json._
-import akka.actor.{ ActorRef, actorRef2Scala }
+import gt.Global.ExecutionContext
+
 import scala.annotation.tailrec
 import scala.collection.mutable
-import scala.concurrent.duration.DurationInt
-import Global.ExecutionContext
 import scala.concurrent.Future
+import scala.concurrent.duration.DurationInt
 
 object Socket {
 	var sockets = Map[String, Socket]()
@@ -20,7 +20,7 @@ object Socket {
 		@tailrec def loop(): Socket = {
 			val token = Utils.randomToken()
 
-			// Check uniqueness of this token 
+			// Check uniqueness of this token
 			if (sockets contains token) {
 				loop()
 			} else {
@@ -41,14 +41,14 @@ object Socket {
 	def !!(e: Event): Unit = Future { sockets.values.par foreach { _ !! e } }
 }
 
-class Socket private (val token: String, val user: User, val session: String, var handler: ActorRef) {
+class Socket private(val token: String, val user: User, val session: String, var handler: ActorRef) {
 	var open = true
 	var dead = false
 
 	val queue = mutable.Queue[OutgoingMessage]()
 
 	type EventFilter = PartialFunction[Event, Boolean]
-	val FilterNone: EventFilter = { case _ => false }
+	val FilterNone: EventFilter = {case _ => false }
 	var eventFilter: EventFilter = FilterNone
 
 	/**

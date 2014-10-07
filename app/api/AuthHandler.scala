@@ -1,19 +1,20 @@
 package api
 
+import java.sql.SQLException
+
 import actors.SocketHandler
-import gt.{ Socket, User, Utils }
-import play.api.Play.current
-import play.api.libs.json.{ JsNull, JsValue, Json }
+import gt.{Socket, User, Utils}
+import models._
+import models.mysql._
+import models.sql._
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
+import play.api.libs.json.{JsNull, JsValue, Json}
+
 import scala.annotation.tailrec
 import scala.concurrent.duration.DurationInt
 
-import models._
-import models.mysql._
-import models.sql.interpolation
-import java.sql.SQLException
-
-trait AuthHandler { this: SocketHandler =>
+trait AuthHandler {
+	this: SocketHandler =>
 	private var auth_salt = Utils.randomToken()
 
 	/**
@@ -25,9 +26,7 @@ trait AuthHandler { this: SocketHandler =>
 
 		// Attach this handler to the requested socket if available
 		def resumeSocket(sid: Option[String]): Option[JsValue] = {
-			sid flatMap {
-				Socket.findByID(_)
-			} map { s =>
+			sid flatMap (Socket.findByID) map { s =>
 				s.updateHandler(self)
 				socket = s
 				dispatcher = authenticatedDispatcher
@@ -86,13 +85,13 @@ trait AuthHandler { this: SocketHandler =>
 		DB.withSession { implicit s =>
 			val user_credentials = for (u <- Users if u.name_clean === user) yield (u.pass, u.id)
 			user_credentials.firstOption filter {
-				case (pass_ref, id) =>
+				case (pass_ref, user_id) =>
 					pass == Utils.md5(pass_ref + salt)
 			} map {
-				case (pass_ref, id) =>
+				case (pass_ref, user_id) =>
 					@tailrec def createSession(attempt: Int = 1): Option[String] = {
 						val token = Utils.randomToken()
-						val query = sqlu"INSERT INTO gt_sessions SET token = $token, user = $id, ip = $remoteAddr, created = NOW(), last_access = NOW()"
+						val query = sqlu"INSERT INTO gt_sessions SET token = $token, user = $user_id, ip = $remoteAddr, created = NOW(), last_access = NOW()"
 
 						try {
 							query.first

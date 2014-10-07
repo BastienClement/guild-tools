@@ -4,7 +4,9 @@ import actors.SocketHandler
 import gt.User
 import play.api.libs.json._
 
-trait ChatHandler { this: SocketHandler =>
+trait ChatHandler {
+	this: SocketHandler =>
+
 	/**
 	 * $:chat:onlines
 	 */

@@ -1,8 +1,8 @@
+import java.sql.Timestamp
+import java.util.Date
+
 import play.api.Play.current
 import play.api.libs.json._
-
-import java.util.Date
-import java.sql.Timestamp
 
 package object models {
 	val DB = play.api.db.slick.DB

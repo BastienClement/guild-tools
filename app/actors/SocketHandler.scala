@@ -1,20 +1,21 @@
 package actors
 
-import akka.actor.{ Actor, ActorRef, PoisonPill, actorRef2Scala }
-import api._
-import gt.{ Socket, Utils }
-import gt.Global.ExecutionContext
 import java.util.concurrent.atomic.AtomicInteger
+
+import akka.actor.{Actor, ActorRef, PoisonPill, actorRef2Scala}
+import api._
+import gt.Global.ExecutionContext
+import gt.{Socket, User, Utils}
 import play.api.Logger
 import play.api.libs.json._
+
 import scala.concurrent.Future
-import scala.util.{ Failure, Success }
-import gt.User
+import scala.util.{Failure, Success}
 
 class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
-	with AuthHandler
-	with ChatHandler
-	with ProfileHandler {
+                                                                       with AuthHandler
+                                                                       with ChatHandler
+                                                                       with ProfileHandler {
 	// Debug socket ID
 	val id = Utils.randomToken()
 
@@ -35,12 +36,17 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 
 	// Attached socket object
 	var socket: Socket = null
+
+	// Alias to the socket user
 	def user: User = socket.user
 
+	/**
+	 * Handle actor messages
+	 */
 	def receive = {
 		// Incoming message
 		case message: JsValue => {
-			val id = (message \ "#")
+			val id = message \ "#"
 			Logger.debug(s">>> $message")
 
 			val response = Future {
@@ -70,13 +76,13 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 							out ! Json.obj("$" -> "res", "#" -> id, "&" -> res)
 						}
 
-						case MessageFailure(err, message) => {
+						case MessageFailure(err, m) => {
 							out ! Json.obj(
 								"$" -> "nok",
 								"#" -> id,
 								"&" -> Json.obj(
 									"e" -> err,
-									"m" -> message))
+									"m" -> m))
 						}
 					}
 				}
@@ -86,8 +92,8 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 						"$" -> "err",
 						"#" -> id,
 						"&" -> Json.obj(
-							"e" -> e.getClass().getName(),
-							"m" -> e.getMessage()))
+							"e" -> e.getClass.getName,
+							"m" -> e.getMessage))
 
 					Logger.error("Fatal socket error", e)
 					self ! PoisonPill

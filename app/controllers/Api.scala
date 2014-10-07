@@ -1,6 +1,6 @@
 package controllers
 
-import anorm.SqlStringInterpolation
+import anorm._
 import play.api.Play.current
 import play.api.cache.Cached
 import play.api.db.DB

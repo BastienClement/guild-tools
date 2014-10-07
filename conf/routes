@@ -2,15 +2,15 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET   /assets/*file   controllers.Assets.at(path="/public", file)
-GET   /views/*file    controllers.Assets.at(path="/public/views", file)
+GET        /assets/*file        controllers.Assets.at(path="/public", file)
+GET        /views/*file         controllers.Assets.at(path="/public/views", file)
 
-GET   /socket         controllers.Application.socket
+GET        /socket              controllers.Application.socket
 
-GET   /api/gamedata   controllers.Api.gamedata
-GET   /api/*path      controllers.Api.catchall(path)
+GET        /api/gamedata        controllers.Api.gamedata
+GET        /api/*path           controllers.Api.catchall(path)
 
-GET   /test           controllers.Application.test
+GET        /test                controllers.Application.test
 
-GET   /               controllers.Application.index
-GET   /*path          controllers.Application.catchall(path)
+GET        /                    controllers.Application.index
+GET        /*path               controllers.Application.catchall(path)

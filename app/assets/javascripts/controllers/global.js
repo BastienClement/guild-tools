@@ -4,8 +4,8 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 
 	$scope.safeApply = function(fn) {
 		var phase = this.$root.$$phase;
-		if(phase == '$apply' || phase == '$digest') {
-			if(fn && (typeof(fn) === 'function')) {
+		if (phase == '$apply' || phase == '$digest') {
+			if (fn && (typeof(fn) === 'function')) {
 				fn();
 			}
 		} else {
@@ -28,13 +28,15 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	$scope.breadcrumb = (function() {
 		var baseURL = document.location.origin;
 
-		var stack = [{
-			icon: "home",
-			name: "Dashboard",
-			location: baseURL + "/dashboard",
-			path: "/dashboard",
-			root: true
-		}];
+		var stack = [
+			{
+				icon: "home",
+				name: "Dashboard",
+				location: baseURL + "/dashboard",
+				path: "/dashboard",
+				root: true
+			}
+		];
 
 		var forward = [];
 
@@ -82,10 +84,10 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 			$scope.modal();
 			_("#tooltip").hide();
 			if (next === prev) return;
-			if (stack.length > 1 && next === stack[stack.length-2].location) {
+			if (stack.length > 1 && next === stack[stack.length - 2].location) {
 				forward.unshift(stack.pop());
 				updateTitle();
-			} else if(forward.length && forward[0].location === next) {
+			} else if (forward.length && forward[0].location === next) {
 				stack.push(forward.shift());
 			} else if ($.user) {
 				$scope.breadcrumb.updateTitle();
@@ -93,6 +95,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 		});
 
 		var last = null;
+
 		function updateTitle() {
 			var s = $scope.breadcrumb.stack;
 			var f = s[s.length - 1];
@@ -120,7 +123,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 				var target = resolve(path, override);
 				if (!target || stack[stack.length - 1].path === path) return;
 				if (test) return true;
-				
+
 				if (path === "/") return $scope.breadcrumb.rewind("/");
 
 				for (var i = 0; i < stack.length; ++i) {
@@ -158,7 +161,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 
 			rewind: function(target) {
 				if (!$.user || !$.user.ready) return;
-				if (target === stack[stack.length-1].location || target === stack[stack.length-1].path) return;
+				if (target === stack[stack.length - 1].location || target === stack[stack.length - 1].path) return;
 
 				for (var i = 0; ; --i) {
 					var entry = stack.pop();
@@ -173,7 +176,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 
 				updateTitle();
 			},
-			
+
 			reset: function(path) {
 				if ($scope.breadcrumb.push(path, false, false, true)) {
 					$scope.breadcrumb.rewind("/");
@@ -182,7 +185,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 			},
 
 			current: function(path) {
-				return path === stack[stack.length-1].path;
+				return path === stack[stack.length - 1].path;
 			}
 		};
 	})();
@@ -204,11 +207,6 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	};
 
 	$scope.gameData = {};
-
-	/*$.call("fetchGameData", function(err, data) {
-		if (err) return $scope.breadcrumb.rewind('/dashboard');
-		$scope.gameData = data;
-	});*/
 
 	$http({
 		url: "/api/gamedata",
@@ -240,16 +238,16 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 
 	$scope.syncContext = function() {
 		if (ctx_inflight) return;
-		
+
 		ctx_inflight = true;
 		ctx_valid = false;
-		
+
 		function error() {
 			ctx_inflight = false;
 			$scope.error("Error while switching contexts");
 			$scope.breadcrumb.rewind("/dashboard");
 		}
-		
+
 		$.call(ctx_loader, ctx_params, function(err, res) {
 			if (err) {
 				ctx_inflight = false;
@@ -361,7 +359,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	];
 
 	$scope.dayNames = [
-		"Monday", 
+		"Monday",
 		"Tuesday",
 		"Wednesday",
 		"Thursday",
@@ -381,40 +379,43 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 			$scope.safeApply();
 		}, 5000);
 	};
-	
+
 	$scope.navigator = null;
 	$scope.navigator_current = null;
 	$scope.navigator_tab = null;
-	
+
 	var navigators = {
 		"dashboard": [],
-		
+
 		"profile": [],
-		
+
 		"calendar": [
 			["main", "Calendar", "/calendar"]
 		]
 	};
-	
+
 	$scope.setNavigator = function(name, tab, overrides) {
 		$scope.navigator_current = name;
 		$scope.navigator_tab = tab;
-		
+
 		if (name && navigators[name]) {
 			$scope.navigator = [];
 			navigators[name].forEach(function(item) {
 				var id = item[0];
 				var name = item[1];
 				var action = item[2];
-				
+
 				if (overrides && overrides[id]) {
 					name = overrides[id][0];
 					action = overrides[id][1];
 				}
-				
+
 				$scope.navigator.push([id, name, function() {
 					if (typeof action === "function") {
-						try { action(); } catch(e) {}
+						try {
+							action();
+						} catch (e) {
+						}
 					} else {
 						$scope.breadcrumb.push(action);
 					}

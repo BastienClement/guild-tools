@@ -1,6 +1,6 @@
 package models
 
-import mysql._
+import models.mysql._
 
 case class User(id: Int, name: String, group: Int, color: String)
 

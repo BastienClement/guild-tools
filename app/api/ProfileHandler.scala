@@ -1,15 +1,16 @@
 package api
 
+import java.util.Date
+
 import actors.SocketHandler
-import play.api.libs.json._
+import gt.Bnet
+import gt.Utils.doIf
 import models._
 import models.mysql._
-import models.sql._
-import gt.Bnet
-import java.util.Date
-import gt.Utils.doIf
+import play.api.libs.json._
 
-trait ProfileHandler { this: SocketHandler =>
+trait ProfileHandler {
+	this: SocketHandler =>
 	/**
 	 * Validate role for DB queries
 	 */

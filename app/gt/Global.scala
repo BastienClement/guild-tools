@@ -1,6 +1,7 @@
 package gt
 
 import play.libs.Akka
+
 import scala.concurrent.ExecutionContext
 
 object Global {

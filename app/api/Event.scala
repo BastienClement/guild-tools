@@ -1,8 +1,8 @@
 package api
 
-import play.api.libs.json._
-import play.api.libs.json.Json.JsValueWrapper
 import models._
+import play.api.libs.json.Json.JsValueWrapper
+import play.api.libs.json._
 
 abstract class Event(val name: String, val arg: JsValueWrapper) {
 	def asJson: JsValue = Json.obj("name" -> name, "arg" -> arg)
