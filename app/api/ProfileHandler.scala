@@ -9,6 +9,9 @@ import gt.Bnet
 import java.util.Date
 
 trait ProfileHandler { this: SocketHandler =>
+	/**
+	 * Validate role for DB queries
+	 */
 	private def checkRole(role: String): String = {
 		role match {
 			case "TANK" | "HEALING" => role
@@ -121,8 +124,8 @@ trait ProfileHandler { this: SocketHandler =>
 		}
 
 		Bnet.query(s"/character/$server/$name", ("fields" -> "items")) map { char =>
-			DB.withSession { implicit s =>
-				val main = for (c <- Chars if c.main === true && c.owner === socket.user.id) yield c.id
+			DB.withTransaction { implicit s =>
+				val main = for (c <- Chars if c.main === true && c.owner === user.id) yield c.id
 
 				val template = Char(
 					id = 0,
@@ -139,10 +142,9 @@ trait ProfileHandler { this: SocketHandler =>
 					thumbnail = (char \ "thumbnail").as[String],
 					ilvl = (char \ "items" \ "averageItemLevel").as[Int],
 					role = role,
-					last_update = (new Date()).getTime()
-				)
+					last_update = (new Date()).getTime())
 
-				val id: Int = (Chars returning Chars.map(_.id)) insert template
+				val id: Int = (Chars returning Chars.map(_.id)) += template
 				Chars.notifyCreate(template.copy(id = id))
 
 				if (template.main) {

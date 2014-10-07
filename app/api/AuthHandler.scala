@@ -20,34 +20,34 @@ trait AuthHandler { this: SocketHandler =>
 	 * $:auth
 	 */
 	def handleAuth(arg: JsValue): MessageResponse = Utils.atLeast(250.milliseconds) {
+		val socket_id = (arg \ "socket").asOpt[String]
+		val session_id = (arg \ "session").asOpt[String]
+
 		// Attach this handler to the requested socket if available
-		def resumeSocket(socket_id: Option[String]) = {
-			socket_id flatMap {
+		def resumeSocket(sid: Option[String]): Option[JsValue] = {
+			sid flatMap {
 				Socket.findByID(_)
-			} map { socket =>
-				socket.updateHandler(self)
-				this.socket = socket
-				this.dispatcher = authenticatedDispatcher
+			} map { s =>
+				s.updateHandler(self)
+				socket = s
+				dispatcher = authenticatedDispatcher
 				Json.obj("resume" -> true)
 			}
 		}
 
 		// Find user by session and create a new socket for it
-		def resumeSession(session_id: Option[String]) = {
-			session_id flatMap { session =>
+		def resumeSession(sid: Option[String]): Option[JsValue] = {
+			sid flatMap { session =>
 				User.findBySession(session) map (_.createSocket(session, self))
-			} map { socket =>
-				this.socket = socket
-				this.dispatcher = authenticatedDispatcher
+			} map { s =>
+				socket = s
+				dispatcher = authenticatedDispatcher
+				s.user.updatePropreties()
 				Json.obj(
-					"socket" -> socket.token,
-					"user" -> socket.user.toJson()
-				)
+					"socket" -> s.token,
+					"user" -> s.user.toJson())
 			}
 		}
-
-		val socket_id = (arg \ "socket").asOpt[String]
-		val session_id = (arg \ "session").asOpt[String]
 
 		val success = resumeSocket(socket_id) orElse (resumeSession(session_id))
 		val result = success getOrElse (Json.obj("socket" -> JsNull, "user" -> JsNull))
@@ -85,31 +85,33 @@ trait AuthHandler { this: SocketHandler =>
 
 		DB.withSession { implicit s =>
 			val user_credentials = for (u <- Users if u.name_clean === user) yield (u.pass, u.id)
-			user_credentials.firstOption filter { case (pass_ref, id) =>
-				pass == Utils.md5(pass_ref + salt)
-			} map { case (pass_ref, id) =>
-				@tailrec def createSession(attempt: Int = 1): Option[String] = {
-					val token = Utils.randomToken()
-					val query = sqlu"INSERT INTO gt_sessions SET token = $token, user = $id, ip = $remoteAddr, created = NOW(), last_access = NOW()"
+			user_credentials.firstOption filter {
+				case (pass_ref, id) =>
+					pass == Utils.md5(pass_ref + salt)
+			} map {
+				case (pass_ref, id) =>
+					@tailrec def createSession(attempt: Int = 1): Option[String] = {
+						val token = Utils.randomToken()
+						val query = sqlu"INSERT INTO gt_sessions SET token = $token, user = $id, ip = $remoteAddr, created = NOW(), last_access = NOW()"
 
-					try {
-						query.first
-						Some(token)
-					} catch {
-						case e: SQLException => {
-							if (attempt < 3)
-								createSession(attempt + 1)
-							else
-								None
+						try {
+							query.first
+							Some(token)
+						} catch {
+							case e: SQLException => {
+								if (attempt < 3)
+									createSession(attempt + 1)
+								else
+									None
+							}
 						}
 					}
-				}
 
-				createSession() map { s =>
-					MessageResults(Json.obj("session" -> s))
-				} getOrElse {
-					MessageFailure("UNABLE_TO_LOGIN")
-				}
+					createSession() map { s =>
+						MessageResults(Json.obj("session" -> s))
+					} getOrElse {
+						MessageFailure("UNABLE_TO_LOGIN")
+					}
 			} getOrElse {
 				MessageFailure("INVALID_CREDENTIALS")
 			}

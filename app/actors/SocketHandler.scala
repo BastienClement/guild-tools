@@ -28,7 +28,7 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 	Logger.debug(s"Socket open: $remoteAddr-$id")
 
 	// Current message handler
-	type MessageDispatcher = Function2[String, JsValue, MessageResponse]
+	type MessageDispatcher = (String, JsValue) => MessageResponse
 	var dispatcher: MessageDispatcher = unauthenticatedDispatcher
 
 	// Parallel requests counter
