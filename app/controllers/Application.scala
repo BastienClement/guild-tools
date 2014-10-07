@@ -13,9 +13,8 @@ object Application extends Controller {
 		Ok(views.html.index.render())
 	}
 
-	def socket = WebSocket.acceptWithActor[JsValue, JsValue] { request =>
-		out =>
-			Props(new SocketHandler(out, request.remoteAddress))
+	def socket = WebSocket.acceptWithActor[JsValue, JsValue] { request => out =>
+		Props(new SocketHandler(out, request.remoteAddress))
 	}
 
 	def test = Action {

@@ -55,7 +55,7 @@ trait AuthHandler {
 	}
 
 	/**
-	 * $:login:prepare
+	 * $:auth:prepare
 	 */
 	def handleAuthPrepare(arg: JsValue): MessageResponse = Utils.atLeast(250.milliseconds) {
 		val user = (arg \ "user").as[String].toLowerCase
@@ -72,7 +72,7 @@ trait AuthHandler {
 	}
 
 	/**
-	 * $:login:exec
+	 * $:auth:login
 	 */
 	def handleAuthLogin(arg: JsValue): MessageResponse = Utils.atLeast(500.milliseconds) {
 		val user = (arg \ "user").as[String].toLowerCase
@@ -118,7 +118,7 @@ trait AuthHandler {
 	}
 
 	/**
-	 * $:logout
+	 * $:auth:logout
 	 */
 	def handleAuthLogout(): MessageResponse = {
 		if (socket != null) {

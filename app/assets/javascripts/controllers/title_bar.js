@@ -58,19 +58,6 @@ GuildTools.controller("TitleBarCtrl", function($scope) {
 	}
 
 	$scope.userMenu = [
-		/*{
-		 icon: "status-dot", text: "Online", action: function() {
-		 }, order: 1
-		 },
-		 {
-		 icon: "status-dot away", text: "Away", action: function() {
-		 }, order: 2
-		 },
-		 {
-		 icon: "status-dot busy", text: "Busy", action: function() {
-		 }, order: 3
-		 },
-		 { separator: true, order: 4 },*/
 		{
 			icon: "awe-logout", text: "Logout",
 			action: function() {
