@@ -1,4 +1,5 @@
 import java.sql.Timestamp
+import java.text.SimpleDateFormat
 import java.util.Date
 
 import play.api.Play.current
@@ -11,6 +12,14 @@ package object models {
 
 	def NOW() = new Timestamp(new Date().getTime)
 
+	implicit object timestampFormat extends Format[Timestamp] {
+		val format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+		def reads(json: JsValue) = JsSuccess(new Timestamp(format.parse(json.as[String]).getTime))
+		def writes(ts: Timestamp) = JsString(format.format(ts))
+	}
+
 	implicit val userJsonFormat = Json.format[User]
 	implicit val charJsonFormat = Json.format[Char]
+	implicit val eventJsonFormat = Json.format[CalendarEvent]
+	implicit val answerJsonFormat = Json.format[CalendarAnswer]
 }

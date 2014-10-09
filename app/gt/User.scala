@@ -13,11 +13,11 @@ import scala.concurrent.Future
 object User {
 	var onlines = Map[Int, User]()
 
-	def disposed(user: User): Unit = onlines.synchronized {
+	def disposed(user: User): Unit = User.synchronized {
 		onlines -= user.id
 	}
 
-	def findByID(id: Int): Option[User] = onlines.synchronized {
+	def findByID(id: Int): Option[User] = User.synchronized {
 		onlines.get(id) orElse {
 			try {
 				val user = new User(id)
@@ -84,7 +84,7 @@ class User(val id: Int) {
 	def createSocket(session: String, handler: ActorRef): Socket = {
 		// Create and register a new socket
 		val socket = Socket.create(this, session, handler)
-		sockets.synchronized { sockets += socket }
+		this.synchronized { sockets += socket }
 
 		// Update gt_sessions.last_access
 		DB.withSession { implicit s =>
@@ -99,7 +99,7 @@ class User(val id: Int) {
 	 * Remove a dead socket from this user
 	 */
 	def removeSocket(socket: Socket): Unit = {
-		sockets.synchronized {
+		this.synchronized {
 			sockets -= socket
 			if (sockets.size < 1) {
 				dispose()

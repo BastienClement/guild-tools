@@ -53,17 +53,17 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 	}
 
 	$scope.buildCalendar = function() {
-		$scope.setContext("calendar:load", { month: $scope.month + 1, year: $scope.year }, {
+		$scope.setContext("calendar:load", { month: $scope.month, year: $scope.year }, {
 			$: function(events) {
 				$scope.events = {};
 				events.forEach(pushEvent);
 			},
 
-			EventCreated: function(event) {
+			"event:create": function(event) {
 				pushEvent(event);
 			},
 
-			EventDeleted: function(eventid) {
+			"event:delete": function(eventid) {
 				for (var day in $scope.events) {
 					for (var i in $scope.events[day]) {
 						var event = $scope.events[day][i];

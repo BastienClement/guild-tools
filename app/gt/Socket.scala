@@ -12,7 +12,7 @@ import scala.concurrent.duration.DurationInt
 object Socket {
 	var sockets = Map[String, Socket]()
 
-	def disposed(socket: Socket): Unit = sockets.synchronized {
+	def disposed(socket: Socket): Unit = Socket.synchronized {
 		sockets -= socket.token
 	}
 
@@ -30,7 +30,7 @@ object Socket {
 			}
 		}
 
-		sockets.synchronized {
+		Socket.synchronized {
 			loop()
 		}
 	}

@@ -10,7 +10,8 @@ import models.mysql._
 import play.api.libs.json._
 
 trait ProfileHandler {
-	this: SocketHandler =>
+	self: SocketHandler =>
+
 	/**
 	 * Validate role for DB queries
 	 */
@@ -33,14 +34,14 @@ trait ProfileHandler {
 		var watched_chars = chars.map(_.id).toSet
 
 		socket.eventFilter = {
-			case CharCreateEvent(char) => doIf(char.owner == user_id) {
-				watched_chars.synchronized { watched_chars += char.id }
+			case CharCreate(char) => doIf(char.owner == user_id) {
+				self.synchronized { watched_chars += char.id }
 			}
 
-			case CharUpdateEvent(char) => watched_chars.contains(char.id)
+			case CharUpdate(char) => watched_chars.contains(char.id)
 
-			case CharDeleteEvent(char_id) => doIf(watched_chars.contains(char_id)) {
-				watched_chars.synchronized { watched_chars -= char_id }
+			case CharDelete(char_id) => doIf(watched_chars.contains(char_id)) {
+				self.synchronized { watched_chars -= char_id }
 			}
 		}
 
