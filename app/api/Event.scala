@@ -18,4 +18,4 @@ case class CalendarEventDelete(id: Int) extends Event("event:delete", id)
 
 case class CalendarAnswerCreate(answer: CalendarAnswer) extends Event("answer:create", answer)
 case class CalendarAnswerUpdate(answer: CalendarAnswer) extends Event("answer:update", answer)
-case class CalendarAnswerDelete(id: Int) extends Event("answer:delete", id)
+case class CalendarAnswerDelete(user: Int, event: Int) extends Event("answer:delete", Json.obj("user" -> user, "event" -> event))

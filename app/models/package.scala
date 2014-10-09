@@ -10,8 +10,6 @@ package object models {
 	val mysql = scala.slick.driver.MySQLDriver.simple
 	val sql = scala.slick.jdbc.StaticQuery
 
-	def NOW() = new Timestamp(new Date().getTime)
-
 	implicit object timestampFormat extends Format[Timestamp] {
 		val format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 		def reads(json: JsValue) = JsSuccess(new Timestamp(format.parse(json.as[String]).getTime))

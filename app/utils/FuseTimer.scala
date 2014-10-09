@@ -1,8 +1,7 @@
-package gt
+package utils
 
 import akka.actor.Cancellable
 import gt.Global.ExecutionContext
-import gt.Utils.scheduler
 
 import scala.concurrent.duration.FiniteDuration
 

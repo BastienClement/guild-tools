@@ -1,16 +1,17 @@
-package gt
-
 import java.math.BigInteger
-import java.security.{MessageDigest, SecureRandom}
-
+import java.security.{ MessageDigest, SecureRandom }
+import scala.async.Async._
+import scala.concurrent.{ Await, Future, Promise }
+import scala.concurrent.duration._
+import scala.util.{ Failure, Success }
+import api.MessageDeferred
+import api.MessageResults
 import gt.Global.ExecutionContext
 import play.libs.Akka
+import api.MessageDeferred
+import api.MessageResponse
 
-import scala.concurrent.duration.{Duration, FiniteDuration}
-import scala.concurrent.{Await, Future, Promise}
-import scala.util.{Failure, Success}
-
-object Utils {
+package object utils {
 	/**
 	 * Generate random tokens
 	 */
@@ -59,4 +60,10 @@ object Utils {
 			false
 		}
 	}
+
+	/**
+	 * Deferred MessageResult generator
+	 */
+	def defer(body: => MessageResponse): MessageDeferred = defer(Future { body })
+	def defer(future: Future[MessageResponse]): MessageDeferred = MessageDeferred(future)
 }

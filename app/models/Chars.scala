@@ -46,15 +46,15 @@ class Chars(tag: Tag) extends Table[Char](tag, "gt_chars") {
 
 object Chars extends TableQuery(new Chars(_)) {
 	def notifyCreate(char: Char): Unit = {
-		Socket !! CharCreate(char)
+		Socket !# CharCreate(char)
 	}
 
 	def notifyUpdate(id: Int)(implicit s: SessionDef): Unit = {
 		val char = for (c <- Chars if c.id === id) yield c
-		char.firstOption foreach (Socket !! CharUpdate(_))
+		char.firstOption foreach (Socket !# CharUpdate(_))
 	}
 
 	def notifyDelete(id: Int): Unit = {
-		Socket !! CharDelete(id)
+		Socket !# CharDelete(id)
 	}
 }

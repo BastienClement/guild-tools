@@ -1,24 +1,20 @@
 package actors
 
-import java.util.concurrent.atomic.AtomicInteger
-
-import akka.actor.{Actor, ActorRef, PoisonPill, actorRef2Scala}
+import akka.actor.{ Actor, ActorRef, PoisonPill, actorRef2Scala }
 import api._
 import gt.Global.ExecutionContext
-import gt.{Socket, User, Utils}
+import gt.{ Socket, User }
 import play.api.Logger
 import play.api.libs.json._
-
-import scala.concurrent.Future
-import scala.util.{Failure, Success}
+import scala.util.{ Failure, Success }
 
 class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
-                                                                       with AuthHandler
-                                                                       with ChatHandler
-                                                                       with ProfileHandler
-                                                                       with CalendarHandler {
+	with AuthHandler
+	with ChatHandler
+	with ProfileHandler
+	with CalendarHandler {
 	// Debug socket ID
-	val id = Utils.randomToken()
+	val id = utils.randomToken()
 
 	// Protocol banner
 	out ! Json.obj(
@@ -32,14 +28,11 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 	type MessageDispatcher = (String, JsValue) => MessageResponse
 	var dispatcher: MessageDispatcher = unauthenticatedDispatcher
 
-	// Parallel requests counter
-	val concurrentDispatch = new AtomicInteger(0)
-
 	// Attached socket object
 	var socket: Socket = null
 
 	// Alias to the socket user
-	def user: User = socket.user
+	var user: User = null
 
 	/**
 	 * Handle actor messages
@@ -50,55 +43,13 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 			val id = message \ "#"
 			Logger.debug(s">>> $message")
 
-			val response = Future {
-				concurrentDispatch.incrementAndGet()
-				try {
-					val cmd = (message \ "$").as[String]
-					val arg = (message \ "&")
-					dispatcher(cmd, arg)
-				} finally {
-					concurrentDispatch.decrementAndGet()
-				}
-			}
-
-			response onComplete {
-				case Success(msg) => {
-					Logger.debug(s"<<< $msg")
-					msg match {
-						case _ if id == JsNull => {
-							/* client is not interested by the result */
-						}
-
-						case MessageSuccess => {
-							out ! Json.obj("$" -> "ack", "#" -> id, "&" -> JsNull)
-						}
-
-						case MessageResults(res) => {
-							out ! Json.obj("$" -> "res", "#" -> id, "&" -> res)
-						}
-
-						case MessageFailure(err, m) => {
-							out ! Json.obj(
-								"$" -> "nok",
-								"#" -> id,
-								"&" -> Json.obj(
-									"e" -> err,
-									"m" -> m))
-						}
-					}
-				}
-
-				case Failure(e) => {
-					out ! Json.obj(
-						"$" -> "err",
-						"#" -> id,
-						"&" -> Json.obj(
-							"e" -> e.getClass.getName,
-							"m" -> e.getMessage))
-
-					Logger.error("Fatal socket error", e)
-					self ! PoisonPill
-				}
+			try {
+				val cmd = (message \ "$").as[String]
+				val arg = (message \ "&")
+				val response = dispatcher(cmd, arg)
+				responseResult(id, response)
+			} catch {
+				case e: Throwable => responseError(e)
 			}
 		}
 
@@ -111,15 +62,80 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		// Outgoing message
 		case Message(cmd, arg) => {
 			val msg = Json.obj("$" -> cmd, "&" -> arg)
-			Logger.debug(s"<<< $msg")
+			Logger.debug(s"<<< ${msg.toString}")
 			out ! msg
+		}
+
+		// Dispatching event
+		case event: Event => {
+			if (socket != null) {
+				socket.handleEvent(event)
+			}
 		}
 	}
 
-	def unauthenticatedDispatcher: MessageDispatcher = {
-		// Prevent concurrent requests before authentication
-		case _ if (concurrentDispatch.get() > 1) => MessageFailure("ANON_CONCURRENT")
+	/**
+	 * Send the message object according to the result of the call
+	 */
+	def responseResult(id: JsValue, m: MessageResponse): Unit = {
+		// Client not interested in the result
+		if (id == JsNull) return
 
+		def outputJson(js: JsValue) = {
+			Logger.debug(s"<<< ${js.toString}")
+			out ! js
+		}
+
+		m match {
+			// Simple success acknowledgement
+			case MessageSuccess => {
+				outputJson(Json.obj("$" -> "ack", "#" -> id, "&" -> JsNull))
+			}
+
+			// Results data
+			case MessageResults(res) => {
+				outputJson(Json.obj("$" -> "res", "#" -> id, "&" -> res))
+			}
+
+			// Soft-failure
+			case MessageFailure(err, m) => {
+				outputJson(Json.obj(
+					"$" -> "nok",
+					"#" -> id,
+					"&" -> Json.obj(
+						"e" -> err,
+						"m" -> m)))
+			}
+
+			// Response is not yet available
+			case MessageDeferred(future) => {
+				future onComplete {
+					case Success(result) => responseResult(id, result)
+					case Failure(e) => responseError(e)
+				}
+			}
+		}
+	}
+
+	/**
+	 * Handle critical failure due to user input
+	 */
+	def responseError(e: Throwable): Unit = {
+		out ! Json.obj(
+			"$" -> "err",
+			"#" -> id,
+			"&" -> Json.obj(
+				"e" -> e.getClass.getName,
+				"m" -> e.getMessage))
+
+		Logger.error("Fatal socket error", e)
+		self ! PoisonPill
+	}
+
+	/**
+	 * Dispatch unauthenticated calls
+	 */
+	def unauthenticatedDispatcher: MessageDispatcher = {
 		case ("auth", arg) => handleAuth(arg)
 		case ("auth:prepare", arg) => handleAuthPrepare(arg)
 		case ("auth:login", arg) => handleAuthLogin(arg)
@@ -127,10 +143,11 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		case _ => MessageFailure("UNAVAILABLE")
 	}
 
+	/**
+	 * Dispatch authenticated calls
+	 */
 	def authenticatedDispatcher: MessageDispatcher = {
-		case ("auth:logout", _) => handleAuthLogout()
-
-		case ("chat:onlines", _) => handleChatOnlines()
+		case ("events:unbind", _) => handleEventUnbind()
 
 		case ("calendar:load", arg) => handleCalendarLoad(arg)
 
@@ -143,15 +160,22 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		case ("profile:check", arg) => handleProfileCheck(arg)
 		case ("profile:register", arg) => handleProfileRegister(arg)
 
-		case ("events:unbind", _) => handleEventUnbind()
-		case _ => MessageFailure("UNAVAILABLE")
+		case ("chat:onlines", _) => handleChatOnlines()
+		case ("auth:logout", _) => handleAuthLogout()
+	case _ => MessageFailure("UNAVAILABLE")
 	}
 
+	/**
+	 * $:events:unbind
+	 */
 	def handleEventUnbind(): MessageResponse = {
 		socket.eventFilter = socket.FilterNone
 		MessageSuccess
 	}
 
+	/**
+	 * Websocket is now closed
+	 */
 	override def postStop(): Unit = {
 		Logger.debug(s"Socket close: $remoteAddr-$id")
 		if (socket != null) {

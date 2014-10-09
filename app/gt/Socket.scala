@@ -3,22 +3,21 @@ package gt
 import akka.actor.{ActorRef, actorRef2Scala}
 import api._
 import gt.Global.ExecutionContext
-
 import scala.annotation.tailrec
 import scala.collection.mutable
-import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
+import utils.{FuseTimer}
 
 object Socket {
 	var sockets = Map[String, Socket]()
 
-	def disposed(socket: Socket): Unit = Socket.synchronized {
+	def disposed(socket: Socket): Unit = this.synchronized {
 		sockets -= socket.token
 	}
 
-	def create(user: User, session: String, handler: ActorRef): Socket = {
+	def create(user: User, session: String, handler: ActorRef): Socket = this.synchronized {
 		@tailrec def loop(): Socket = {
-			val token = Utils.randomToken()
+			val token = utils.randomToken()
 
 			// Check uniqueness of this token
 			if (sockets contains token) {
@@ -30,22 +29,19 @@ object Socket {
 			}
 		}
 
-		Socket.synchronized {
-			loop()
-		}
+		loop()
 	}
 
 	def findByID(id: String): Option[Socket] = sockets.get(id)
 
-	def !(m: Message): Unit = Future { sockets.values.par foreach { _ ! m } }
-	def !!(e: Event): Unit = Future { sockets.values.par foreach { _ !! e } }
+	def !#(e: Event): Unit = sockets.values foreach { _ ! e }
 }
 
 class Socket private(val token: String, val user: User, val session: String, var handler: ActorRef) {
 	var open = true
 	var dead = false
 
-	val queue = mutable.Queue[OutgoingMessage]()
+	val queue = mutable.Queue[AnyRef]()
 
 	type EventFilter = PartialFunction[Event, Boolean]
 	val FilterNone: EventFilter = {case _ => false }
@@ -61,7 +57,7 @@ class Socket private(val token: String, val user: User, val session: String, var
 	/**
 	 * Send message to the socket or enqueue it if not open
 	 */
-	def !(m: OutgoingMessage): Unit = {
+	def !(m: AnyRef): Unit = {
 		if (dead) {
 			return
 		} else if (open) {
@@ -74,7 +70,7 @@ class Socket private(val token: String, val user: User, val session: String, var
 	/**
 	 * Check if event is this socket listen to an event and send it
 	 */
-	def !!(e: Event): Unit = {
+	def handleEvent(e: Event): Unit = {
 		if (eventFilter.applyOrElse(e, FilterNone)) {
 			this ! Message("event:dispatch", e.asJson)
 		}

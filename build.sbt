@@ -16,4 +16,6 @@ libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.27"
 
 libraryDependencies += "com.typesafe.play" %% "play-slick" % "0.8.0"
 
+libraryDependencies += "org.scala-lang.modules" %% "scala-async" % "0.9.2"
+
 pipelineStages := Seq(uglify, digest, gzip)

@@ -20,12 +20,12 @@ class CalendarAnswers(tag: Tag) extends Table[CalendarAnswer](tag, "gt_answers")
 }
 
 object CalendarAnswers extends TableQuery(new CalendarAnswers(_)) {
-	def notifyCreate(event: CalendarAnswer): Unit = {
+	def notifyCreate(answer: CalendarAnswer): Unit = {
 	}
 
-	def notifyUpdate(id: Int)(implicit s: SessionDef): Unit = {
+	def notifyUpdate(user: Int, event: Int)(implicit s: SessionDef): Unit = {
 	}
 
-	def notifyDelete(id: Int): Unit = {
+	def notifyDelete(user: Int, event: Int): Unit = {
 	}
 }

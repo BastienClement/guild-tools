@@ -3,7 +3,7 @@ package api
 import java.sql.SQLException
 
 import actors.SocketHandler
-import gt.{Socket, User, Utils}
+import gt.{Socket, User}
 import models._
 import models.mysql._
 import models.sql._
@@ -15,21 +15,26 @@ import scala.concurrent.duration.DurationInt
 
 trait AuthHandler {
 	this: SocketHandler =>
-	private var auth_salt = Utils.randomToken()
+	private var auth_salt = utils.randomToken()
 
 	/**
 	 * $:auth
 	 */
-	def handleAuth(arg: JsValue): MessageResponse = Utils.atLeast(250.milliseconds) {
+	def handleAuth(arg: JsValue): MessageResponse = utils.atLeast(250.milliseconds) {
 		val socket_id = (arg \ "socket").asOpt[String]
 		val session_id = (arg \ "session").asOpt[String]
+
+		def completeWithSocket(s: Socket) = {
+			socket = s
+			user = s.user
+			dispatcher = authenticatedDispatcher
+		}
 
 		// Attach this handler to the requested socket if available
 		def resumeSocket(sid: Option[String]): Option[JsValue] = {
 			sid flatMap (Socket.findByID) map { s =>
 				s.updateHandler(self)
-				socket = s
-				dispatcher = authenticatedDispatcher
+				completeWithSocket(s)
 				Json.obj("resume" -> true)
 			}
 		}
@@ -39,8 +44,7 @@ trait AuthHandler {
 			sid flatMap { session =>
 				User.findBySession(session) map (_.createSocket(session, self))
 			} map { s =>
-				socket = s
-				dispatcher = authenticatedDispatcher
+				completeWithSocket(s)
 				s.user.updatePropreties()
 				Json.obj(
 					"socket" -> s.token,
@@ -57,7 +61,7 @@ trait AuthHandler {
 	/**
 	 * $:auth:prepare
 	 */
-	def handleAuthPrepare(arg: JsValue): MessageResponse = Utils.atLeast(250.milliseconds) {
+	def handleAuthPrepare(arg: JsValue): MessageResponse = utils.atLeast(250.milliseconds) {
 		val user = (arg \ "user").as[String].toLowerCase
 
 		DB.withSession { implicit s =>
@@ -74,23 +78,23 @@ trait AuthHandler {
 	/**
 	 * $:auth:login
 	 */
-	def handleAuthLogin(arg: JsValue): MessageResponse = Utils.atLeast(500.milliseconds) {
+	def handleAuthLogin(arg: JsValue): MessageResponse = utils.atLeast(500.milliseconds) {
 		val user = (arg \ "user").as[String].toLowerCase
 		val pass = (arg \ "pass").as[String].toLowerCase
 
 		// Regenerate salt for next login
 		val salt = auth_salt
-		auth_salt = Utils.randomToken()
+		auth_salt = utils.randomToken()
 
 		DB.withSession { implicit s =>
 			val user_credentials = for (u <- Users if u.name_clean === user) yield (u.pass, u.id)
 			user_credentials.firstOption filter {
 				case (pass_ref, user_id) =>
-					pass == Utils.md5(pass_ref + salt)
+					pass == utils.md5(pass_ref + salt)
 			} map {
 				case (pass_ref, user_id) =>
 					@tailrec def createSession(attempt: Int = 1): Option[String] = {
-						val token = Utils.randomToken()
+						val token = utils.randomToken()
 						val query = sqlu"INSERT INTO gt_sessions SET token = $token, user = $user_id, ip = $remoteAddr, created = NOW(), last_access = NOW()"
 
 						try {
@@ -127,6 +131,7 @@ trait AuthHandler {
 				session.delete
 				socket.dispose()
 				socket = null
+				user = null
 				dispatcher = unauthenticatedDispatcher
 				MessageSuccess
 			}

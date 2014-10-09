@@ -2,27 +2,16 @@ package api
 
 import java.sql.Timestamp
 import java.util.GregorianCalendar
-
 import actors.SocketHandler
 import models.{ CalendarEvents, _ }
 import models.mysql._
 import play.api.libs.json.{ Json, JsNull, JsValue }
-import gt.Utils.doIf
+import utils.SmartTimestamp.Implicits._
+import scala.collection.mutable
+import utils.SmartTimestamp
 
 trait CalendarHandler {
 	self: SocketHandler =>
-
-	private def calendarBounds(month: Int, year: Int): (Timestamp, Timestamp) = {
-		val cal = new GregorianCalendar()
-
-		cal.set(year, month - 1, 21)
-		val from = new Timestamp(cal.getTime.getTime)
-
-		cal.set(year, month + 1, 15)
-		val to = new Timestamp(cal.getTime.getTime)
-
-		(from, to)
-	}
 
 	/**
 	 * $:calendar:load
@@ -31,29 +20,87 @@ trait CalendarHandler {
 		val month = (arg \ "month").as[Int]
 		val year = (arg \ "year").as[Int]
 
-		val (from, to) = calendarBounds(month, year)
+		val from = SmartTimestamp.createSQL(year, month - 1, 21)
+		val to = SmartTimestamp.createSQL(year, month + 1, 15)
 
 		val events = for {
 			(e, a) <- CalendarEvents leftJoin CalendarAnswers on ((e, a) => a.event === e.id && a.user === user.id)
-			if (e.date > from && e.date < to) && (e.etype =!= 3 || a.answer.?.isDefined)
+			if (e.date > from && e.date < to) && (e.visibility =!= CalendarVisibility.Private || a.answer.?.isDefined)
 		} yield (e, a.answer.?)
 
 		val events_list = events.list
-		var events_id = events_list.map(_._1.id).toSet
-		
+
+		var watched_events = events_list.map(_._1.id).toSet
+		var potential_events = mutable.Map[Int, Event]()
+
 		socket.eventFilter = {
-			case CalendarEventDelete(id) => doIf(events_id.contains(id)) {
-				self.synchronized { events_id -= id }
+			// Event created
+			case ev @ CalendarEventCreate(event) => {
+				if (watched_events.contains(event.id)) {
+					// Delayed broadcast for private events
+					true
+				} else if (event.date.between(from, to)) {
+					// Visible event
+					if (event.visibility == CalendarVisibility.Private && event.owner != user.id) {
+						// Delay transmission of this event until invitation event
+						potential_events += (event.id -> ev)
+						false
+					} else {
+						// Visible event, let's go!
+						watched_events += event.id
+						true
+					}
+				} else {
+					// Outside view
+					false
+				}
 			}
-			
-			case CalendarAnswerCreate(answer) => (answer.user == user.id)
-			case CalendarAnswerUpdate(answer) => (answer.user == user.id)
+
+			// Event updated
+			case CalendarEventUpdate(event) => {
+				if (potential_events.contains(event.id)) {
+					potential_events(event.id) = CalendarEventCreate(event)
+					false
+				} else {
+					watched_events.contains(event.id)
+				}
+			}
+
+			// Event deletes
+			case CalendarEventDelete(id) => {
+				potential_events -= id
+				utils.doIf(watched_events.contains(id)) { watched_events -= id }
+			}
+
+			// Answer created
+			case ev @ CalendarAnswerCreate(answer) => {
+				val eid = answer.event
+				if (answer.user != user.id) {
+					false
+				} else if (potential_events.contains(eid)) {
+					socket ! potential_events(eid)
+					socket ! ev
+					watched_events += eid
+					potential_events -= eid
+					false
+				} else {
+					watched_events.contains(eid)
+				}
+			}
+
+			// Answer updated
+			case CalendarAnswerUpdate(answer) => {
+				answer.user == user.id && watched_events.contains(answer.event)
+			}
+
+			case CalendarAnswerDelete(answer_user, event) => {
+				answer_user == user.id && watched_events.contains(event)
+			}
 		}
 
 		MessageResults(events_list map {
 			case (e, a) =>
-				val answer: JsValue = a.map(Json.toJson(_)).getOrElse(JsNull)
-				Json.obj("event" -> e, "answer" -> answer)
+				Json.obj("id" -> e.id, "event" -> e, "answer" -> (a.map(Json.toJson(_)).getOrElse(JsNull): JsValue))
 		})
 	}
 }

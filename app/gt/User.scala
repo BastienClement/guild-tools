@@ -7,17 +7,16 @@ import models._
 import models.mysql._
 import play.api.Logger
 import play.api.libs.json._
-
-import scala.concurrent.Future
+import utils.SmartTimestamp
 
 object User {
 	var onlines = Map[Int, User]()
 
-	def disposed(user: User): Unit = User.synchronized {
+	def disposed(user: User): Unit = this.synchronized {
 		onlines -= user.id
 	}
 
-	def findByID(id: Int): Option[User] = User.synchronized {
+	def findByID(id: Int): Option[User] = this.synchronized {
 		onlines.get(id) orElse {
 			try {
 				val user = new User(id)
@@ -89,7 +88,7 @@ class User(val id: Int) {
 		// Update gt_sessions.last_access
 		DB.withSession { implicit s =>
 			val l_a = for (s <- Sessions if s.token === session && s.user === id) yield s.last_access
-			l_a.update(NOW())
+			l_a.update(SmartTimestamp.now)
 		}
 
 		socket
@@ -110,8 +109,8 @@ class User(val id: Int) {
 	/**
 	 * Send a message or an event to every socket for this user
 	 */
-	def !(m: Message): Unit = Future { sockets foreach (_ ! m) }
-	def !!(e: Event): Unit = Future { sockets foreach (_ !! e) }
+	def !(m: Message): Unit = sockets foreach (_ ! m)
+	def !#(e: Event): Unit = sockets foreach (_ ! e)
 
 	/**
 	 * No more socket available, user is now disconnected

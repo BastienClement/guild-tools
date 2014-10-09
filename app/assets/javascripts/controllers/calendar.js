@@ -37,26 +37,45 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 		$scope.buildCalendar();
 	};
 
-	function zero_pad(i) {
-		return (i < 10) ? "0" + i : "" + i;
+	function zero_pad(i, length) {
+		var istr = String(i);
+		while (istr.length < length) {
+			istr = "0" + istr;
+		}
+		return istr;
 	}
 
 	$scope.data = [];
 	$scope.events = {};
+	$scope.answers = {};
 
 	function pushEvent(event) {
-		if (!$scope.events[event.date]) {
-			$scope.events[event.date] = [event];
+		var date = event.date.split(" ")[0];
+		
+		event.sortTime = (event.time < 600) ? event.time + 2400 : event.time;
+		event.time = zero_pad(event.time, 3);
+		
+		if (event.type === 4) {
+			event.sortTime -= 3000;
+		}
+		
+		if (!$scope.events[date]) {
+			$scope.events[date] = [event];
 		} else {
-			$scope.events[event.date].push(event);
+			$scope.events[date].push(event);
 		}
 	}
 
 	$scope.buildCalendar = function() {
 		$scope.setContext("calendar:load", { month: $scope.month, year: $scope.year }, {
-			$: function(events) {
+			$: function(entries) {
 				$scope.events = {};
-				events.forEach(pushEvent);
+				$scope.answers = {};
+				entries.forEach(function(entry) {
+					pushEvent(entry.event);
+					$scope.answers[entry.id] = entry.answer;
+				});
+				console.log($scope.answer, $scope.event);
 			},
 
 			"event:create": function(event) {
@@ -75,16 +94,12 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 				}
 			},
 
-			AnswerUpdated: function(eventid, answer) {
-				for (var day in $scope.events) {
-					for (var i in $scope.events[day]) {
-						var event = $scope.events[day][i];
-						if (event.id === eventid) {
-							event.answer = answer;
-							return;
-						}
-					}
-				}
+			"answer:create": function(answer) {
+				$scope.answers[answer.event] = answer.answer;
+			},
+
+			"answer:update": function(answer) {
+				$scope.answers[answer.event] = answer.answer;
 			}
 		});
 
@@ -128,7 +143,7 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 				cell.year = year;
 				cell.inactive = (month != $scope.month);
 				cell.today = (year == today.getFullYear() && month == today.getMonth() && day == today.getDate());
-				cell.id = year + "-" + zero_pad(month + 1) + "-" + zero_pad(day);
+				cell.id = year + "-" + zero_pad(month + 1, 2) + "-" + zero_pad(day, 2);
 			}
 		}
 	};
@@ -141,12 +156,12 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 
 	$scope.accept = function(id, ev) {
 		ev.stopPropagation();
-		$.call("answerEvent", id, 1, null);
+		$.call("calendar:answer", id, 1, null);
 	};
 
 	$scope.decline = function(id, ev) {
 		ev.stopPropagation();
-		$.call("answerEvent", id, 2, null, null);
+		$.call("calendar:answer", id, 2, null, null);
 	};
 
 	$scope.eventMenu = function(event, ev) {
@@ -222,7 +237,7 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 			if (e.state === 2) return "canceled";
 		}
 
-		switch (e.answer) {
+		switch ($scope.answers[e.id]) {
 			case 1:
 				return "accepted";
 			case 2:
@@ -242,9 +257,9 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 	};
 });
 
-//--------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------
 // Add event controller
-//--------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------
 
 GuildTools.controller("CalendarAddEventCtrl", function($scope) {
 	if ($scope.restrict()) return;
@@ -431,9 +446,9 @@ GuildTools.controller("CalendarAddEventCtrl", function($scope) {
 	};
 });
 
-//--------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------
 // Event Controller
-//--------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------
 
 GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routeParams) {
 	if ($scope.restrict()) return;
@@ -616,7 +631,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				icon: "awe-lock-open-alt",
 				text: "Open",
 				action: function() {
-					//$.call("deleteEvent", event.id);
+					// $.call("deleteEvent", event.id);
 				},
 				order: 1
 			},
@@ -624,7 +639,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				icon: "awe-lock",
 				text: "Lock",
 				action: function() {
-					//$.call("deleteEvent", event.id);
+					// $.call("deleteEvent", event.id);
 				},
 				order: 2
 			},
@@ -632,7 +647,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				icon: "awe-cancel",
 				text: "Cancel",
 				action: function() {
-					//$.call("deleteEvent", event.id);
+					// $.call("deleteEvent", event.id);
 				},
 				order: 3
 			},
