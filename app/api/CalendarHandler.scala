@@ -15,6 +15,22 @@ import scala.slick.jdbc.JdbcBackend.SessionDef
 
 private object Helper {
 	val guildies_groups = Set[Int](8, 9, 11)
+
+	val guildAnswersQuery = Compiled { (event_id: Column[Int]) =>
+		for {
+			(u, a) <- Users leftJoin CalendarAnswers on ((u, a) => u.id === a.user && a.event === event_id)
+			if (u.group inSet Helper.guildies_groups)
+			c <- Chars if c.owner === u.id && c.active
+		} yield (u, (a.answer.?, a.date.?, a.note, a.char), c)
+	}
+
+	val answersQuery = Compiled { (event_id: Column[Int]) =>
+		for {
+			a <- CalendarAnswers if a.event === event_id
+			u <- Users if u.id === a.user
+			c <- Chars if c.owner === u.id && c.active
+		} yield (u, a, c)
+	}
 }
 
 trait CalendarHandler {
@@ -206,7 +222,7 @@ trait CalendarHandler {
 
 		row.firstOption map {
 			case (event, old_answer, old_note, old_char) =>
-				if (event.visibility == CalendarVisibility.Public && old_answer.isEmpty) {
+				if (event.visibility == CalendarVisibility.Private && old_answer.isEmpty) {
 					return MessageFailure("UNINVITED")
 				}
 
@@ -256,13 +272,7 @@ trait CalendarHandler {
 	 * $:calendar:event
 	 */
 	private def guildAnswers(event_id: Int)(implicit s: SessionDef) = {
-		val query = for {
-			(u, a) <- Users leftJoin CalendarAnswers on ((u, a) => u.id === a.user && a.event === event_id)
-			if (u.group inSet Helper.guildies_groups)
-			c <- Chars if c.owner === u.id && c.active
-		} yield (u, (a.answer.?, a.date.?, a.note, a.char), c)
-
-		query.list.groupBy(_._1.id.toString).mapValues { list =>
+		Helper.guildAnswersQuery(event_id).list.groupBy(_._1.id.toString).mapValues { list =>
 			val user = list(0)._1
 
 			val (a_answer, a_date, a_note, a_char) = list(0)._2
@@ -287,13 +297,7 @@ trait CalendarHandler {
 	}
 
 	private def eventAnswers(event_id: Int)(implicit s: SessionDef) = {
-		val query = for {
-			a <- CalendarAnswers if a.event === event_id
-			u <- Users if u.id === a.user
-			c <- Chars if c.owner === u.id && c.active
-		} yield (u, a, c)
-
-		query.list.groupBy(_._1.id.toString).mapValues { list =>
+		Helper.answersQuery(event_id).list.groupBy(_._1.id.toString).mapValues { list =>
 			val user = list(0)._1
 			val answer = Some(list(0)._2)
 			val chars = list.map(_._3)

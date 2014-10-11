@@ -18,11 +18,12 @@ case class CalendarAnswer(user: Int, event: Int, date: Timestamp, answer: Int, n
 	/**
 	 * Convert this answer to a expanded answer tuple
 	 */
-	lazy val expand = buildExpand
-	private def buildExpand: CalendarAnswerTuple = DB.withSession { implicit s =>
-		var user_obj = Users.filter(_.id === user).first
-		var char = Chars.filter(c => c.owner === user && c.active).list
-		CalendarAnswerTuple(user_obj, Some(this), char)
+	lazy val expand = {
+		DB.withSession { implicit s =>
+			var user_obj = Users.filter(_.id === user).first
+			var char = Chars.filter(c => c.owner === user && c.active).list
+			CalendarAnswerTuple(user_obj, Some(this), char)
+		}
 	}
 }
 
@@ -31,6 +32,9 @@ case class CalendarAnswer(user: Int, event: Int, date: Timestamp, answer: Int, n
  */
 case class CalendarAnswerTuple(user: User, answer: Option[CalendarAnswer], chars: List[Char])
 
+/**
+ * Answers database
+ */
 class CalendarAnswers(tag: Tag) extends Table[CalendarAnswer](tag, "gt_answers") {
 	def user = column[Int]("user", O.PrimaryKey)
 	def event = column[Int]("event", O.PrimaryKey)
