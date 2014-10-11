@@ -112,12 +112,6 @@ var $ = {};
 				cb();
 			},
 
-			"error": function(text) {
-				if (typeof GuildToolsScope === "object") {
-					GuildToolsScope.error(text);
-				}
-			},
-
 			"chat:onlines:update": function(msg) {
 				var data = msg.data;
 				switch (msg.type) {
@@ -247,12 +241,17 @@ var $ = {};
 
 						case "nok":
 						case "err":
+						case "alert":
 							if (typeof handler !== "function") return;
 							try {
 								handler.call(null, arg);
 								if (GuildToolsScope) GuildToolsScope.safeApply();
 							} catch (e) {
 								console.error(e);
+							}
+							
+							if (cmd === "alert" && typeof GuildToolsScope === "object") {
+								GuildToolsScope.error(arg);
 							}
 
 							delete calls[msg.results];

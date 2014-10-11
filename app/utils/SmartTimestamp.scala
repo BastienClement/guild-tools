@@ -22,6 +22,10 @@ object SmartTimestamp {
 	}
 
 	def createSQL(y: Int, m: Int, d: Int): Timestamp = create(y, m, d)
+
+	def parse(str: String, frmt: SimpleDateFormat = format): SmartTimestamp = {
+		new SmartTimestamp(frmt.parse(str).getTime)
+	}
 }
 
 class SmartTimestamp(val time: Long) extends Timestamp(time) {
@@ -31,6 +35,9 @@ class SmartTimestamp(val time: Long) extends Timestamp(time) {
 	def <(that: SmartTimestamp): Boolean = time < that.time
 	def >=(that: SmartTimestamp): Boolean = time >= that.time
 	def <=(that: SmartTimestamp): Boolean = time <= that.time
+
+	def +(that: SmartTimestamp): SmartTimestamp = new SmartTimestamp(time + that.time)
+	def -(that: SmartTimestamp): SmartTimestamp = new SmartTimestamp(time - that.time)
 
 	def between(a: SmartTimestamp, b: SmartTimestamp): Boolean = this >= a && this <= b
 

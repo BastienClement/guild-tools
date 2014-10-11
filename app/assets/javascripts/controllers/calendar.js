@@ -150,18 +150,19 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 
 	$scope.buildCalendar();
 
-	$scope.open = function(id) {
+	$scope.open = function(id, type) {
+		if (type === 4) return;
 		$scope.breadcrumb.push("/calendar/event/" + id);
 	};
 
 	$scope.accept = function(id, ev) {
 		ev.stopPropagation();
-		$.call("calendar:answer", id, 1, null);
+		$.call("calendar:answer", { id: id, answer: 1 });
 	};
 
 	$scope.decline = function(id, ev) {
 		ev.stopPropagation();
-		$.call("calendar:answer", id, 2, null, null);
+		$.call("calendar:answer", { id: id, answer: 2 });
 	};
 
 	$scope.eventMenu = function(event, ev) {
@@ -175,7 +176,7 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 			menu.push({
 				icon: "awe-trash", text: "Delete", action: function() {
 					if (confirm("Are you sure?"))
-						$.call("deleteEvent", event.id);
+						$.call("calendar:delete", { id: event.id });
 				}, order: 10
 			});
 		}
@@ -432,10 +433,10 @@ GuildTools.controller("CalendarAddEventCtrl", function($scope) {
 
 	$scope.doCreate = function() {
 		$scope.working = true;
-		$.call("createEvent", {
+		$.call("calendar:create", {
 			title: $scope.eventTitle,
 			desc: $scope.eventDesc,
-			type: $scope.eventType,
+			type: Number($scope.eventType),
 			hour: $scope.eventHour,
 			min: $scope.eventMin,
 			dates: selected
@@ -657,7 +658,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				text: "Delete",
 				action: function() {
 					if (confirm("Are you sure?"))
-						$.call("deleteEvent", event.id);
+						$.call("calendar:delete", event.id);
 				},
 				order: 11
 			}

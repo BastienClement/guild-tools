@@ -107,6 +107,11 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 						"m" -> m)))
 			}
 
+			// Verbose failure
+			case MessageAlert(alert) => {
+				outputJson(Json.obj("$" -> "alert", "#" -> id, "&" -> alert))
+			}
+
 			// Response is not yet available
 			case MessageDeferred(future) => {
 				future onComplete {
@@ -150,6 +155,9 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		case ("events:unbind", _) => handleEventUnbind()
 
 		case ("calendar:load", arg) => handleCalendarLoad(arg)
+		case ("calendar:create", arg) => handleCalendarCreate(arg)
+		case ("calendar:answer", arg) => handleCalendarAnswer(arg)
+		case ("calendar:delete", arg) => handleCalendarDelete(arg)
 
 		case ("profile:load", arg) => handleProfileLoad(arg)
 		case ("profile:enable", arg) => handleProfileEnable(arg, true)
@@ -162,7 +170,7 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 
 		case ("chat:onlines", _) => handleChatOnlines()
 		case ("auth:logout", _) => handleAuthLogout()
-	case _ => MessageFailure("UNAVAILABLE")
+		case _ => MessageFailure("UNAVAILABLE")
 	}
 
 	/**

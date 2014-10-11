@@ -1,16 +1,24 @@
 package models
 
 import java.sql.Timestamp
-
 import models.mysql._
-
 import scala.slick.jdbc.JdbcBackend.SessionDef
+import api.CalendarEventCreate
+import gt.Socket
+import api.CalendarEventDelete
 
 object CalendarVisibility {
 	val Guild = 1
 	val Public = 2
 	val Private = 3
 	val Announce = 4
+	def isValid(v: Int) = (v > 0 && v < 5)
+}
+
+object CalendarEventState {
+	val Open = 0
+	val Closed = 1
+	val Canceled = 2
 }
 
 case class CalendarEvent(id: Int, title: String, desc: String, owner: Int, date: Timestamp, time: Int, `type`: Int, state: Int) {
@@ -32,11 +40,13 @@ class CalendarEvents(tag: Tag) extends Table[CalendarEvent](tag, "gt_events") {
 
 object CalendarEvents extends TableQuery(new CalendarEvents(_)) {
 	def notifyCreate(event: CalendarEvent): Unit = {
+		Socket !# CalendarEventCreate(event)
 	}
 
 	def notifyUpdate(id: Int)(implicit s: SessionDef): Unit = {
 	}
 
 	def notifyDelete(id: Int): Unit = {
+		Socket !# CalendarEventDelete(id)
 	}
 }

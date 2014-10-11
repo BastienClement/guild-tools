@@ -253,7 +253,7 @@
 								</div>-->
 							</div>
 							<div class="events">
-								<div class="event {{ stateClass(event) }}" ng-click="open(event.id)" ng-repeat="event in events[data.id] | orderBy : 'sortTime'" ng-contextmenu="eventMenu(event, $event)" ng-tooltip=".tooltip">
+								<div class="event {{ stateClass(event) }}" ng-click="open(event.id, event.type)" ng-repeat="event in events[data.id] | orderBy : 'sortTime'" ng-contextmenu="eventMenu(event, $event)" ng-tooltip=".tooltip">
 									<div class="tooltip">
 										<div class="right">{{ formatTime(event.time) }}</div>
 										<div class="nowrap {{ stateClass(event) }}" style="padding-right: 50px">
