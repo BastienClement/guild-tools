@@ -158,6 +158,7 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		case ("calendar:create", arg) => handleCalendarCreate(arg)
 		case ("calendar:answer", arg) => handleCalendarAnswer(arg)
 		case ("calendar:delete", arg) => handleCalendarDelete(arg)
+		case ("calendar:event", arg) => handleCalendarEvent(arg)
 
 		case ("profile:load", arg) => handleProfileLoad(arg)
 		case ("profile:enable", arg) => handleProfileEnable(arg, true)

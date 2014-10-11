@@ -246,4 +246,15 @@ trait CalendarHandler {
 			MessageFailure("EVENT_NOT_FOUND")
 		}
 	}
+
+	/**
+	 * $:calendar:event
+	 */
+	def handleCalendarEvent(arg: JsValue): MessageResponse = DB.withSession { implicit s =>
+		val event_id = (arg \ "id").as[Int]
+
+		val event = CalendarEvents.filter(_.id === event_id).first
+
+		MessageSuccess
+	}
 }

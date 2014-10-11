@@ -497,7 +497,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		});
 	}
 
-	$scope.setContext("calendar:event", [eventid], {
+	$scope.setContext("calendar:event", { id: eventid }, {
 		$: function(event, answers) {
 			if (!event) {
 				$scope.error("This event is not available");

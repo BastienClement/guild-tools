@@ -60,10 +60,10 @@
 	</script>
 	<link href="/assets/loading/loading.css" id="loading-css" rel="stylesheet" data-noprefix="true">
 	<script src="/assets/javascripts/pace.js"></script>
-	<script src="/assets/javascripts/es6.js"></script>
+	<script src='@routes.WebJarAssets.at(WebJarAssets.locate("es6-shim.js"))'></script>
 	
 	<script src="/assets/javascripts/modernizr.js"></script>
-	<script src="/assets/javascripts/jquery.js"></script>
+	<script src='@routes.WebJarAssets.at(WebJarAssets.locate("jquery.min.js"))'></script>
 	<script>
 		if (typeof module === "object" && module.exports) {
 			// DUMB JQUERY!
@@ -73,9 +73,9 @@
 		}
 	</script>
 	<script src="/assets/javascripts/velocity.js"></script>
-	<script src="/assets/javascripts/angular/angular.min.js"></script>
-	<script src="/assets/javascripts/angular/angular-route.min.js"></script>
-	<script src="/assets/javascripts/angular/angular-animate.min.js"></script>
+	<script src='@routes.WebJarAssets.at(WebJarAssets.locate("angular.min.js"))'></script>
+	<script src='@routes.WebJarAssets.at(WebJarAssets.locate("angular-route.min.js"))'></script>
+	<script src='@routes.WebJarAssets.at(WebJarAssets.locate("angular-animate.min.js"))'></script>
 	<script src="/assets/javascripts/crypto.js"></script>
 	<script src="/assets/javascripts/phpbb_hash.js"></script>
 	<script src="/assets/javascripts/timeago.js"></script>
@@ -95,7 +95,7 @@
 	<link data-href="/assets/stylesheets/tools.css" rel="stylesheet">
 	<link data-href="/assets/stylesheets/app.css" rel="stylesheet">
 	<link data-href="/assets/stylesheets/pace.css" rel="stylesheet">
-	<script src="/assets/javascripts/prefixfree.js"></script>
+	<script src='@routes.WebJarAssets.at(WebJarAssets.locate("prefixfree.min.js"))'></script>
 	
 	<script>
 		ga("set", {
