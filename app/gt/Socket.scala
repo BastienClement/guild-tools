@@ -68,15 +68,6 @@ class Socket private(val token: String, val user: User, val session: String, var
 	}
 
 	/**
-	 * Check if event is this socket listen to an event and send it
-	 */
-	def handleEvent(e: Event): Unit = {
-		if (eventFilter.applyOrElse(e, FilterNone)) {
-			this ! Message("event:dispatch", e.asJson)
-		}
-	}
-
-	/**
 	 * Detach the handler from this socket and start the timeout
 	 */
 	def detach(): Unit = {

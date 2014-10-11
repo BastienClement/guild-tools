@@ -516,6 +516,10 @@ header {
 }
 
 #sidebar li:hover {
+	background-color: rgba(99, 180, 255, 0.10);
+}
+
+#sidebar li.active {
 	background-color: rgba(99, 180, 255, 0.15);
 }
 

@@ -161,13 +161,21 @@ var $ = {};
 				cb = arg;
 				arg = null;
 			}
-
+			
+			var run = false;
 			var wrapped_cb = function() {
+				if (run) return;
+				run = true;
+				clearTimeout(timeout);
 				setTimeout(function() {
 					--inflight;
 				}, 100);
 				if (cb) cb.apply(null, arguments);
 			};
+			
+			var timeout = setTimeout(function() {
+				wrapped_cb(new Error("TIMEOUT"));
+			}, 10000);
 
 			++inflight;
 			//console.log("START", args);

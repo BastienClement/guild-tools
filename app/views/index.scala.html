@@ -174,17 +174,17 @@
 	
 	<nav id="sidebar">
 		<ul ng-if="$.user" class="animated">
-			<li ng-click="breadcrumb.rewind('/')">
+			<li ng-click="breadcrumb.rewind('/')" ng-class="{ active: navigator_current == 'dashboard' }">
 				<img src="/assets/images/icons/home.png">
 				<div>Dashboard</div>
 			</li>
 			
-			<li ng-click="breadcrumb.reset('/profile')">
+			<li ng-click="breadcrumb.reset('/profile')" ng-class="{ active: navigator_current == 'profile' }">
 				<img src="/assets/images/icons/helm2.png">
 				<div>Player</div>
 			</li>
 		
-			<li ng-click="breadcrumb.reset('/calendar')">
+			<li ng-click="breadcrumb.reset('/calendar')" ng-class="{ active: navigator_current == 'calendar' }">
 				<img src="/assets/images/icons/calendar.png">
 				<div>Calendar</div>
 			</li>

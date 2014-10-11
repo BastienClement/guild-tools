@@ -49,7 +49,7 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 				val response = dispatcher(cmd, arg)
 				responseResult(id, response)
 			} catch {
-				case e: Throwable => responseError(e)
+				case e: Throwable => responseError(id, e)
 			}
 		}
 
@@ -69,7 +69,7 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		// Dispatching event
 		case event: Event => {
 			if (socket != null) {
-				socket.handleEvent(event)
+				handleEvent(event)
 			}
 		}
 	}
@@ -116,7 +116,7 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 			case MessageDeferred(future) => {
 				future onComplete {
 					case Success(result) => responseResult(id, result)
-					case Failure(e) => responseError(e)
+					case Failure(e) => responseError(id, e)
 				}
 			}
 		}
@@ -125,7 +125,7 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 	/**
 	 * Handle critical failure due to user input
 	 */
-	def responseError(e: Throwable): Unit = {
+	def responseError(id: JsValue, e: Throwable): Unit = {
 		out ! Json.obj(
 			"$" -> "err",
 			"#" -> id,
@@ -172,6 +172,16 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		case ("chat:onlines", _) => handleChatOnlines()
 		case ("auth:logout", _) => handleAuthLogout()
 		case _ => MessageFailure("UNAVAILABLE")
+	}
+
+
+	/**
+	 * Check if event is this socket listen to an event and send it
+	 */
+	def handleEvent(e: Event): Unit = {
+		if (socket.eventFilter.applyOrElse(e, socket.FilterNone)) {
+			self ! Message("event:dispatch", e.asJson)
+		}
 	}
 
 	/**

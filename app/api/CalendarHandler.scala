@@ -271,40 +271,6 @@ trait CalendarHandler {
 	/**
 	 * $:calendar:event
 	 */
-	private def guildAnswers(event_id: Int)(implicit s: SessionDef) = {
-		Helper.guildAnswersQuery(event_id).list.groupBy(_._1.id.toString).mapValues { list =>
-			val user = list(0)._1
-
-			val (a_answer, a_date, a_note, a_char) = list(0)._2
-			val answer =
-				if (a_answer.isDefined) {
-					val a = CalendarAnswer(
-						user = user.id,
-						event = event_id,
-						date = a_date.get,
-						answer = a_answer.get,
-						note = a_note,
-						char = a_char
-					)
-					Some(a)
-				} else {
-					None
-				}
-
-			val chars = list.map(_._3)
-			CalendarAnswerTuple(user, answer, chars)
-		}
-	}
-
-	private def eventAnswers(event_id: Int)(implicit s: SessionDef) = {
-		Helper.answersQuery(event_id).list.groupBy(_._1.id.toString).mapValues { list =>
-			val user = list(0)._1
-			val answer = Some(list(0)._2)
-			val chars = list.map(_._3)
-			CalendarAnswerTuple(user, answer, chars)
-		}
-	}
-
 	def handleCalendarEvent(arg: JsValue): MessageResponse = DB.withSession { implicit s =>
 		val event_id = (arg \ "id").as[Int]
 		val event = CalendarEvents.filter(_.id === event_id).first
@@ -313,12 +279,46 @@ trait CalendarHandler {
 			return MessageFailure("OPENING_ANNOUNCE")
 		}
 
-		val answers =
-			if (event.visibility == CalendarVisibility.Guild) {
-				guildAnswers(event_id)
-			} else {
-				eventAnswers(event_id)
+		def guildAnswers = {
+			Helper.guildAnswersQuery(event_id).list.groupBy(_._1.id.toString).mapValues { list =>
+				val user = list(0)._1
+
+				val (a_answer, a_date, a_note, a_char) = list(0)._2
+				val answer =
+					if (a_answer.isDefined) {
+						val a = CalendarAnswer(
+							user = user.id,
+							event = event_id,
+							date = a_date.get,
+							answer = a_answer.get,
+							note = a_note,
+							char = a_char
+						)
+						Some(a)
+					} else {
+						None
+					}
+
+				val chars = list.map(_._3)
+				CalendarAnswerTuple(user, answer, chars)
 			}
+		}
+
+		def eventAnswers = {
+			Helper.answersQuery(event_id).list.groupBy(_._1.id.toString).mapValues { list =>
+				val user = list(0)._1
+				val answer = Some(list(0)._2)
+				val chars = list.map(_._3)
+				CalendarAnswerTuple(user, answer, chars)
+			}
+		}
+
+		val answers = {
+			if (event.visibility == CalendarVisibility.Guild)
+				guildAnswers
+			else
+				eventAnswers
+		}
 
 		val user_id = user.id.toString
 		val my_answer = answers.get(user_id).flatMap(_.answer)

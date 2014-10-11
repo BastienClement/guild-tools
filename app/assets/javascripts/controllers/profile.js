@@ -4,14 +4,14 @@
 
 GuildTools.controller("ProfileCtrl", function($scope, $location, $routeParams) {
 	if ($scope.restrict()) return;
+	
+	$scope.setNavigator("profile", "main");
 
 	var userid = Number($routeParams.id || $.user.id);
 	$scope.editable = (userid === $.user.id);
 
 	$scope.profile = {};
 	$scope.chars = [];
-
-	$scope.setNavigator();
 
 	$scope.setContext("profile:load", { id: userid }, {
 		$: function(res) {

@@ -11,13 +11,13 @@ GuildTools.controller("WelcomeCtrl", function($scope, $location) {
 GuildTools.controller("DashboardCtrl", function($scope, $location) {
 	if ($scope.restrict()) return;
 
+	$scope.setNavigator("dashboard", "main");
 	$scope.setContext();
 
 	$scope.go = function(path) {
 		$location.path(path);
 	};
 
-	$scope.setNavigator();
 	$scope.onlineSort = "name";
 });
 

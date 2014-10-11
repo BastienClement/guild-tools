@@ -237,7 +237,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	};
 
 	$scope.syncContext = function() {
-		if (ctx_inflight) return;
+		if (ctx_inflight || !ctx_loader) return;
 
 		ctx_inflight = true;
 		ctx_valid = false;
@@ -379,10 +379,6 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	$scope.navigator_tab = null;
 
 	var navigators = {
-		"dashboard": [],
-
-		"profile": [],
-
 		"calendar": [
 			["main", "Calendar", "/calendar"]
 		]
@@ -391,6 +387,8 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	$scope.setNavigator = function(name, tab, overrides) {
 		$scope.navigator_current = name;
 		$scope.navigator_tab = tab;
+		
+		console.log(name, new Error());
 
 		if (name && navigators[name]) {
 			$scope.navigator = [];
