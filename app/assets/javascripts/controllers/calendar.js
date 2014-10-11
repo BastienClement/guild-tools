@@ -75,7 +75,6 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 					pushEvent(entry.event);
 					$scope.answers[entry.id] = entry.answer;
 				});
-				console.log($scope.answer, $scope.event);
 			},
 
 			"event:create": function(event) {
@@ -157,12 +156,12 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 
 	$scope.accept = function(id, ev) {
 		ev.stopPropagation();
-		$.call("calendar:answer", { id: id, answer: 1 });
+		$.call("calendar:answer", { event: id, answer: 1 });
 	};
 
 	$scope.decline = function(id, ev) {
 		ev.stopPropagation();
-		$.call("calendar:answer", { id: id, answer: 2 });
+		$.call("calendar:answer", { event: id, answer: 2 });
 	};
 
 	$scope.eventMenu = function(event, ev) {
@@ -454,10 +453,12 @@ GuildTools.controller("CalendarAddEventCtrl", function($scope) {
 GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routeParams) {
 	if ($scope.restrict()) return;
 	var eventid = Number($routeParams.id);
+	
+	$scope.setNavigator("calendar", "event");
 
 	$scope.event = null;
-	$scope.note = null;
 	$scope.answers = [];
+	$scope.chars = {};
 	$scope.tab_selected = 1;
 
 	var cached_tab;
@@ -468,84 +469,87 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 
 	var raw_answers;
 
+	function extract_main(data) {
+		return function(char) {
+			if ((!data.main && char.main) || char.id === data.answer.char) {
+				data.main = char;
+				return true;
+			}
+		};
+	}
+	
 	function build_answers() {
 		$scope.answers = [];
+		$scope.chars = {};
 		cached_tab = null;
 
-		raw_answers.forEach(function(answer) {
-			if (!answer.chars.length) {
-				answer.main = {
-					name: answer.username,
+		for (var id in raw_answers) {
+			var data = raw_answers[id];
+			
+			if (!data.answer) {
+				data.answer = { answer: 0 };
+			}
+			
+			if (!data.chars.length) {
+				data.main = {
+					name: data.user.name,
 					main: 1,
 					"class": 99,
 					role: "UNKNOW"
 				};
 			} else {
-				answer.chars.some(function(char) {
-					if ((!answer.main && char.main) || char.id === answer.char) {
-						answer.main = char;
-						return true;
-					}
-				});
+				data.chars.some(extract_main(data));
 			}
 
-			if (!$scope.answers[answer.answer]) {
-				$scope.answers[answer.answer] = [answer];
+			if (!$scope.answers[data.answer.answer]) {
+				$scope.answers[data.answer.answer] = [data];
 			} else {
-				$scope.answers[answer.answer].push(answer);
+				$scope.answers[data.answer.answer].push(data);
 			}
-		});
+			
+			$scope.chars[id] = data.chars;
+		}
 	}
 
 	$scope.setContext("calendar:event", { id: eventid }, {
-		$: function(event, answers) {
-			if (!event) {
-				$scope.error("This event is not available");
-				$location.path("/calendar").replace();
-				return;
+		$: function(data) {
+			if (data.answer) {
+				$scope.answer = data.answer.answer;
+				$scope.answer_note = data.answer.note;
 			}
 
-			if (event.answer) {
-				$scope.answer = event.answer;
-				$scope.answer_note = event.answer_note;
-			}
+			$scope.breadcrumb.override({ name: data.event.title });
+			$scope.event = data.event;
 
-			$scope.breadcrumb.override({ name: event.title });
-			$scope.event = event;
-			$scope.note = event.note;
-
-			raw_answers = answers;
+			raw_answers = data.answers;
 			build_answers();
 		},
 
-		AnswerUpdated: function(answer) {
-			if (answer.user === $.user.id) {
-				$scope.answer = answer.answer;
-				$scope.answer_note = answer.note;
+		"answer:replace": function(data) {
+			if (data.user.id === $.user.id) {
+				$scope.answer = data.answer.answer;
+				$scope.answer_note = data.answer.note;
 			}
 
-			raw_answers = raw_answers.map(function(a) {
-				if (a.user === answer.user) {
-					return answer;
-				} else {
-					return a;
-				}
-			});
-
+			raw_answers[data.user.id] = data;
 			build_answers();
 		}
 	});
 
-	function zeroPad(n) {
-		return String((n < 10) ? "0" + n : n);
+	function zero_pad(i, length) {
+		var istr = String(i);
+		while (istr.length < length) {
+			istr = "0" + istr;
+		}
+		return istr;
 	}
 
 	$scope.formatDate = function(d) {
 		var date = new Date(d);
-		date = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+		/*date = new Date(date.getTime() + date.getTimezoneOffset() * 60000);*/
 
-		var day = zeroPad(date.getDate()) + "/" + zeroPad(date.getMonth() + 1) + "/" + date.getFullYear();
-		var hour = zeroPad(date.getHours()) + ":" + zeroPad(date.getMinutes());
+		var day = zero_pad(date.getDate(), 2) + "/" + zero_pad(date.getMonth() + 1, 2) + "/" + date.getFullYear();
+		var hour = zero_pad(date.getHours(), 2) + ":" + zero_pad(date.getMinutes(), 2);
 		return day + " - " + hour;
 	};
 
@@ -592,7 +596,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	$scope.updateAnswer = function(answer, note, char) {
 		char = char ? Number(char) : null;
 		$scope.inflight = true;
-		$.call("answerEvent", eventid, Number(answer), note, char, function() {
+		$.call("calendar:answer", { event: eventid, answer: Number(answer), note: note, char: char }, function() {
 			$scope.inflight = false;
 		});
 	};
@@ -604,8 +608,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 
 	$scope.eventTimeFormat = function() {
 		if (!$scope.event) return "00:00";
-		var time = $scope.event.time;
-		time = (time < 1000) ? "0" + time : String(time);
+		var time = zero_pad(String($scope.event.time), 4);
 		return time.slice(0, 2) + ":" + time.slice(2);
 	};
 
@@ -721,9 +724,9 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 
 	$scope.getBuffIcon = function(key) {
 		if ($scope.raidbuffs[key][1]) {
-			return "/assets/buffs/" + $scope.raidbuffs[key][1] + ".jpg";
+			return "/assets/images/buffs/" + $scope.raidbuffs[key][1] + ".jpg";
 		} else {
-			return "/assets/buffs/" + key + ".jpg";
+			return "/assets/images/buffs/" + key + ".jpg";
 		}
 	};
 

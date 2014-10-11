@@ -210,8 +210,6 @@
 </style>
 
 <div id="calendar-event" class="tools-main">
-	<div class="tiles" ng-include="'/views/calendar-menu.html'"></div>
-	
 	<div id="calendar-event-wrapper">
 	
 		<div id="calendar-event-left">
@@ -219,7 +217,7 @@
 				<button ng-click="eventMenu($event)" ng-if="eventEditable()"><i class="awe-cog"></i></button>
 				<h3>{{ event.title }}</h3>
 				<p style="margin-top: -5px" class="light">
-					{{ event.date.split("-").reverse().join("/") }}
+					{{ event.date.split(" ")[0].split("-").reverse().join("/") }}
 					&#8942;
 					{{ eventTimeFormat() }}
 					&#8942;
@@ -253,26 +251,26 @@
 				
 				<div class="chars">
 					<div class="row" ng-repeat="groups in getAnswersGroups(tab_selected)">
-						<div class="char-wrapper" ng-repeat="answer in groups">
-							<div ng-if="!answer.void" ng-tooltip=".tooltip">
+						<div class="char-wrapper" ng-repeat="row in groups">
+							<div ng-if="!row.void" ng-tooltip=".tooltip">
 								<div class="tooltip">
-									<div class="fsblue">{{ answer.username | capitalize }}</div>
-									<div class="light" ng-if="answer.date">{{ formatDate(answer.date) }}</div>
-									<div class="light" ng-if="!answer.date">Non-register</div>
-									<div class="spaced" ng-if="answer.note">
-										{{ answer.note }}
+									<div class="fsblue">{{ row.user.name | capitalize }}</div>
+									<div class="light" ng-if="row.answer.date">{{ formatDate(row.answer.date) }}</div>
+									<div class="light" ng-if="!row.answer.date">Non-register</div>
+									<div class="spaced" ng-if="row.answer.note">
+										{{ row.answer.note }}
 									</div>
 								</div>
 								<div class="char" draggable="true">
-									<img ng-src="/assets/role/{{ answer.main.role }}.png">
-									<span class="name c{{ answer.main.class }}">{{ answer.main.name | capitalize }}</span>
-									<i class="awe-pencil-squared" ng-if="answer.note"></i>
+									<img ng-src="/assets/images/roles/{{ row.main.role }}.png">
+									<span class="name c{{ row.main.class }}">{{ row.main.name | capitalize }}</span>
+									<i class="awe-pencil-squared" ng-if="row.answer.note"></i>
 								</div>
 							</div>
 						</div>
 					</div>
 					<div class="box" style="width: 100%;" ng-if="!answers[tab_selected].length">
-						It's empty!
+						Empty tab...
 					</div>
 				</div>
 			</div>
@@ -286,10 +284,10 @@
 						<input type="radio" ng-model="answer" value="2"> Unavailable
 					</label>
 				</div>
-				<label ng-show="$.user.chars.length > 1">
+				<label ng-show="chars[$.user.id]">
 					Character
 					<select ng-model="answer_char" style="width: 100%;">
-						<option class="c{{ char.class }}" ng-repeat="char in $.user.chars | filter : {active:1} : strict | orderBy : ['-main', 'name']" value="{{ char.id }}">
+						<option class="c{{ char.class }}" ng-repeat="char in chars[$.user.id] | orderBy : ['-main', 'name']" value="{{ char.id }}">
 							{{ char.name }}
 						</option>
 					</select>
@@ -324,7 +322,7 @@
 							<div class="group" ng-repeat="offset in [0, 1]">
 								<div class="label">Group {{ row + offset }}</div>
 								<div class="char" ng-repeat="slot in [1,2,3,4,5]">
-									<img ng-src="/assets/role/DPS.png">
+									<img ng-src="/assets/images/roles/DPS.png">
 									<span class="name c9">Lapinity</span>
 								</div>
 							</div>

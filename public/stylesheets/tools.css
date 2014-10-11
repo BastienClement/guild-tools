@@ -587,7 +587,7 @@ header {
 	transition: none;
 }
 
-.main-view {
+#main-view-slider {
 	position: absolute;
 	top: 0px;
 	bottom: 0px;
@@ -595,19 +595,24 @@ header {
 	right: 0px;
 	padding-top: 52px;
 	z-index: 5;
-	transition: all ease-out .3s !important;
+	transition: all .2s ease-out;
 }
 
-.navigator .main-view {
+.navigator #main-view-slider {
 	padding-top: 87px;
 }
 
-.authenticated .main-view {
+.authenticated #main-view-slider {
 	left: 62px;
 }
 
-.main-view.animated.ng-enter {
-	transition: all ease-out .3s .5s !important;
+.main-view {
+	transition: all ease-out .3s;
+	height: 100%;
+}
+
+.main-view.ng-enter {
+	transition: all ease-out .3s .5s;
 }
 
 #modal {
@@ -656,86 +661,6 @@ header {
 	height: 100%;
 	align-items: stretch;
 	padding: 15px;
-}
-
-.tiles {
-	display: flex;
-	justify-content: flex-start;
-	margin-right: 15px;
-	flex-direction: column;
-	width: 108px;
-}
-
-.tile {
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-content: space-around;
-	flex: none;
-	width: 110px;
-	height: 110px;
-	text-align: center;
-	/*border: 2px solid transparent;
-	border-top: 0;
-	border-bottom: 0;*/
-	font-weight: 600;
-	text-transform: uppercase;
-	margin-top: 5px;
-	margin-left: -2px;
-	transition: color ease-out .3s;
-	color: #ccc;
-}
-
-.tile img {
-	/*opacity: .9;*/
-}
-
-.tile:first-child {
-	margin-top: 0;
-}
-
-.tile:hover {
-	color: #fff;
-}
-
-.tile:hover img {
-	/*border-left: 2px solid #426585;*/
-	/*opacity: .999;*/
-}
-
-.tile.nyi {
-	color: #383f4c;
-}
-
-.tile.nyi img {
-	opacity: 0.25;
-}
-
-.tile.nyi:before {
-	display: block;
-	width: 24px;
-	height: 24px;
-	background: url(/assets/images/icons/time_lock.png);
-	background-size: cover;
-	position: absolute;
-	top: 45px;
-	left: 65px;
-	content: "";
-}
-
-.tile.nyi:hover {
-	border-color: transparent;
-}
-
-.tile.active {
-	border: 1px solid #383f4c;
-}
-
-.tile img {
-	display: block;
-	width: 48px;
-	height: 48px;
-	margin: 0px auto 10px auto;
 }
 
 #context-menu {

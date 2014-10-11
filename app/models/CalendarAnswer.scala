@@ -7,11 +7,29 @@ import api.CalendarAnswerCreate
 import gt.Socket
 import api.CalendarAnswerUpdate
 
+/**
+ * One answer for one event for one user
+ */
 case class CalendarAnswer(user: Int, event: Int, date: Timestamp, answer: Int, note: Option[String], char: Option[Int]) {
 	if (answer < 0 || answer > 2) {
 		throw new Exception("Invalid answer value")
 	}
+
+	/**
+	 * Convert this answer to a expanded answer tuple
+	 */
+	lazy val expand = buildExpand
+	private def buildExpand: CalendarAnswerTuple = DB.withSession { implicit s =>
+		var user_obj = Users.filter(_.id === user).first
+		var char = Chars.filter(c => c.owner === user && c.active).list
+		CalendarAnswerTuple(user_obj, Some(this), char)
+	}
 }
+
+/**
+ * Expanded version for event pages
+ */
+case class CalendarAnswerTuple(user: User, answer: Option[CalendarAnswer], chars: List[Char])
 
 class CalendarAnswers(tag: Tag) extends Table[CalendarAnswer](tag, "gt_answers") {
 	def user = column[Int]("user", O.PrimaryKey)
@@ -24,6 +42,9 @@ class CalendarAnswers(tag: Tag) extends Table[CalendarAnswer](tag, "gt_answers")
 	def * = (user, event, date, answer, note, char) <> (CalendarAnswer.tupled, CalendarAnswer.unapply)
 }
 
+/**
+ * Helpers
+ */
 object CalendarAnswers extends TableQuery(new CalendarAnswers(_)) {
 	def notifyCreate(answer: CalendarAnswer): Unit = {
 		Socket !# CalendarAnswerCreate(answer)

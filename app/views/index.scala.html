@@ -168,7 +168,7 @@
 		</div>
 	</header>
 	
-	<div id="modal" ng-if="modalView" ng-click="modalClose($event)">
+	<div id="modal" class="animated" ng-if="modalView" ng-click="modalClose($event)">
 		<div ng-include="modalView" class="animated"></div>
 	</div>
 	
@@ -216,13 +216,15 @@
 		</ul>
 	</nav>
 	
-	<nav id="topbar">
-		<ul ng-if="navigator">
+	<nav id="topbar" ng-if="navigator">
+		<ul>
 			<li ng-repeat="entry in navigator" ng-click="entry[2]()" ng-class="{ active: entry[0] == navigator_tab }">{{ entry[1] }}</li>
 		</ul>
 	</nav>
 	
-	<div class="main-view animated" ng-view></div>
+	<div id="main-view-slider">
+		<div class="main-view animated" ng-view></div>
+	</div>
 	
 	<div id="error-popup" class="animated" ng-if="popupErrorText">
 		<i class="awe-attention-circled"></i>

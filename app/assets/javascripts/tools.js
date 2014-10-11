@@ -54,7 +54,7 @@ GuildTools.config(function($routeProvider, $locationProvider, $animateProvider) 
 		});
 
 	$locationProvider.html5Mode({ enabled: true, requireBase: false });
-	$animateProvider.classNameFilter(/animated/);
+	$animateProvider.classNameFilter(/animated|customAnimated/);
 });
 
 GuildTools.directive("ngContextmenu", function($parse) {

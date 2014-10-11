@@ -11,6 +11,11 @@ import scala.collection.mutable
 import utils.SmartTimestamp
 import java.text.SimpleDateFormat
 import java.text.ParseException
+import scala.slick.jdbc.JdbcBackend.SessionDef
+
+private object Helper {
+	val guildies_groups = Set[Int](8, 9, 11)
+}
 
 trait CalendarHandler {
 	self: SocketHandler =>
@@ -189,7 +194,7 @@ trait CalendarHandler {
 	 * $:calendar:answer
 	 */
 	def handleCalendarAnswer(arg: JsValue): MessageResponse = DB.withSession { implicit s =>
-		val event_id = (arg \ "id").as[Int]
+		val event_id = (arg \ "event").as[Int]
 		val answer = (arg \ "answer").as[Int]
 		val note_raw = (arg \ "note").asOpt[String]
 		val char = (arg \ "char").asOpt[Int]
@@ -250,11 +255,83 @@ trait CalendarHandler {
 	/**
 	 * $:calendar:event
 	 */
+	private def guildAnswers(event_id: Int)(implicit s: SessionDef) = {
+		val query = for {
+			(u, a) <- Users leftJoin CalendarAnswers on ((u, a) => u.id === a.user && a.event === event_id)
+			if (u.group inSet Helper.guildies_groups)
+			c <- Chars if c.owner === u.id && c.active
+		} yield (u, (a.answer.?, a.date.?, a.note, a.char), c)
+
+		query.list.groupBy(_._1.id.toString).mapValues { list =>
+			val user = list(0)._1
+
+			val (a_answer, a_date, a_note, a_char) = list(0)._2
+			val answer =
+				if (a_answer.isDefined) {
+					val a = CalendarAnswer(
+						user = user.id,
+						event = event_id,
+						date = a_date.get,
+						answer = a_answer.get,
+						note = a_note,
+						char = a_char
+					)
+					Some(a)
+				} else {
+					None
+				}
+
+			val chars = list.map(_._3)
+			CalendarAnswerTuple(user, answer, chars)
+		}
+	}
+
+	private def eventAnswers(event_id: Int)(implicit s: SessionDef) = {
+		val query = for {
+			a <- CalendarAnswers if a.event === event_id
+			u <- Users if u.id === a.user
+			c <- Chars if c.owner === u.id && c.active
+		} yield (u, a, c)
+
+		query.list.groupBy(_._1.id.toString).mapValues { list =>
+			val user = list(0)._1
+			val answer = Some(list(0)._2)
+			val chars = list.map(_._3)
+			CalendarAnswerTuple(user, answer, chars)
+		}
+	}
+
 	def handleCalendarEvent(arg: JsValue): MessageResponse = DB.withSession { implicit s =>
 		val event_id = (arg \ "id").as[Int]
-
 		val event = CalendarEvents.filter(_.id === event_id).first
 
-		MessageSuccess
+		if (event.visibility == CalendarVisibility.Announce) {
+			return MessageFailure("OPENING_ANNOUNCE")
+		}
+
+		val answers =
+			if (event.visibility == CalendarVisibility.Guild) {
+				guildAnswers(event_id)
+			} else {
+				eventAnswers(event_id)
+			}
+
+		val user_id = user.id.toString
+		val my_answer = answers.get(user_id).flatMap(_.answer)
+
+		if (event.visibility == CalendarVisibility.Private && my_answer.isEmpty) {
+			return MessageFailure("NOT_INVITED")
+		}
+
+		socket.eventFilter = {
+			case CalendarAnswerUpdate(answer) => {
+				socket ! CalendarAnswerReplace(answer.expand)
+				false
+			}
+
+			case CalendarAnswerReplace(_) => true
+		}
+
+		MessageResults(Json.obj("event" -> event, "answers" -> answers, "answer" -> my_answer))
 	}
 }

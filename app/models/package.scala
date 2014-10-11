@@ -20,4 +20,5 @@ package object models {
 	implicit val charJsonFormat = Json.format[Char]
 	implicit val eventJsonFormat = Json.format[CalendarEvent]
 	implicit val answerJsonFormat = Json.format[CalendarAnswer]
+	implicit val calendarAnswerTupleFormat = Json.format[CalendarAnswerTuple]
 }

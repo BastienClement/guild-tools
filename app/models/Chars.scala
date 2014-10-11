@@ -6,21 +6,22 @@ import models.mysql._
 
 import scala.slick.jdbc.JdbcBackend.SessionDef
 
-case class Char(id: Int,
-		name: String,
-		server: String,
-		owner: Int,
-		main: Boolean,
-		active: Boolean,
-		`class`: Int,
-		race: Int,
-		gender: Int,
-		level: Int,
-		achievements: Int,
-		thumbnail: String,
-		ilvl: Int,
-		role: String,
-		last_update: Long) {
+case class Char(
+	id: Int,
+	name: String,
+	server: String,
+	owner: Int,
+	main: Boolean,
+	active: Boolean,
+	`class`: Int,
+	race: Int,
+	gender: Int,
+	level: Int,
+	achievements: Int,
+	thumbnail: String,
+	ilvl: Int,
+	role: String,
+	last_update: Long) {
 	val clazz = `class`
 }
 
