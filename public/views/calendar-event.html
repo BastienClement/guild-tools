@@ -50,6 +50,11 @@
 		padding: 0px 5px 1px 5px;
 		margin-bottom: 5px;
 		display: flex;
+		transition: opacity ease-out .3s;
+	}
+	
+	#calendar-event .char.picked {
+		opacity: .5;
 	}
 	
 	#calendar-event .char img {
@@ -179,6 +184,10 @@
 		font-weight: 300;
 	}
 	
+	.picked #calendar-event-comp .hover .char {
+		box-shadow: 0px 0px 1px 2px #426585;
+	}
+	
 	#calendar-event-comp .raidbuffs {
 		display: flex;
 		flex-direction: column;
@@ -207,11 +216,23 @@
 		padding-right: 0px;
 		flex: 1;
 	}
+	
+	#calendar-char-picker.char {
+		position: fixed;
+		top: 5px;
+		left: 5px;
+		width: 130px;
+		background: rgba(42, 54, 66, 0.9);
+		z-index: 100;
+	}
 </style>
 
-<div id="calendar-event" class="tools-main">
+<div id="calendar-event" class="tools-main" ng-class="{ picked: picked }" ng-mousemove="handlePicker($event)" ng-mouseup="dropPicker()">
 	<div id="calendar-event-wrapper">
-	
+		<div id="calendar-char-picker" class="char" ng-if="picked">
+			<img ng-src="/assets/images/roles/{{ picked.role }}.png">
+			<span class="name c{{ picked.class }}">{{ picked.name | capitalize }}</span>
+		</div>
 		<div id="calendar-event-left">
 			<div class="box" id="calendar-event-infos">
 				<button ng-click="eventMenu($event)" ng-if="eventEditable()"><i class="awe-cog"></i></button>
@@ -229,28 +250,28 @@
 			</div>
 			<div class="box" id="calendar-event-answers">
 				<div>
-					<button class="box-right"><i class="awe-plus-squared"></i> Invite</button>
+					<button class="box-right" ng-if="event.visibility == 3"><i class="awe-plus-squared"></i> Invite</button>
 					<h3>Answers</h3>
 					<span></span>
 				</div>
 				
 				<div class="tabs">
-					<button ng-class="{ active: tab_selected == 1 }" ng-click="tab_selected = 1">
+					<button ng-class="{ active: roster_tab == 1 }" ng-click="roster_tab = 1">
 						<i class="awe-ok"></i>
 						{{ answers[1].length || 0 }}
 					</button>
-					<button ng-class="{ active: tab_selected == 2 }" ng-click="tab_selected = 2">
+					<button ng-class="{ active: roster_tab == 2 }" ng-click="roster_tab = 2">
 						<i class="awe-cancel"></i>
 						{{ answers[2].length || 0 }}
 					</button>
-					<button ng-class="{ active: tab_selected == 0 }" ng-click="tab_selected = 0">
+					<button ng-class="{ active: roster_tab == 0 }" ng-click="roster_tab = 0">
 						<i class="awe-clock"></i>
 						{{ answers[0].length || 0 }}
 					</button>
 				</div>
 				
 				<div class="chars">
-					<div class="row" ng-repeat="groups in getAnswersGroups(tab_selected)">
+					<div class="row" ng-repeat="groups in getAnswersGroups(roster_tab)">
 						<div class="char-wrapper" ng-repeat="row in groups">
 							<div ng-if="!row.void" ng-tooltip=".tooltip">
 								<div class="tooltip">
@@ -261,7 +282,7 @@
 										{{ row.answer.note }}
 									</div>
 								</div>
-								<div class="char" draggable="true">
+								<div class="char" ng-mousedown="setPicker(row.main, $event)" ng-class="{ picked: charDimmedInRoster(row.main) }">
 									<img ng-src="/assets/images/roles/{{ row.main.role }}.png">
 									<span class="name c{{ row.main.class }}">{{ row.main.name | capitalize }}</span>
 									<i class="awe-pencil-squared" ng-if="row.answer.note"></i>
@@ -269,7 +290,7 @@
 							</div>
 						</div>
 					</div>
-					<div class="box" style="width: 100%;" ng-if="!answers[tab_selected].length">
+					<div class="box" style="width: 100%;" ng-if="!answers[roster_tab].length">
 						Empty tab...
 					</div>
 				</div>
@@ -310,20 +331,30 @@
 				<button class="box-right"><i class="awe-plus"></i> New</button>
 				<button class="box-right"><i class="awe-pencil"></i> Edit</button>
 				<button class="box-right"><i class="awe-docs"></i> Import</button>
-				<button class="box-right"><i class="awe-magic"></i> Autofill</button>
 				<button class="box-right"><i class="awe-trash"></i> Delete</button>
 				<h3>RaidComp</h3>
 				<div class="tabs">
-					<button ng-class="{ active: tab.title === active_tab }" ng-repeat="tab in tabs">{{ tab.title }}</button>
+					<button ng-class="{ active: tab.id === tab_selected }" ng-repeat="tab in tabs">{{ tab.title }}</button>
 				</div>
 				<div class="bottom">
 					<div class="inner">
 						<div class="row" ng-repeat="row in [1,3,5]">
-							<div class="group" ng-repeat="offset in [0, 1]">
+							<div class="group" ng-repeat="offset in [0,1]">
 								<div class="label">Group {{ row + offset }}</div>
-								<div class="char" ng-repeat="slot in [1,2,3,4,5]">
-									<img ng-src="/assets/images/roles/DPS.png">
-									<span class="name c9">Lapinity</span>
+								<div ng-repeat="slot in [1,2,3,4,5]" ng-switch="charVisibleInComp(slots[tab_selected][(row+offset-1)*5+slot])"
+										ng-class="{ hover: pickerTarget == (row+offset-1)*5+slot }"
+										ng-mouseover="setPickerTarget((row+offset-1)*5+slot)"
+										ng-mouseout="setPickerTarget(null)"
+										ng-mousedown="setPicker(slots[tab_selected][(row+offset-1)*5+slot], $event, (row+offset-1)*5+slot)">
+									<div class="char" ng-switch-when="1">
+										<img ng-src="/assets/images/roles/{{ slots[tab_selected][(row+offset-1)*5+slot].role }}.png">
+										<span class="name c{{ slots[tab_selected][(row+offset-1)*5+slot].class }}">
+											{{ slots[tab_selected][(row+offset-1)*5+slot].name }}
+										</span>
+									</div>
+									<div class="char" ng-switch-when="0">
+										<span>&nbsp;</span>
+									</div>
 								</div>
 							</div>
 						</div>

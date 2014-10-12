@@ -13,13 +13,13 @@ import java.text.SimpleDateFormat
 import java.text.ParseException
 import scala.slick.jdbc.JdbcBackend.SessionDef
 
-private object Helper {
+private object CalendarHelper {
 	val guildies_groups = Set[Int](8, 9, 11)
 
 	val guildAnswersQuery = Compiled { (event_id: Column[Int]) =>
 		for {
 			(u, a) <- Users leftJoin CalendarAnswers on ((u, a) => u.id === a.user && a.event === event_id)
-			if (u.group inSet Helper.guildies_groups)
+			if (u.group inSet CalendarHelper.guildies_groups)
 			c <- Chars if c.owner === u.id && c.active
 		} yield (u, (a.answer.?, a.date.?, a.note, a.char), c)
 	}
@@ -35,6 +35,12 @@ private object Helper {
 
 trait CalendarHandler {
 	self: SocketHandler =>
+
+	object CalendarContext {
+		 var current_event = -1
+		 var current_event_editable = false
+		 var current_event_tabs = Set[Int]()
+	}
 
 	/**
 	 * $:calendar:load
@@ -195,6 +201,8 @@ trait CalendarHandler {
 				val id: Int = (CalendarEvents returning CalendarEvents.map(_.id)) += template
 				CalendarEvents.notifyCreate(template.copy(id = id))
 
+				CalendarTabs += CalendarTab(id = 0, event = id, title = "Default", note = None, order = 0)
+
 				if (visibility != CalendarVisibility.Announce) {
 					val answer = CalendarAnswer(user.id, id, now, 1, None, None)
 					CalendarAnswers += answer
@@ -279,8 +287,9 @@ trait CalendarHandler {
 			return MessageFailure("OPENING_ANNOUNCE")
 		}
 
-		def guildAnswers = {
-			Helper.guildAnswersQuery(event_id).list.groupBy(_._1.id.toString).mapValues { list =>
+		// Fetch answers for guild events
+		def fetchGuildAnswers = {
+			CalendarHelper.guildAnswersQuery(event_id).list.groupBy(_._1.id.toString).mapValues { list =>
 				val user = list(0)._1
 
 				val (a_answer, a_date, a_note, a_char) = list(0)._2
@@ -304,8 +313,9 @@ trait CalendarHandler {
 			}
 		}
 
-		def eventAnswers = {
-			Helper.answersQuery(event_id).list.groupBy(_._1.id.toString).mapValues { list =>
+		// Fetch answers for non-guild events
+		def fetchEventAnswers = {
+			CalendarHelper.answersQuery(event_id).list.groupBy(_._1.id.toString).mapValues { list =>
 				val user = list(0)._1
 				val answer = Some(list(0)._2)
 				val chars = list.map(_._3)
@@ -313,29 +323,90 @@ trait CalendarHandler {
 			}
 		}
 
+		// Select the correct answer fetcher for this event
 		val answers = {
 			if (event.visibility == CalendarVisibility.Guild)
-				guildAnswers
+				fetchGuildAnswers
 			else
-				eventAnswers
+				fetchEventAnswers
 		}
 
-		val user_id = user.id.toString
-		val my_answer = answers.get(user_id).flatMap(_.answer)
+		// Extract own answer
+		val my_answer = answers.get(user.id.toString).flatMap(_.answer)
 
+		// Check invitation in private event
 		if (event.visibility == CalendarVisibility.Private && my_answer.isEmpty) {
 			return MessageFailure("NOT_INVITED")
 		}
 
-		socket.eventFilter = {
-			case CalendarAnswerUpdate(answer) => {
-				socket ! CalendarAnswerReplace(answer.expand)
-				false
-			}
+		// Fetch tabs list
+		val tabs = CalendarTabs.filter(_.event === event_id).list
+		CalendarContext.current_event_tabs = tabs.map(_.id).toSet
 
-			case CalendarAnswerReplace(_) => true
+		// Fetch slots data
+		val slots = CalendarSlots.filter(_.tab inSet CalendarContext.current_event_tabs).list.groupBy(_.tab.toString).mapValues {
+			_.map(s => (s.slot.toString, s)).toMap
 		}
 
-		MessageResults(Json.obj("event" -> event, "answers" -> answers, "answer" -> my_answer))
+		def expandAnswer(answer: CalendarAnswer) = {
+			if (answer.event == event_id) {
+				socket ! CalendarAnswerReplace(answer.expand)
+			}
+			false
+		}
+
+		// Event page bindings
+		socket.eventFilter = {
+			case CalendarAnswerCreate(answer) => expandAnswer(answer)
+			case CalendarAnswerUpdate(answer) => expandAnswer(answer)
+			case CalendarAnswerReplace(answer) => (answer.answer.exists(_.event == event_id))
+			case CalendarEventUpdate(event) => (event.id == event_id)
+			case CalendarEventDelete(id) => (id == event_id)
+			case CalendarTabCreate(tab) => utils.doIf(tab.event == event_id) { CalendarContext.current_event_tabs += tab.id }
+			case CalendarTabUpdate(tab) => (tab.event == event_id)
+			case CalendarTabDelete(id) => utils.doIf(CalendarContext.current_event_tabs.contains(id)) { CalendarContext.current_event_tabs -= id }
+			case CalendarSlotUpdate(slot) => CalendarContext.current_event_tabs.contains(slot.tab)
+			case CalendarSlotDelete(tab, _) => CalendarContext.current_event_tabs.contains(tab)
+		}
+
+		// Record successful event access
+		CalendarContext.current_event = event.id
+		CalendarContext.current_event_editable = (event.owner == user.id) || user.officer
+
+		MessageResults(Json.obj(
+			"event" -> event,
+			"answers" -> answers,
+			"answer" -> my_answer,
+			"tabs" -> tabs,
+			"slots" -> slots))
+	}
+
+	/**
+	 * $:calendar:comp:set
+	 * $:calendar:comp:reset
+	 */
+	def handleCalendarCompSet(arg: JsValue, reset: Boolean = false): MessageResponse = {
+		val event = (arg \ "event").as[Int]
+		val tab = (arg \ "tab").as[Int]
+		val slot = (arg \ "slot").as[Int]
+
+		if (event != CalendarContext.current_event) return MessageFailure("BAD_EVENT")
+		if (!CalendarContext.current_event_tabs.contains(tab)) return MessageFailure("BAD_TAB")
+		if (!CalendarContext.current_event_editable) return MessageFailure("FORBIDDEN")
+
+		if (reset) {
+			DB.withSession { CalendarSlots.filter(s => s.tab === tab && s.slot === slot).delete(_) }
+		} else {
+			val owner = (arg \ "char" \ "owner").as[Int]
+			val name = (arg \ "char" \ "name").as[String]
+			val clazz = (arg \ "char" \ "class").as[Int]
+			val role = (arg \ "char" \ "role").as[String]
+
+			val template = CalendarSlot(tab, slot, owner, name, clazz, role)
+
+			DB.withSession { CalendarSlots.insertOrUpdate(template)(_) }
+		}
+
+		MessageSuccess
 	}
 }

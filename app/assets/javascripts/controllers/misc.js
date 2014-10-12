@@ -1,7 +1,10 @@
 GuildTools.controller("WelcomeCtrl", function($scope, $location) {
 	if (!$.user) {
-		$location.path("/login");
-		return;
+		return $location.path("/login").replace();
+	}
+	
+	if ($.user.ready) {
+		return $location.path("/dashboard").replace();
 	}
 
 	$scope.setNavigator();

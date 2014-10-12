@@ -16,12 +16,7 @@ trait ProfileHandler {
 	/**
 	 * Validate role for DB queries
 	 */
-	private def checkRole(role: String): String = {
-		role match {
-			case "TANK" | "HEALING" => role
-			case _ => "DPS"
-		}
-	}
+	private def checkRole(role: String): String = if (Chars.validateRole(role)) role else "DPS"
 
 	/**
 	 * $:profile:load

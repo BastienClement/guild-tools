@@ -13,9 +13,16 @@ import play.api.libs.json.{JsNull, JsValue, Json}
 import scala.annotation.tailrec
 import scala.concurrent.duration.DurationInt
 
+private object AuthHelper {
+	val allowedGroups = Set(8, 9, 10, 11)
+}
+
 trait AuthHandler {
 	this: SocketHandler =>
-	private var auth_salt = utils.randomToken()
+
+	object AuthContext {
+		var auth_salt = utils.randomToken()
+	}
 
 	/**
 	 * $:auth
@@ -68,7 +75,7 @@ trait AuthHandler {
 			val password = for (u <- Users if u.name_clean === user) yield u.pass
 			password.firstOption map { pass =>
 				val setting = pass.slice(0, 12)
-				MessageResults(Json.obj("setting" -> setting, "salt" -> auth_salt))
+				MessageResults(Json.obj("setting" -> setting, "salt" -> AuthContext.auth_salt))
 			} getOrElse {
 				MessageFailure("USER_NOT_FOUND")
 			}
@@ -83,11 +90,11 @@ trait AuthHandler {
 		val pass = (arg \ "pass").as[String].toLowerCase
 
 		// Regenerate salt for next login
-		val salt = auth_salt
-		auth_salt = utils.randomToken()
+		val salt = AuthContext.auth_salt
+		AuthContext.auth_salt = utils.randomToken()
 
 		DB.withSession { implicit s =>
-			val user_credentials = for (u <- Users if u.name_clean === user) yield (u.pass, u.id)
+			val user_credentials = for (u <- Users if (u.name_clean === user) && (u.group inSet AuthHelper.allowedGroups)) yield (u.pass, u.id)
 			user_credentials.firstOption filter {
 				case (pass_ref, user_id) =>
 					pass == utils.md5(pass_ref + salt)

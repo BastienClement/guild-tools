@@ -23,6 +23,10 @@ case class Char(
 	role: String,
 	last_update: Long) {
 	val clazz = `class`
+
+	if (!Chars.validateRole(role)) {
+		throw new Exception("Invalid role value")
+	}
 }
 
 class Chars(tag: Tag) extends Table[Char](tag, "gt_chars") {
@@ -57,5 +61,10 @@ object Chars extends TableQuery(new Chars(_)) {
 
 	def notifyDelete(id: Int): Unit = {
 		Socket !# CharDelete(id)
+	}
+
+	def validateRole(role: String): Boolean = role match {
+		case "TANK" | "HEALING" | "DPS" => true
+		case _ => false
 	}
 }

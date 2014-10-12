@@ -459,15 +459,76 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	$scope.event = null;
 	$scope.answers = [];
 	$scope.chars = {};
-	$scope.tab_selected = 1;
+	$scope.tabs = [];
+	$scope.slots = {};
+	$scope.tab_selected = 0;
 
 	var cached_tab;
 	var cached_groups;
+	$scope.roster_tab = 1;
 
 	$scope.answer = 1;
 	$scope.answer_note = "";
 
 	var raw_answers;
+	
+	$scope.picked = null;
+	$scope.pickedFromSlot = false;
+	$scope.setPicker = function(char, ev, slot) {
+		$scope.picked = char;
+		$scope.pickedFromSlot = slot;
+		$scope.handlePicker(ev);
+		ev.preventDefault();
+		setTimeout(function() {
+			$scope.handlePicker(ev);
+		}, 100);
+	};
+	
+	function filterChar(char) {
+		return {
+			owner: char.owner,
+			name: char.name,
+			"class": char["class"],
+			role: char.role
+		};
+	}
+	
+	$scope.dropPicker = function() {
+		var template = {
+			event: $scope.event.id,
+			tab: $scope.tab_selected,
+		};
+		
+		if (!$scope.pickerTarget) {
+			if ($scope.pickedFromSlot) {
+				template.slot = $scope.pickedFromSlot;
+				$.call("calendar:comp:reset", template);
+			}
+		} else {
+			template.slot = $scope.pickerTarget;
+			template.char = filterChar($scope.picked);
+			$.call("calendar:comp:set", template);
+		}
+		
+		$scope.picked = null;
+	};
+	
+	$scope.pickerTarget = null;
+	$scope.setPickerTarget = function(slot) {
+		$scope.pickerTarget = slot;
+	};
+	
+	var lock = false;
+	$scope.handlePicker = function(ev) {
+		if (lock) return; else lock = true;
+		requestAnimationFrame(function() {
+			lock = false;
+			_("#calendar-char-picker").css({
+				top: ev.clientY + 10,
+				left: ev.clientX + 10
+			});
+		});
+	};
 
 	function extract_main(data) {
 		return function(char) {
@@ -520,6 +581,9 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 
 			$scope.breadcrumb.override({ name: data.event.title });
 			$scope.event = data.event;
+			$scope.tabs = data.tabs;
+			$scope.tab_selected = data.tabs[0].id;
+			$scope.slots = data.slots;
 
 			raw_answers = data.answers;
 			build_answers();
@@ -600,11 +664,6 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			$scope.inflight = false;
 		});
 	};
-
-	$scope.active_tab = "Raid";
-	$scope.tabs = [
-		{ title: "Raid" }
-	];
 
 	$scope.eventTimeFormat = function() {
 		if (!$scope.event) return "00:00";
@@ -731,10 +790,18 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	};
 
 	$scope.computeRaidBuffs = function() {
-		$scope.raidbuffs.stamina = [166928, "stamina_warlock_opt"];
-		$scope.raidbuffs.sp = [109773, "sp_warlock"];
-		$scope.raidbuffs.multistrike = [109773, "multistrike_warlock"];
+		//$scope.raidbuffs.stamina = [166928, "stamina_warlock_opt"];
+		//$scope.raidbuffs.sp = [109773, "sp_warlock"];
+		//$scope.raidbuffs.multistrike = [109773, "multistrike_warlock"];
 	};
 
 	$scope.computeRaidBuffs();
+	
+	$scope.charDimmedInRoster = function(char) {
+		return char && $scope.picked && char.owner == $scope.picked.owner;
+	};
+	
+	$scope.charVisibleInComp = function(char) {
+		return (char && (!$scope.picked || char.owner != $scope.picked.owner)) ? 1 : 0;
+	};
 });
