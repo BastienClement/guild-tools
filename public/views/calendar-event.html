@@ -343,7 +343,7 @@
 								<div class="label">Group {{ row + offset }}</div>
 								<div ng-repeat="slot in [1,2,3,4,5]" ng-switch="charVisibleInComp(slots[tab_selected][(row+offset-1)*5+slot])"
 										ng-class="{ hover: pickerTarget == (row+offset-1)*5+slot }"
-										ng-mouseover="setPickerTarget((row+offset-1)*5+slot)"
+										ng-mouseover="setPickerTarget((row+offset-1)*5+slot, slots[tab_selected][(row+offset-1)*5+slot])"
 										ng-mouseout="setPickerTarget(null)"
 										ng-mousedown="setPicker(slots[tab_selected][(row+offset-1)*5+slot], $event, (row+offset-1)*5+slot)">
 									<div class="char" ng-switch-when="1">

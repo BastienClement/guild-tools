@@ -26,4 +26,4 @@ case class CalendarTabUpdate(tab: CalendarTab) extends Event("calendar:tab:updat
 case class CalendarTabDelete(id: Int) extends Event("calendar:tab:delete", id)
 
 case class CalendarSlotUpdate(slot: CalendarSlot) extends Event("calendar:slot:update", slot)
-case class CalendarSlotDelete(tab: Int, slot: Int) extends Event("calendar:slot:data", Json.obj("tab" -> tab, "slot" -> slot))
+case class CalendarSlotDelete(tab: Int, slot: Int) extends Event("calendar:slot:delete", Json.obj("tab" -> tab, "slot" -> slot))

@@ -475,6 +475,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	$scope.picked = null;
 	$scope.pickedFromSlot = false;
 	$scope.setPicker = function(char, ev, slot) {
+		if (!char) return false;
 		$scope.picked = char;
 		$scope.pickedFromSlot = slot;
 		$scope.handlePicker(ev);
@@ -494,6 +495,11 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	}
 	
 	$scope.dropPicker = function() {
+		if ($scope.pickerTarget === $scope.pickedFromSlot || !$scope.picked) {
+			$scope.picked = null;
+			return;
+		}
+		
 		var template = {
 			event: $scope.event.id,
 			tab: $scope.tab_selected,
@@ -505,6 +511,11 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				$.call("calendar:comp:reset", template);
 			}
 		} else {
+			if ($scope.pickerTargetChar) {
+				template.slot = $scope.pickedFromSlot;
+				template.char = filterChar($scope.pickerTargetChar);
+				$.call("calendar:comp:set", template);
+			}
 			template.slot = $scope.pickerTarget;
 			template.char = filterChar($scope.picked);
 			$.call("calendar:comp:set", template);
@@ -514,8 +525,10 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	};
 	
 	$scope.pickerTarget = null;
-	$scope.setPickerTarget = function(slot) {
+	$scope.pickerTargetChar = null;
+	$scope.setPickerTarget = function(slot, char) {
 		$scope.pickerTarget = slot;
+		$scope.pickerTargetChar = char;
 	};
 	
 	var lock = false;
@@ -597,6 +610,29 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 
 			raw_answers[data.user.id] = data;
 			build_answers();
+		},
+		
+		"calendar:slot:update": function(data) {
+			var comp = $scope.slots[data.tab];
+			if (!comp) {
+				comp = $scope.slots[data.tab] = {};
+			}
+			
+			// Remove old entry
+			for (var slot in comp) {
+				var char = comp[slot];
+				if (char && char.owner == data.owner) {
+					delete comp[slot];
+				}
+			}
+			
+			// Add new entry
+			comp[data.slot] = data;
+		},
+		
+		"calendar:slot:delete": function(data) {
+			var comp = $scope.slots[data.tab];
+			if (comp) delete comp[data.slot];
 		}
 	});
 
@@ -798,7 +834,18 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	$scope.computeRaidBuffs();
 	
 	$scope.charDimmedInRoster = function(char) {
-		return char && $scope.picked && char.owner == $scope.picked.owner;
+		var comp = $scope.slots[$scope.tab_selected];
+		var in_comp = false;
+		if (comp) {
+			for(var slot in comp) {
+				if (comp[slot].owner === char.owner) {
+					in_comp = true;
+					break;
+				}
+			}
+		}
+		
+		return (char && $scope.picked && char.owner == $scope.picked.owner) || in_comp;
 	};
 	
 	$scope.charVisibleInComp = function(char) {

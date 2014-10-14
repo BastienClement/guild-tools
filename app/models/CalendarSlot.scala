@@ -3,6 +3,8 @@ package models
 import models.mysql._
 import scala.slick.jdbc.JdbcBackend.SessionDef
 import gt.Socket
+import api.CalendarSlotUpdate
+import api.CalendarSlotDelete
 
 case class CalendarSlot(tab: Int, slot: Int, owner: Int, name: String, `class`: Int, role: String) {
 	if (!Chars.validateRole(role)) {
@@ -28,15 +30,11 @@ class CalendarSlots(tag: Tag) extends Table[CalendarSlot](tag, "gt_events_slots"
  * Helpers
  */
 object CalendarSlots extends TableQuery(new CalendarSlots(_)) {
-	def notifyCreate(tab: CalendarSlot): Unit = {
+	def notifyUpdate(slot: CalendarSlot): Unit = {
+		Socket !# CalendarSlotUpdate(slot)
 	}
 
-	def notifyUpdate(id: Int)(implicit s: SessionDef): Unit = {
-	}
-
-	def notifyUpdate(tab: CalendarSlot): Unit = {
-	}
-
-	def notifyDelete(id: Int): Unit = {
+	def notifyDelete(tab: Int, slot: Int): Unit = {
+		Socket !# CalendarSlotDelete(tab, slot)
 	}
 }

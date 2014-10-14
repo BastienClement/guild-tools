@@ -3,6 +3,7 @@ package models
 import models.mysql._
 import scala.slick.jdbc.JdbcBackend.SessionDef
 import gt.Socket
+import api._
 
 case class CalendarTab(id: Int, event: Int, title: String, note: Option[String], order: Int)
 
@@ -24,14 +25,14 @@ class CalendarTabs(tag: Tag) extends Table[CalendarTab](tag, "gt_events_tabs") {
  */
 object CalendarTabs extends TableQuery(new CalendarTabs(_)) {
 	def notifyCreate(tab: CalendarTab): Unit = {
-	}
-
-	def notifyUpdate(id: Int)(implicit s: SessionDef): Unit = {
+		Socket !# CalendarTabCreate(tab)
 	}
 
 	def notifyUpdate(tab: CalendarTab): Unit = {
+		Socket !# CalendarTabUpdate(tab)
 	}
 
 	def notifyDelete(id: Int): Unit = {
+		Socket !# CalendarTabDelete(id)
 	}
 }

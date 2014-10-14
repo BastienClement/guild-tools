@@ -54,9 +54,6 @@ object CalendarAnswers extends TableQuery(new CalendarAnswers(_)) {
 		Socket !# CalendarAnswerCreate(answer)
 	}
 
-	def notifyUpdate(user: Int, event: Int)(implicit s: SessionDef): Unit = {
-	}
-
 	def notifyUpdate(answer: CalendarAnswer): Unit = {
 		Socket !# CalendarAnswerUpdate(answer)
 	}
