@@ -39,6 +39,7 @@ trait CalendarHandler {
 	object CalendarContext {
 		 var event_id = -1
 		 var event_editable = false
+		 var event_disclosed = false
 		 var event_tabs = Set[Int]()
 	}
 
@@ -355,23 +356,43 @@ trait CalendarHandler {
 			false
 		}
 
+		val editable = (event.owner == user.id) || user.officer
+		val disclosed = editable || event.state != CalendarEventState.Open
+		
+		// Record successful event access
+		CalendarContext.event_id = event.id
+		CalendarContext.event_editable = editable
+		CalendarContext.event_disclosed = disclosed
+
 		// Event page bindings
 		socket.eventFilter = {
 			case CalendarAnswerCreate(answer) => expandAnswer(answer)
 			case CalendarAnswerUpdate(answer) => expandAnswer(answer)
 			case CalendarAnswerReplace(answer) => (answer.answer.exists(_.event == event_id))
+			
 			case CalendarEventUpdate(event) => (event.id == event_id)
 			case CalendarEventDelete(id) => (id == event_id)
-			case CalendarTabCreate(tab) => utils.doIf(tab.event == event_id) { CalendarContext.event_tabs += tab.id }
-			case CalendarTabUpdate(tab) => (tab.event == event_id)
-			case CalendarTabDelete(id) => utils.doIf(CalendarContext.event_tabs.contains(id)) { CalendarContext.event_tabs -= id }
-			case CalendarSlotUpdate(slot) => CalendarContext.event_tabs.contains(slot.tab)
-			case CalendarSlotDelete(tab, _) => CalendarContext.event_tabs.contains(tab)
+			
+			case CalendarTabCreate(tab) => {
+				if (tab.event == event_id) {
+					CalendarContext.event_tabs += tab.id
+					disclosed
+				} else {
+					false
+				}
+			}
+			case CalendarTabUpdate(tab) => (tab.event == event_id && disclosed)
+			
+			case CalendarTabDelete(id) => {
+				if (CalendarContext.event_tabs.contains(id)) {
+					CalendarContext.event_tabs -= id
+				}
+				disclosed
+			}
+			
+			case CalendarSlotUpdate(slot) => (disclosed && CalendarContext.event_tabs.contains(slot.tab))
+			case CalendarSlotDelete(tab, _) => (disclosed && CalendarContext.event_tabs.contains(tab))
 		}
-
-		// Record successful event access
-		CalendarContext.event_id = event.id
-		CalendarContext.event_editable = (event.owner == user.id) || user.officer
 
 		MessageResults(Json.obj(
 			"event" -> event,
@@ -390,6 +411,7 @@ trait CalendarHandler {
 		val tab = (arg \ "tab").as[Int]
 		val slot = (arg \ "slot").as[Int]
 
+		if (slot < 0 || slot > 30) return MessageFailure("BAD_SLOT")
 		if (event != CalendarContext.event_id) return MessageFailure("BAD_EVENT")
 		if (!CalendarContext.event_tabs.contains(tab)) return MessageFailure("BAD_TAB")
 		if (!CalendarContext.event_editable) return MessageFailure("FORBIDDEN")
@@ -407,12 +429,32 @@ trait CalendarHandler {
 
 			val template = CalendarSlot(tab, slot, owner, name, clazz, role)
 
-			DB.withSession { s =>
-				CalendarSlots.insertOrUpdate(template)(s)
+			DB.withSession { implicit s =>
+				CalendarSlots.filter(s => s.tab === tab && s.owner === owner).delete
+				CalendarSlots.insertOrUpdate(template)
 				CalendarSlots.notifyUpdate(template)
 			}
 		}
 
+		MessageSuccess
+	}
+	
+	/**
+	 * $:calendar:tab:create
+	 */
+	def handleCalendarTabCreate(arg: JsValue): MessageResponse = {
+		val event = (arg \ "event").as[Int]
+		val title = (arg \ "title").as[String]
+		
+		if (event != CalendarContext.event_id) return MessageFailure("BAD_EVENT")
+		if (!CalendarContext.event_editable) return MessageFailure("FORBIDDEN")
+		
+		val template = CalendarTab(0, event, title, None, 0)
+		val id: Int = DB.withSession { implicit s =>
+			(CalendarTabs returning CalendarTabs.map(_.id)) += template
+		}
+		
+		CalendarTabs.notifyCreate(template.copy(id = id))
 		MessageSuccess
 	}
 }

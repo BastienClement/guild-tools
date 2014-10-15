@@ -462,6 +462,10 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	$scope.tabs = [];
 	$scope.slots = {};
 	$scope.tab_selected = 0;
+	
+	$scope.setTab = function(t) {
+		$scope.tab_selected = t;
+	};
 
 	var cached_tab;
 	var cached_groups;
@@ -511,7 +515,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				$.call("calendar:comp:reset", template);
 			}
 		} else {
-			if ($scope.pickerTargetChar) {
+			if ($scope.pickerTargetChar && $scope.pickedFromSlot) {
 				template.slot = $scope.pickedFromSlot;
 				template.char = filterChar($scope.pickerTargetChar);
 				$.call("calendar:comp:set", template);
@@ -633,6 +637,10 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		"calendar:slot:delete": function(data) {
 			var comp = $scope.slots[data.tab];
 			if (comp) delete comp[data.slot];
+		},
+		
+		"calendar:tab:create": function(tab) {
+			$scope.tabs.push(tab);
 		}
 	});
 
@@ -850,5 +858,23 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	
 	$scope.charVisibleInComp = function(char) {
 		return (char && (!$scope.picked || char.owner != $scope.picked.owner)) ? 1 : 0;
+	};
+});
+
+GuildTools.controller("CalendarAddTabCtrl", function($scope) {
+	$scope.inflight = false;
+	var event = $scope.modalCtx;
+	
+	$scope.create = function() {
+		$scope.inflight = true;
+		$.call("calendar:tab:create", { event: event.id, title: $scope.title }, function(err) {
+			$scope.inflight = false;
+			if (err) {
+				$scope.title = "";
+				_("#add-tab-title").focus();
+			} else {
+				$scope.modal();
+			}
+		});
 	};
 });

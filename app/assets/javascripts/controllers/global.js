@@ -321,13 +321,16 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	});
 
 	$scope.modalView = null;
+	$scope.modalCtx = null;
 
-	$scope.modal = function(view) {
+	$scope.modal = function(view, ctx) {
 		if (view) {
 			ga('send', 'event', 'modal', 'display', view);
+			$scope.modalCtx = ctx;
 			$scope.modalView = "/views/" + view + ".html";
 		} else {
 			$scope.modalView = null;
+			$scope.modalCtx = null;
 		}
 	};
 
@@ -387,8 +390,6 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	$scope.setNavigator = function(name, tab, overrides) {
 		$scope.navigator_current = name;
 		$scope.navigator_tab = tab;
-		
-		console.log(name, new Error());
 
 		if (name && navigators[name]) {
 			$scope.navigator = [];

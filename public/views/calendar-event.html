@@ -328,13 +328,13 @@
 		
 		<div id="calendar-event-middle">
 			<div class="box" id="calendar-event-comp">
-				<button class="box-right"><i class="awe-plus"></i> New</button>
+				<button class="box-right" ng-click="modal('calendar-add-tab', event)"><i class="awe-plus"></i> New</button>
 				<button class="box-right"><i class="awe-pencil"></i> Edit</button>
 				<button class="box-right"><i class="awe-docs"></i> Import</button>
 				<button class="box-right"><i class="awe-trash"></i> Delete</button>
 				<h3>RaidComp</h3>
 				<div class="tabs">
-					<button ng-class="{ active: tab.id === tab_selected }" ng-repeat="tab in tabs">{{ tab.title }}</button>
+					<button ng-click="setTab(tab.id)" ng-class="{ active: tab.id === tab_selected }" ng-repeat="tab in tabs">{{ tab.title }}</button>
 				</div>
 				<div class="bottom">
 					<div class="inner">

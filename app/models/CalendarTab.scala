@@ -11,7 +11,7 @@ case class CalendarTab(id: Int, event: Int, title: String, note: Option[String],
  * Answers database
  */
 class CalendarTabs(tag: Tag) extends Table[CalendarTab](tag, "gt_events_tabs") {
-	def id = column[Int]("id", O.PrimaryKey)
+	def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
 	def event = column[Int]("event")
 	def title = column[String]("title")
 	def note = column[Option[String]]("note")
