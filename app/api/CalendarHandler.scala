@@ -31,6 +31,8 @@ private object CalendarHelper {
 			c <- Chars if c.owner === u.id && c.active
 		} yield (u, a, c)
 	}
+	
+	def defaultTabSet(event: Int): List[CalendarTab] = List(CalendarTab(0, event, "Default", None, 0))
 }
 
 trait CalendarHandler {
@@ -356,6 +358,7 @@ trait CalendarHandler {
 			false
 		}
 
+		// Check rights
 		val editable = (event.owner == user.id) || user.officer
 		val disclosed = editable || event.state != CalendarEventState.Open
 		
@@ -394,12 +397,16 @@ trait CalendarHandler {
 			case CalendarSlotDelete(tab, _) => (disclosed && CalendarContext.event_tabs.contains(tab))
 		}
 
+		// Compute visible attributes
+		val visible_tabs = if (disclosed) tabs else CalendarHelper.defaultTabSet(event_id)
+		val visible_slots = if (disclosed) slots else Map[String, Map[String, CalendarSlot]]()
+		
 		MessageResults(Json.obj(
 			"event" -> event,
 			"answers" -> answers,
 			"answer" -> my_answer,
-			"tabs" -> tabs,
-			"slots" -> slots))
+			"tabs" -> visible_tabs,
+			"slots" -> visible_slots))
 	}
 
 	/**
