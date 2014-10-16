@@ -235,7 +235,7 @@
 		</div>
 		<div id="calendar-event-left">
 			<div class="box" id="calendar-event-infos">
-				<button ng-click="eventMenu($event)" ng-if="eventEditable()"><i class="awe-cog"></i></button>
+				<button ng-click="eventMenu($event)" ng-if="editable"><i class="awe-cog"></i></button>
 				<h3>{{ event.title }}</h3>
 				<p style="margin-top: -5px" class="light">
 					{{ event.date.split(" ")[0].split("-").reverse().join("/") }}
@@ -250,7 +250,7 @@
 			</div>
 			<div class="box" id="calendar-event-answers">
 				<div>
-					<button class="box-right" ng-if="event.visibility == 3"><i class="awe-plus-squared"></i> Invite</button>
+					<button class="box-right" ng-if="event.visibility == 3 && editable"><i class="awe-plus-squared"></i> Invite</button>
 					<h3>Answers</h3>
 					<span></span>
 				</div>
@@ -328,13 +328,20 @@
 		
 		<div id="calendar-event-middle">
 			<div class="box" id="calendar-event-comp">
-				<button class="box-right" ng-click="modal('calendar-add-tab', event)"><i class="awe-plus"></i> New</button>
-				<button class="box-right"><i class="awe-pencil"></i> Edit</button>
-				<button class="box-right"><i class="awe-docs"></i> Import</button>
-				<button class="box-right"><i class="awe-trash"></i> Delete</button>
+				<div ng-if="editable">
+					<button class="box-right" ng-click="modal('calendar-add-tab', event)"><i class="awe-plus"></i> New</button>
+					<button class="box-right"><i class="awe-pencil"></i> Edit</button>
+					<button class="box-right"><i class="awe-docs"></i> Import</button>
+					<button class="box-right"><i class="awe-trash"></i> Delete</button>
+				</div>
 				<h3>RaidComp</h3>
 				<div class="tabs">
-					<button ng-click="setTab(tab.id)" ng-class="{ active: tab.id === tab_selected }" ng-repeat="tab in tabs">{{ tab.title }}</button>
+					<button ng-repeat="tab in tabs"
+							ng-click="setTab(tab.id)"
+							ng-contextmenu="tabMenu(tab, $event)"
+							ng-class="{ active: tab.id === tab_selected }">
+						{{ tab.title }}
+					</button>
 				</div>
 				<div class="bottom">
 					<div class="inner">
@@ -371,7 +378,7 @@
 						<a rel="spell={{ raidbuffs.versatility[0] }}&buff&domain=wod"><img ng-class="{ active: raidbuffs.versatility[1] }" ng-src="{{ getBuffIcon('versatility') }}"></a>
 					</div>
 					<div class="note">
-						<button class="box-right"><i class="awe-pencil"></i> Edit</button>
+						<button class="box-right" ng-if="editable"><i class="awe-pencil"></i> Edit</button>
 						<h3>Note</h3>
 					</div>
 				</div>

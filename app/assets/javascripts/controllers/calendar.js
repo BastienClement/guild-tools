@@ -462,6 +462,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	$scope.tabs = [];
 	$scope.slots = {};
 	$scope.tab_selected = 0;
+	$scope.editable = false;
 	
 	$scope.setTab = function(t) {
 		$scope.tab_selected = t;
@@ -479,7 +480,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	$scope.picked = null;
 	$scope.pickedFromSlot = false;
 	$scope.setPicker = function(char, ev, slot) {
-		if (!char) return false;
+		if (!char || !$scope.editable) return false;
 		$scope.picked = char;
 		$scope.pickedFromSlot = slot;
 		$scope.handlePicker(ev);
@@ -601,6 +602,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			$scope.tabs = data.tabs;
 			$scope.tab_selected = data.tabs[0].id;
 			$scope.slots = data.slots;
+			$scope.editable = data.editable;
 
 			raw_answers = data.answers;
 			build_answers();
@@ -641,6 +643,12 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		
 		"calendar:tab:create": function(tab) {
 			$scope.tabs.push(tab);
+		},
+		
+		"calendar:tab:delete": function(id) {
+			$scope.tabs = $scope.tabs.filter(function(tab) {
+				return tab.id !== id;
+			});
 		}
 	});
 
@@ -727,11 +735,6 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		}
 	};
 
-	$scope.eventEditable = function() {
-		if (!$scope.event) return false;
-		return $scope.event.owner === $.user.id || $.user.officer;
-	};
-
 	$scope.eventMenu = function(ev) {
 		var menu = [
 			{
@@ -767,6 +770,49 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 						$.call("calendar:delete", event.id);
 				},
 				order: 11
+			}
+		];
+
+		$scope.menu(menu, ev);
+	};
+	
+	$scope.tabMenu = function(tab, ev) {
+		if (!$scope.editable) return;
+		var menu = [
+			{
+				icon: "awe-pencil",
+				text: "Edit",
+				action: function() {
+					// $.call("deleteEvent", event.id);
+				},
+				order: 0
+			},
+			{ separator: true, order: 0.5 },
+			{
+				icon: "awe-left-dir",
+				text: "Move left",
+				action: function() {
+					// $.call("deleteEvent", event.id);
+				},
+				order: 1
+			},
+			{
+				icon: "awe-right-dir",
+				text: "Move right",
+				action: function() {
+					// $.call("deleteEvent", event.id);
+				},
+				order: 2
+			},
+			{ separator: true, order: 10, visible: !tab.locked },
+			{
+				icon: "awe-trash",
+				text: "Delete",
+				action: function() {
+					if (confirm("Are you sure?"))
+						$.call("calendar:tab:delete", { id: tab.id });
+				},
+				order: 11, visible: !tab.locked
 			}
 		];
 

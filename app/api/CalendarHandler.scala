@@ -32,7 +32,7 @@ private object CalendarHelper {
 		} yield (u, a, c)
 	}
 	
-	def defaultTabSet(event: Int): List[CalendarTab] = List(CalendarTab(0, event, "Default", None, 0))
+	def defaultTabSet(event: Int): List[CalendarTab] = List(CalendarTab(0, event, "Default", None, 0, false))
 }
 
 trait CalendarHandler {
@@ -204,7 +204,7 @@ trait CalendarHandler {
 				val id: Int = (CalendarEvents returning CalendarEvents.map(_.id)) += template
 				CalendarEvents.notifyCreate(template.copy(id = id))
 
-				CalendarTabs += CalendarTab(id = 0, event = id, title = "Default", note = None, order = 0)
+				CalendarTabs += CalendarTab(0, id, "Default", None, 0, true)
 
 				if (visibility != CalendarVisibility.Announce) {
 					val answer = CalendarAnswer(user.id, id, now, 1, None, None)
@@ -406,7 +406,8 @@ trait CalendarHandler {
 			"answers" -> answers,
 			"answer" -> my_answer,
 			"tabs" -> visible_tabs,
-			"slots" -> visible_slots))
+			"slots" -> visible_slots,
+			"editable" -> editable))
 	}
 
 	/**
@@ -456,12 +457,30 @@ trait CalendarHandler {
 		if (event != CalendarContext.event_id) return MessageFailure("BAD_EVENT")
 		if (!CalendarContext.event_editable) return MessageFailure("FORBIDDEN")
 		
-		val template = CalendarTab(0, event, title, None, 0)
+		val template = CalendarTab(0, event, title, None, 0, false)
 		val id: Int = DB.withSession { implicit s =>
 			(CalendarTabs returning CalendarTabs.map(_.id)) += template
 		}
 		
 		CalendarTabs.notifyCreate(template.copy(id = id))
+		MessageSuccess
+	}
+	
+	/**
+	 * $:calendar:tab:delete
+	 */
+	def handleCalendarTabDelete(arg: JsValue): MessageResponse = {
+		val tab_id = (arg \ "id").as[Int]
+		
+		if (!CalendarContext.event_editable) return MessageFailure("FORBIDDEN")
+		if (!CalendarContext.event_tabs.contains(tab_id)) return MessageFailure("NO_TAB")
+		
+		DB.withSession { implicit s =>
+			if(CalendarTabs.filter(t => t.id === tab_id && !t.locked).delete > 0) {
+				CalendarTabs.notifyDelete(tab_id)
+			}
+		}
+		
 		MessageSuccess
 	}
 }

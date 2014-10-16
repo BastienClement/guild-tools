@@ -253,7 +253,10 @@ var $ = {};
 							if (typeof handler !== "function") return;
 							try {
 								handler.call(null, arg);
-								if (GuildToolsScope) GuildToolsScope.safeApply();
+								if (GuildToolsScope) {
+									GuildToolsScope.error("An error occurred. Please try again.");
+									GuildToolsScope.safeApply();
+								}
 							} catch (e) {
 								console.error(e);
 							}

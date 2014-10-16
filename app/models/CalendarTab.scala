@@ -5,7 +5,7 @@ import scala.slick.jdbc.JdbcBackend.SessionDef
 import gt.Socket
 import api._
 
-case class CalendarTab(id: Int, event: Int, title: String, note: Option[String], order: Int)
+case class CalendarTab(id: Int, event: Int, title: String, note: Option[String], order: Int, locked: Boolean)
 
 /**
  * Answers database
@@ -16,8 +16,9 @@ class CalendarTabs(tag: Tag) extends Table[CalendarTab](tag, "gt_events_tabs") {
 	def title = column[String]("title")
 	def note = column[Option[String]]("note")
 	def order = column[Int]("order")
+	def locked = column[Boolean]("locked")
 
-	def * = (id, event, title, note, order) <> (CalendarTab.tupled, CalendarTab.unapply)
+	def * = (id, event, title, note, order, locked) <> (CalendarTab.tupled, CalendarTab.unapply)
 }
 
 /**
