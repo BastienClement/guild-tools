@@ -98,6 +98,10 @@ label {
 	display: block;
 }
 
+label:first-child:not(.no-collapse) {
+	margin-top: 0px;
+}
+
 label:last-child {
 	margin-bottom: 0px;
 }

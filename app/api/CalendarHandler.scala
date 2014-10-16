@@ -5,6 +5,7 @@ import java.util.GregorianCalendar
 import actors.SocketHandler
 import models.{ CalendarEvents, _ }
 import models.mysql._
+import models.sql._
 import play.api.libs.json.{ Json, JsNull, JsValue }
 import utils.SmartTimestamp.Implicits._
 import scala.collection.mutable
@@ -31,7 +32,7 @@ private object CalendarHelper {
 			c <- Chars if c.owner === u.id && c.active
 		} yield (u, a, c)
 	}
-	
+
 	def defaultTabSet(event: Int): List[CalendarTab] = List(CalendarTab(0, event, "Default", None, 0, false))
 }
 
@@ -39,10 +40,19 @@ trait CalendarHandler {
 	self: SocketHandler =>
 
 	object CalendarContext {
-		 var event_id = -1
-		 var event_editable = false
-		 var event_disclosed = false
-		 var event_tabs = Set[Int]()
+		var event_id = -1
+		var event_editable = false
+		var event_disclosed = false
+		var event_tabs = Set[Int]()
+
+		def checkTabEditable(tab_id: Int): Boolean = {
+			if (!CalendarContext.event_editable)
+				false
+			else if (!CalendarContext.event_tabs.contains(tab_id))
+				false
+			else
+				true
+		}
 	}
 
 	/**
@@ -361,7 +371,7 @@ trait CalendarHandler {
 		// Check rights
 		val editable = (event.owner == user.id) || user.officer
 		val disclosed = editable || event.state != CalendarEventState.Open
-		
+
 		// Record successful event access
 		CalendarContext.event_id = event.id
 		CalendarContext.event_editable = editable
@@ -372,10 +382,10 @@ trait CalendarHandler {
 			case CalendarAnswerCreate(answer) => expandAnswer(answer)
 			case CalendarAnswerUpdate(answer) => expandAnswer(answer)
 			case CalendarAnswerReplace(answer) => (answer.answer.exists(_.event == event_id))
-			
+
 			case CalendarEventUpdate(event) => (event.id == event_id)
 			case CalendarEventDelete(id) => (id == event_id)
-			
+
 			case CalendarTabCreate(tab) => {
 				if (tab.event == event_id) {
 					CalendarContext.event_tabs += tab.id
@@ -385,14 +395,14 @@ trait CalendarHandler {
 				}
 			}
 			case CalendarTabUpdate(tab) => (tab.event == event_id && disclosed)
-			
+
 			case CalendarTabDelete(id) => {
 				if (CalendarContext.event_tabs.contains(id)) {
 					CalendarContext.event_tabs -= id
 				}
 				disclosed
 			}
-			
+
 			case CalendarSlotUpdate(slot) => (disclosed && CalendarContext.event_tabs.contains(slot.tab))
 			case CalendarSlotDelete(tab, _) => (disclosed && CalendarContext.event_tabs.contains(tab))
 		}
@@ -400,7 +410,7 @@ trait CalendarHandler {
 		// Compute visible attributes
 		val visible_tabs = if (disclosed) tabs else CalendarHelper.defaultTabSet(event_id)
 		val visible_slots = if (disclosed) slots else Map[String, Map[String, CalendarSlot]]()
-		
+
 		MessageResults(Json.obj(
 			"event" -> event,
 			"answers" -> answers,
@@ -446,41 +456,67 @@ trait CalendarHandler {
 
 		MessageSuccess
 	}
-	
+
 	/**
 	 * $:calendar:tab:create
 	 */
 	def handleCalendarTabCreate(arg: JsValue): MessageResponse = {
 		val event = (arg \ "event").as[Int]
 		val title = (arg \ "title").as[String]
-		
+
 		if (event != CalendarContext.event_id) return MessageFailure("BAD_EVENT")
 		if (!CalendarContext.event_editable) return MessageFailure("FORBIDDEN")
-		
-		val template = CalendarTab(0, event, title, None, 0, false)
-		val id: Int = DB.withSession { implicit s =>
-			(CalendarTabs returning CalendarTabs.map(_.id)) += template
+
+		DB.withTransaction { implicit s =>
+			val max_order = CalendarTabs.filter(_.event === event).map(_.order).max.run.get
+			val template = CalendarTab(0, event, title, None, max_order + 1, false)
+			val id: Int = (CalendarTabs returning CalendarTabs.map(_.id)) += template
+			CalendarTabs.notifyCreate(template.copy(id = id))
 		}
-		
-		CalendarTabs.notifyCreate(template.copy(id = id))
+
 		MessageSuccess
 	}
-	
+
 	/**
 	 * $:calendar:tab:delete
 	 */
 	def handleCalendarTabDelete(arg: JsValue): MessageResponse = {
 		val tab_id = (arg \ "id").as[Int]
-		
-		if (!CalendarContext.event_editable) return MessageFailure("FORBIDDEN")
-		if (!CalendarContext.event_tabs.contains(tab_id)) return MessageFailure("NO_TAB")
-		
+		if (!CalendarContext.checkTabEditable(tab_id)) return MessageFailure("FORBIDDEN")
+
 		DB.withSession { implicit s =>
-			if(CalendarTabs.filter(t => t.id === tab_id && !t.locked).delete > 0) {
+			if (CalendarTabs.filter(t => t.id === tab_id && !t.locked).delete > 0) {
 				CalendarTabs.notifyDelete(tab_id)
 			}
 		}
-		
+
+		MessageSuccess
+	}
+
+	/**
+	 * $:calendar:tab:swap
+	 */
+	def handleCalendarTabSwap(arg: JsValue): MessageResponse = {
+		val tab1_id = (arg \ "a").as[Int]
+		val tab2_id = (arg \ "b").as[Int]
+
+		if (!CalendarContext.checkTabEditable(tab1_id)) return MessageFailure("FORBIDDEN")
+		if (!CalendarContext.checkTabEditable(tab2_id)) return MessageFailure("FORBIDDEN")
+
+		DB.withTransaction { implicit s =>
+			val tab1 = CalendarTabs.filter(_.id === tab1_id).first
+			val tab2 = CalendarTabs.filter(_.id === tab2_id).first
+
+			val tab1_new = tab1.copy(order = tab2.order)
+			val tab2_new = tab2.copy(order = tab1.order)
+
+			CalendarTabs.filter(_.id === tab1_id).map(_.order).update(tab2.order)
+			CalendarTabs.filter(_.id === tab2_id).map(_.order).update(tab1.order)
+
+			CalendarTabs.notifyUpdate(tab1_new)
+			CalendarTabs.notifyUpdate(tab2_new)
+		}
+
 		MessageSuccess
 	}
 }

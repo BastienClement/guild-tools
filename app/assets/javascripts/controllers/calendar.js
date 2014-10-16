@@ -607,6 +607,11 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			raw_answers = data.answers;
 			build_answers();
 		},
+		
+		"event:delete": function(data) {
+			$scope.breadcrumb.push("/calendar");
+			$scope.error("Event deleted");
+		},
 
 		"answer:replace": function(data) {
 			if (data.user.id === $.user.id) {
@@ -643,6 +648,12 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		
 		"calendar:tab:create": function(tab) {
 			$scope.tabs.push(tab);
+		},
+		
+		"calendar:tab:update": function(tab_new) {
+			$scope.tabs = $scope.tabs.map(function(tab) {
+				return (tab.id === tab_new.id) ? tab_new : tab;
+			});
 		},
 		
 		"calendar:tab:delete": function(id) {
@@ -763,13 +774,21 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			},
 			{ separator: true, order: 10 },
 			{
+				icon: "awe-docs",
+				text: "Import answers",
+				action: function() {
+					
+				},
+				order: 11
+			},
+			{
 				icon: "awe-trash",
 				text: "Delete",
 				action: function() {
 					if (confirm("Are you sure?"))
-						$.call("calendar:delete", event.id);
+						$.call("calendar:delete", { id: $scope.event.id });
 				},
-				order: 11
+				order: 12
 			}
 		];
 
@@ -778,6 +797,24 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	
 	$scope.tabMenu = function(tab, ev) {
 		if (!$scope.editable) return;
+		
+		function greaterThan(x) {
+			return function(a) { return a.order > x.order; };
+		}
+		
+		function lesserThan(x) {
+			return function(a) { return a.order < x.order; };
+		}
+		
+		function max(n, b) { return (b.order > n) ? b.order : n; }
+		function min(n, b) { return (b.order < n || n < 0) ? b.order : n; }
+		
+		function extract(order) {
+			return $scope.tabs.reduce(function(a, b) {
+				return a || (b.order === order && b) || null;
+			}, null);
+		}
+		
 		var menu = [
 			{
 				icon: "awe-pencil",
@@ -787,22 +824,26 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				},
 				order: 0
 			},
-			{ separator: true, order: 0.5 },
+			{ separator: true, order: 0.5, visible: $scope.tabs.length > 1 },
 			{
 				icon: "awe-left-dir",
 				text: "Move left",
 				action: function() {
-					// $.call("deleteEvent", event.id);
+					var target = extract($scope.tabs.filter(lesserThan(tab)).reduce(max, -1));
+					$.call("calendar:tab:swap", { a: target.id, b: tab.id });
 				},
-				order: 1
+				order: 1,
+				visible: $scope.tabs.filter(lesserThan(tab)).length > 0
 			},
 			{
 				icon: "awe-right-dir",
 				text: "Move right",
 				action: function() {
-					// $.call("deleteEvent", event.id);
+					var target = extract($scope.tabs.filter(greaterThan(tab)).reduce(min, -1));
+					$.call("calendar:tab:swap", { a: target.id, b: tab.id });
 				},
-				order: 2
+				order: 2,
+				visible: $scope.tabs.filter(greaterThan(tab)).length > 0
 			},
 			{ separator: true, order: 10, visible: !tab.locked },
 			{

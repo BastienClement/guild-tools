@@ -276,7 +276,7 @@
 			<div class="panel panel2">
 				<h3>Event informations</h3>
 				<div class="time">
-					<label>
+					<label class="no-collapse">
 						Time
 						<div class="time-display">
 							<span ng-click="clockMinutes = false">{{ eventHour < 10 ? '0' + eventHour : eventHour }}</span>
@@ -338,13 +338,13 @@
 				</div>
 				<div class="left">
 					<form ng-submit="doCreate()">
-						<label>Title <input type="text" id="calendar-add-event-title" ng-model="eventTitle" required></label>
+						<label class="no-collapse">Title <input type="text" id="calendar-add-event-title" ng-model="eventTitle" required></label>
 						<label>Description <textarea ng-model="eventDesc"></textarea></label>
 						<button style="display: none">Dummy submit</button>
 					</form>
 				</div>
 				<div>
-					<label class="empty">Visibility</label>
+					<label class="empty" class="no-collapse">Visibility</label>
 					<label class="opts">
 						<input type="radio" ng-model="eventType" value="1" ng-disabled="!$.user.officer"> Guild
 					</label>
