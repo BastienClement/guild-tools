@@ -269,10 +269,10 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 
 	$scope.menu = function(menu, event) {
 		event.stopPropagation();
-		if (opening || menu === $scope.menuContent) return;
+		if (opening) return;
 		opening = true;
-
-		$scope.menuContent = menu;
+		
+		$scope.menuContent = menu.filter(function(item) { return (typeof item.visible != "boolean" || item.visible); });
 
 		ctxMenu.css({
 			opacity: 0,
