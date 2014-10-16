@@ -14,7 +14,7 @@ import java.text.SimpleDateFormat
 import java.text.ParseException
 import scala.slick.jdbc.JdbcBackend.SessionDef
 
-private object CalendarHelper {
+object CalendarHelper {
 	val guildies_groups = Set[Int](8, 9, 11)
 
 	val guildAnswersQuery = Compiled { (event_id: Column[Int]) =>
@@ -32,8 +32,6 @@ private object CalendarHelper {
 			c <- Chars if c.owner === u.id && c.active
 		} yield (u, a, c)
 	}
-
-	def defaultTabSet(event: Int): List[CalendarTab] = List(CalendarTab(0, event, "Default", None, 0, false))
 }
 
 trait CalendarHandler {
@@ -45,13 +43,15 @@ trait CalendarHandler {
 		var event_disclosed = false
 		var event_tabs = Set[Int]()
 
+		def resetEventContext() = {
+			event_id = -1
+			event_editable = false
+			event_disclosed = false
+			event_tabs = Set()
+		}
+
 		def checkTabEditable(tab_id: Int): Boolean = {
-			if (!CalendarContext.event_editable)
-				false
-			else if (!CalendarContext.event_tabs.contains(tab_id))
-				false
-			else
-				true
+			CalendarContext.event_editable && CalendarContext.event_tabs.contains(tab_id)
 		}
 	}
 
@@ -75,6 +75,7 @@ trait CalendarHandler {
 		var watched_events = events_list.map(_._1.id).toSet
 		var potential_events = mutable.Map[Int, Event]()
 
+		socket.unbindEvents()
 		socket.eventFilter = {
 			// Event created
 			case ev @ CalendarEventCreate(event) => {
@@ -164,25 +165,18 @@ trait CalendarHandler {
 		}
 
 		if (dates_raw.length > 1) {
-			if (!user.officer) {
-				return MessageFailure("MULTI_NOT_ALLOWED")
-			}
-
-			if (visibility == CalendarVisibility.Announce) {
-				return MessageAlert("Creating announces on multiple days is not allowed.")
-			}
+			if (!user.officer) return MessageFailure("MULTI_NOT_ALLOWED")
+			if (visibility == CalendarVisibility.Announce) return MessageAlert("Creating announces on multiple days is not allowed.")
 		}
 
-		if (visibility != CalendarVisibility.Private && !user.officer) {
-			return MessageAlert("Members can only create restricted events.")
-		}
+		if (visibility != CalendarVisibility.Private && !user.officer) return MessageAlert("Members can only create restricted events.")
 
 		val format = new SimpleDateFormat("yyyy-MM-dd")
 		val now = SmartTimestamp.now
 
 		def isValidDate(ts: SmartTimestamp): Boolean = {
 			val delta = (ts - now).time / 1000
-			if (delta < -86400 || delta > 5270400) false else true
+			!(delta < -86400 || delta > 5270400)
 		}
 
 		val dates = dates_raw map { date =>
@@ -195,9 +189,7 @@ trait CalendarHandler {
 			case Some(ts) if isValidDate(ts) => ts
 		}
 
-		if (dates.length < 1) {
-			return MessageFailure("INVALID_DATES")
-		}
+		if (dates.length < 1) return MessageFailure("INVALID_DATES")
 
 		DB.withSession { implicit s =>
 			dates foreach { date =>
@@ -243,13 +235,8 @@ trait CalendarHandler {
 
 		row.firstOption map {
 			case (event, old_answer, old_note, old_char) =>
-				if (event.visibility == CalendarVisibility.Private && old_answer.isEmpty) {
-					return MessageFailure("UNINVITED")
-				}
-
-				if (event.state != CalendarEventState.Open) {
-					return MessageFailure("CLOSED_EVENT")
-				}
+				if (event.visibility == CalendarVisibility.Private && old_answer.isEmpty) return MessageFailure("UNINVITED")
+				if (event.state != CalendarEventState.Open) return MessageFailure("CLOSED_EVENT")
 
 				val note = (if (note_raw.isDefined) note_raw else old_note) filter (!_.matches("^\\s*$"))
 
@@ -306,7 +293,7 @@ trait CalendarHandler {
 				val user = list(0)._1
 
 				val (a_answer, a_date, a_note, a_char) = list(0)._2
-				val answer =
+				val answer = {
 					if (a_answer.isDefined) {
 						val a = CalendarAnswer(
 							user = user.id,
@@ -320,6 +307,7 @@ trait CalendarHandler {
 					} else {
 						None
 					}
+				}
 
 				val chars = list.map(_._3)
 				CalendarAnswerTuple(user, answer, chars)
@@ -348,18 +336,18 @@ trait CalendarHandler {
 		val my_answer = answers.get(user.id.toString).flatMap(_.answer)
 
 		// Check invitation in private event
-		if (event.visibility == CalendarVisibility.Private && my_answer.isEmpty) {
-			return MessageFailure("NOT_INVITED")
-		}
+		if (event.visibility == CalendarVisibility.Private && my_answer.isEmpty) return MessageFailure("NOT_INVITED")
 
-		// Fetch tabs list
-		val tabs = CalendarTabs.filter(_.event === event_id).list
-		CalendarContext.event_tabs = tabs.map(_.id).toSet
+		// Record successful event access
+		CalendarContext.event_id = event.id
+		CalendarContext.event_editable = (event.owner == user.id) || user.officer
+		CalendarContext.event_disclosed = CalendarContext.event_editable || event.state != CalendarEventState.Open
 
-		// Fetch slots data
-		val slots = CalendarSlots.filter(_.tab inSet CalendarContext.event_tabs).list.groupBy(_.tab.toString).mapValues {
-			_.map(s => (s.slot.toString, s)).toMap
-		}
+		// Expand or conceal event
+		val visible = if (CalendarContext.event_disclosed) event.expand else event.conceal
+
+		// Extract tabs set
+		CalendarContext.event_tabs = visible.tabs.map(_.id).toSet
 
 		def expandAnswer(answer: CalendarAnswer) = {
 			if (answer.event == event_id) {
@@ -368,56 +356,83 @@ trait CalendarHandler {
 			false
 		}
 
-		// Check rights
-		val editable = (event.owner == user.id) || user.officer
-		val disclosed = editable || event.state != CalendarEventState.Open
-
-		// Record successful event access
-		CalendarContext.event_id = event.id
-		CalendarContext.event_editable = editable
-		CalendarContext.event_disclosed = disclosed
-
 		// Event page bindings
+		socket.unbindEvents()
 		socket.eventFilter = {
 			case CalendarAnswerCreate(answer) => expandAnswer(answer)
 			case CalendarAnswerUpdate(answer) => expandAnswer(answer)
 			case CalendarAnswerReplace(answer) => (answer.answer.exists(_.event == event_id))
 
-			case CalendarEventUpdate(event) => (event.id == event_id)
+			case CalendarEventUpdate(event) => {
+				if (event.id == event_id) {
+					if (event.state != CalendarEventState.Open && !CalendarContext.event_disclosed) {
+						CalendarContext.event_disclosed = true
+						socket ! CalendarEventUpdateFull(event.expand)
+						false
+					} else if (event.state == CalendarEventState.Open && !CalendarContext.event_editable) {
+						CalendarContext.event_disclosed = false
+						socket ! CalendarEventUpdateFull(event.conceal)
+						false
+					} else {
+						true
+					}
+				} else {
+					false
+				}
+			}
+
+			case CalendarEventUpdateFull(full) => (full.event.id == event_id)
 			case CalendarEventDelete(id) => (id == event_id)
 
 			case CalendarTabCreate(tab) => {
 				if (tab.event == event_id) {
 					CalendarContext.event_tabs += tab.id
-					disclosed
+					CalendarContext.event_disclosed
 				} else {
 					false
 				}
 			}
-			case CalendarTabUpdate(tab) => (tab.event == event_id && disclosed)
+			case CalendarTabUpdate(tab) => (tab.event == event_id && CalendarContext.event_disclosed)
 
 			case CalendarTabDelete(id) => {
 				if (CalendarContext.event_tabs.contains(id)) {
 					CalendarContext.event_tabs -= id
 				}
-				disclosed
+				CalendarContext.event_disclosed
 			}
 
-			case CalendarSlotUpdate(slot) => (disclosed && CalendarContext.event_tabs.contains(slot.tab))
-			case CalendarSlotDelete(tab, _) => (disclosed && CalendarContext.event_tabs.contains(tab))
+			case CalendarSlotUpdate(slot) => (CalendarContext.event_disclosed && CalendarContext.event_tabs.contains(slot.tab))
+			case CalendarSlotDelete(tab, _) => (CalendarContext.event_disclosed && CalendarContext.event_tabs.contains(tab))
 		}
 
-		// Compute visible attributes
-		val visible_tabs = if (disclosed) tabs else CalendarHelper.defaultTabSet(event_id)
-		val visible_slots = if (disclosed) slots else Map[String, Map[String, CalendarSlot]]()
+		socket.unbindHandler = Some(CalendarContext.resetEventContext _)
 
 		MessageResults(Json.obj(
 			"event" -> event,
 			"answers" -> answers,
 			"answer" -> my_answer,
-			"tabs" -> visible_tabs,
-			"slots" -> visible_slots,
-			"editable" -> editable))
+			"tabs" -> visible.tabs,
+			"slots" -> visible.slots,
+			"editable" -> CalendarContext.event_editable))
+	}
+
+	/**
+	 * $:calendar:event:state
+	 */
+	def handleCalendarEventState(arg: JsValue): MessageResponse = {
+		val state = (arg \ "state").as[Int]
+
+		if (!CalendarEventState.isValid(state)) return MessageFailure("BAD_STATE")
+		if (!CalendarContext.event_editable) return MessageFailure("FORBIDDEN")
+
+		DB.withTransaction { implicit s =>
+			val event_query = CalendarEvents.filter(_.id === CalendarContext.event_id)
+			event_query.map(_.state).update(state)
+			val event_new = event_query.first.copy(state = state)
+			CalendarEvents.notifyUpdate(event_new)
+		}
+
+		MessageSuccess
 	}
 
 	/**
@@ -425,14 +440,11 @@ trait CalendarHandler {
 	 * $:calendar:comp:reset
 	 */
 	def handleCalendarCompSet(arg: JsValue, reset: Boolean = false): MessageResponse = {
-		val event = (arg \ "event").as[Int]
 		val tab = (arg \ "tab").as[Int]
 		val slot = (arg \ "slot").as[Int]
 
 		if (slot < 0 || slot > 30) return MessageFailure("BAD_SLOT")
-		if (event != CalendarContext.event_id) return MessageFailure("BAD_EVENT")
-		if (!CalendarContext.event_tabs.contains(tab)) return MessageFailure("BAD_TAB")
-		if (!CalendarContext.event_editable) return MessageFailure("FORBIDDEN")
+		if (!CalendarContext.checkTabEditable(tab)) return MessageFailure("FORBIDDEN")
 
 		if (reset) {
 			DB.withSession { s =>
@@ -461,11 +473,11 @@ trait CalendarHandler {
 	 * $:calendar:tab:create
 	 */
 	def handleCalendarTabCreate(arg: JsValue): MessageResponse = {
-		val event = (arg \ "event").as[Int]
 		val title = (arg \ "title").as[String]
 
-		if (event != CalendarContext.event_id) return MessageFailure("BAD_EVENT")
 		if (!CalendarContext.event_editable) return MessageFailure("FORBIDDEN")
+
+		val event = CalendarContext.event_id
 
 		DB.withTransaction { implicit s =>
 			val max_order = CalendarTabs.filter(_.event === event).map(_.order).max.run.get

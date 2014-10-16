@@ -47,6 +47,15 @@ class Socket private(val token: String, val user: User, val session: String, var
 	val FilterNone: EventFilter = {case _ => false }
 	var eventFilter: EventFilter = FilterNone
 
+	type UnbindHandler = Option[() => Unit]
+	var unbindHandler: UnbindHandler = None
+
+	def unbindEvents(): Unit = {
+		eventFilter = FilterNone
+		unbindHandler foreach { _() }
+		unbindHandler = None
+	}
+
 	/**
 	 * Socket can be rebound for up to 30 secs after handler death
 	 */

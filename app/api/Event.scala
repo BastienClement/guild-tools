@@ -14,6 +14,7 @@ case class CharDelete(id: Int) extends Event("char:delete", id)
 
 case class CalendarEventCreate(event: CalendarEvent) extends Event("event:create", event)
 case class CalendarEventUpdate(event: CalendarEvent) extends Event("event:update", event)
+case class CalendarEventUpdateFull(full: CalendarEventFull) extends Event("event:update:full", full)
 case class CalendarEventDelete(id: Int) extends Event("event:delete", id)
 
 case class CalendarAnswerCreate(answer: CalendarAnswer) extends Event("answer:create", answer)

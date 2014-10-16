@@ -80,6 +80,18 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 			"event:create": function(event) {
 				pushEvent(event);
 			},
+			
+			"event:update": function(new_event) {
+				for (var day in $scope.events) {
+					for (var i in $scope.events[day]) {
+						var event = $scope.events[day][i];
+						if (event.id === new_event.id) {
+							$scope.events[day][i] = new_event;
+							return;
+						}
+					}
+				}
+			},
 
 			"event:delete": function(eventid) {
 				for (var day in $scope.events) {
@@ -506,7 +518,6 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		}
 		
 		var template = {
-			event: $scope.event.id,
 			tab: $scope.tab_selected,
 		};
 		
@@ -606,6 +617,17 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 
 			raw_answers = data.answers;
 			build_answers();
+		},
+		
+		"event:update": function(data) {
+			$scope.event = data;
+		},
+		
+		"event:update:full": function(data) {
+			$scope.event = data.event;
+			$scope.tabs = data.tabs;
+			$scope.tab_selected = data.tabs[0].id;
+			$scope.slots = data.slots;
 		},
 		
 		"event:delete": function(data) {
@@ -752,7 +774,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				icon: "awe-lock-open-alt",
 				text: "Open",
 				action: function() {
-					// $.call("deleteEvent", event.id);
+					$.call("calendar:event:state", { state: 0 });
 				},
 				order: 1
 			},
@@ -760,7 +782,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				icon: "awe-lock",
 				text: "Lock",
 				action: function() {
-					// $.call("deleteEvent", event.id);
+					$.call("calendar:event:state", { state: 1 });
 				},
 				order: 2
 			},
@@ -768,7 +790,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				icon: "awe-cancel",
 				text: "Cancel",
 				action: function() {
-					// $.call("deleteEvent", event.id);
+					$.call("calendar:event:state", { state: 2 });
 				},
 				order: 3
 			},
@@ -950,11 +972,10 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 
 GuildTools.controller("CalendarAddTabCtrl", function($scope) {
 	$scope.inflight = false;
-	var event = $scope.modalCtx;
 	
 	$scope.create = function() {
 		$scope.inflight = true;
-		$.call("calendar:tab:create", { event: event.id, title: $scope.title }, function(err) {
+		$.call("calendar:tab:create", { title: $scope.title }, function(err) {
 			$scope.inflight = false;
 			if (err) {
 				$scope.title = "";

@@ -159,6 +159,7 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		case ("calendar:answer", arg) => handleCalendarAnswer(arg)
 		case ("calendar:delete", arg) => handleCalendarDelete(arg)
 		case ("calendar:event", arg) => handleCalendarEvent(arg)
+		case ("calendar:event:state", arg) => handleCalendarEventState(arg)
 		case ("calendar:comp:set", arg) => handleCalendarCompSet(arg, false)
 		case ("calendar:comp:reset", arg) => handleCalendarCompSet(arg, true)
 		case ("calendar:tab:create", arg) => handleCalendarTabCreate(arg)
@@ -193,7 +194,7 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 	 * $:events:unbind
 	 */
 	def handleEventUnbind(): MessageResponse = {
-		socket.eventFilter = socket.FilterNone
+		socket.unbindEvents()
 		MessageSuccess
 	}
 

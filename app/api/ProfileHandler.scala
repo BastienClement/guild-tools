@@ -29,6 +29,7 @@ trait ProfileHandler {
 
 		var watched_chars = chars.map(_.id).toSet
 
+		socket.unbindEvents()
 		socket.eventFilter = {
 			case CharCreate(char) => utils.doIf(char.owner == user_id) {
 				watched_chars += char.id
