@@ -75,8 +75,7 @@ trait CalendarHandler {
 		var watched_events = events_list.map(_._1.id).toSet
 		var potential_events = mutable.Map[Int, Event]()
 
-		socket.unbindEvents()
-		socket.eventFilter = {
+		socket.bindEvents {
 			// Event created
 			case ev @ CalendarEventCreate(event) => {
 				if (watched_events.contains(event.id)) {
@@ -357,8 +356,7 @@ trait CalendarHandler {
 		}
 
 		// Event page bindings
-		socket.unbindEvents()
-		socket.eventFilter = {
+		socket.bindEvents {
 			case CalendarAnswerCreate(answer) => expandAnswer(answer)
 			case CalendarAnswerUpdate(answer) => expandAnswer(answer)
 			case CalendarAnswerReplace(answer) => (answer.answer.exists(_.event == event_id))
@@ -403,9 +401,9 @@ trait CalendarHandler {
 
 			case CalendarSlotUpdate(slot) => (CalendarContext.event_disclosed && CalendarContext.event_tabs.contains(slot.tab))
 			case CalendarSlotDelete(tab, _) => (CalendarContext.event_disclosed && CalendarContext.event_tabs.contains(tab))
+		} onUnbind {
+			CalendarContext.resetEventContext()
 		}
-
-		socket.unbindHandler = Some(CalendarContext.resetEventContext _)
 
 		MessageResults(Json.obj(
 			"event" -> event,
@@ -529,6 +527,13 @@ trait CalendarHandler {
 			CalendarTabs.notifyUpdate(tab2_new)
 		}
 
+		MessageSuccess
+	}
+
+	/**
+	 * $:calendar:tab:rename
+	 */
+	def handleCalendarTabRename(arg: JsValue): MessageResponse = {
 		MessageSuccess
 	}
 }

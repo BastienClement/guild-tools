@@ -69,7 +69,7 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		// Dispatching event
 		case event: Event => {
 			if (socket != null) {
-				handleEvent(event)
+				socket.handleEvent(event)
 			}
 		}
 	}
@@ -178,16 +178,6 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		case ("chat:onlines", _) => handleChatOnlines()
 		case ("auth:logout", _) => handleAuthLogout()
 		case _ => MessageFailure("UNAVAILABLE")
-	}
-
-
-	/**
-	 * Check if event is this socket listen to an event and send it
-	 */
-	def handleEvent(e: Event): Unit = {
-		if (socket.eventFilter.applyOrElse(e, socket.FilterNone)) {
-			self ! Message("event:dispatch", e.asJson)
-		}
 	}
 
 	/**

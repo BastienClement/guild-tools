@@ -37,29 +37,55 @@ object Socket {
 	def !#(e: Event): Unit = sockets.values foreach { _ ! e }
 }
 
+class CleanupHandler() {
+	var handler: Option[() => Unit] = None
+	def onUnbind(fn: => Unit): Unit = { handler = Some(() => fn) }
+	def apply(): Unit = { handler foreach (_()) }
+}
+
 class Socket private(val token: String, val user: User, val session: String, var handler: ActorRef) {
-	var open = true
-	var dead = false
+	private var open = true
+	private var dead = false
 
-	val queue = mutable.Queue[AnyRef]()
+	private val queue = mutable.Queue[AnyRef]()
 
+	/**
+	 * Event management
+	 */
 	type EventFilter = PartialFunction[Event, Boolean]
-	val FilterNone: EventFilter = {case _ => false }
-	var eventFilter: EventFilter = FilterNone
-
-	type UnbindHandler = Option[() => Unit]
-	var unbindHandler: UnbindHandler = None
+	private val FilterNone: EventFilter = {case _ => false }
+	private var eventFilter: EventFilter = FilterNone
+	private var eventCleanup: Option[CleanupHandler] = None
 
 	def unbindEvents(): Unit = {
 		eventFilter = FilterNone
-		unbindHandler foreach { _() }
-		unbindHandler = None
+		if (eventCleanup.isDefined) {
+			eventCleanup.get.apply()
+			eventCleanup = None
+		}
+	}
+
+	def bindEvents(filter: EventFilter) = {
+		unbindEvents()
+		eventFilter = filter
+		val cleanup = new CleanupHandler()
+		eventCleanup = Some(cleanup)
+		cleanup
+	}
+
+	/**
+	 * Check if event is this socket listen to an event and send it
+	 */
+	def handleEvent(e: Event): Unit = {
+		if (eventFilter.applyOrElse(e, FilterNone)) {
+			handler ! Message("event:dispatch", e.asJson)
+		}
 	}
 
 	/**
 	 * Socket can be rebound for up to 30 secs after handler death
 	 */
-	val disposeTimeout = FuseTimer.create(30.seconds) {
+	private val disposeTimeout = FuseTimer.create(30.seconds) {
 		dispose()
 	}
 
