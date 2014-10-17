@@ -534,6 +534,17 @@ trait CalendarHandler {
 	 * $:calendar:tab:rename
 	 */
 	def handleCalendarTabRename(arg: JsValue): MessageResponse = {
+		val tab_id = (arg \ "id").as[Int]
+		val title = (arg \ "title").as[String]
+
+		if (!CalendarContext.checkTabEditable(tab_id)) return MessageFailure("FORBIDDEN")
+
+		DB.withSession { implicit s =>
+			val tab_query = CalendarTabs.filter(_.id === tab_id)
+			tab_query.map(_.title).update(title)
+			CalendarTabs.notifyUpdate(tab_query.first)
+		}
+
 		MessageSuccess
 	}
 }

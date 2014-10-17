@@ -840,9 +840,9 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		var menu = [
 			{
 				icon: "awe-pencil",
-				text: "Edit",
+				text: "Rename",
 				action: function() {
-					// $.call("deleteEvent", event.id);
+					$scope.modal("calendar-rename-tab", tab);
 				},
 				order: 0
 			},
@@ -983,6 +983,20 @@ GuildTools.controller("CalendarAddTabCtrl", function($scope) {
 			} else {
 				$scope.modal();
 			}
+		});
+	};
+});
+
+GuildTools.controller("CalendarRenameTabCtrl", function($scope) {
+	$scope.inflight = false;
+	var tab = $scope.modalCtx;
+	
+	$scope.title = tab.title;
+	
+	$scope.rename = function() {
+		$scope.inflight = true;
+		$.call("calendar:tab:rename", { id: tab.id, title: $scope.title }, function() {
+			$scope.modal();
 		});
 	};
 });
