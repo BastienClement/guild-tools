@@ -682,6 +682,10 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			$scope.tabs = $scope.tabs.filter(function(tab) {
 				return tab.id !== id;
 			});
+		},
+		
+		"calendar:tab:wipe": function(id) {
+			delete $scope.slots[id];
 		}
 	});
 
@@ -843,6 +847,15 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				text: "Rename",
 				action: function() {
 					$scope.modal("calendar-rename-tab", tab);
+				},
+				order: 0
+			},
+			{
+				icon: "awe-flash",
+				text: "Wipe tab",
+				action: function() {
+					if (confirm("Are you sure?"))
+						$.call("calendar:tab:wipe", { id: tab.id });
 				},
 				order: 0
 			},

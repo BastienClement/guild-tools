@@ -25,6 +25,7 @@ case class CalendarAnswerReplace(tuple: CalendarAnswerTuple) extends Event("answ
 case class CalendarTabCreate(tab: CalendarTab) extends Event("calendar:tab:create", tab)
 case class CalendarTabUpdate(tab: CalendarTab) extends Event("calendar:tab:update", tab)
 case class CalendarTabDelete(id: Int) extends Event("calendar:tab:delete", id)
+case class CalendarTabWipe(id: Int) extends Event("calendar:tab:wipe", id)
 
 case class CalendarSlotUpdate(slot: CalendarSlot) extends Event("calendar:slot:update", slot)
 case class CalendarSlotDelete(tab: Int, slot: Int) extends Event("calendar:slot:delete", Json.obj("tab" -> tab, "slot" -> slot))

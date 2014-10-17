@@ -390,7 +390,9 @@ trait CalendarHandler {
 					false
 				}
 			}
+
 			case CalendarTabUpdate(tab) => (tab.event == event_id && CalendarContext.event_disclosed)
+			case CalendarTabWipe(id) => (CalendarContext.event_tabs.contains(id) && CalendarContext.event_disclosed)
 
 			case CalendarTabDelete(id) => {
 				if (CalendarContext.event_tabs.contains(id)) {
@@ -543,6 +545,22 @@ trait CalendarHandler {
 			val tab_query = CalendarTabs.filter(_.id === tab_id)
 			tab_query.map(_.title).update(title)
 			CalendarTabs.notifyUpdate(tab_query.first)
+		}
+
+		MessageSuccess
+	}
+
+	/**
+	 * $:calendar:tab:wipe
+	 */
+	def handleCalendarTabWipe(arg: JsValue): MessageResponse = {
+		val tab_id = (arg \ "id").as[Int]
+		if (!CalendarContext.checkTabEditable(tab_id)) return MessageFailure("FORBIDDEN")
+
+		DB.withSession { implicit s =>
+			if (CalendarSlots.filter(_.tab === tab_id).delete > 0) {
+				CalendarTabs.notifyWipe(tab_id)
+			}
 		}
 
 		MessageSuccess

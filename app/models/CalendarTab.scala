@@ -36,4 +36,8 @@ object CalendarTabs extends TableQuery(new CalendarTabs(_)) {
 	def notifyDelete(id: Int): Unit = {
 		Socket !# CalendarTabDelete(id)
 	}
+
+	def notifyWipe(id: Int): Unit = {
+		Socket !# CalendarTabWipe(id)
+	}
 }

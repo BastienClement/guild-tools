@@ -11,6 +11,10 @@ GuildTools.controller("WelcomeCtrl", function($scope, $location) {
 	$scope.embedWelcome = true;
 });
 
+GuildTools.controller("AboutCtrl", function($scope) {
+	$scope.setNavigator();
+});
+
 GuildTools.controller("DashboardCtrl", function($scope, $location) {
 	if ($scope.restrict()) return;
 
@@ -24,22 +28,22 @@ GuildTools.controller("DashboardCtrl", function($scope, $location) {
 	$scope.onlineSort = "name";
 });
 
-GuildTools.controller("SlacksCtrl", function($scope, $location) {
+GuildTools.controller("SlacksCtrl", function($scope) {
 	if ($scope.restrict()) return;
 });
 
-GuildTools.controller("ForumCtrl", function($scope, $location) {
+GuildTools.controller("ForumCtrl", function($scope) {
 	if ($scope.restrict()) return;
 });
 
-GuildTools.controller("RosterCtrl", function($scope, $location) {
+GuildTools.controller("RosterCtrl", function($scope) {
 	if ($scope.restrict()) return;
 });
 
-GuildTools.controller("WhishlistCtrl", function($scope, $location) {
+GuildTools.controller("WhishlistCtrl", function($scope) {
 	if ($scope.restrict()) return;
 });
 
-GuildTools.controller("BlueprintsCtrl", function($scope, $location) {
+GuildTools.controller("BlueprintsCtrl", function($scope) {
 	if ($scope.restrict()) return;
 });
