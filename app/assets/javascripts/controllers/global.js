@@ -42,6 +42,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 
 		var location_data = [
 			["/welcome", "planet", "Getting Started"],
+			["/about", "tools", "Guild-Tools"],
 
 			[/^\/profile(\/\d+)?$/, "helm2", ""],
 

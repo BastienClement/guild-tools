@@ -15,6 +15,10 @@ GuildTools.config(function($routeProvider, $locationProvider, $animateProvider) 
 			templateUrl: "/assets/views/welcome.html",
 			controller: "WelcomeCtrl"
 		})
+		.when("/about", {
+			templateUrl: "/assets/views/about.html"
+			//controller: "WelcomeCtrl"
+		})
 		.when("/dashboard", {
 			templateUrl: "/assets/views/dashboard.html",
 			controller: "DashboardCtrl"
