@@ -1,0 +1,31 @@
+<style>
+	#calendar-edit-desc form {
+		width: 300px;
+	}
+	
+	#calendar-edit-desc textarea {
+		width: 100%;
+	}
+	
+	#calendar-edit-desc button {
+		float: right;
+		margin-left: 15px;
+	}
+</style>
+
+<div id="calendar-edit-desc" ng-controller="CalendarEditDescCtrl">
+	<form class="box" ng-submit="save()">
+		<label>
+			Event description
+			<textarea type="text" id="calendar-edit-desc-field" ng-model="desc"></textarea>
+		</label>
+		<div class="overflow">
+			<button type="submit" ng-disabled="inflight">Save</button>
+			<button ng-disabled="inflight" ng-click="modal()" type="button">Cancel</button>
+		</div>
+	</form>
+	<script>
+		_("#calendar-edit-desc-field").focus();
+		_("#calendar-edit-desc-field").elastic();
+	</script>
+</div>

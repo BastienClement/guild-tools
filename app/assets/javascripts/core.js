@@ -10,6 +10,8 @@ var $ = {};
 	_(function() {
 		ready = true;
 	});
+	
+	_(document).bind("contextmenu", function() { return false; });
 
 	$.init = function() {
 		if ($$) $$.init(dead);

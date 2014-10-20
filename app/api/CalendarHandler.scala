@@ -426,10 +426,25 @@ trait CalendarHandler {
 		if (!CalendarContext.event_editable) return MessageFailure("FORBIDDEN")
 
 		DB.withTransaction { implicit s =>
-			val event_query = CalendarEvents.filter(_.id === CalendarContext.event_id)
-			event_query.map(_.state).update(state)
-			val event_new = event_query.first.copy(state = state)
-			CalendarEvents.notifyUpdate(event_new)
+			val query = CalendarEvents.filter(_.id === CalendarContext.event_id)
+			query.map(_.state).update(state)
+			CalendarEvents.notifyUpdate(query.first.copy(state = state))
+		}
+
+		MessageSuccess
+	}
+
+	/**
+	 * $:calendar:event:editdesc
+	 */
+	def handleCalendarEventEditDesc(arg: JsValue): MessageResponse = {
+		val desc = (arg \ "desc").as[String]
+		if (!CalendarContext.event_editable) return MessageFailure("FORBIDDEN")
+
+		DB.withTransaction { implicit s =>
+			val query = CalendarEvents.filter(_.id === CalendarContext.event_id)
+			query.map(_.desc).update(desc)
+			CalendarEvents.notifyUpdate(query.first.copy(desc = desc))
 		}
 
 		MessageSuccess

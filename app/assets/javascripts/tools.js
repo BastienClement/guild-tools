@@ -105,6 +105,7 @@ GuildTools.directive("ngTooltip", function() {
 
 		scope.$on("$destroy", function() {
 			if (open) tooltip.hide();
+			_(".wowhead-tooltip").hide();
 		});
 
 		element.bind("mouseover", function(event) {

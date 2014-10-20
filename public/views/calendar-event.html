@@ -50,10 +50,18 @@
 		padding: 0px 5px 1px 5px;
 		margin-bottom: 5px;
 		display: flex;
-		transition: opacity ease-out .3s;
+		transition: background ease-out .3s;
+	}
+	
+	#calendar-event .char img, #calendar-event .char .name {
+		transition: all ease-out .3s;
 	}
 	
 	#calendar-event .char.picked {
+		background: rgba(0, 0, 0, 0.1);
+	}
+	
+	#calendar-event .char.picked img, #calendar-event .char.picked .name {
 		opacity: .5;
 	}
 	
@@ -72,7 +80,8 @@
 	}
 	
 	#calendar-event .char i {
-		color: #426585;
+		color: #4b79a4;
+		margin: 0;
 	}
 	
 	#calendar-event-answers {
@@ -356,6 +365,7 @@
 										<span class="name c{{ slots[tab_selected][(row+offset-1)*5+slot].class }}">
 											{{ slots[tab_selected][(row+offset-1)*5+slot].name }}
 										</span>
+										<i class="awe-attention" ng-if="!playerIsAvailable(slots[tab_selected][(row+offset-1)*5+slot].owner)" ng-tooltip="$This player does not seem to be available for this event"></i>
 									</div>
 									<div class="char" ng-switch-when="0">
 										<span>&nbsp;</span>
@@ -365,15 +375,15 @@
 						</div>
 					</div>
 					<div class="raidbuffs">
-						<a rel="spell={{ raidbuffs.stats[0] }}&buff&domain=wod"><img ng-class="{ active: raidbuffs.stats[1] }" ng-src="{{ getBuffIcon('stats') }}"></a>
-						<a rel="spell={{ raidbuffs.stamina[0] }}&buff&domain=wod"><img ng-class="{ active: raidbuffs.stamina[1] }" ng-src="{{ getBuffIcon('stamina') }}"></a>
-						<a rel="spell={{ raidbuffs.ap[0] }}&buff&domain=wod"><img ng-class="{ active: raidbuffs.ap[1] }" ng-src="{{ getBuffIcon('ap') }}"></a>
-						<a rel="spell={{ raidbuffs.sp[0] }}&buff&domain=wod"><img ng-class="{ active: raidbuffs.sp[1] }" ng-src="{{ getBuffIcon('sp') }}"></a>
-						<a rel="spell={{ raidbuffs.crit[0] }}&buff&domain=wod"><img ng-class="{ active: raidbuffs.crit[1] }" ng-src="{{ getBuffIcon('crit') }}"></a>
-						<a rel="spell={{ raidbuffs.haste[0] }}&buff&domain=wod"><img ng-class="{ active: raidbuffs.haste[1] }" ng-src="{{ getBuffIcon('haste') }}"></a>
-						<a rel="spell={{ raidbuffs.mastery[0] }}&buff&domain=wod"><img ng-class="{ active: raidbuffs.mastery[1] }" ng-src="{{ getBuffIcon('mastery') }}"></a>
-						<a rel="spell={{ raidbuffs.multistrike[0] }}&buff&domain=wod"><img ng-class="{ active: raidbuffs.multistrike[1] }" ng-src="{{ getBuffIcon('multistrike') }}"></a>
-						<a rel="spell={{ raidbuffs.versatility[0] }}&buff&domain=wod"><img ng-class="{ active: raidbuffs.versatility[1] }" ng-src="{{ getBuffIcon('versatility') }}"></a>
+						<a rel="spell={{ raidbuffs.stats[0] }}&buff"><img ng-class="{ active: raidbuffs.stats[1] }" ng-src="{{ getBuffIcon('stats') }}"></a>
+						<a rel="spell={{ raidbuffs.stamina[0] }}&buff"><img ng-class="{ active: raidbuffs.stamina[1] }" ng-src="{{ getBuffIcon('stamina') }}"></a>
+						<a rel="spell={{ raidbuffs.ap[0] }}&buff"><img ng-class="{ active: raidbuffs.ap[1] }" ng-src="{{ getBuffIcon('ap') }}"></a>
+						<a rel="spell={{ raidbuffs.sp[0] }}&buff"><img ng-class="{ active: raidbuffs.sp[1] }" ng-src="{{ getBuffIcon('sp') }}"></a>
+						<a rel="spell={{ raidbuffs.crit[0] }}&buff"><img ng-class="{ active: raidbuffs.crit[1] }" ng-src="{{ getBuffIcon('crit') }}"></a>
+						<a rel="spell={{ raidbuffs.haste[0] }}&buff"><img ng-class="{ active: raidbuffs.haste[1] }" ng-src="{{ getBuffIcon('haste') }}"></a>
+						<a rel="spell={{ raidbuffs.mastery[0] }}&buff"><img ng-class="{ active: raidbuffs.mastery[1] }" ng-src="{{ getBuffIcon('mastery') }}"></a>
+						<a rel="spell={{ raidbuffs.multistrike[0] }}&buff"><img ng-class="{ active: raidbuffs.multistrike[1] }" ng-src="{{ getBuffIcon('multistrike') }}"></a>
+						<a rel="spell={{ raidbuffs.versatility[0] }}&buff"><img ng-class="{ active: raidbuffs.versatility[1] }" ng-src="{{ getBuffIcon('versatility') }}"></a>
 					</div>
 					<div class="note">
 						<button class="box-right" ng-if="editable"><i class="awe-pencil"></i> Edit</button>

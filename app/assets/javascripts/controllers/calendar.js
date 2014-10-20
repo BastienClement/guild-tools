@@ -478,6 +478,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	
 	$scope.setTab = function(t) {
 		$scope.tab_selected = t;
+		$scope.computeRaidBuffs();
 	};
 
 	var cached_tab;
@@ -617,6 +618,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 
 			raw_answers = data.answers;
 			build_answers();
+			$scope.computeRaidBuffs();
 		},
 		
 		"event:update": function(data) {
@@ -661,11 +663,18 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			
 			// Add new entry
 			comp[data.slot] = data;
+			
+			if (data.tab === $scope.tab_selected) {
+				$scope.computeRaidBuffs();
+			}
 		},
 		
 		"calendar:slot:delete": function(data) {
 			var comp = $scope.slots[data.tab];
 			if (comp) delete comp[data.slot];
+			if (data.tab === $scope.tab_selected) {
+				$scope.computeRaidBuffs();
+			}
 		},
 		
 		"calendar:tab:create": function(tab) {
@@ -686,6 +695,9 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		
 		"calendar:tab:wipe": function(id) {
 			delete $scope.slots[id];
+			if (id === $scope.tab_selected) {
+				$scope.computeRaidBuffs();
+			}
 		}
 	});
 
@@ -803,9 +815,17 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				icon: "awe-docs",
 				text: "Import answers",
 				action: function() {
-					
+					alert("NYI");
 				},
 				order: 11
+			},
+			{
+				icon: "awe-pencil",
+				text: "Edit description",
+				action: function() {
+					$scope.modal("calendar-edit-desc", $scope.event);
+				},
+				order: 12
 			},
 			{
 				icon: "awe-trash",
@@ -814,7 +834,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 					if (confirm("Are you sure?"))
 						$.call("calendar:delete", { id: $scope.event.id });
 				},
-				order: 12
+				order: 13
 			}
 		];
 
@@ -895,17 +915,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		$scope.menu(menu, ev);
 	};
 
-	$scope.raidbuffs = {
-		stats: [1126, false],
-		stamina: [21562, false],
-		ap: [19506, false],
-		sp: [1459, false],
-		crit: [116781, false],
-		haste: [116956, false],
-		mastery: [19740, false],
-		multistrike: [166916, false],
-		versatility: [167187, false]
-	};
+	$scope.raidbuffs = {};
 
 	var buffs_table = [
 		{ b: "stats", c: 11, w: 1126, i: "stats_druid" },
@@ -929,7 +939,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 
 		{ b: "haste", c: 5, r: "DPS", w: 49868, i: "haste_priest_dps" },
 		{ b: "haste", c: 4, w: 113742, i: "haste_rogue" },
-		{ b: "haste", c: 7, w: 116956, i: "haste_shaman" },
+		{ b: "haste", c: 7, r: "DPS", w: 116956, i: "haste_shaman_dps" },
 		{ b: "haste", c: 6, r: "DPS", w: 55610, i: "haste_dk_dps" },
 
 		{ b: "mastery", c: 7, w: 116956, i: "mastery_shaman" },
@@ -956,9 +966,42 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	};
 
 	$scope.computeRaidBuffs = function() {
-		//$scope.raidbuffs.stamina = [166928, "stamina_warlock_opt"];
-		//$scope.raidbuffs.sp = [109773, "sp_warlock"];
-		//$scope.raidbuffs.multistrike = [109773, "multistrike_warlock"];
+		var buffs = $scope.raidbuffs = {
+			stats: [114708, false],
+			stamina: [114713, false],
+			ap: [114716, false],
+			sp: [114717, false],
+			crit: [114721, false],
+			haste: [114719, false],
+			mastery: [114722, false],
+			multistrike: [167411, false],
+			versatility: [167409, false]
+		};
+	
+		var have = {};
+		
+		var slots = $scope.slots[$scope.tab_selected];
+		for (var slot in slots) {
+			var char = slots[slot];
+			have[char["class"]] = have[char["class"]] ? have[char["class"]] + 1 : 1;
+			have[char["class"] + ":" + char.role] = have[char["class"] + ":" + char.role] ? have[char["class"] + ":" + char.role] + 1 : 1;
+		}
+		
+		buffs_table.forEach(function(buff) {
+			if (buffs[buff.b][1] || buff.opt) return;
+			if (!have[buff.c]) return;
+			if (buff.r && !have[buff.c + ":" + buff.r]) return;
+			buffs[buff.b] = [buff.w, buff.i];
+		});
+		
+		buffs_table.forEach(function(buff) {
+			if (buffs[buff.b][1] || !buff.opt) return;
+			if (!have[buff.c] || have[buff.c] < 1) return;
+			if (buff.r && (!have[buff.c + ":" + buff.r] || have[buff.c + ":" + buff.r] < 1)) return;
+			--have[buff.c];
+			--have[buff.c + ":" + buff.r];
+			buffs[buff.b] = [buff.w, buff.i];
+		});
 	};
 
 	$scope.computeRaidBuffs();
@@ -980,6 +1023,10 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	
 	$scope.charVisibleInComp = function(char) {
 		return (char && (!$scope.picked || char.owner != $scope.picked.owner)) ? 1 : 0;
+	};
+	
+	$scope.playerIsAvailable = function(owner) {
+		return raw_answers[owner] && raw_answers[owner].answer.answer == 1;
 	};
 });
 
@@ -1008,7 +1055,21 @@ GuildTools.controller("CalendarRenameTabCtrl", function($scope) {
 	
 	$scope.rename = function() {
 		$scope.inflight = true;
-		$.call("calendar:tab:rename", { id: tab.id, title: $scope.title }, function() {
+		$.call("calendar:tab:rename", { title: $scope.title }, function() {
+			$scope.modal();
+		});
+	};
+});
+
+GuildTools.controller("CalendarEditDescCtrl", function($scope) {
+	$scope.inflight = false;
+	var event = $scope.modalCtx;
+	
+	$scope.desc = event.desc;
+	
+	$scope.save = function() {
+		$scope.inflight = true;
+		$.call("calendar:event:editdesc", { desc: $scope.desc.replace(/^\s+|\s+$/, "") }, function() {
 			$scope.modal();
 		});
 	};
