@@ -323,12 +323,14 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 
 	$scope.modalView = null;
 	$scope.modalCtx = null;
+	$scope.modalSecure = false;
 
-	$scope.modal = function(view, ctx) {
+	$scope.modal = function(view, ctx, secure) {
 		if (view) {
 			ga('send', 'event', 'modal', 'display', view);
 			$scope.modalCtx = ctx;
 			$scope.modalView = "/views/" + view + ".html";
+			$scope.modalSecure = !!secure;
 		} else {
 			$scope.modalView = null;
 			$scope.modalCtx = null;
@@ -336,8 +338,8 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	};
 
 	$scope.modalClose = function(ev) {
-		if (ev.currentTarget === ev.target) {
-			$scope.modalView = null;
+		if (ev.currentTarget === ev.target && !$scope.modalSecure) {
+			$scope.modal();
 		}
 	};
 

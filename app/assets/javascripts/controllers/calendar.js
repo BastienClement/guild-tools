@@ -1265,7 +1265,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	$scope.editNote = function() {
 		$.call("calendar:lock:acquire", { id: $scope.tab_selected }, function(err) {
 			if (!err) {
-				$scope.modal("calendar-edit-note", { id: $scope.tab_selected, note: $scope.tabs_idx[$scope.tab_selected].note });
+				$scope.modal("calendar-edit-note", { id: $scope.tab_selected, note: $scope.tabs_idx[$scope.tab_selected].note }, true);
 			}
 		});
 	};

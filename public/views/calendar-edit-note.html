@@ -29,7 +29,7 @@
 			<textarea type="text" id="calendar-edit-note-field" ng-model="note"></textarea>
 		</label>
 		<div class="overflow">
-			<button class="left" ng-tooltip="#calendar-edit-note-tips"><i class="awe-help"></i> Tips</button>
+			<button class="left" ng-tooltip="#calendar-edit-note-tips" onclick="return false;"><i class="awe-help"></i> Tips</button>
 			<button type="submit" ng-disabled="inflight">Save</button>
 			<button ng-disabled="inflight" ng-click="modal()" type="button">Cancel</button>
 		</div>
