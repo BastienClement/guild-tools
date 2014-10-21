@@ -60,16 +60,6 @@ html, body {
 	overflow: hidden;
 }
 
-a {
-	color: #64B4FF;
-	cursor: pointer;
-	text-decoration: none;
-}
-
-a:hover {
-	text-decoration: underline;
-}
-
 h2 {
 	font-family: "Roboto Condensed";
 	font-size: 24px;
@@ -697,8 +687,8 @@ header {
 }
 
 #context-menu li {
-	padding: 2px 20px 2px 7px;
-	line-height: 22px;
+	padding: 1px 20px 2px 7px;
+	line-height: 20px;
 }
 
 #context-menu li.sub {

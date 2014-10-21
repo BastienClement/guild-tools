@@ -503,7 +503,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	$scope.picked = null;
 	$scope.pickedFromSlot = false;
 	$scope.setPicker = function(char, ev, slot) {
-		if (!char || !$scope.editable) return false;
+		if (!char || !$scope.editable || ev.button !== 0) return false;
 		$scope.picked = char;
 		$scope.pickedFromSlot = slot;
 		$scope.handlePicker(ev);
@@ -962,11 +962,24 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	};
 	
 	$scope.slotMenu = function(slot, ev) {
+		var template = { tab: $scope.tab_selected, slot: slot, char: $scope.slots[$scope.tab_selected][slot] };
+		var chars
+		
+		try {
+			chars = raw_answers[$scope.slots[$scope.tab_selected][slot].owner].chars.filter(function(char) {
+				return char.name !== template.char.name;
+			});
+		} catch (e) {
+			chars = [];
+		}
+		
 		var menu = [
 			{
 				icon: "icn-tank",
 				text: "Tank",
 				action: function() {
+					template.char.role = "TANK";
+					$.call("calendar:comp:set", template);
 				},
 				order: 0
 			},
@@ -974,6 +987,8 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				icon: "icn-heal",
 				text: "Heal",
 				action: function() {
+					template.char.role = "HEALING";
+					$.call("calendar:comp:set", template);
 				},
 				order: 1
 			},
@@ -981,41 +996,25 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				icon: "icn-dps",
 				text: "DPS",
 				action: function() {
+					template.char.role = "DPS";
+					$.call("calendar:comp:set", template);
 				},
 				order: 2
-			}/*,
-			{ separator: true, order: 3, visible: $scope.tabs.length > 1 },
-			{
-				icon: "awe-left-dir",
-				text: "Move left",
-				action: function() {
-					var target = extract($scope.tabs.filter(lesserThan(tab)).reduce(max, -1));
-					$.call("calendar:tab:swap", { a: target.id, b: tab.id });
-				},
-				order: 1,
-				visible: $scope.tabs.filter(lesserThan(tab)).length > 0
 			},
-			{
-				icon: "awe-right-dir",
-				text: "Move right",
-				action: function() {
-					var target = extract($scope.tabs.filter(greaterThan(tab)).reduce(min, -1));
-					$.call("calendar:tab:swap", { a: target.id, b: tab.id });
-				},
-				order: 2,
-				visible: $scope.tabs.filter(greaterThan(tab)).length > 0
-			},
-			{ separator: true, order: 10, visible: !tab.locked },
-			{
-				icon: "awe-trash",
-				text: "Delete",
-				action: function() {
-					if (confirm("Are you sure?"))
-						$.call("calendar:tab:delete", { id: tab.id });
-				},
-				order: 11, visible: !tab.locked
-			}*/
+			{ separator: true, order: 3, visible: chars.length > 1 }
 		];
+		
+		chars.forEach(function(char, i) {
+			menu.push({
+				icon: "cls-icon c" + char["class"],
+				text: char.name,
+				action: function() {
+					template.char = char;
+					$.call("calendar:comp:set", template);
+				},
+				order: i + 10,
+			});
+		});
 	
 		$scope.menu(menu, ev);
 	};
@@ -1260,7 +1259,6 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		for (i = 0, l = title.length; i < l; ++i)
 			base += Math.sin(title.charCodeAt(i) * base) * 100000;
 		
-		console.log(base);
 		return tips[Math.floor(Math.abs(base)) % tips.length];
 	};
 	
@@ -1334,7 +1332,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				}
 			}
 			
-			return (candidate) ? "@" + candidate.name + "(" + candidate["class"] + ")" + (found ? "" : ":") : "@" + name + "(99)";
+			return (candidate) ? "@" + candidate.name + "(" + candidate["class"] + ")" + (found ? "" : ":") + "@" : "@" + name + "(99)" + "@";
 		});
 		
 		return note;

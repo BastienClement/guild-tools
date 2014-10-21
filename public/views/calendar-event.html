@@ -259,21 +259,29 @@
 		flex: 1;
 	}
 	
+	#calendar-event-comp  .markdown .char {
+		display: inline-block;
+	}
+	
+	.markdown p {
+		margin-bottom: 5px;
+	}
+	
 	.markdown iframe {
 		width: 100%;
 		height: 400px;
 		border: 2px solid #426585;
-		margin-bottom: 10px;
+		margin-bottom: 5px;
 	}
 	
 	.markdown ol, .markdown ul {
 		margin-left: 35px;
-		margin-top: 10px;
-		margin-bottom: 10px;
+		margin-top: 5px;
+		margin-bottom: 5px;
 	}
 	
 	.markdown pre, .markdown li {
-		margin-bottom: 10px;
+		margin-bottom: 5px;
 	}
 	
 	.markdown hr {
@@ -288,14 +296,14 @@
 	.markdown h1 {
 		font-size: 18px;
 		font-weight: 400;
-		margin-bottom: 10px;
+		margin-bottom: 5px;
 		line-height: 1em;
 	}
 	
 	.markdown h2 {
 		font-size: 16px;
 		font-weight: 400;
-		margin-bottom: 10px;
+		margin-bottom: 5px;
 		line-height: 1em;
 	}
 	
@@ -304,6 +312,56 @@
 		margin: 0;
 		font-size: 10px;
 	}
+	
+	.markdown a {
+		color: #64B4FF;
+		cursor: pointer;
+		text-decoration: none;
+	}
+	
+	.markdown a:hover {
+		text-decoration: underline;
+	}
+	
+	.icn-tank:before, .icn-heal:before, .icn-dps:before {
+		display: inline-block;
+		width: 11px;
+		height: 11px;
+		content: "";
+		background-size: contain;
+	}
+	
+	.icn-tank:before {
+		background-image: url("/assets/images/roles/TANK.png");
+	}
+	
+	.icn-heal:before {
+		background-image: url("/assets/images/roles/HEALING.png");
+	}
+	
+	.icn-dps:before {
+		background-image: url("/assets/images/roles/DPS.png");
+	}
+	
+	.cls-icon:before {
+		display: inline-block;
+		width: 9px;
+		height: 9px;
+		content: "";
+		border-radius: 10px;
+	}
+	
+	.cls-icon.c1:before { background-color:#C69B6D!important; }
+	.cls-icon.c2:before { background-color:#F48CBA!important; }
+	.cls-icon.c3:before { background-color:#AAD372!important; }
+	.cls-icon.c4:before { background-color:#FFF468!important; }
+	.cls-icon.c5:before { background-color:#FFF!important; }
+	.cls-icon.c6:before { background-color:#DE2243!important; }
+	.cls-icon.c7:before { background-color:#2B6CFF!important; }
+	.cls-icon.c8:before { background-color:#68CCEF!important; }
+	.cls-icon.c9:before { background-color:#9382C9!important; }
+	.cls-icon.c10:before { background-color:#00A07D!important; }
+	.cls-icon.c11:before { background-color:#FF7C0A!important; }
 </style>
 
 <div id="calendar-event" class="tools-main" ng-class="{ picked: picked }" ng-mousemove="handlePicker($event)" ng-mouseup="dropPicker()">
@@ -315,8 +373,8 @@
 		<div id="calendar-event-left">
 			<div class="box" id="calendar-event-infos">
 				<button ng-click="eventMenu($event)" ng-if="editable"><i class="awe-cog"></i></button>
-				<h3>{{ event.title }}</h3>
-				<p style="margin-top: -5px" class="light">
+				<h3>{{ event.title || "Loading..." }}</h3>
+				<p style="margin-top: -5px" class="light" ng-if="event.title">
 					{{ event.date.split(" ")[0].split("-").reverse().join("/") }}
 					&#8942;
 					{{ eventTimeFormat() }}
@@ -429,9 +487,8 @@
 										ng-class="{ hover: pickerTarget == (row+offset-1)*5+slot }"
 										ng-mouseover="setPickerTarget((row+offset-1)*5+slot, slots[tab_selected][(row+offset-1)*5+slot])"
 										ng-mouseout="setPickerTarget(null)"
-										ng-mousedown="setPicker(slots[tab_selected][(row+offset-1)*5+slot], $event, (row+offset-1)*5+slot)"
-										ng-contextmenu="slotMenu((row+offset-1)*5+slot, $event)">
-									<div class="char" ng-switch-when="1">
+										ng-mousedown="setPicker(slots[tab_selected][(row+offset-1)*5+slot], $event, (row+offset-1)*5+slot)">
+									<div class="char" ng-switch-when="1" ng-contextmenu="slotMenu((row+offset-1)*5+slot, $event)">
 										<img ng-src="/assets/images/roles/{{ slots[tab_selected][(row+offset-1)*5+slot].role }}.png">
 										<span class="name c{{ slots[tab_selected][(row+offset-1)*5+slot].class }}">
 											{{ slots[tab_selected][(row+offset-1)*5+slot].name }}

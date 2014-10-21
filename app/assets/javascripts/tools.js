@@ -164,12 +164,12 @@ GuildTools.filter("markdown", function($sce) {
 			},
 			{
 				type: "lang",
-				regex: "@(\\w+)\\((\\d+)\\)(:)?",
+				regex: "@([^@]+)\\((\\d+)\\)(:)?@",
 				replace: function(match, content, cid, missing) {
 					if (missing)
-						return "<span class='c" + cid + "'><i class='awe-attention'></i>" + content + "</span>";
+						return "<span class='char c" + cid + "'><i class='awe-attention'></i>" + content + "</span>";
 					else
-						return "<span class='c" + cid + "'>" + content + "</span>";
+						return "<span class='char c" + cid + "'>" + content + "</span>";
 				}
 			}
 		];
