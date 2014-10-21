@@ -110,23 +110,16 @@ GuildTools.directive("ngTooltip", function() {
 
 		element.bind("mouseover", function(event) {
 			var tooltip_value = attrs.ngTooltip;
-
-			// Delayed display
-			if (tooltip_value[0] === "#") {
-				tooltip.css("opacity", 0);
-				tooltip_value = tooltip_value.slice(1);
-				initDelay = setTimeout(function() {
-					tooltip.css("opacity", 1);
-				}, 1000);
-			} else {
-				tooltip.css("opacity", 1);
-			}
+			tooltip.css("opacity", 1);
 
 			// Raw text data
 			if (tooltip_value[0] === "$") {
 				tooltip.text(tooltip_value.slice(1));
 			} else {
-				var target = _(attrs.ngTooltip, element);
+				var target = _(tooltip_value, element);
+				if (!target.length) {
+					target = _(tooltip_value);
+				}
 				if (target.length) {
 					tooltip.html(target.html());
 				} else {
@@ -154,5 +147,40 @@ GuildTools.directive("ngTooltip", function() {
 GuildTools.filter("capitalize", function() {
 	return function(input) {
 		return input.charAt(0).toUpperCase() + input.slice(1).toLowerCase();
+	};
+});
+
+GuildTools.filter("markdown", function($sce) {
+	var div = _("<div>");
+	Showdown.extensions.guildtools = function(converter) {
+		return [
+			{
+				type: "lang",
+				regex: "(%){2}([^%]+?)(?:\\((\\d+)\\))?(%){2}",
+				replace: function(match, prefix, content, height, suffix) {
+					height = height ? " style='height: " + height + "px;'" : "";
+					return "<iframe src='" + div.html(content).text() + "' sandbox='allow-scripts'" + height + "></iframe>";
+				}
+			},
+			{
+				type: "lang",
+				regex: "@(\\w+)\\((\\d+)\\)(:)?",
+				replace: function(match, content, cid, missing) {
+					if (missing)
+						return "<span class='c" + cid + "'><i class='awe-attention'></i>" + content + "</span>";
+					else
+						return "<span class='c" + cid + "'>" + content + "</span>";
+				}
+			}
+		];
+	};
+	var markdown = new Showdown.converter({extensions: ["guildtools"]});
+	return function(input) {
+		input = input.replace(/<iframe.*?src="(https?:\/\/[^"]+?)".*?>.*?<\/iframe>(\(\d+\))/gm, "%%$1$2%%");
+		input = input.replace(/<iframe.*?src="(https?:\/\/[^"]+?)".*?>.*?<\/iframe>/gm, "%%$1%%");
+		input = div.text(input).html();
+		var res = markdown.makeHtml(input);
+		res = res.replace(/<a href/g, "<a target='_blank' href");
+		return $sce.trustAsHtml(res);
 	};
 });
