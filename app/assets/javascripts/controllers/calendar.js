@@ -963,7 +963,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	
 	$scope.slotMenu = function(slot, ev) {
 		var template = { tab: $scope.tab_selected, slot: slot, char: $scope.slots[$scope.tab_selected][slot] };
-		var chars
+		var chars;
 		
 		try {
 			chars = raw_answers[$scope.slots[$scope.tab_selected][slot].owner].chars.filter(function(char) {
