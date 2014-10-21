@@ -1364,7 +1364,7 @@ GuildTools.controller("CalendarRenameTabCtrl", function($scope) {
 	
 	$scope.rename = function() {
 		$scope.inflight = true;
-		$.call("calendar:tab:rename", { title: $scope.title }, function() {
+		$.call("calendar:tab:rename", { id: tab.id, title: $scope.title }, function() {
 			$scope.modal();
 		});
 	};
