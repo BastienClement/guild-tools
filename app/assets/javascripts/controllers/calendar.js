@@ -486,7 +486,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	$scope.$watch("tab_selected", function(tab) {
 		$scope.updateNote();
 		if (tab === 0 || !$scope.editable) return;
-		$.call("calendar:lock:status", { id: tab }, function(err, data) {
+		$.exec("calendar:lock:status", { id: tab }, function(err, data) {
 			$scope.lock = err ? null : data.owner;
 		});
 	});
@@ -648,7 +648,6 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			$scope.event = data.event;
 			$scope.tabs = data.tabs;
 			build_tabs_idx();
-			$scope.tab_selected = data.tabs[0].id;
 			$scope.slots = data.slots;
 			$scope.updateNote();
 		},
@@ -710,6 +709,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			$scope.tabs = $scope.tabs.map(function(tab) {
 				return (tab.id === tab_new.id) ? tab_new : tab;
 			});
+			if (tab_new.locked && !$scope.editable) { delete $scope.slots[tab_new.id]; }
 			build_tabs_idx();
 			$scope.updateNote();
 		},
@@ -923,9 +923,25 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 					if (confirm("Are you sure?"))
 						$.call("calendar:tab:wipe", { id: tab.id });
 				},
-				order: 0
+				order: 1
 			},
-			{ separator: true, order: 0.5, visible: $scope.tabs.length > 1 },
+			{
+				icon: "awe-lock",
+				text: "Lock tab",
+				action: function() {
+					$.call("calendar:tab:lock", { id: tab.id });
+				},
+				order: 2, visible: !tab.locked
+			},
+			{
+				icon: "awe-lock-open-alt",
+				text: "Unlock tab",
+				action: function() {
+					$.call("calendar:tab:unlock", { id: tab.id });
+				},
+				order: 3, visible: tab.locked
+			},
+			{ separator: true, order: 4, visible: $scope.tabs.length > 1 },
 			{
 				icon: "awe-left-dir",
 				text: "Move left",
@@ -933,7 +949,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 					var target = extract($scope.tabs.filter(lesserThan(tab)).reduce(max, -1));
 					$.call("calendar:tab:swap", { a: target.id, b: tab.id });
 				},
-				order: 1,
+				order: 5,
 				visible: $scope.tabs.filter(lesserThan(tab)).length > 0
 			},
 			{
@@ -943,10 +959,10 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 					var target = extract($scope.tabs.filter(greaterThan(tab)).reduce(min, -1));
 					$.call("calendar:tab:swap", { a: target.id, b: tab.id });
 				},
-				order: 2,
+				order: 6,
 				visible: $scope.tabs.filter(greaterThan(tab)).length > 0
 			},
-			{ separator: true, order: 10, visible: !tab.locked },
+			{ separator: true, order: 10, visible: !tab.undeletable },
 			{
 				icon: "awe-trash",
 				text: "Delete",
@@ -954,7 +970,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 					if (confirm("Are you sure?"))
 						$.call("calendar:tab:delete", { id: tab.id });
 				},
-				order: 11, visible: !tab.locked
+				order: 11, visible: !tab.undeletable
 			}
 		];
 
@@ -1001,7 +1017,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				},
 				order: 2
 			},
-			{ separator: true, order: 3, visible: chars.length > 1 }
+			{ separator: true, order: 3, visible: chars.length > 0 }
 		];
 		
 		chars.forEach(function(char, i) {

@@ -47,12 +47,32 @@ case class CalendarEvent(id: Int, title: String, desc: String, owner: Int, date:
 	}
 
 	/**
+	 * Create a partially visible expanded version of this event
+	 */
+	lazy val partial = {
+		val expanded = this.expand
+
+		// Remove note from hidden tab
+		val tabs = expanded.tabs map { tab =>
+			if (tab.locked)
+				tab.copy(note = None)
+			else
+				tab
+		}
+
+		// Rebuild slots for visible tabs
+		val slots = tabs.filter(!_.locked).map(tab => (tab.id.toString -> expanded.slots(tab.id.toString))).toMap
+
+		CalendarEventFull(this, tabs, slots)
+	}
+
+	/**
 	 * Create an full but concealed version of this event
 	 */
 	lazy val conceal = {
-		val tabs = List[CalendarTab](CalendarTab(0, this.id, "Default", None, 0, true))
-		val slots = Map[String, Map[String, CalendarSlot]]()
-		CalendarEventFull(this, tabs, slots)
+		val expanded = this.expand
+		val tabs = expanded.tabs map (_.copy(note = None, locked = true))
+		CalendarEventFull(this, tabs, Map())
 	}
 }
 

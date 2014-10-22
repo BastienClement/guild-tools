@@ -53,9 +53,10 @@ class Socket private(val token: String, val user: User, val session: String, var
 	 * Event management
 	 */
 	type EventFilter = PartialFunction[Event, Boolean]
-	private val FilterNone: EventFilter = {case _ => false }
+	private val FilterNone: EventFilter = { case _ => false }
 	private var eventFilter: EventFilter = FilterNone
 	private var eventCleanup: Option[CleanupHandler] = None
+	private var eventObject: Event = null
 
 	def unbindEvents(): Unit = {
 		eventFilter = FilterNone
@@ -73,12 +74,18 @@ class Socket private(val token: String, val user: User, val session: String, var
 		cleanup
 	}
 
+	def !< (e: Event): Boolean = {
+		eventObject = e
+		true
+	}
+
 	/**
 	 * Check if event is this socket listen to an event and send it
 	 */
-	def handleEvent(e: Event): Unit = {
+	def handleEvent(e: Event): Unit = this.synchronized {
+		eventObject = e
 		if (eventFilter.applyOrElse(e, FilterNone)) {
-			handler ! Message("event:dispatch", e.asJson)
+			handler ! Message("event:dispatch", eventObject.asJson)
 		}
 	}
 

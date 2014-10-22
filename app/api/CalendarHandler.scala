@@ -133,15 +133,15 @@ trait CalendarHandler {
 	object CalendarContext {
 		var event_id = -1
 		var event_editable = false
-		var event_disclosed = false
-		var event_tabs = Set[Int]()
+		var event_concealed = true
+		var event_tabs = Map[Int, CalendarTab]()
 		var edit_lock: Option[CalendarLocksManager.CalendarLock] = None
 
 		def resetEventContext() = {
 			event_id = -1
 			event_editable = false
-			event_disclosed = false
-			event_tabs = Set()
+			event_concealed = true
+			event_tabs = Map()
 			edit_lock = edit_lock flatMap { lock =>
 				lock.release()
 				None
@@ -305,7 +305,7 @@ trait CalendarHandler {
 
 				if (visibility != CalendarVisibility.Announce) {
 					// Create the default tab
-					CalendarTabs += CalendarTab(0, id, "Default", None, 0, true)
+					CalendarTabs += CalendarTab(0, id, "Default", None, 0, false, true)
 
 					// Invite the owner into his event
 					val answer = CalendarAnswer(user.id, id, now, 1, None, None)
@@ -440,37 +440,56 @@ trait CalendarHandler {
 		// Record successful event access
 		CalendarContext.event_id = event.id
 		CalendarContext.event_editable = (event.owner == user.id) || user.officer
-		CalendarContext.event_disclosed = CalendarContext.event_editable || event.state != CalendarEventState.Open
+		CalendarContext.event_concealed = event.state == CalendarEventState.Open && !CalendarContext.event_editable
 
 		// Expand or conceal event
-		val visible = if (CalendarContext.event_disclosed) event.expand else event.conceal
+		val visible = {
+			if (CalendarContext.event_editable) {
+				event.expand
+			} else if (CalendarContext.event_concealed) {
+				event.conceal
+			} else {
+				event.partial
+			}
+		}
 
 		// Extract tabs set
-		CalendarContext.event_tabs = visible.tabs.map(_.id).toSet
+		CalendarContext.event_tabs = visible.tabs.map(tab => (tab.id -> tab)).toMap
 
 		def expandAnswer(answer: CalendarAnswer) = {
 			if (answer.event == event_id) {
-				socket ! CalendarAnswerReplace(answer.expand)
+				socket !< CalendarAnswerReplace(answer.expand)
+			} else {
+				false
 			}
-			false
+		}
+
+		def tabContentIsVisible(tab_id: Int): Boolean = {
+			CalendarContext.event_tabs.get(tab_id) map { tab =>
+				if (CalendarContext.event_editable)
+					true
+				else if (CalendarContext.event_concealed)
+					false
+				else
+					!tab.locked
+			} getOrElse {
+				false
+			}
 		}
 
 		// Event page bindings
 		socket.bindEvents {
 			case CalendarAnswerCreate(answer) => expandAnswer(answer)
 			case CalendarAnswerUpdate(answer) => expandAnswer(answer)
-			case CalendarAnswerReplace(answer) => (answer.answer.exists(_.event == event_id))
 
 			case CalendarEventUpdate(event) => {
 				if (event.id == event_id) {
-					if (event.state != CalendarEventState.Open && !CalendarContext.event_disclosed) {
-						CalendarContext.event_disclosed = true
-						socket ! CalendarEventUpdateFull(event.expand)
-						false
+					if (event.state != CalendarEventState.Open && CalendarContext.event_concealed) {
+						CalendarContext.event_concealed = false
+						socket !< CalendarEventUpdateFull(event.partial)
 					} else if (event.state == CalendarEventState.Open && !CalendarContext.event_editable) {
-						CalendarContext.event_disclosed = false
-						socket ! CalendarEventUpdateFull(event.conceal)
-						false
+						CalendarContext.event_concealed = true
+						socket !< CalendarEventUpdateFull(event.conceal)
 					} else {
 						true
 					}
@@ -479,33 +498,48 @@ trait CalendarHandler {
 				}
 			}
 
-			case CalendarEventUpdateFull(full) => (full.event.id == event_id)
 			case CalendarEventDelete(id) => (id == event_id)
 
 			case CalendarTabCreate(tab) => {
 				if (tab.event == event_id) {
-					CalendarContext.event_tabs += tab.id
-					CalendarContext.event_disclosed
+					CalendarContext.event_tabs += (tab.id -> tab)
+					true
 				} else {
 					false
 				}
 			}
 
-			case CalendarTabUpdate(tab) => (tab.event == event_id && CalendarContext.event_disclosed)
-			case CalendarTabWipe(id) => (CalendarContext.event_tabs.contains(id) && CalendarContext.event_disclosed)
+			case CalendarTabWipe(id) => tabContentIsVisible(id)
 
-			case CalendarTabDelete(id) => {
-				if (CalendarContext.event_tabs.contains(id)) {
-					CalendarContext.event_tabs -= id
+			case CalendarTabUpdate(tab) => {
+				if (!CalendarContext.event_tabs.contains(tab.id)) {
+					false
+				} else {
+					val old = CalendarContext.event_tabs(tab.id)
+					CalendarContext.event_tabs = CalendarContext.event_tabs.updated(tab.id, tab)
+
+					if (CalendarContext.event_editable) {
+						true
+					} else if (CalendarContext.event_concealed || tab.locked) {
+						val concealed = tab.copy(locked = true, note = None)
+						concealed != old && socket !< CalendarTabUpdate(concealed)
+					} else if (old.locked == tab.locked) {
+						true
+					} else {
+						socket !< CalendarEventUpdateFull(tab.expandEvent.partial)
+					}
 				}
-				CalendarContext.event_disclosed
 			}
 
-			case CalendarSlotUpdate(slot) => (CalendarContext.event_disclosed && CalendarContext.event_tabs.contains(slot.tab))
-			case CalendarSlotDelete(tab, _) => (CalendarContext.event_disclosed && CalendarContext.event_tabs.contains(tab))
+			case CalendarTabDelete(id) => utils.doIf(CalendarContext.event_tabs.contains(id)) {
+				CalendarContext.event_tabs -= id
+			}
 
-			case CalendarLockAcquire(tab, _) => (CalendarContext.event_disclosed && CalendarContext.event_tabs.contains(tab))
-			case CalendarLockRelease(tab) => (CalendarContext.event_disclosed && CalendarContext.event_tabs.contains(tab))
+			case CalendarSlotUpdate(slot) => tabContentIsVisible(slot.tab)
+			case CalendarSlotDelete(tab, _) => tabContentIsVisible(tab)
+
+			case CalendarLockAcquire(tab, _) => (tabContentIsVisible(tab) && CalendarContext.event_editable)
+			case CalendarLockRelease(tab) => (tabContentIsVisible(tab) && CalendarContext.event_editable)
 		} onUnbind {
 			CalendarContext.resetEventContext()
 		}
@@ -599,7 +633,7 @@ trait CalendarHandler {
 
 		DB.withTransaction { implicit s =>
 			val max_order = CalendarTabs.filter(_.event === event).map(_.order).max.run.get
-			val template = CalendarTab(0, event, title, None, max_order + 1, false)
+			val template = CalendarTab(0, event, title, None, max_order + 1, false, false)
 			val id: Int = (CalendarTabs returning CalendarTabs.map(_.id)) += template
 			CalendarTabs.notifyCreate(template.copy(id = id))
 		}
@@ -615,7 +649,7 @@ trait CalendarHandler {
 		if (!CalendarContext.checkTabEditable(tab_id)) return MessageFailure("FORBIDDEN")
 
 		DB.withSession { implicit s =>
-			if (CalendarTabs.filter(t => t.id === tab_id && !t.locked).delete > 0) {
+			if (CalendarTabs.filter(t => t.id === tab_id && !t.undeletable).delete > 0) {
 				CalendarTabs.notifyDelete(tab_id)
 			}
 		}
@@ -661,8 +695,9 @@ trait CalendarHandler {
 
 		DB.withSession { implicit s =>
 			val tab_query = CalendarTabs.filter(_.id === tab_id)
-			tab_query.map(_.title).update(title)
-			CalendarTabs.notifyUpdate(tab_query.first)
+			if (tab_query.map(_.title).update(title) > 0) {
+				CalendarTabs.notifyUpdate(tab_query.first)
+			}
 		}
 
 		MessageSuccess
@@ -694,8 +729,27 @@ trait CalendarHandler {
 
 		DB.withSession { implicit s =>
 			val tab_query = CalendarTabs.filter(_.id === tab_id)
-			tab_query.map(_.note).update(note)
-			CalendarTabs.notifyUpdate(tab_query.first)
+			if (tab_query.map(_.note).update(note) > 0) {
+				CalendarTabs.notifyUpdate(tab_query.first)
+			}
+		}
+
+		MessageSuccess
+	}
+
+	/**
+	 * $:calendar:tab:lock
+	 * $:calendar:tab:unlock
+	 */
+	def handleCalendarTabLock(arg: JsValue, lock: Boolean): MessageResponse = {
+		val tab_id = (arg \ "id").as[Int]
+		if (!CalendarContext.checkTabEditable(tab_id)) return MessageFailure("FORBIDDEN")
+
+		DB.withSession { implicit s =>
+			val tab_query = CalendarTabs.filter(_.id === tab_id)
+			if (tab_query.map(_.locked).update(lock) > 0) {
+				CalendarTabs.notifyUpdate(tab_query.first)
+			}
 		}
 
 		MessageSuccess

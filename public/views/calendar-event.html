@@ -475,6 +475,7 @@
 							ng-click="setTab(tab.id)"
 							ng-contextmenu="tabMenu(tab, $event)"
 							ng-class="{ active: tab.id === tab_selected }">
+						<i class="awe-lock" ng-if="tab.locked"></i>
 						{{ tab.title }}
 					</button>
 				</div>

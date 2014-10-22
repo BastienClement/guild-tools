@@ -169,6 +169,8 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		case ("calendar:tab:rename", arg) => handleCalendarTabRename(arg)
 		case ("calendar:tab:wipe", arg) => handleCalendarTabWipe(arg)
 		case ("calendar:tab:edit", arg) => handleCalendarTabEdit(arg)
+		case ("calendar:tab:lock", arg) => handleCalendarTabLock(arg, true)
+		case ("calendar:tab:unlock", arg) => handleCalendarTabLock(arg, false)
 		case ("calendar:lock:status", arg) => handleCalendarLockStatus(arg)
 		case ("calendar:lock:acquire", arg) => handleCalendarLockAcquire(arg)
 		case ("calendar:lock:refresh", arg) => handleCalendarLockRefresh()
