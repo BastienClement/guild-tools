@@ -220,7 +220,6 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	var ctx_loader = null;
 	var ctx_params = null;
 	var ctx_valid = false;
-	var ctx_inflight = false;
 	var ctx_handlers = {};
 
 	$scope.setContext = function(loader, params, handlers) {
@@ -238,19 +237,18 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	};
 
 	$scope.syncContext = function() {
-		if (ctx_inflight || !ctx_loader) return;
+		if (!ctx_loader) return;
 
-		ctx_inflight = true;
 		ctx_valid = false;
+		var ctx_inflight = ctx_loader;
 
 		$.call(ctx_loader, ctx_params, function(err, res) {
+			if (ctx_inflight !== ctx_loader) return;
 			if (err) {
-				ctx_inflight = false;
 				$scope.error("Error while switching contexts");
 				$scope.breadcrumb.rewind("/dashboard");
 			} else {
 				ctx_valid = true;
-				ctx_inflight = false;
 				if (typeof ctx_handlers.$ === "function") {
 					ctx_handlers.$(res);
 				}
