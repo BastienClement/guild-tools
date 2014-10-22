@@ -7,7 +7,6 @@ import utils.Bnet
 import models._
 import models.mysql._
 import play.api.libs.json._
-import scala.async.Async._
 import gt.Global.ExecutionContext
 
 trait ProfileHandler {
@@ -136,9 +135,8 @@ trait ProfileHandler {
 			return MessageFailure("INVALID_DATA")
 		}
 
-		async {
-			val opt_char = await(Bnet.query(s"/character/$server/$name", ("fields" -> "items")))
-			opt_char map { char =>
+		Bnet.query(s"/character/$server/$name", ("fields" -> "items")) map {
+			_ map { char =>
 				DB.withTransaction { implicit s =>
 					val main = for (c <- Chars if c.main === true && c.owner === user.id) yield c.id
 
@@ -165,9 +163,9 @@ trait ProfileHandler {
 					if (template.main) {
 						user.updatePropreties()
 					}
-
-					MessageSuccess
 				}
+
+				MessageSuccess
 			} getOrElse {
 				MessageFailure("CHAR_NOT_FOUND")
 			}

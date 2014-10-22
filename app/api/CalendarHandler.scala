@@ -13,11 +13,9 @@ import utils.SmartTimestamp
 import java.text.SimpleDateFormat
 import java.text.ParseException
 import scala.slick.jdbc.JdbcBackend.SessionDef
+import actors.CalendarLockManager._
+import akka.pattern.ask
 import gt.Global.ExecutionContext
-import utils.scheduler
-import scala.concurrent.duration._
-import java.util.Date
-import gt.Socket
 
 /**
  * Shared calendar-related values
@@ -43,88 +41,6 @@ object CalendarHelper {
 }
 
 /**
- * Manages edit locks on tabs
- */
-object CalendarLocksManager {
-	/**
-	 * Every locks currently in use
-	 */
-	private var locks: Map[Int, CalendarLock] = Map()
-
-	/**
-	 * Locks garbage collector
-	 */
-	scheduler.schedule(5.second, 5.second) {
-		val now = new Date().getTime
-		CalendarLocksManager.synchronized {
-			locks.values.filter(now - _.lastRefresh > 15000) foreach (_.release())
-		}
-	}
-
-	/**
-	 * Acquire a new lock
-	 */
-	def acquire(tab: Int, owner: String): Option[CalendarLock] = this.synchronized {
-		if (locks.contains(tab)) {
-			None
-		} else {
-			val lock = new CalendarLock(tab, owner)
-			locks += tab -> lock
-			Socket !# CalendarLockAcquire(tab, owner)
-			Some(lock)
-		}
-	}
-
-	/**
-	 * Query lock status
-	 */
-	def status(tab: Int): Option[String] = locks.get(tab).map(_.owner)
-
-	/**
-	 * Release a lock
-	 */
-	def release(lock: CalendarLock): Unit = this.synchronized {
-		locks.get(lock.tab) foreach { l =>
-			if (lock == l) {
-				locks -= lock.tab
-				Socket !# CalendarLockRelease(lock.tab)
-			}
-		}
-	}
-
-	/**
-	 * The lock object class
-	 */
-	class CalendarLock private[CalendarLocksManager](val tab: Int, val owner: String) {
-		/**
-		 * Lock is valid until released
-		 */
-		var valid = true
-
-		/**
-		 * Keep last refresh time
-		 */
-		var lastRefresh: Long = 0
-
-		/**
-		 * Refresh the lock to prevent garbage collection
-		 */
-		def refresh(): Unit = { lastRefresh = new Date().getTime }
-		refresh()
-
-		/**
-		 * Release this log
-		 */
-		def release(): Unit = {
-			if (valid) {
-				valid = false
-				CalendarLocksManager.release(this)
-			}
-		}
-	}
-}
-
-/**
  * Implements calendar-related API
  */
 trait CalendarHandler {
@@ -135,7 +51,7 @@ trait CalendarHandler {
 		var event_editable = false
 		var event_concealed = true
 		var event_tabs = Map[Int, CalendarTab]()
-		var edit_lock: Option[CalendarLocksManager.CalendarLock] = None
+		var edit_lock: Option[CalendarLock] = None
 
 		def resetEventContext() = {
 			event_id = -1
@@ -758,24 +674,27 @@ trait CalendarHandler {
 	/**
 	 * $:calendar:lock:status
 	 */
-	def handleCalendarLockStatus(arg: JsValue): MessageResponse = {
+	def handleCalendarLockStatus(arg: JsValue): MessageResponse = utils.defer {
 		val tab_id = (arg \ "id").as[Int]
 		if (!CalendarContext.checkTabEditable(tab_id)) return MessageFailure("FORBIDDEN")
-		MessageResults(Json.obj("owner" -> CalendarLocksManager.status(tab_id)))
+		(LockManager ? LockStatus(tab_id)).mapTo[Option[String]] map { status =>
+			MessageResults(Json.obj("owner" -> status))
+		}
 	}
 
 	/**
 	 * $:calendar:lock:acquire
 	 */
-	def handleCalendarLockAcquire(arg: JsValue): MessageResponse = {
+	def handleCalendarLockAcquire(arg: JsValue): MessageResponse = utils.defer {
 		val tab_id = (arg \ "id").as[Int]
 		if (!CalendarContext.checkTabEditable(tab_id)) return MessageFailure("FORBIDDEN")
-
-		CalendarLocksManager.acquire(tab_id, user.name) map { lock =>
-			CalendarContext.edit_lock = Some(lock)
-			MessageSuccess
-		} getOrElse {
-			MessageAlert("An error occurred while acquiring the edit lock for this tab")
+		(LockManager ? LockAcquire(tab_id, user.name)).mapTo[Option[CalendarLock]] map { lock =>
+			lock map { l =>
+				CalendarContext.edit_lock = lock
+				MessageSuccess
+			} getOrElse {
+				MessageAlert("An error occurred while acquiring the edit lock for this tab")
+			}
 		}
 	}
 

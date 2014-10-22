@@ -81,6 +81,7 @@
 	#calendar-event .char i {
 		color: #4b79a4;
 		margin: 0;
+		right: -3px;
 	}
 	
 	#calendar-event-answers {
@@ -257,7 +258,7 @@
 		opacity: .75;
 	}
 	
-	#calendar-event-comp  .markdown {
+	#calendar-event-comp .markdown {
 		padding: 15px;
 		margin: 0px -15px 0px 0px;
 		overflow: auto;
@@ -266,6 +267,14 @@
 	
 	#calendar-event-comp  .markdown .char {
 		display: inline-block;
+	}
+	
+	#calendar-event-comp .markdown .char i {
+		top: -1px;
+		right: 1px;
+		margin: 0;
+		margin-left: -3px;
+		font-size: 10px;
 	}
 	
 	.markdown p {
@@ -310,12 +319,6 @@
 		font-weight: 400;
 		margin-bottom: 5px;
 		line-height: 1em;
-	}
-	
-	.markdown span i {
-		top: -1px;
-		margin: 0;
-		font-size: 10px;
 	}
 	
 	.markdown a {
