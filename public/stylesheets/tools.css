@@ -472,22 +472,6 @@ header {
 	color: #fff;
 }
 
-#right-controls .user {
-	font-size: 14px;
-	line-height: 32px;
-}
-
-
-#right-controls .user i {
-	opacity: .5;
-	top: -1px;
-	transition: opacity ease-out .3s;
-}
-
-#right-controls .user:hover i {
-	opacity: 1;
-}
-
 #sidebar {
 	display: none;
 	position: fixed;
@@ -509,10 +493,10 @@ header {
 }
 
 #sidebar:hover {
-	width: 180px;
+	/*width: 180px;
 	box-shadow: 0px 10px 10px rgba(17, 17, 17, 0.3);
 	background-color: rgba(50, 64, 78, 0.95);
-	transition: width ease-out .2s 2s, background-color ease-out .2s 2s, box-shadow ease-out .2s 2s;
+	transition: width ease-out .2s 2s, background-color ease-out .2s 2s, box-shadow ease-out .2s 2s;*/
 }
 
 #sidebar li {
@@ -521,11 +505,13 @@ header {
 }
 
 #sidebar li:hover {
-	background-color: rgba(99, 180, 255, 0.10);
+	/*background-color: rgba(99, 180, 255, 0.10);*/
+	background: linear-gradient(to right, rgba(99, 180, 255, 0.10) 0%,rgba(99, 180, 255, 0) 100%);
 }
 
 #sidebar li.active {
-	background-color: rgba(99, 180, 255, 0.15);
+	/*background-color: rgba(99, 180, 255, 0.15);*/
+	background: linear-gradient(to right, rgba(99, 180, 255, 0.15) 0%, rgba(99, 180, 255, 0.10) 20%, rgba(99, 180, 255, 0) 100%);
 }
 
 #sidebar img {
@@ -558,14 +544,15 @@ header {
 	opacity: 1;
 }
 
-#topbar ul {
+#topbar #topbar-nav {
 	list-style: none;
 	display: flex;
 	align-items: flex-end;
 	padding: 0px 6px;
+	flex: 1;
 }
 
-#topbar li {
+#topbar #topbar-nav > li {
 	display: inline-block;
 	padding: 0px 6px 8px 6px;
 	margin: 0px 12px;
@@ -575,7 +562,7 @@ header {
 	color: #EEE;
 }
 
-#topbar li:before {
+#topbar #topbar-nav > li:before {
 	content: "";
 	position: absolute;
 	width: 100%;
@@ -587,13 +574,90 @@ header {
 	transition: opacity .2s ease-out;
 }
 
-#topbar li:hover:before {
+#topbar #topbar-nav > li:hover:before {
 	opacity: 1;
 }
 
-#topbar li.active:before {
+#topbar #topbar-nav > li.active:before {
 	opacity: 1;
 	transition: none;
+}
+
+#topbar #topbar-chat {
+	display: flex;
+	justify-content: flex-end;
+	padding-right: 15px;
+}
+
+#topbar #topbar-chat ul {
+	list-style: none;
+}
+
+#topbar #topbar-chat li {
+	display: inline-block;
+}
+
+#topbar #topbar-chat .user {
+	line-height: 35px;
+}
+
+
+#topbar #topbar-chat .user i {
+	opacity: .5;
+	top: -1px;
+	transition: opacity ease-out .3s;
+}
+
+#topbar #topbar-chat .user:hover i {
+	opacity: 1;
+}
+
+#topbar #topbar-chat button {
+	padding-left: 5x;
+	margin-left: 5px;
+	padding-right: 5px;
+}
+
+#topbar #topbar-chat button i {
+	font-size: 18px;
+	vertical-align: -2px;
+}
+
+#topbar #topbar-chat button:hover {
+	color: #FFF;
+}
+
+#topbar #topbar-chat button:before {
+	content: "";
+	position: absolute;
+	width: 100%;
+	height: 3px;
+	bottom: 0;
+	left: 0;
+	background-color: #64b4ff;
+	opacity: 0;
+	transition: opacity .2s ease-out;
+}
+
+#topbar #topbar-chat button.attention:before {
+	animation-duration: 0.5s;
+	animation-name: chat-attention;
+	animation-iteration-count: infinite;
+	animation-direction: alternate;
+}
+
+@keyframes chat-attention {
+	from {
+		opacity: .25;
+	}
+	
+	to {
+		opacity: .75;
+	}
+}
+
+#topbar #topbar-chat button:hover:before {
+	opacity: 1;
 }
 
 #main-view-slider {
@@ -732,6 +796,12 @@ header {
 	padding: 0px;
 	margin: 5px 0px;
 	height: 1px;
+}
+
+#context-menu li span {
+	opacity: .75;
+	margin-left: 5px;
+	font-weight: 300;
 }
 	
 .status-dot {

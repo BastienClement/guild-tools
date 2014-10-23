@@ -383,8 +383,14 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	$scope.navigator_tab = null;
 
 	var navigators = {
+		"dashboard": [
+			["main", "Dashboard", "/dashboard"]
+		],
 		"calendar": [
 			["main", "Calendar", "/calendar"]
+		],
+		"profile": [
+			["main", "Profile", "/profile"]
 		]
 	};
 
@@ -419,4 +425,19 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 			$scope.navigator = null;
 		}
 	};
+	
+	$scope.userMenu = [
+		{
+			icon: "awe-logout", text: "Logout",
+			action: function() {
+				$.exec("auth:logout", function() {
+					$.error = function() {
+					};
+					localStorage.removeItem("session.token");
+					location.reload();
+				});
+			},
+			order: 10
+		}
+	];
 });

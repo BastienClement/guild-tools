@@ -56,19 +56,4 @@ GuildTools.controller("TitleBarCtrl", function($scope) {
 			}, order: 5
 		});
 	}
-
-	$scope.userMenu = [
-		{
-			icon: "awe-logout", text: "Logout",
-			action: function() {
-				$.exec("auth:logout", function() {
-					$.error = function() {
-					};
-					localStorage.removeItem("session.token");
-					location.reload();
-				});
-			},
-			order: 10
-		}
-	];
 });

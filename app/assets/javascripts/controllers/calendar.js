@@ -1023,7 +1023,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		chars.forEach(function(char, i) {
 			menu.push({
 				icon: "cls-icon c" + char["class"],
-				text: char.name,
+				text: char.name, text2: " (" + char.ilvl + ")",
 				action: function() {
 					template.char = char;
 					$.call("calendar:comp:set", template);
