@@ -1020,6 +1020,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			{ separator: true, order: 3, visible: chars.length > 0 }
 		];
 		
+		chars.sort(function(a, b) { return b.ilvl - a.ilvl; });
 		chars.forEach(function(char, i) {
 			menu.push({
 				icon: "cls-icon c" + char["class"],

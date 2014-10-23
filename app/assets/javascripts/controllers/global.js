@@ -313,9 +313,9 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 		$scope.menuContent = null;
 	};
 
-	_(document).click($scope.menuClose);
+	_(document).mousedown($scope.menuClose);
 
-	ctxMenu.click(function(e) {
+	ctxMenu.mousedown(function(e) {
 		e.stopPropagation();
 	});
 
