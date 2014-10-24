@@ -13,7 +13,7 @@ import play.api.libs.json.{JsNull, JsValue, Json}
 import scala.annotation.tailrec
 import scala.concurrent.duration.DurationInt
 
-private object AuthHelper {
+object AuthHelper {
 	val allowedGroups = Set(8, 9, 10, 11)
 }
 

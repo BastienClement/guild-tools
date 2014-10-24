@@ -6,6 +6,8 @@ var $ = {};
 
 	$.online = [];
 	$.onlineMap = {};
+	
+	$.roster = { users: [], chars: [] };
 
 	_(function() {
 		ready = true;
@@ -89,7 +91,114 @@ var $ = {};
 				$.onlineMap[player.id] = player;
 			});
 		});
+		
+		$.exec("roster:load", function(err, data) {
+			if (err) return;
+			$.roster.users = [];
+			data.users.forEach(function(user) { $.roster.users[user.id] = user; });
+			$.roster.chars = [];
+			data.chars.forEach(function(char) { $.roster.chars[char.id] = char; });
+			$.roster.trigger();
+		});
 	};
+	
+//
+// Roster
+//
+	(function() {
+		var unknown_user_queries = {};
+		var unknown_char_queries = {};
+		
+		var idx_chars_by_user = [];
+		var idx_main_for_user = [];
+		
+		$.roster.user = function(id) {
+			id = Number(id);
+			var user = $.roster.users[id];
+			
+			if (!user) {
+				user = $.roster.users[id] = {
+					id: id,
+					name: "User#" + id,
+					color: "64B4FF",
+					unknown: true
+				};
+			}
+			
+			if (user.unknown && (!unknown_user_queries[id] || (Date.now() - unknown_user_queries[id]) > 60000)) {
+				unknown_user_queries[id] = Date.now();
+				$.exec("roster:user", { id: id }, function(err, data) {
+					if (err) return;
+					$.roster.users[data.user.id] = data.user;
+					data.chars.forEach(function(char) {
+						$.roster.chars[char.id] = char;
+					});
+					$.roster.trigger();
+				});
+			}
+			
+			return user;
+		};
+		
+		$.roster.char = function(id) {
+			id = Number(id);
+			var char = $.roster.chars[id];
+			
+			if (!char) {
+				char = $.roster.chars[id] = {
+					id: id,
+					name: "Char#" + id,
+					"class": 99,
+					unknown: true
+				};
+			}
+			
+			if (char.unknown && (!unknown_char_queries[id] || (Date.now() - unknown_char_queries[id]) > 60000)) {
+				unknown_char_queries[id] = Date.now();
+				$.exec("roster:char", { id: id }, function(err, char) {
+					if (err) return;
+					$.roster.chars[id] = char;
+					$.roster.trigger();
+				});
+			}
+			
+			return char;
+		};
+		
+		$.roster.buildIndexes = function() {
+			idx_chars_by_user = [];
+			$.roster.chars.forEach(function(char) {
+				if (!idx_chars_by_user[char.owner]) {
+					idx_chars_by_user[char.owner] = [];
+				}
+				idx_chars_by_user[char.owner].push(char);
+			});
+			
+			idx_main_for_user = $.roster.users.map(function(user) {
+				return $.roster.charsByUser(user.id).filter(function(char) {
+					return char.main;
+				})[0];
+			});
+		};
+		
+		$.roster.trigger = function() {
+			$.roster.buildIndexes();
+			if (GuildToolsScope) GuildToolsScope.$broadcast("roster-updated");
+		};
+		
+		$.roster.charsByUser = function(user) {
+			return idx_chars_by_user[user] || [];
+		};
+		
+		$.roster.mainForUser = function(user) {
+			return idx_main_for_user[user] || {
+				name: $.roster.user(user).name,
+				"class": 99,
+				role: "UNKNOW",
+				unknown: true
+			};
+		};
+	})();
 
 //
 // Web socket
@@ -115,27 +224,37 @@ var $ = {};
 			},
 
 			"chat:onlines:update": function(msg) {
-				var data = msg.data;
+				var user = msg.user;
 				switch (msg.type) {
 					case "online":
-						if ($.onlineMap[data.id]) {
-							var player = $.onlineMap[data.id];
-							for (var key in data) {
-								player[key] = data[key];
+						if ($.onlineMap[user.id]) {
+							var player = $.onlineMap[user.id];
+							for (var key in user) {
+								player[key] = user[key];
 							}
 						} else {
-							$.online.push(data);
-							$.onlineMap[data.id] = data;
+							$.online.push(user);
+							$.onlineMap[user.id] = user;
 						}
 						break;
 
 					case "offline":
 						$.online = $.online.filter(function(player) {
-							return player.id !== data;
+							return player.id !== user;
 						});
-						delete $.onlineMap[data];
+						delete $.onlineMap[user];
 						break;
 				}
+			},
+			
+			"roster:char:update": function(char) {
+				$.roster.chars[char.id] = char;
+				$.roster.trigger();
+			},
+			
+			"roster:char:delete": function(id) {
+				delete $.roster.chars[id];
+				$.roster.trigger();
 			},
 
 			"event:dispatch": function(event) {
@@ -234,6 +353,16 @@ var $ = {};
 					var id = msg["#"];
 					var arg = msg["&"];
 					var handler = typeof id === "number" ? calls[id] : null;
+					
+					var updateTimeout = null;
+					
+					function triggerUpdate() {
+						if (!GuildToolsScope) return;
+						if (updateTimeout) clearTimeout(updateTimeout);
+						updateTimeout = setTimeout(function() {
+							GuildToolsScope.safeApply();
+						}, 30);
+					}
 
 					switch (cmd) {
 						case "ack":
@@ -241,7 +370,7 @@ var $ = {};
 							if (typeof handler !== "function") return;
 							try {
 								handler.call(null, null, arg);
-								if (GuildToolsScope) GuildToolsScope.safeApply();
+								triggerUpdate();
 							} catch (e) {
 								console.error(e);
 							}
@@ -257,7 +386,7 @@ var $ = {};
 								handler.call(null, arg);
 								if (GuildToolsScope) {
 									GuildToolsScope.error("An error occurred. Please try again.");
-									GuildToolsScope.safeApply();
+									triggerUpdate();
 								}
 							} catch (e) {
 								console.error(e);
@@ -280,7 +409,7 @@ var $ = {};
 
 							try {
 								method.call(null, arg);
-								if (GuildToolsScope) GuildToolsScope.safeApply();
+								triggerUpdate();
 							} catch (e) {
 								console.error(e);
 							}

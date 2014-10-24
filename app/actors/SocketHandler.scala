@@ -7,10 +7,13 @@ import gt.{ Socket, User }
 import play.api.Logger
 import play.api.libs.json._
 import scala.util.{ Failure, Success }
+import akka.util.Timeout
+import scala.concurrent.duration._
 
 class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 	with AuthHandler
 	with ChatHandler
+	with RosterHandler
 	with ProfileHandler
 	with CalendarHandler {
 	// Debug socket ID
@@ -33,6 +36,9 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 
 	// Alias to the socket user
 	var user: User = null
+
+	// Timeout for ask pattern (Akka)
+	implicit val timeout = Timeout(5.seconds)
 
 	/**
 	 * Handle actor messages
@@ -186,6 +192,11 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		case ("profile:register", arg) => handleProfileRegister(arg)
 
 		case ("chat:onlines", _) => handleChatOnlines()
+
+		case ("roster:load", _) => handleRosterLoad()
+		case ("roster:user", arg) => handleRosterUser(arg)
+		case ("roster:char", arg) => handleRosterChar(arg)
+
 		case ("auth:logout", _) => handleAuthLogout()
 		case _ => MessageFailure("UNAVAILABLE")
 	}

@@ -3,6 +3,7 @@ package models
 import api._
 import gt.Socket
 import models.mysql._
+import actors.RosterManager._
 
 import scala.slick.jdbc.JdbcBackend.SessionDef
 
@@ -51,16 +52,15 @@ class Chars(tag: Tag) extends Table[Char](tag, "gt_chars") {
 
 object Chars extends TableQuery(new Chars(_)) {
 	def notifyCreate(char: Char): Unit = {
-		Socket !# CharCreate(char)
+		RosterManagerRef ! CharUpdate(char)
 	}
 
-	def notifyUpdate(id: Int)(implicit s: SessionDef): Unit = {
-		val char = for (c <- Chars if c.id === id) yield c
-		char.firstOption foreach (Socket !# CharUpdate(_))
+	def notifyUpdate(char: Char)(implicit s: SessionDef): Unit = {
+		RosterManagerRef ! CharUpdate(char)
 	}
 
 	def notifyDelete(id: Int): Unit = {
-		Socket !# CharDelete(id)
+		RosterManagerRef ! CharDelete(id)
 	}
 
 	def validateRole(role: String): Boolean = role match {

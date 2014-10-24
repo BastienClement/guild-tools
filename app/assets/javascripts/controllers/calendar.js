@@ -470,7 +470,8 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 
 	$scope.event = null;
 	$scope.answers = [];
-	$scope.chars = {};
+	$scope.answers_tab = { "0": [], "1": [], "2": []};
+	$scope.chars = [];
 	$scope.tabs = [];
 	$scope.tabs_idx = {};
 	$scope.slots = {};
@@ -497,13 +498,11 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 
 	$scope.answer = 1;
 	$scope.answer_note = "";
-
-	var raw_answers;
 	
 	$scope.picked = null;
 	$scope.pickedFromSlot = false;
 	$scope.setPicker = function(char, ev, slot) {
-		if (!char || !$scope.editable || ev.button !== 0) return false;
+		if (!char || !$scope.editable || ev.button !== 0 || char.unknown) return false;
 		$scope.picked = char;
 		$scope.pickedFromSlot = slot;
 		$scope.handlePicker(ev);
@@ -579,39 +578,6 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		};
 	}
 	
-	function build_answers() {
-		$scope.answers = [];
-		$scope.chars = {};
-		cached_tab = null;
-
-		for (var id in raw_answers) {
-			var data = raw_answers[id];
-			
-			if (!data.answer) {
-				data.answer = { answer: 0 };
-			}
-			
-			if (!data.chars.length) {
-				data.main = {
-					name: data.user.name,
-					main: 1,
-					"class": 99,
-					role: "UNKNOW"
-				};
-			} else {
-				data.chars.some(extract_main(data));
-			}
-
-			if (!$scope.answers[data.answer.answer]) {
-				$scope.answers[data.answer.answer] = [data];
-			} else {
-				$scope.answers[data.answer.answer].push(data);
-			}
-			
-			$scope.chars[id] = data.chars;
-		}
-	}
-	
 	function build_tabs_idx() {
 		$scope.tabs_idx = {};
 		$scope.tabs.forEach(function(tab) {
@@ -619,6 +585,22 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		});
 	}
 
+	function update_answer(answer) {
+		if (answer.user === $.user.id) {
+			$scope.answer = answer.answer;
+			$scope.answer_note = answer.note;
+		}
+
+		$scope.answers[answer.user] = answer;
+		function is_not_user(e) { return e.user != answer.user; }
+		for (var tab in $scope.answers_tab) {
+			$scope.answers_tab[tab] = $scope.answers_tab[tab].filter(is_not_user);
+		}
+		$scope.answers_tab[answer.answer].push({ user: answer.user, answer: answer });
+		cached_tab = null;
+		$scope.updateNote();
+	}
+	
 	$scope.setContext("calendar:event", { id: eventid }, {
 		$: function(data) {
 			if (data.answer) {
@@ -633,11 +615,17 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			$scope.slots = data.slots;
 			$scope.editable = data.editable;
 
-			raw_answers = data.answers;
-			build_answers();
+			$scope.answers = data.answers;
+			for (var user in $scope.answers) {
+				var answer = $scope.answers[user] || { answer: 0 };
+				$scope.answers_tab[answer.answer].push({ user: user, answer: answer });
+			}
+			
 			build_tabs_idx();
+			cached_tab = null;
 			$scope.computeRaidBuffs();
 			$scope.updateNote();
+			$scope.chars = $.roster.charsByUser($.user.id);
 		},
 		
 		"event:update": function(data) {
@@ -657,16 +645,8 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			$scope.error("Event deleted");
 		},
 
-		"answer:replace": function(data) {
-			if (data.user.id === $.user.id) {
-				$scope.answer = data.answer.answer;
-				$scope.answer_note = data.answer.note;
-			}
-
-			raw_answers[data.user.id] = data;
-			build_answers();
-			$scope.updateNote();
-		},
+		"answer:create": update_answer,
+		"answer:update": update_answer,
 		
 		"calendar:slot:update": function(data) {
 			var comp = $scope.slots[data.tab];
@@ -763,6 +743,11 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		var hour = zero_pad(date.getHours(), 2) + ":" + zero_pad(date.getMinutes(), 2);
 		return day + " - " + hour;
 	};
+	
+	$scope.$on("roster-updated", function() {
+		cached_tab = null;
+		$scope.chars = $.roster.charsByUser($.user.id);
+	});
 
 	$scope.getAnswersGroups = function(tab) {
 		if (cached_tab === tab) {
@@ -772,16 +757,33 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		var groups = [];
 		var group = [];
 
-		if (!$scope.answers[tab]) return [];
+		if (!$scope.answers_tab[tab]) return [];
 
-		$scope.answers[tab].sort(function(a, b) {
-			a = a.main;
-			b = b.main;
+		function select_char(e) {
+			var char;
+			if (e.answer && e.answer.char) {
+				return $.roster.char(e.answer.char);
+			} else {
+				return $.roster.mainForUser(e.user);
+			}
+		}
+		
+		var list = $scope.answers_tab[tab].map(function(e) {
+			return {
+				user: e.user,
+				answer: e.answer,
+				char: select_char(e)
+			};
+		});
+		
+		list.sort(function(a, b) {
+			a = a.char;
+			b = b.char;
 			if (a["class"] !== b["class"]) return a["class"] - b["class"];
 			return a.name.localeCompare(b.name);
 		});
 
-		$scope.answers[tab].forEach(function(answer) {
+		list.forEach(function(answer) {
 			group.push(answer);
 			if (group.length >= 2) {
 				groups.push(group);
@@ -982,8 +984,8 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		var chars;
 		
 		try {
-			chars = raw_answers[$scope.slots[$scope.tab_selected][slot].owner].chars.filter(function(char) {
-				return char.name !== template.char.name;
+			chars = $.roster.charsByUser($scope.slots[$scope.tab_selected][slot].owner).filter(function(char) {
+				return char.name !== template.char.name && char.active;
 			});
 		} catch (e) {
 			chars = [];
@@ -1147,7 +1149,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	};
 	
 	$scope.playerIsAvailable = function(owner) {
-		return raw_answers[owner] && raw_answers[owner].answer.answer == 1;
+		return $scope.answers[owner] && $scope.answers[owner].answer == 1;
 	};
 	
 	var tips = [
@@ -1313,11 +1315,9 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			}
 		}
 		
-		for(var id in raw_answers) {
-			raw_answers[id].chars.forEach(process_char);
+		for(var id in $scope.answers) {
+			$.roster.charsByUser(id).forEach(process_char);
 		}
-		
-		console.log(roster);
 		
 		note = note.replace(/@(\w+)/g, function(match, name) {
 			var simple_name = removeDiacritics(name);

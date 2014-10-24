@@ -34,6 +34,7 @@ object Socket {
 
 	def findByID(id: String): Option[Socket] = sockets.get(id)
 
+	def !(e: Message): Unit = sockets.values foreach { _ ! e }
 	def !#(e: Event): Unit = sockets.values foreach { _ ! e }
 }
 

@@ -89,7 +89,7 @@
 		<div class="box" id="dashboard-connected">
 			<h2>Utilisateurs connectés</h2>
 			<div class="dashboard-connected-user" ng-repeat="player in $.online | orderBy:onlineSort">
-				<div class="status-dot"></div> {{ player.name }}
+				<div class="status-dot"></div> {{ $.roster.user(player).name }}
 			</div>
 			<!--<div class="dashboard-connected-user">
 				<div class="status-dot away"></div> Kkcx

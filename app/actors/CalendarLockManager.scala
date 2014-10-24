@@ -4,18 +4,16 @@ import akka.actor._
 import play.api.libs.concurrent.Akka
 import play.api.Play.current
 import utils.scheduler
-import scala.concurrent.duration._
 import java.util.Date
 import gt.Socket
 import api.CalendarLockAcquire
 import api.CalendarLockRelease
 import CalendarLockManager._
 import gt.Global.ExecutionContext
-import akka.util.Timeout
+import scala.concurrent.duration._
 
 object CalendarLockManager {
 	val LockManager = Akka.system.actorOf(Props[CalendarLockManager], name = "CalendarLockManager")
-	implicit val timeout = Timeout(5.seconds)
 
 	case class LockAcquire(tab: Int, owner: String)
 	case class LockStatus(tab: Int)

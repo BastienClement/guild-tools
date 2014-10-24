@@ -27,16 +27,14 @@ object CalendarHelper {
 		for {
 			(u, a) <- Users leftJoin CalendarAnswers on ((u, a) => u.id === a.user && a.event === event_id)
 			if (u.group inSet CalendarHelper.guildies_groups)
-			c <- Chars if c.owner === u.id && c.active
-		} yield (u, (a.answer.?, a.date.?, a.note, a.char), c)
+		} yield (u, (a.answer.?, a.date.?, a.note, a.char))
 	}
 
 	val answersQuery = Compiled { (event_id: Column[Int]) =>
 		for {
 			a <- CalendarAnswers if a.event === event_id
 			u <- Users if u.id === a.user
-			c <- Chars if c.owner === u.id && c.active
-		} yield (u, a, c)
+		} yield (u, a)
 	}
 }
 
@@ -306,36 +304,28 @@ trait CalendarHandler {
 		def fetchGuildAnswers = {
 			CalendarHelper.guildAnswersQuery(event_id).list.groupBy(_._1.id.toString).mapValues { list =>
 				val user = list(0)._1
-
 				val (a_answer, a_date, a_note, a_char) = list(0)._2
-				val answer = {
-					if (a_answer.isDefined) {
-						val a = CalendarAnswer(
-							user = user.id,
-							event = event_id,
-							date = a_date.get,
-							answer = a_answer.get,
-							note = a_note,
-							char = a_char
-						)
-						Some(a)
-					} else {
-						None
-					}
-				}
 
-				val chars = list.map(_._3)
-				CalendarAnswerTuple(user, answer, chars)
+				if (a_answer.isDefined) {
+					val a = CalendarAnswer(
+						user = user.id,
+						event = event_id,
+						date = a_date.get,
+						answer = a_answer.get,
+						note = a_note,
+						char = a_char
+					)
+					Some(a)
+				} else {
+					None
+				}
 			}
 		}
 
 		// Fetch answers for non-guild events
 		def fetchEventAnswers = {
 			CalendarHelper.answersQuery(event_id).list.groupBy(_._1.id.toString).mapValues { list =>
-				val user = list(0)._1
-				val answer = Some(list(0)._2)
-				val chars = list.map(_._3)
-				CalendarAnswerTuple(user, answer, chars)
+				Some(list(0)._2)
 			}
 		}
 
@@ -348,7 +338,7 @@ trait CalendarHandler {
 		}
 
 		// Extract own answer
-		val my_answer = answers.get(user.id.toString).flatMap(_.answer)
+		val my_answer = answers.get(user.id.toString)
 
 		// Check invitation in private event
 		if (event.visibility == CalendarVisibility.Private && my_answer.isEmpty) return MessageFailure("NOT_INVITED")
@@ -372,14 +362,6 @@ trait CalendarHandler {
 		// Extract tabs set
 		CalendarContext.event_tabs = visible.tabs.map(tab => (tab.id -> tab)).toMap
 
-		def expandAnswer(answer: CalendarAnswer) = {
-			if (answer.event == event_id) {
-				socket !< CalendarAnswerReplace(answer.expand)
-			} else {
-				false
-			}
-		}
-
 		def tabContentIsVisible(tab_id: Int): Boolean = {
 			CalendarContext.event_tabs.get(tab_id) map { tab =>
 				if (CalendarContext.event_editable)
@@ -395,8 +377,8 @@ trait CalendarHandler {
 
 		// Event page bindings
 		socket.bindEvents {
-			case CalendarAnswerCreate(answer) => expandAnswer(answer)
-			case CalendarAnswerUpdate(answer) => expandAnswer(answer)
+			case CalendarAnswerCreate(answer) => (answer.event == event_id)
+			case CalendarAnswerUpdate(answer) => (answer.event == event_id)
 
 			case CalendarEventUpdate(event) => {
 				if (event.id == event_id) {

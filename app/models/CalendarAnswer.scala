@@ -14,23 +14,7 @@ case class CalendarAnswer(user: Int, event: Int, date: Timestamp, answer: Int, n
 	if (answer < 0 || answer > 2) {
 		throw new Exception("Invalid answer value")
 	}
-
-	/**
-	 * Convert this answer to a expanded answer tuple
-	 */
-	lazy val expand = {
-		DB.withSession { implicit s =>
-			var user_obj = Users.filter(_.id === user).first
-			var char = Chars.filter(c => c.owner === user && c.active).list
-			CalendarAnswerTuple(user_obj, Some(this), char)
-		}
-	}
 }
-
-/**
- * Expanded version for event pages
- */
-case class CalendarAnswerTuple(user: User, answer: Option[CalendarAnswer], chars: List[Char])
 
 /**
  * Answers database

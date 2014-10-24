@@ -23,24 +23,13 @@ trait ProfileHandler {
 	def handleProfileLoad(arg: JsValue): MessageResponse = DB.withSession { implicit s =>
 		val user_id = (arg \ "id").as[Int]
 
-		val user = Users.filter(_.id === user_id).first
-		val chars = Chars.filter(_.owner === user_id).list
+		//val user = Users.filter(_.id === user_id).first
+		//val chars = Chars.filter(_.owner === user_id).list
 
-		var watched_chars = chars.map(_.id).toSet
+		//socket.unbindEvents()
 
-		socket.bindEvents {
-			case CharCreate(char) => utils.doIf(char.owner == user_id) {
-				watched_chars += char.id
-			}
-
-			case CharUpdate(char) => watched_chars.contains(char.id)
-
-			case CharDelete(char_id) => utils.doIf(watched_chars.contains(char_id)) {
-				watched_chars -= char_id
-			}
-		}
-
-		MessageResults(Json.obj("user" -> user, "chars" -> chars.toSeq))
+		//MessageResults(Json.obj("user" -> user, "chars" -> chars.toSeq))
+		MessageSuccess
 	}
 
 	/**
@@ -49,10 +38,10 @@ trait ProfileHandler {
 	 */
 	def handleProfileEnable(arg: JsValue, state: Boolean): MessageResponse = DB.withSession { implicit s =>
 		val char = (arg \ "id").as[Int]
-		val active = for (c <- Chars if c.id === char && c.owner === user.id && c.main === false) yield c.active
+		val query = Chars.filter(c => c.id === char && c.owner === user.id && c.main === false)
 
-		if (active.update(state) > 0) {
-			Chars.notifyUpdate(char)
+		if (query.map(_.active).update(state) > 0) {
+			Chars.notifyUpdate(query.first)
 			MessageSuccess
 		} else {
 			MessageFailure("UNABLE_TO_UPDATE")
@@ -73,9 +62,10 @@ trait ProfileHandler {
 		}
 
 		chars foreach { char =>
-			val main = for (c <- Chars if c.id === char.id) yield c.main
-			main.update(char.id == main_id)
-			Chars.notifyUpdate(char.id)
+			val query = Chars.filter(_.id === char.id)
+			if (query.map(_.main).update(char.id == main_id) > 0) {
+				Chars.notifyUpdate(query.first)
+			}
 		}
 
 		MessageSuccess
@@ -103,9 +93,9 @@ trait ProfileHandler {
 		val id = (arg \ "id").as[Int]
 		val role = checkRole((arg \ "role").as[String])
 
-		val row = for (c <- Chars if c.id === id && c.owner === user.id && c.role =!= role) yield c.role
-		if (row.update(role) > 0) {
-			Chars.notifyUpdate(id)
+		val query = Chars.filter(c => c.id === id && c.owner === user.id && c.role =!= role)
+		if (query.map(_.role).update(role) > 0) {
+			Chars.notifyUpdate(query.first)
 			MessageSuccess
 		} else {
 			MessageFailure("CHAR_NOT_FOUND")

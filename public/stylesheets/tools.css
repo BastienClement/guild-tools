@@ -614,8 +614,9 @@ header {
 
 #topbar #topbar-chat button {
 	padding-left: 5x;
-	margin-left: 5px;
+	margin-left: 10px;
 	padding-right: 5px;
+	color: #EEE;
 }
 
 #topbar #topbar-chat button i {
@@ -624,7 +625,7 @@ header {
 }
 
 #topbar #topbar-chat button:hover {
-	color: #FFF;
+	color: #EEE;
 }
 
 #topbar #topbar-chat button:before {
@@ -656,7 +657,7 @@ header {
 	}
 }
 
-#topbar #topbar-chat button:hover:before {
+#topbar #topbar-chat button:hover:before, #topbar #topbar-chat button.active:before {
 	opacity: 1;
 }
 

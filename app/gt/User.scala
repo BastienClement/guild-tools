@@ -8,6 +8,7 @@ import models.mysql._
 import play.api.Logger
 import play.api.libs.json._
 import utils.SmartTimestamp
+import actors.ChatManager._
 
 object User {
 	var onlines = Map[Int, User]()
@@ -51,10 +52,7 @@ class User(val id: Int) {
 	var sockets = Set[Socket]()
 
 	updatePropreties()
-
-	User.onlines.values foreach {
-		_ ! Message("chat:onlines:update", Json.obj("type" -> "online", "data" -> asJson))
-	}
+	ChatManagerRef ! UserLogin(this)
 
 	Logger.info("Created user: " + asJson)
 
@@ -120,9 +118,7 @@ class User(val id: Int) {
 		User.disposed(this)
 
 		// Broadcast offline event
-		User.onlines.values foreach {
-			_ ! Message("chat:onlines:update", Json.obj("type" -> "offline", "data" -> id))
-		}
+		ChatManagerRef ! UserLogout(this)
 
 		Logger.info("Disposed user: " + asJson)
 	}

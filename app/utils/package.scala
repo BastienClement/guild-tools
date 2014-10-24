@@ -10,6 +10,9 @@ import gt.Global.ExecutionContext
 import play.libs.Akka
 import api.MessageDeferred
 import api.MessageResponse
+import api.MessageResults
+import play.api.libs.json.Json.JsValueWrapper
+import play.api.libs.json.JsValue
 
 package object utils {
 	/**
@@ -66,4 +69,5 @@ package object utils {
 	 */
 	def defer(body: => MessageResponse): MessageDeferred = defer(Future { body })
 	def defer(future: Future[MessageResponse]): MessageDeferred = MessageDeferred(future)
+	def defer[T <% JsValueWrapper](future: Future[T]): MessageDeferred = MessageDeferred(future map { MessageResults(_) })
 }

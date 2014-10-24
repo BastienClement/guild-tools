@@ -403,15 +403,15 @@
 				<div class="tabs">
 					<button ng-class="{ active: roster_tab == 1 }" ng-click="roster_tab = 1">
 						<i class="awe-ok"></i>
-						{{ answers[1].length || 0 }}
+						{{ answers_tab[1].length || 0 }}
 					</button>
 					<button ng-class="{ active: roster_tab == 2 }" ng-click="roster_tab = 2">
 						<i class="awe-cancel"></i>
-						{{ answers[2].length || 0 }}
+						{{ answers_tab[2].length || 0 }}
 					</button>
 					<button ng-class="{ active: roster_tab == 0 }" ng-click="roster_tab = 0">
 						<i class="awe-clock"></i>
-						{{ answers[0].length || 0 }}
+						{{ answers_tab[0].length || 0 }}
 					</button>
 				</div>
 				
@@ -420,22 +420,22 @@
 						<div class="char-wrapper" ng-repeat="row in groups">
 							<div ng-if="!row.void" ng-tooltip=".tooltip">
 								<div class="tooltip">
-									<div class="fsblue">{{ row.user.name | capitalize }}</div>
+									<div class="fsblue">{{ $.roster.user(row.user).name | capitalize }}</div>
 									<div class="light" ng-if="row.answer.date">{{ formatDate(row.answer.date) }}</div>
 									<div class="light" ng-if="!row.answer.date">Non-register</div>
 									<div class="spaced" ng-if="row.answer.note">
 										{{ row.answer.note }}
 									</div>
 								</div>
-								<div class="char" ng-mousedown="setPicker(row.main, $event)" ng-class="{ picked: charDimmedInRoster(row.main) }">
-									<img ng-src="/assets/images/roles/{{ row.main.role }}.png">
-									<span class="name c{{ row.main.class }}">{{ row.main.name | capitalize }}</span>
+								<div class="char" ng-mousedown="setPicker(row.char, $event)" ng-class="{ picked: charDimmedInRoster(row.char) }">
+									<img ng-src="/assets/images/roles/{{ row.char.role }}.png">
+									<span class="name c{{ row.char.class }}">{{ row.char.name | capitalize }}</span>
 									<i class="awe-pencil-squared" ng-if="row.answer.note"></i>
 								</div>
 							</div>
 						</div>
 					</div>
-					<div class="box" style="width: 100%;" ng-if="!answers[roster_tab].length">
+					<div class="box" style="width: 100%;" ng-if="!answers_tab[roster_tab].length">
 						Empty tab...
 					</div>
 				</div>
@@ -450,10 +450,10 @@
 						<input type="radio" ng-model="answer" value="2"> Unavailable
 					</label>
 				</div>
-				<label ng-show="chars[$.user.id]">
+				<label ng-show="chars">
 					Character
 					<select ng-model="answer_char" style="width: 100%;">
-						<option class="c{{ char.class }}" ng-repeat="char in chars[$.user.id] | orderBy : ['-main', 'name']" value="{{ char.id }}">
+						<option class="c{{ char.class }}" ng-repeat="char in chars | filter : { active: true } | orderBy : ['-main', 'name']" value="{{ char.id }}">
 							{{ char.name }}
 						</option>
 					</select>

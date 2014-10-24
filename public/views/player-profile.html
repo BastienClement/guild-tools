@@ -113,15 +113,15 @@
 			<table>
 				<tr>
 					<th>Username</th>
-					<td>{{ profile.name }}</td>
+					<td>{{ user.name }}</td>
 				</tr>
 				<tr>
 					<th>BattleTag</th>
-					<td>{{ profile.battletag || "—" }}</td>
+					<td>{{ user.battletag || "—" }}</td>
 				</tr>
 				<tr>
 					<th>Rank</th>
-					<td>{{ profile.rank }}</td>
+					<td>{{ user.rank }}</td>
 				</tr>
 			</table>
 			
@@ -145,7 +145,7 @@
 	
 	<div class="chars">
 		<h2>Characters</h2>
-		<div class="box char animated" ng-repeat="char in chars" ng-class="{ inactive: !char.active }">
+		<div class="box char" ng-repeat="char in chars" ng-class="{ inactive: !char.active }">
 			<div class="img-wrapper">
 				<img class="animated" ng-src="http://eu.battle.net/static-render/eu/{{ char.thumbnail }}">
 			</div>

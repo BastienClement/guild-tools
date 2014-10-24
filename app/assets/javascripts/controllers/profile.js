@@ -9,47 +9,27 @@ GuildTools.controller("ProfileCtrl", function($scope, $location, $routeParams) {
 
 	var userid = Number($routeParams.id || $.user.id);
 	$scope.editable = (userid === $.user.id);
-
-	$scope.profile = {};
+	
 	$scope.chars = [];
+	
+	function update() {
+		$scope.user = $.roster.user(userid);
+		$scope.chars = $.roster.charsByUser(userid);
+		
+		$scope.breadcrumb.override({ name: $scope.user.name });
+		$scope.chars.sort(function(a, b) {
+			if (a.main !== b.main) return a.main ? -1 : 1;
+			if (a.active !== b.active) return a.active ? -1 : 1;
+			return a.name.localeCompare(b.name);
+		});
+	}
+	
+	update();
+	$scope.$on("roster-updated", update);
 
 	$scope.setContext("profile:load", { id: userid }, {
 		$: function(res) {
-			$scope.profile = res.user;
-			$scope.chars = res.chars;
-
-			$scope.chars.sort(function(a, b) {
-				if (a.main !== b.main) return a.main ? -1 : 1;
-				if (a.active !== b.active) return a.active ? -1 : 1;
-				return a.name.localeCompare(b.name);
-			});
-
-			$scope.breadcrumb.override({ name: res.user.name });
-		},
-
-		"char:update": function(char) {
-			for (var i = 0; i < $scope.chars.length; ++i) {
-				var c = $scope.chars[i];
-				if (c.id === char.id) {
-					for (var key in char) {
-						c[key] = char[key];
-					}
-					return;
-				}
-			}
-		},
-
-		"char:delete": function(id) {
-			for (var i = 0; i < $scope.chars.length; ++i) {
-				if ($scope.chars[i].id === id) {
-					$scope.chars.splice(i, 1);
-					break;
-				}
-			}
-		},
-
-		"char:create": function(char) {
-			$scope.chars.push(char);
+			
 		}
 	});
 
