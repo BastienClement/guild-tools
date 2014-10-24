@@ -14,7 +14,7 @@ import scala.annotation.tailrec
 import scala.concurrent.duration.DurationInt
 
 object AuthHelper {
-	val allowedGroups = Set(8, 9, 10, 11)
+	val allowedGroups = Set(8, 12, 9, 11)
 }
 
 trait AuthHandler {

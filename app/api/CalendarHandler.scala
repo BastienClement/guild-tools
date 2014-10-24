@@ -21,7 +21,7 @@ import gt.Global.ExecutionContext
  * Shared calendar-related values
  */
 object CalendarHelper {
-	val guildies_groups = Set[Int](8, 9, 10, 11)
+	val guildies_groups = Set[Int](8, 12, 9, 11)
 
 	val guildAnswersQuery = Compiled { (event_id: Column[Int]) =>
 		for {
