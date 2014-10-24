@@ -93,8 +93,8 @@ trait ProfileHandler {
 		val id = (arg \ "id").as[Int]
 		val role = checkRole((arg \ "role").as[String])
 
-		val query = Chars.filter(c => c.id === id && c.owner === user.id && c.role =!= role)
-		if (query.map(_.role).update(role) > 0) {
+		val query = Chars.filter(c => c.id === id && c.owner === user.id)
+		if (query.filter(_.role =!= role).map(_.role).update(role) > 0) {
 			Chars.notifyUpdate(query.first)
 			MessageSuccess
 		} else {
