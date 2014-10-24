@@ -5,8 +5,6 @@ var $ = {};
 	var dead = false;
 
 	$.online = [];
-	$.onlineMap = {};
-	
 	$.roster = { users: [], chars: [] };
 
 	_(function() {
@@ -234,25 +232,15 @@ var $ = {};
 
 			"chat:onlines:update": function(msg) {
 				var user = msg.user;
-				switch (msg.type) {
-					case "online":
-						if ($.onlineMap[user.id]) {
-							var player = $.onlineMap[user.id];
-							for (var key in user) {
-								player[key] = user[key];
-							}
-						} else {
-							$.online.push(user);
-							$.onlineMap[user.id] = user;
-						}
-						break;
-
-					case "offline":
-						$.online = $.online.filter(function(player) {
-							return player.id !== user;
-						});
-						delete $.onlineMap[user];
-						break;
+				
+				// Remove
+				$.online = $.online.filter(function(id) {
+					return id !== user;
+				});
+				
+				// Add
+				if (msg.type === "online") {
+					$.online.push(user);
 				}
 			},
 			
