@@ -213,6 +213,7 @@ var $ = {};
 		var sockid = null;
 		var init_done = false;
 		var reason = null;
+		var serv_rev = null;
 
 		$.getInflight = function() {
 			return inflight;
@@ -338,6 +339,12 @@ var $ = {};
 						"Error #113"
 					);
 				}
+				
+				if (serv_rev && serv_rev !== msg.rev) {
+					console.log("Server updated");
+				}
+				
+				serv_rev = msg.rev;
 
 				ws.onclose = $.wsReconnect;
 				ws.onmessage = function(msg) {

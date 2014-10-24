@@ -9,6 +9,7 @@ import play.api.libs.json._
 import scala.util.{ Failure, Success }
 import akka.util.Timeout
 import scala.concurrent.duration._
+import gt.Global
 
 class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 	with AuthHandler
@@ -23,7 +24,8 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 	out ! Json.obj(
 		"service" -> "GuildTools",
 		"protocol" -> "GTP2",
-		"version" -> "5.0")
+		"version" -> "5.0",
+		"rev" -> Global.serverVersion)
 
 	Logger.debug(s"Socket open: $remoteAddr-$id")
 
