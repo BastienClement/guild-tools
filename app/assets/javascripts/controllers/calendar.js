@@ -617,6 +617,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			$scope.slots = data.slots;
 			$scope.editable = data.editable;
 
+			$scope.answers_tab = { "0": [], "1": [], "2": []};
 			$scope.answers = data.answers;
 			for (var user in $scope.answers) {
 				var answer = $scope.answers[user] || { answer: 0 };
