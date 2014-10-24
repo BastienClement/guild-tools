@@ -128,7 +128,7 @@ var $ = {};
 			if (user.unknown && (!unknown_user_queries[id] || (Date.now() - unknown_user_queries[id]) > 60000)) {
 				unknown_user_queries[id] = Date.now();
 				$.exec("roster:user", { id: id }, function(err, data) {
-					if (err) return;
+					if (err || !data.user) return;
 					$.roster.users[data.user.id] = data.user;
 					data.chars.forEach(function(char) {
 						$.roster.chars[char.id] = char;
@@ -156,7 +156,7 @@ var $ = {};
 			if (char.unknown && (!unknown_char_queries[id] || (Date.now() - unknown_char_queries[id]) > 60000)) {
 				unknown_char_queries[id] = Date.now();
 				$.exec("roster:char", { id: id }, function(err, char) {
-					if (err) return;
+					if (err || !char) return;
 					$.roster.chars[id] = char;
 					$.roster.trigger();
 				});
