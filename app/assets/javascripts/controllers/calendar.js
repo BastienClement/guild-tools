@@ -699,8 +699,6 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				return tab.id !== id;
 			});
 			
-			build_tab_idx();
-			
 			if ($scope.tab_selected === id) {
 				$scope.tab_selected = $scope.tabs[0].id;
 			}
@@ -1300,19 +1298,13 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	$scope.preprocessNote = function(note) {
 		if (!note) return note;
 		
-		var roster = {};
-		
-		function push_roster(key, char) {
-			if (!roster[key]) roster[key] = [];
-			roster[key].push(char);
-		}
+		var roster = [];
 		
 		function process_char(char) {
-			var simple_name = removeDiacritics(char.name);
-			for (var i = simple_name.length; i > 2; --i) {
-				var prefix = simple_name.slice(0, i);
-				push_roster(simple_name.slice(0, i), char);
-			}
+			roster.push({
+				name: removeDiacritics(char.name),
+				char: char
+			});
 		}
 		
 		for(var id in $scope.answers) {
@@ -1321,21 +1313,25 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		
 		note = note.replace(/@(\w+)/g, function(match, name) {
 			var simple_name = removeDiacritics(name);
+			var sample_length = simple_name.length;
 			var candidate = null;
 			
-			function eval_candidate(char) {
-				if (!candidate) candidate = char;
-				if (char.name === name) candidate = char;
-				if (Math.abs(char.name.length - name) < Math.abs(candidate.name.length - name)) candidate = char;
-			}
+			var matches = roster.map(function(candidate) {
+				return {
+					scoreA: levenshtein(candidate.name.slice(0, sample_length), simple_name),
+					scoreB: levenshtein(candidate.char.name.slice(0, sample_length), name),
+					char: candidate.char
+				};
+			}).filter(function(candidate) {
+				return candidate.scoreA < (sample_length / 2);
+			});
 			
-			for (var i = simple_name.length; i > 2; --i) {
-				var prefix = simple_name.slice(0, i);
-				if (roster[prefix]) {
-					roster[prefix].forEach(eval_candidate);
-					break;
-				}
-			}
+			matches.sort(function(a, b) {
+				if (a.scoreA !== b.scoreA) return a.scoreA - b.scoreA;
+				return a.scoreB - b.scoreB;
+			});
+			
+			candidate = matches[0] && matches[0].char;
 			
 			var found = false;
 			if (candidate) {
