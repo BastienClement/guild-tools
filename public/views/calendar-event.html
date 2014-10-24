@@ -372,7 +372,7 @@
 	.cls-icon.c11:before { background-color:#FF7C0A!important; }
 </style>
 
-<div id="calendar-event" class="tools-main" ng-class="{ picked: picked }" ng-mousemove="handlePicker($event)" ng-mouseup="dropPicker()">
+<div id="calendar-event" class="tools-main" ng-class="{ picked: picked }" ng-mouseup="dropPicker()">
 	<div id="calendar-event-wrapper">
 		<div id="calendar-char-picker" class="char" ng-if="picked">
 			<img ng-src="/assets/images/roles/{{ picked.role }}.png">

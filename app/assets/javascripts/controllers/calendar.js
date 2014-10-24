@@ -568,6 +568,8 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			});
 		});
 	};
+	
+	_("#calendar-event").mousemove($scope.handlePicker);
 
 	function extract_main(data) {
 		return function(char) {
