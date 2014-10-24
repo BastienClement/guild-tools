@@ -120,11 +120,16 @@
 </head>
 <body class="loading live" ng-controller="GlobalCtrl" ng-class="{ 'modal-visible': modalView, 'authenticated': $.user, 'navigator': navigator }">
 	<div id="loading-cover"></div>
+	
 	<div id="loading-error">
 		<div id="loading-error-frame">
 			<h2 id="loading-error-title"></h2>
 			<p id="loading-error-text"></p>
 			<p id="loading-error-infos"></p>
+			<div id="loading-error-actions">
+				<button onclick='_("#loading-error").css({ display: "none", opacity: 1 }); _("#loading-error-actions").css({ display: "none" });'>Dismiss</button>
+				<button onclick='document.location.reload();'>Reload</button>
+			</div>
 		</div>
 	</div>
 	

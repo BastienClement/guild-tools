@@ -370,6 +370,10 @@ img, i {
 	opacity: 0.5;
 }
 
+#loading-error-actions {
+	display: none;
+}
+
 #error-popup {
 	position: fixed;
 	bottom: 20%;

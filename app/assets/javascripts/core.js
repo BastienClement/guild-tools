@@ -214,6 +214,14 @@ var $ = {};
 		var init_done = false;
 		var reason = null;
 		var serv_rev = null;
+		
+		function trigger_serv_update() {
+			_("#loading-error-title").text("The Guild-Tools server has just been upgraded");
+			_("#loading-error-text").text("You may continue what you were doing, but some features could now be broken.\nIt is recommended that you reload the client to get the latest upgrades.");
+			_("#loading-error-infos").text("You may lose any unsaved work if you reload now");
+			_("#loading-error").css({ display: "block", opacity: 0.9 });
+			_("#loading-error-actions").css({ display: "block" });
+		}
 
 		$.getInflight = function() {
 			return inflight;
@@ -341,7 +349,7 @@ var $ = {};
 				}
 				
 				if (serv_rev && serv_rev !== msg.rev) {
-					console.log("Server updated");
+					trigger_serv_update();
 				}
 				
 				serv_rev = msg.rev;
