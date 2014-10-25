@@ -71,7 +71,7 @@ trait AuthHandler {
 			val user = (arg \ "user").as[String].toLowerCase
 
 			DB.withSession { implicit s =>
-				val password = for (u <- Users if u.name_clean === user) yield u.pass
+				val password = for (u <- Users if u.name === user || u.name_clean === user) yield u.pass
 				password.firstOption map { pass =>
 					val setting = pass.slice(0, 12)
 					MessageResults(Json.obj("setting" -> setting, "salt" -> auth_salt))
@@ -93,7 +93,7 @@ trait AuthHandler {
 			auth_salt = utils.randomToken()
 
 			DB.withSession { implicit s =>
-				val user_credentials = for (u <- Users if (u.name_clean === user) && (u.group inSet AuthHelper.allowedGroups)) yield (u.pass, u.id)
+				val user_credentials = for (u <- Users if (u.name === user || u.name_clean === user) && (u.group inSet AuthHelper.allowedGroups)) yield (u.pass, u.id)
 				user_credentials.firstOption filter {
 					case (pass_ref, user_id) =>
 						pass == utils.md5(pass_ref + salt)
