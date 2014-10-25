@@ -5,6 +5,7 @@ import java.util.Date
 import scala.language.implicitConversions
 import java.text.SimpleDateFormat
 import java.util.GregorianCalendar
+import java.util.Calendar
 
 object SmartTimestamp {
 	val format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
@@ -29,6 +30,12 @@ object SmartTimestamp {
 }
 
 class SmartTimestamp(val time: Long) extends Timestamp(time) {
+	lazy val calendar = {
+		val c = new GregorianCalendar()
+		c.setTimeInMillis(time)
+		c
+	}
+
 	def ==(that: SmartTimestamp): Boolean = time == that.time
 	def !=(that: SmartTimestamp): Boolean = time != that.time
 	def >(that: SmartTimestamp): Boolean = time > that.time
@@ -40,6 +47,10 @@ class SmartTimestamp(val time: Long) extends Timestamp(time) {
 	def -(that: SmartTimestamp): SmartTimestamp = new SmartTimestamp(time - that.time)
 
 	def between(a: SmartTimestamp, b: SmartTimestamp): Boolean = this >= a && this <= b
+
+	def year = calendar.get(Calendar.YEAR)
+	def month = calendar.get(Calendar.MONTH)
+	def day = calendar.get(Calendar.DATE)
 
 	override def toString: String = SmartTimestamp.format.format(this)
 }

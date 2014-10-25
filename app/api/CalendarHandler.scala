@@ -16,6 +16,7 @@ import scala.slick.jdbc.JdbcBackend.SessionDef
 import actors.CalendarLockManager._
 import akka.pattern.ask
 import gt.Global.ExecutionContext
+import play.api.libs.json.Json.JsValueWrapper
 
 /**
  * Shared calendar-related values
@@ -176,6 +177,16 @@ trait CalendarHandler {
 		}
 
 		/**
+		 * Convert EventsAndAnswers to JsArray
+		 */
+		def eventsToJs(ea: EventsAndAnswers): JsValueWrapper = {
+			ea map {
+				case (e, a) =>
+					Json.obj("id" -> e.id, "event" -> e, "answer" -> (a.map(Json.toJson(_)).getOrElse(JsNull): JsValue))
+			}
+		}
+
+		/**
 		 * $:calendar:load
 		 */
 		def handleLoad(arg: JsValue): MessageResponse = {
@@ -189,10 +200,7 @@ trait CalendarHandler {
 
 			socket.bindEvents(filter)
 
-			MessageResults(events map {
-				case (e, a) =>
-					Json.obj("id" -> e.id, "event" -> e, "answer" -> (a.map(Json.toJson(_)).getOrElse(JsNull): JsValue))
-			})
+			MessageResults(eventsToJs(events))
 		}
 
 		/**
