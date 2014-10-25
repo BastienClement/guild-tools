@@ -5,7 +5,7 @@
 	}
 	
 	#dashboard-center {
-		flex: 1.5;
+		flex: 1.7;
 		display: flex;
 		flex-direction: column;
 	}
@@ -20,7 +20,7 @@
 	}
 	
 	#dashboard-right {
-		width: 300px;
+		width: 330px;
 		margin-left: 6px;
 		display: flex;
 		flex-direction: column;
@@ -35,29 +35,135 @@
 		margin-bottom: 0 !important;
 	}
 	
-	#dashboard .box {
-		padding: 20px;
+	#dashboard .box.parted {
+		display: flex;
+		flex-direction: column;
+	}
+	
+	#dashboard .box.parted h2 {
+		margin: 0 -15px;
+		border-bottom: 2px solid #426585;
+		padding: 0 15px 15px 15px;
+	}
+	
+	#dashboard .box.parted .panel {
+		padding-top: 10px;
+		flex: 1;
+		overflow: auto;
+		margin: 0 -15px -15px -15px;
+		padding: 10px 15px;
+	}
+	
+	#dashboard-feed-filter {
+		float: right;
+		top: 2px;
+	}
+	
+	#dashboard-feed-filter button {
+		padding-bottom: 4px;
+		border-bottom: 2px solid #64B4FF;
+		z-index: 50;
+	}
+	
+	#dashboard-feed-filter button.disabled {
+		opacity: .3;
+		border-bottom: 2px solid transparent;
+	}
+	
+	#dashboard-feed-filter button:hover {
+		opacity: 1;
+	}
+	
+	#dashboard-feed {
+		overflow: hidden !important;
+	}
+	
+	#dashboard-feed .entry {
+		display: flex;
+		margin-bottom: 5px;
+	}
+	
+	#dashboard-feed .entry:last-child {
+		margin-bottom: 0;
+	}
+	
+	#dashboard-feed .entry img {
+		height: 15px;
+		margin-right: 10px;
+	}
+	
+	#dashboard-feed .entry .title {
+		flex: 1;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	
+	#dashboard-feed .entry.blizz .title {
+		color: #00B4FF;
+	}
+	
+	#dashboard-feed .entry.mmo .title {
+		color: #90E055;
+	}
+	
+	#dashboard-feed .entry .time {
+		opacity: .75;
+		margin-left: 10px;
+	}
+	
+	#dashboard-feed-fader {
+		background: linear-gradient(to top, #314150 10%, rgba(49, 65, 80, 0) 100%);
+		position: absolute;
+		bottom: 0px;
+		left: 0px;
+		right: 0px;
+		height: 20px;
+		z-index: 50;
+	}
+	
+	#dashboard-user img {
+		width: 60px;
+		height: 60px;
+		margin-right: 15px;
+		float: left;
+		border: 1px solid rgba(0, 0, 0, 0.1);
+	}
+	
+	#dashboard-user h2 {
+		font-weight: 300;
+		margin-bottom: 0;
+	}
+	
+	#dashboard-user .rank {
+		opacity: .5;
 	}
 </style>
 
 <div id="dashboard" class="tools-main">
-	<div class="box" id="dashboard-live">
-		<h2>Scratch Feed&#0153;</h2>
-		<div class="dashboard-connected-user">
-			<br>
-			<br>
-			Posts MMO Champion<br>
-			Blue posts Blizzard<br>
-			Posts Battle.net<br>
-			Actualité de guilde<br>
-			Activité forum
+	<div class="box parted" id="dashboard-live">
+		<div>
+			<div id="dashboard-feed-filter">
+				<button ng-click="toggleFilter('MMO')" ng-class="{ disabled: !filters.MMO }"><img src="/assets/images/feed/mmo.png"></button>
+				<button ng-click="toggleFilter('BLUE')" ng-class="{ disabled: !filters.BLUE }"><img src="/assets/images/feed/blue.png"></button>
+				<button ng-click="toggleFilter('WOW')" ng-class="{ disabled: !filters.WOW }"><img src="/assets/images/feed/wow.png"></button>
+			</div>
+			<h2>News Feed</h2>
+		</div>
+		<div id="dashboard-feed" class="panel">
+			<div id="dashboard-feed-fader"></div>
+			<div ng-repeat="entry in feed" class="animated entry {{ getEntryClasses(entry) }}">
+				<img ng-src="/assets/images/feed/{{ src }}.png" ng-repeat="src in getEntryImages(entry)">
+				<span class="title">{{ entry.title | capitalize }}</span>
+				<span class="time" am-time-ago="entry.time" title="{{ entry.time }}"></span>
+			</div>
 		</div>
 	</div>
 			
 	<div id="dashboard-center">
-		<div class="box" id="dashboard-events">
-			<h2>Scratch Now&#0153;</h2>
-			<div class="dashboard-connected-user">
+		<div class="box parted" id="dashboard-events">
+			<h2>Upcoming</h2>
+			<div class="dashboard-connected-user panel">
 				Events à venir, apply en cours, streams online
 			</div>
 		</div>
@@ -71,11 +177,15 @@
 	</div>
 	
 	<div id="dashboard-right">
-		<div class="box">
-			<h2>Utilisateur</h2>
-			<div class="dashboard-connected-user">
-				Panneau de l'utilisateur
-				(perso principal, accès MP, logout)
+		<div id="dashboard-user" class="box">
+			<img ng-src="http://eu.battle.net/static-render/eu/{{ main.thumbnail }}">
+			<h2 class="c{{ main.class }}">{{ main.name }}</h2>
+			<div class="sub">
+				{{ main.level }} {{ gameData.races[main.race].name }}
+				{{ gameData.classes[main.class].name }}
+			</div>
+			<div class="rank">
+				{{ $.user.group }}
 			</div>
 		</div>
 		

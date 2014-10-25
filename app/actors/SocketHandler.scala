@@ -15,6 +15,7 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 	with AuthHandler
 	with ChatHandler
 	with RosterHandler
+	with DashboardHandler
 	with ProfileHandler
 	with CalendarHandler {
 	// Debug socket ID
@@ -149,9 +150,9 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 	 * Dispatch unauthenticated calls
 	 */
 	def unauthenticatedDispatcher: MessageDispatcher = {
-		case ("auth", arg) => handleAuth(arg)
-		case ("auth:prepare", arg) => handleAuthPrepare(arg)
-		case ("auth:login", arg) => handleAuthLogin(arg)
+		case ("auth", arg) => Auth.handleAuth(arg)
+		case ("auth:prepare", arg) => Auth.handlePrepare(arg)
+		case ("auth:login", arg) => Auth.handleLogin(arg)
 
 		case _ => MessageFailure("UNAVAILABLE")
 	}
@@ -161,6 +162,8 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 	 */
 	def authenticatedDispatcher: MessageDispatcher = {
 		case ("events:unbind", _) => handleEventUnbind()
+
+		case ("dashboard:load", _) => Dashboard.handleLoad()
 
 		case ("calendar:load", arg) => handleCalendarLoad(arg)
 		case ("calendar:create", arg) => handleCalendarCreate(arg)
@@ -193,13 +196,13 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		case ("profile:check", arg) => handleProfileCheck(arg)
 		case ("profile:register", arg) => handleProfileRegister(arg)
 
-		case ("chat:onlines", _) => handleChatOnlines()
+		case ("chat:onlines", _) => Chat.handleOnlines()
 
-		case ("roster:load", _) => handleRosterLoad()
-		case ("roster:user", arg) => handleRosterUser(arg)
-		case ("roster:char", arg) => handleRosterChar(arg)
+		case ("roster:load", _) => Roster.handleLoad()
+		case ("roster:user", arg) => Roster.handleUser(arg)
+		case ("roster:char", arg) => Roster.handleChar(arg)
 
-		case ("auth:logout", _) => handleAuthLogout()
+		case ("auth:logout", _) => Auth.handleLogout()
 		case _ => MessageFailure("UNAVAILABLE")
 	}
 

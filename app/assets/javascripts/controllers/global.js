@@ -24,6 +24,10 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	$scope.timeago = function(date) {
 		return _.timeago(new Date(date));
 	};
+	
+	_(window).resize(function() {
+		$scope.$broadcast("resize");
+	});
 
 	$scope.breadcrumb = (function() {
 		var baseURL = document.location.origin;

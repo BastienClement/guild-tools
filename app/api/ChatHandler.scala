@@ -10,10 +10,12 @@ import gt.Global.ExecutionContext
 trait ChatHandler {
 	this: SocketHandler =>
 
-	/**
-	 * $:chat:onlines
-	 */
-	def handleChatOnlines(): MessageResponse = utils.defer {
-		(ChatManagerRef ? ListOnlines).mapTo[Set[Int]]
+	object Chat {
+		/**
+		 * $:chat:onlines
+		 */
+		def handleOnlines(): MessageResponse = utils.defer {
+			(ChatManagerRef ? ListOnlines).mapTo[Set[Int]]
+		}
 	}
 }

@@ -156,7 +156,7 @@
 				</div>
 				<div class="sub">{{ char.level }} {{ gameData.races[char.race].name }} {{ gameData.classes[char['class']].name }}</div>
 			</div>
-			<div class="update">{{ timeago(char.last_update) }}</div>
+			<div class="update"><span am-time-ago="char.last_update"></span></div>
 			<div class="actions" ng-if="editable">
 				<div class="role">
 					<img src="/assets/images/roles/TANK.png" ng-class="{ active: char.role == 'TANK' }" ng-click="role(char.id, 'TANK')">

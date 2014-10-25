@@ -20,7 +20,9 @@ libraryDependencies ++= Seq(
 	"org.webjars" % "jquery" % "2.1.1",
 	"org.webjars" % "prefixfree" % "b44a065",
 	"org.webjars" % "es6-shim" % "0.12.0",
-	"org.webjars" % "showdown" % "0.3.1"
+	"org.webjars" % "showdown" % "0.3.1",
+	"org.webjars" % "momentjs" % "2.8.3",
+	"org.webjars" % "angular-moment" % "0.8.2"
 )
 
 pipelineStages := Seq(uglify, digest, gzip)
