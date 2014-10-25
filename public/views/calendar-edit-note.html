@@ -30,6 +30,11 @@
 		</label>
 		<div class="overflow">
 			<button class="left" ng-tooltip="#calendar-edit-note-tips" onclick="return false;"><i class="awe-help"></i> Tips</button>
+			<button class="left"
+				ng-tooltip="$Allows you to use the [Tab] key inside textareas for text formatting."
+				onclick="window.open('https://chrome.google.com/webstore/detail/textarea-code-formatter/dgkbnngeehclnibbdblaimapibmmcdal');">
+				Chrome Extension
+			</button>
 			<button type="submit" ng-disabled="inflight">Save</button>
 			<button ng-disabled="inflight" ng-click="modal()" type="button">Cancel</button>
 		</div>
@@ -40,7 +45,9 @@
 			<code>Title<br>=====</code>
 			<code>Subtitle<br>--------</code>
 			<code>* Bullet<br>* List</code>
+			<code>* Main list<br>&nbsp;&nbsp;* Sub list</code>
 			<code>1. Ordrered<br>2. List</code>
+			<code>---------<br>Separator</code>
 		</div>
 	</form>
 	<script>
