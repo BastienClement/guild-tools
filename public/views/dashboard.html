@@ -152,6 +152,9 @@
 		</div>
 		<div id="dashboard-feed" class="panel">
 			<div id="dashboard-feed-fader"></div>
+			<div class="box" style="margin-bottom: 10px;" ng-if="!feed.length">
+				News unavailable
+			</div>
 			<div ng-repeat="entry in feed" class="animated entry {{ getEntryClasses(entry) }}">
 				<img ng-src="/assets/images/feed/{{ src }}.png" ng-repeat="src in getEntryImages(entry)">
 				<span class="title">{{ entry.title | capitalize }}</span>
@@ -159,7 +162,7 @@
 			</div>
 		</div>
 	</div>
-			
+	
 	<div id="dashboard-center">
 		<div class="box parted" id="dashboard-events">
 			<h2>Upcoming</h2>
