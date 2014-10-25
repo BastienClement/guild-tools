@@ -509,12 +509,10 @@ header {
 }
 
 #sidebar li:hover {
-	/*background-color: rgba(99, 180, 255, 0.10);*/
 	background: linear-gradient(to right, rgba(99, 180, 255, 0.10) 0%,rgba(99, 180, 255, 0) 100%);
 }
 
 #sidebar li.active {
-	/*background-color: rgba(99, 180, 255, 0.15);*/
 	background: linear-gradient(to right, rgba(99, 180, 255, 0.15) 0%, rgba(99, 180, 255, 0.10) 20%, rgba(99, 180, 255, 0) 100%);
 }
 
@@ -839,39 +837,39 @@ header {
 }
 
 .animated {
-    transition: all ease-out .3s;
+	transition: all ease-out .3s;
 }
 
 .animated.ng-enter {
-    opacity: 0 !important;
+	opacity: 0 !important;
 }
 
 .animated.ng-enter-active {
-    opacity: .999 !important;
+	opacity: .999 !important;
 }
 
 .animated.ng-leave {
-    opacity: .999 !important;
+	opacity: .999 !important;
 }
 
 .animated.ng-leave-active {
-    opacity: 0 !important;
+	opacity: 0 !important;
 }
 
 .animated.ng-hide-add {
-    opacity: .999 !important;
+	opacity: .999 !important;
 }
 
 .animated.ng-hide-add.ng-hide-add-active {
-    opacity: 0 !important;
+	opacity: 0 !important;
 }
 
 .animated.ng-hide-remove {
-    opacity: 0 !important;
+	opacity: 0 !important;
 }
 
 .animated.ng-hide-remove.ng-hide-remove-active {
-    opacity: .999 !important;
+	opacity: .999 !important;
 }
 
 .wowhead-tooltip-powered {

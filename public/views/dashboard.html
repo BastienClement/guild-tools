@@ -11,16 +11,17 @@
 	}
 	
 	#dashboard-events {
-		flex: 1;
+		/*flex: 1;*/
+		min-height: 250px;
 	}
 	
 	#dashboard-shoutbox {
-		flex: 1.5;
+		flex: 1;
 		margin-top: 6px;
 	}
 	
 	#dashboard-right {
-		width: 330px;
+		width: 300px;
 		margin-left: 6px;
 		display: flex;
 		flex-direction: column;
@@ -51,7 +52,7 @@
 		flex: 1;
 		overflow: auto;
 		margin: 0 -15px -15px -15px;
-		padding: 10px 15px;
+		padding: 15px;
 	}
 	
 	#dashboard-feed-filter {
@@ -80,11 +81,16 @@
 	
 	#dashboard-feed .entry {
 		display: flex;
-		margin-bottom: 5px;
+		padding: 3px 5px;
+		margin: 0 -5px;
 	}
 	
-	#dashboard-feed .entry:last-child {
-		margin-bottom: 0;
+	#dashboard-feed .entry:hover {
+		background: rgba(99, 180, 255, 0.1);
+	}
+	
+	#dashboard-feed div:first-child + .entry {
+		margin-top: -5px;
 	}
 	
 	#dashboard-feed .entry img {
@@ -112,6 +118,22 @@
 		margin-left: 10px;
 	}
 	
+	#dashboard-feed .entry.animated.ng-enter {
+		transform: translateX(10px);
+	}
+	
+	#dashboard-feed .entry.animated.ng-enter-active {
+		transform: translateX(0px);
+	}
+	
+	#dashboard-feed .entry.animated.ng-leave {
+		transform: translateX(0px);
+	}
+	
+	#dashboard-feed .entry.animated.ng-leave-active {
+		transform: translateX(10px);
+	}
+	
 	#dashboard-feed-fader {
 		background: linear-gradient(to top, #314150 10%, rgba(49, 65, 80, 0) 100%);
 		position: absolute;
@@ -120,6 +142,79 @@
 		right: 0px;
 		height: 20px;
 		z-index: 50;
+		pointer-events: none;
+	}
+	
+	#dashboard-events .panel {
+		display: flex;
+		padding: 0 !important;
+		overflow: hidden !important;
+	}
+	
+	#dashboard-events .panel > div {
+		flex: 1;
+		padding: 15px;
+	}
+	
+	#dashboard-events .panel .events {
+		border-right: 2px solid #426585;
+	}
+	
+	#dashboard-events .event-list {
+		display: table;
+		table-layout: fixed;
+		width: 100%;
+		box-sizing: content-box;
+		margin: 0px -5px;
+	}
+	
+	#dashboard-events .event {
+		display: table-row;
+		transition: background ease-out .3s;
+	}
+	
+	#dashboard-events .event:hover {
+		background: rgba(99, 180, 255, 0.1);
+	}
+	
+	#dashboard-events .event > span {
+		display: table-cell;
+		padding: 3px 5px;
+	}
+	
+	#dashboard-events .event .date {
+		width: 35px;
+	}
+	
+	#dashboard-events .event .title {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		color: #ffef64;
+	}
+	
+	#dashboard-events .event.accepted .title {
+		color: #70ea5c;
+	}
+	#dashboard-events .event.declined .title {
+		color: #ff693b;
+	}
+	
+	#dashboard-events .event.closed .title {
+		color: #64b4ff;
+	}
+	
+	#dashboard-events .event.canceled .title {
+		color: #aaa;
+	}
+	
+	#dashboard-events .event.note .title {
+		color: #fff;
+	}
+	
+	#dashboard-events .event .time {
+		opacity: .5;
+		width: 35px;
 	}
 	
 	#dashboard-user img {
@@ -166,8 +261,20 @@
 	<div id="dashboard-center">
 		<div class="box parted" id="dashboard-events">
 			<h2>Upcoming</h2>
-			<div class="dashboard-connected-user panel">
-				Events à venir, apply en cours, streams online
+			<div class="panel">
+				<div class="events">
+					<h3>Calendar events</h3>
+					<div class="event-list">
+						<div class="event {{ stateClass(entry) }}" ng-repeat="entry in formattedEventsList()" ng-click="breadcrumb.push('/calendar/event/' + entry.id)">
+							<span class="date">{{ entry._datestr }}</span>
+							<span class="title">{{ entry.event.title }}</span>
+							<span class="time">{{ entry.timestr }}</span>
+						</div>
+					</div>
+				</div>
+				<div>
+					<!-- Looking for ideas... -->
+				</div>
 			</div>
 		</div>
 		

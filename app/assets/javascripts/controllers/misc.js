@@ -19,6 +19,7 @@ GuildTools.controller("DashboardCtrl", function($scope, $location) {
 	if ($scope.restrict()) return;
 	$scope.setNavigator("dashboard", "main");
 	
+	$scope.events = [];
 	
 	var raw_feed = [];
 	$scope.feed = null;
@@ -54,10 +55,30 @@ GuildTools.controller("DashboardCtrl", function($scope, $location) {
 		$scope.feed = filter_feed(raw_feed);
 	}
 	
+	function compute_event_time(entry) {
+		var date = moment(entry.event.date);
+		entry.datestr = date.format("DD.MM");
+		
+		var time = entry.event.time;
+		if (time < 600) date.add(1, "d");
+		
+		date.hours(Math.floor(time / 100));
+		date.minutes(time % 100);
+		
+		entry.timestr = date.format("HH:mm");
+		entry.timeval = date.unix();
+	}
+	
 	$scope.setContext("dashboard:load", null, {
 		$: function(data) {
 			raw_feed = data.feed;
 			update_feed();
+			
+			$scope.events = [];
+			data.events.forEach(function(entry) {
+				compute_event_time(entry);
+				$scope.events[entry.id] = entry;
+			});
 		}
 	});
 	
@@ -73,6 +94,41 @@ GuildTools.controller("DashboardCtrl", function($scope, $location) {
 				var srcs = [entry.tags.match(/EU/) ? "eu" : "us"];
 				//if (entry.tags.match(/BLUE/)) srcs.push("blue");
 				return srcs;
+		}
+	};
+	
+	$scope.formattedEventsList = function() {
+		var events = [];
+		var now = Date.now() / 1000;
+		
+		$scope.events.forEach(function(event) {
+			events.push(event);
+		});
+		
+		events.sort(function(a, b) { return a.timeval - b.timeval; });
+		events = events.filter(function(entry) { return (entry.timeval - now) > -21600 /* 6 hours */; }).slice(0, 7);
+		
+		var last = "";
+		events.forEach(function(event) {
+			event._datestr = (last === event.datestr) ? "" : event.datestr;
+			last = event.datestr;
+		});
+		
+		return events;
+	};
+	
+	$scope.stateClass = function(e, onlyState) {
+		if (!onlyState) {
+			if (e.event.type === 4) return "note";
+			if (e.event.state === 1) return "closed";
+			if (e.event.state === 2) return "canceled";
+		}
+
+		switch (e.answer) {
+			case 1:
+				return "accepted";
+			case 2:
+				return "declined";
 		}
 	};
 
