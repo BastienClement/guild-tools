@@ -101,7 +101,7 @@ trait CalendarHandler {
 			var watched_events = events
 			var potential_events = mutable.Map[Int, Event]()
 
-			PartialFunction {
+			return {
 				// Event created
 				case ev @ CalendarEventCreate(event) => {
 					if (watched_events.contains(event.id)) {

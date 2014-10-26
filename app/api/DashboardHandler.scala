@@ -23,8 +23,6 @@ trait DashboardHandler {
 
 			val (events, events_filter) = Calendar.loadCalendarAndCreateFilter(ev_from, ev_to)
 
-			println(events);
-
 			socket.bindEvents(events_filter)
 
 			MessageResults(Json.obj(
