@@ -53,7 +53,6 @@ trait CalendarHandler {
 		 */
 		var event_id = -1
 		var event_editable = false
-		var event_concealed = true
 		var event_tabs = Map[Int, CalendarTab]()
 		var edit_lock: Option[CalendarLock] = None
 
@@ -63,7 +62,6 @@ trait CalendarHandler {
 		def resetEventContext() = {
 			event_id = -1
 			event_editable = false
-			event_concealed = true
 			event_tabs = Map()
 			edit_lock = edit_lock flatMap { lock =>
 				lock.release()
@@ -391,14 +389,11 @@ trait CalendarHandler {
 			// Record successful event access
 			event_id = event.id
 			event_editable = (event.owner == user.id) || user.officer
-			event_concealed = event.state == CalendarEventState.Open && !event_editable
 
 			// Expand or conceal event
 			val visible = {
 				if (event_editable) {
 					event.expand
-				} else if (event_concealed) {
-					event.conceal
 				} else {
 					event.partial
 				}
@@ -409,12 +404,7 @@ trait CalendarHandler {
 
 			def tabContentIsVisible(tab_id: Int): Boolean = {
 				event_tabs.get(tab_id) map { tab =>
-					if (event_editable)
-						true
-					else if (event_concealed)
-						false
-					else
-						!tab.locked
+					event_editable || !tab.locked
 				} getOrElse {
 					false
 				}
@@ -425,21 +415,7 @@ trait CalendarHandler {
 				case CalendarAnswerCreate(answer) => (answer.event == id)
 				case CalendarAnswerUpdate(answer) => (answer.event == id)
 
-				case CalendarEventUpdate(event) => {
-					if (event.id == id) {
-						if (event.state != CalendarEventState.Open && event_concealed) {
-							event_concealed = false
-							socket !< CalendarEventUpdateFull(event.partial)
-						} else if (event.state == CalendarEventState.Open && !event_editable) {
-							event_concealed = true
-							socket !< CalendarEventUpdateFull(event.conceal)
-						} else {
-							true
-						}
-					} else {
-						false
-					}
-				}
+				case CalendarEventUpdate(event) => (event.id == id)
 
 				case CalendarEventDelete(id) => (id == id)
 
@@ -463,7 +439,7 @@ trait CalendarHandler {
 
 						if (event_editable) {
 							true
-						} else if (event_concealed || tab.locked) {
+						} else if (tab.locked) {
 							val concealed = tab.copy(locked = true, note = None)
 							concealed != old && socket !< CalendarTabUpdate(concealed)
 						} else if (old.locked == tab.locked) {

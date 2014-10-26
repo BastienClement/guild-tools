@@ -53,26 +53,20 @@ case class CalendarEvent(id: Int, title: String, desc: String, owner: Int, date:
 		val expanded = this.expand
 
 		// Remove note from hidden tab
+		var visibles_tabs = Set[String]()
 		val tabs = expanded.tabs map { tab =>
-			if (tab.locked)
+			if (tab.locked) {
 				tab.copy(note = None)
-			else
+			} else {
+				visibles_tabs += tab.id.toString
 				tab
+			}
 		}
 
 		// Rebuild slots for visible tabs
-		val slots = tabs.filter(!_.locked).map(tab => (tab.id.toString -> expanded.slots(tab.id.toString))).toMap
+		val slots = expanded.slots.filter { case(id, slots) => visibles_tabs.contains(id) }
 
 		CalendarEventFull(this, tabs, slots)
-	}
-
-	/**
-	 * Create an full but concealed version of this event
-	 */
-	lazy val conceal = {
-		val expanded = this.expand
-		val tabs = expanded.tabs map (_.copy(note = None, locked = true))
-		CalendarEventFull(this, tabs, Map())
 	}
 }
 
