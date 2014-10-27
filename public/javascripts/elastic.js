@@ -138,8 +138,7 @@
 				$textarea.bind('resize', setTwinWidth);
 				$textarea.bind('update', update);
 				
-				// Compact textarea on blur
-				$textarea.bind('blur',function(){
+				function do_blur() {
 					if($twin.height() < maxheight){
 						if($twin.height() > minheight) {
 							$textarea.height($twin.height());
@@ -147,13 +146,19 @@
 							$textarea.height(minheight);
 						}
 					}
-				});
+				}
+				
+				// Compact textarea on blur
+				$textarea.bind('blur', do_blur);
 				
 				// And this line is to catch the browser paste event
 				$textarea.bind('input paste',function(e){ setTimeout( update, 250); });				
 				
 				// Run update once when elastic is initialized
-				//update();
+				setTimeout(function() {
+					update();
+					do_blur();
+				}, 200);
 				
 			});
 			
