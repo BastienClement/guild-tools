@@ -75,10 +75,6 @@
 		opacity: 1;
 	}
 	
-	#dashboard-feed {
-		overflow: hidden !important;
-	}
-	
 	#dashboard-feed .entry {
 		display: flex;
 		padding: 3px 5px;
@@ -89,13 +85,18 @@
 		background: rgba(99, 180, 255, 0.1);
 	}
 	
-	#dashboard-feed div:first-child + .entry {
+	#dashboard-feed div:first-child {
 		margin-top: -5px;
+	}
+	
+	#dashboard-feed div:last-child {
+		margin-bottom: -5px;
 	}
 	
 	#dashboard-feed .entry img {
 		height: 15px;
 		margin-right: 10px;
+		top: 1px;
 	}
 	
 	#dashboard-feed .entry .title {
@@ -132,17 +133,6 @@
 	
 	#dashboard-feed .entry.animated.ng-leave-active {
 		transform: translateX(10px);
-	}
-	
-	#dashboard-feed-fader {
-		background: linear-gradient(to top, #314150 10%, rgba(49, 65, 80, 0) 100%);
-		position: absolute;
-		bottom: 0px;
-		left: 0px;
-		right: 0px;
-		height: 20px;
-		z-index: 50;
-		pointer-events: none;
 	}
 	
 	#dashboard-events .panel {
@@ -246,11 +236,10 @@
 			<h2>News Feed</h2>
 		</div>
 		<div id="dashboard-feed" class="panel">
-			<div id="dashboard-feed-fader"></div>
 			<div class="box" style="margin-bottom: 10px;" ng-if="!feed.length">
 				News unavailable
 			</div>
-			<div ng-repeat="entry in feed" class="animated entry {{ getEntryClasses(entry) }}">
+			<div ng-repeat="entry in feed" class="animated entry {{ getEntryClasses(entry) }}" ng-click="openURL(entry.link)">
 				<img ng-src="/assets/images/feed/{{ src }}.png" ng-repeat="src in getEntryImages(entry)">
 				<span class="title">{{ entry.title | capitalize }}</span>
 				<span class="time" am-time-ago="entry.time" title="{{ entry.time }}"></span>

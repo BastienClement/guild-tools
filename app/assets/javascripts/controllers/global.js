@@ -444,4 +444,8 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 			order: 10
 		}
 	];
+	
+	$scope.openURL = function(url) {
+		window.open(url);
+	};
 });
