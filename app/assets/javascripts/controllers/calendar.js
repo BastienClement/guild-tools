@@ -134,8 +134,6 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 		var lockout_start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - day_in_lockout);
 		var lockout_end   = new Date(today.getFullYear(), today.getMonth(), today.getDate() + (6 - day_in_lockout));
 		
-		console.log(today_day, day_in_lockout, lockout_start, lockout_end);
-
 		for (var r = 0; r < 6; r++) {
 			if (!$scope.data[r]) $scope.data[r] = [];
 
