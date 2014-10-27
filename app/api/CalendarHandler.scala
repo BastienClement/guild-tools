@@ -416,16 +416,10 @@ trait CalendarHandler {
 				case CalendarAnswerUpdate(answer) => (answer.event == id)
 
 				case CalendarEventUpdate(event) => (event.id == id)
-
 				case CalendarEventDelete(id) => (id == id)
 
-				case CalendarTabCreate(tab) => {
-					if (tab.event == id) {
-						event_tabs += (tab.id -> tab)
-						true
-					} else {
-						false
-					}
+				case CalendarTabCreate(tab) => utils.doIf(tab.event == id) {
+					event_tabs += (tab.id -> tab)
 				}
 
 				case CalendarTabWipe(id) => tabContentIsVisible(id)
@@ -437,14 +431,15 @@ trait CalendarHandler {
 						val old = event_tabs(tab.id)
 						event_tabs = event_tabs.updated(tab.id, tab)
 
-						if (event_editable) {
+						if (event_editable || old.locked == tab.locked) {
+							// Tab is always visible or visibility hasn't changed
 							true
 						} else if (tab.locked) {
+							// Tab was visible, is now locked
 							val concealed = tab.copy(locked = true, note = None)
 							concealed != old && socket !< CalendarTabUpdate(concealed)
-						} else if (old.locked == tab.locked) {
-							true
 						} else {
+							// Tab was locked, is now visible
 							socket !< CalendarEventUpdateFull(tab.expandEvent.partial)
 						}
 					}
