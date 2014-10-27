@@ -151,6 +151,13 @@ GuildTools.filter("capitalize", function() {
 	};
 });
 
+GuildTools.filter("capsfirst", function() {
+	return function(input) {
+		if (!input) return "";
+		return input.charAt(0).toUpperCase() + input.slice(1);
+	};
+});
+
 GuildTools.filter("markdown", function($sce) {
 	var div = _("<div>");
 	Showdown.extensions.guildtools = function(converter) {

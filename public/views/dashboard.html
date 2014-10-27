@@ -241,7 +241,7 @@
 			</div>
 			<div ng-repeat="entry in feed" class="animated entry {{ getEntryClasses(entry) }}" ng-click="openURL(entry.link)">
 				<img ng-src="/assets/images/feed/{{ src }}.png" ng-repeat="src in getEntryImages(entry)">
-				<span class="title">{{ entry.title | capitalize }}</span>
+				<span class="title">{{ entry.title | capsfirst }}</span>
 				<span class="time" am-time-ago="entry.time" title="{{ entry.time }}"></span>
 			</div>
 		</div>
