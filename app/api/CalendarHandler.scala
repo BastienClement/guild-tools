@@ -86,7 +86,7 @@ trait CalendarHandler {
 			DB.withSession { implicit s =>
 				val events = for {
 					(e, a) <- CalendarEvents leftJoin CalendarAnswers on ((e, a) => a.event === e.id && a.user === user.id)
-					if (e.date > from && e.date < to) && (e.visibility =!= CalendarVisibility.Private || a.answer.?.isDefined)
+					if (e.date >= from && e.date <= to) && (e.visibility =!= CalendarVisibility.Private || a.answer.?.isDefined)
 				} yield (e, a.answer.?)
 				events.list
 			}
