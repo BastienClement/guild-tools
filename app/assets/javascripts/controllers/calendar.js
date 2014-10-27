@@ -127,6 +127,14 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 		var first_month_day = ((new Date($scope.year, $scope.month, 1).getDay()) + 6) % 7;
 
 		var today = new Date();
+		
+		var today_day = (today.getDay() + 6) % 7;
+		var day_in_lockout = (today_day + 5) % 7;
+		
+		var lockout_start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - day_in_lockout);
+		var lockout_end   = new Date(today.getFullYear(), today.getMonth(), today.getDate() + (6 - day_in_lockout));
+		
+		console.log(today_day, day_in_lockout, lockout_start, lockout_end);
 
 		for (var r = 0; r < 6; r++) {
 			if (!$scope.data[r]) $scope.data[r] = [];
@@ -147,12 +155,13 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 					month = next_month_id;
 					year = next_month_year;
 				}
-
+				
+				var day_date = new Date(year, month, day);
 				var cell = $scope.data[r][c];
 				cell.day = day;
 				cell.month = month + 1;
 				cell.year = year;
-				cell.inactive = (month != $scope.month);
+				cell.inactive = !(day_date >= lockout_start && day_date <= lockout_end);
 				cell.today = (year == today.getFullYear() && month == today.getMonth() && day == today.getDate());
 				cell.id = year + "-" + zero_pad(month + 1, 2) + "-" + zero_pad(day, 2);
 			}
