@@ -15,7 +15,7 @@ trait DashboardHandler {
 		 * $:dashboard:load
 		 */
 		def handleLoad(): MessageResponse = DB.withSession { implicit s =>
-			val feed = Feeds.sortBy(_.time.desc).take(100).list
+			val feed = Feeds.sortBy(_.time.desc).take(50).list
 
 			val now = SmartTimestamp.now
 			val ev_from = SmartTimestamp.create(now.year, now.month, now.day - 1)
