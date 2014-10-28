@@ -877,7 +877,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			},
 			{
 				icon: "awe-pencil",
-				text: "Edit description",
+				text: "Edit event",
 				action: function() {
 					$scope.modal("calendar-edit-desc", $scope.event);
 				},
@@ -1398,10 +1398,11 @@ GuildTools.controller("CalendarEditDescCtrl", function($scope) {
 	var event = $scope.modalCtx;
 	
 	$scope.desc = event.desc;
+	$scope.title = event.title;
 	
 	$scope.save = function() {
 		$scope.inflight = true;
-		$.call("calendar:event:editdesc", { desc: $scope.desc.replace(/^\s+|\s+$/, "") }, function() {
+		$.call("calendar:event:editdesc", { title: $scope.title, desc: $scope.desc.replace(/^\s+|\s+$/, "") }, function() {
 			$scope.modal();
 		});
 	};

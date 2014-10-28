@@ -489,13 +489,14 @@ trait CalendarHandler {
 		 * $:calendar:event:editdesc
 		 */
 		def handleEventEditDesc(arg: JsValue): MessageResponse = {
+			val title = (arg \ "title").as[String]
 			val desc = (arg \ "desc").as[String]
 			if (!event_editable) return MessageFailure("FORBIDDEN")
 
 			DB.withTransaction { implicit s =>
 				val query = CalendarEvents.filter(_.id === event_id)
-				query.map(_.desc).update(desc)
-				CalendarEvents.notifyUpdate(query.first.copy(desc = desc))
+				query.map(e => (e.title, e.desc)).update((title, desc))
+				CalendarEvents.notifyUpdate(query.first.copy(title = title, desc = desc))
 			}
 
 			MessageSuccess

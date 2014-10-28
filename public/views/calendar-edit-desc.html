@@ -3,7 +3,7 @@
 		width: 300px;
 	}
 	
-	#calendar-edit-desc textarea {
+	#calendar-edit-desc textarea, #calendar-edit-desc input {
 		width: 100%;
 	}
 	
@@ -15,6 +15,10 @@
 
 <div id="calendar-edit-desc" ng-controller="CalendarEditDescCtrl">
 	<form class="box" ng-submit="save()">
+		<label>
+			Event title
+			<input type="text" id="calendar-edit-title-field" ng-model="title">
+		</label>
 		<label>
 			Event description
 			<textarea type="text" id="calendar-edit-desc-field" ng-model="desc"></textarea>
