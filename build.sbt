@@ -25,4 +25,5 @@ libraryDependencies ++= Seq(
 	"org.webjars" % "angular-moment" % "0.8.2"
 )
 
-pipelineStages := Seq(uglify, digest, gzip)
+#pipelineStages := Seq(uglify, digest, gzip)
+pipelineStages := Seq(gzip)
