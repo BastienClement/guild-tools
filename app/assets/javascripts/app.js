@@ -1,5 +1,11 @@
 var $$ = null;
 
+_(function() {
+	if (window.navigator.standalone) {
+		_("body").addClass("standalone");
+	}
+});
+
 try {
 	(function() {
 		if (typeof require !== "function") return;
