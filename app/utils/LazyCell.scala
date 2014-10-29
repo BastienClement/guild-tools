@@ -13,7 +13,7 @@ object LazyCell {
 	implicit def extract[T](cell: LazyCell[T]): T = cell.get
 }
 
-class LazyCell[T](expire: FiniteDuration)(generator: => T) {
+class LazyCell[T] private(expire: FiniteDuration)(generator: => T) {
 	/**
 	 * Keep track of cell state
 	 */
