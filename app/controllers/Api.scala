@@ -6,8 +6,7 @@ import play.api.Play.current
 import play.api.cache.Cached
 import play.api.libs.json.Json
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
-import play.api.mvc.{ Action, Controller, RequestHeader }
-import scala.slick.jdbc.StaticQuery
+import play.api.mvc.{Action, Controller, RequestHeader}
 
 object Api extends Controller {
 	def catchall(path: String) = Action {

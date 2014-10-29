@@ -1,10 +1,8 @@
 package models
 
-import models.mysql._
-import scala.slick.jdbc.JdbcBackend.SessionDef
-import gt.Socket
-import api._
 import java.sql.Timestamp
+
+import models.mysql._
 
 case class Feed(guid: String, source: String, title: String, link: String, time: Timestamp, tags: String)
 

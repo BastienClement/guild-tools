@@ -1,11 +1,10 @@
 package models
 
 import java.sql.Timestamp
-import models.mysql._
-import scala.slick.jdbc.JdbcBackend.SessionDef
-import api.CalendarAnswerCreate
+
+import api.{CalendarAnswerCreate, CalendarAnswerUpdate}
 import gt.Socket
-import api.CalendarAnswerUpdate
+import models.mysql._
 
 /**
  * One answer for one event for one user

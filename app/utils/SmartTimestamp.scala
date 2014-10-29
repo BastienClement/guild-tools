@@ -1,11 +1,10 @@
 package utils
 
 import java.sql.Timestamp
-import java.util.Date
-import scala.language.implicitConversions
 import java.text.SimpleDateFormat
-import java.util.GregorianCalendar
-import java.util.Calendar
+import java.util.{Calendar, Date, GregorianCalendar}
+
+import scala.language.implicitConversions
 
 object SmartTimestamp {
 	val format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")

@@ -3,11 +3,11 @@ package api
 import java.util.Date
 
 import actors.SocketHandler
-import utils.Bnet
+import gt.Global.ExecutionContext
 import models._
 import models.mysql._
 import play.api.libs.json._
-import gt.Global.ExecutionContext
+import utils.Bnet
 
 trait ProfileHandler {
 	self: SocketHandler =>
@@ -122,7 +122,7 @@ trait ProfileHandler {
 			val name = (arg \ "char").as[String]
 			val role = validateRole((arg \ "role").as[String])
 
-			if (!server.matches("""^[a-z\-]+$""") || name.matches("""\/|\.|\?""")) {
+			if (!server.matches( """^[a-z\-]+$""") || name.matches( """\/|\.|\?""")) {
 				return MessageFailure("INVALID_DATA")
 			}
 

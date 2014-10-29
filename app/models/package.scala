@@ -1,6 +1,5 @@
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
-import java.util.Date
 
 import play.api.Play.current
 import play.api.libs.json._

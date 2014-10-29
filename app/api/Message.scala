@@ -1,6 +1,7 @@
 package api
 
 import play.api.libs.json.Json.JsValueWrapper
+
 import scala.concurrent.Future
 
 trait OutgoingMessage

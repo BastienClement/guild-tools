@@ -1,11 +1,9 @@
 package api
 
-import actors.SocketHandler
-import gt.User
-import play.api.libs.json._
 import actors.RosterManager._
+import actors.SocketHandler
 import akka.pattern.ask
-import gt.Global.ExecutionContext
+import play.api.libs.json._
 
 trait RosterHandler {
 	this: SocketHandler =>

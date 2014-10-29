@@ -1,10 +1,8 @@
 package models
 
-import models.mysql._
-import scala.slick.jdbc.JdbcBackend.SessionDef
+import api.{CalendarSlotDelete, CalendarSlotUpdate}
 import gt.Socket
-import api.CalendarSlotUpdate
-import api.CalendarSlotDelete
+import models.mysql._
 
 case class CalendarSlot(tab: Int, slot: Int, owner: Int, name: String, `class`: Int, role: String) {
 	if (!Chars.validateRole(role)) {

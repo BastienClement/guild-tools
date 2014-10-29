@@ -2,11 +2,11 @@ package gt
 
 import akka.actor.{ActorRef, actorRef2Scala}
 import api._
-import gt.Global.ExecutionContext
+import utils.FuseTimer
+
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.duration.DurationInt
-import utils.{FuseTimer}
 
 object Socket {
 	var sockets = Map[String, Socket]()
@@ -54,7 +54,7 @@ class Socket private(val token: String, val user: User, val session: String, var
 	 * Event management
 	 */
 	type EventFilter = PartialFunction[Event, Boolean]
-	private val FilterNone: EventFilter = { case _ => false }
+	private val FilterNone: EventFilter = {case _ => false }
 	private var eventFilter: EventFilter = FilterNone
 	private var eventCleanup: Option[CleanupHandler] = None
 	private var eventObject: Event = null
@@ -75,7 +75,7 @@ class Socket private(val token: String, val user: User, val session: String, var
 		cleanup
 	}
 
-	def !< (e: Event): Boolean = {
+	def !<(e: Event): Boolean = {
 		eventObject = e
 		true
 	}

@@ -1,9 +1,8 @@
 package models
 
-import models.mysql._
-import scala.slick.jdbc.JdbcBackend.SessionDef
-import gt.Socket
 import api._
+import gt.Socket
+import models.mysql._
 
 case class CalendarTab(id: Int, event: Int, title: String, note: Option[String], order: Int, locked: Boolean, undeletable: Boolean) {
 	lazy val expandEvent = DB.withSession { implicit s =>

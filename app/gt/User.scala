@@ -1,14 +1,13 @@
 package gt
 
+import actors.ChatManager._
 import akka.actor.ActorRef
 import api._
-import gt.Global.ExecutionContext
 import models._
 import models.mysql._
 import play.api.Logger
 import play.api.libs.json._
 import utils.SmartTimestamp
-import actors.ChatManager._
 
 object User {
 	var onlines = Map[Int, User]()

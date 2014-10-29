@@ -1,20 +1,12 @@
 package actors
 
-import akka.actor.Actor
-import play.api.libs.concurrent.Akka
-import play.api.Play.current
-import utils.scheduler
-import akka.actor.Props
-import scala.concurrent.duration._
-import gt.Global.ExecutionContext
-import scala.concurrent.Future
-import gt.User
-import ChatManager._
+import actors.ChatManager._
+import akka.actor.{Actor, Props}
 import api._
+import gt.User
+import play.api.Play.current
+import play.api.libs.concurrent.Akka
 import play.api.libs.json._
-import play.api.libs.json.Json.JsValueWrapper
-import models._
-import models.mysql._
 
 object ChatManager {
 	val ChatManagerRef = Akka.system.actorOf(Props[ChatManager], name = "ChatManager")
