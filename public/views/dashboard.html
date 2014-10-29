@@ -250,7 +250,7 @@
 	
 	<div id="dashboard-center">
 		<div class="box parted" id="dashboard-events">
-			<h2>Upcoming</h2>
+			<h2>Guild activity</h2>
 			<div class="panel">
 				<div class="events">
 					<h3>Calendar events</h3>
@@ -263,16 +263,16 @@
 					</div>
 				</div>
 				<div>
-					<!-- Looking for ideas... -->
+					<h3>Recent logs</h3>
 				</div>
 			</div>
 		</div>
 		
-		<div class="box" id="dashboard-shoutbox">
-			<h2>Scratch Talk&#0153;</h2>
-			<div class="dashboard-connected-user">
-				Shoutbox
+		<div class="box parted" id="dashboard-shoutbox">
+			<h2>Shoutbox</h2>
+			<div class="panel">
 			</div>
+			<input type="text">
 		</div>
 	</div>
 	
@@ -297,7 +297,7 @@
 		</div>
 		
 		<div class="box" id="dashboard-connected">
-			<h2>Utilisateurs connectés</h2>
+			<h2>Online</h2>
 			<div class="dashboard-connected-user" ng-repeat="player in $.online | orderBy:onlineSort">
 				<div class="status-dot"></div> {{ $.roster.user(player).name }}
 			</div>
