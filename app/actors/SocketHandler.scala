@@ -1,23 +1,23 @@
 package actors
 
-import akka.actor.{ Actor, ActorRef, PoisonPill, actorRef2Scala }
+import akka.actor.{Actor, ActorRef, PoisonPill, actorRef2Scala}
+import akka.util.Timeout
 import api._
 import gt.Global.ExecutionContext
-import gt.{ Socket, User }
+import gt.{Global, Socket, User}
 import play.api.Logger
 import play.api.libs.json._
-import scala.util.{ Failure, Success }
-import akka.util.Timeout
+
 import scala.concurrent.duration._
-import gt.Global
+import scala.util.{Failure, Success}
 
 class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
-	with AuthHandler
-	with ChatHandler
-	with RosterHandler
-	with DashboardHandler
-	with ProfileHandler
-	with CalendarHandler {
+with AuthHandler
+with ChatHandler
+with RosterHandler
+with DashboardHandler
+with ProfileHandler
+with CalendarHandler {
 	// Debug socket ID
 	val id = utils.randomToken()
 
@@ -74,7 +74,7 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		// Outgoing message
 		case Message(cmd, arg) => {
 			val msg = Json.obj("$" -> cmd, "&" -> arg)
-			Logger.debug(s"<<< ${msg.toString}")
+			Logger.debug(s"<<< ${msg.toString }")
 			out ! msg
 		}
 
@@ -94,7 +94,7 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		if (id == JsNull) return
 
 		def outputJson(js: JsValue) = {
-			Logger.debug(s"<<< ${js.toString}")
+			Logger.debug(s"<<< ${js.toString }")
 			out ! js
 		}
 

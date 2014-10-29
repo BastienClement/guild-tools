@@ -1,15 +1,16 @@
 package actors
 
-import akka.actor._
-import play.api.libs.concurrent.Akka
-import play.api.Play.current
-import utils.scheduler
 import java.util.Date
-import gt.Socket
-import api.CalendarLockAcquire
-import api.CalendarLockRelease
-import CalendarLockManager._
+
+import actors.CalendarLockManager._
+import akka.actor._
+import api.{CalendarLockAcquire, CalendarLockRelease}
 import gt.Global.ExecutionContext
+import gt.Socket
+import play.api.Play.current
+import play.api.libs.concurrent.Akka
+import utils.scheduler
+
 import scala.concurrent.duration._
 
 object CalendarLockManager {

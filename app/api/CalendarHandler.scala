@@ -1,22 +1,20 @@
 package api
 
 import java.sql.Timestamp
-import java.util.GregorianCalendar
-import actors.SocketHandler
-import models.{ CalendarEvents, _ }
-import models.mysql._
-import models.sql._
-import play.api.libs.json.{ Json, JsNull, JsValue }
-import utils.SmartTimestamp.Implicits._
-import scala.collection.mutable
-import utils.SmartTimestamp
-import java.text.SimpleDateFormat
-import java.text.ParseException
-import scala.slick.jdbc.JdbcBackend.SessionDef
+import java.text.{ParseException, SimpleDateFormat}
+
 import actors.CalendarLockManager._
+import actors.SocketHandler
 import akka.pattern.ask
 import gt.Global.ExecutionContext
+import models.mysql._
+import models.{CalendarEvents, _}
 import play.api.libs.json.Json.JsValueWrapper
+import play.api.libs.json.{JsNull, JsValue, Json}
+import utils.SmartTimestamp
+import utils.SmartTimestamp.Implicits._
+
+import scala.collection.mutable
 
 /**
  * Shared calendar-related values
@@ -101,7 +99,7 @@ trait CalendarHandler {
 
 			return {
 				// Event created
-				case ev @ CalendarEventCreate(event) => {
+				case ev@CalendarEventCreate(event) => {
 					if (watched_events.contains(event.id)) {
 						// Delayed broadcast for private events
 						true
@@ -139,7 +137,7 @@ trait CalendarHandler {
 				}
 
 				// Answer created
-				case ev @ CalendarAnswerCreate(answer) => {
+				case ev@CalendarAnswerCreate(answer) => {
 					val eid = answer.event
 					if (answer.user != user.id) {
 						false

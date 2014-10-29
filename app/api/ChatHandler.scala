@@ -1,11 +1,8 @@
 package api
 
-import actors.SocketHandler
-import gt.User
-import play.api.libs.json._
 import actors.ChatManager._
+import actors.SocketHandler
 import akka.pattern.ask
-import gt.Global.ExecutionContext
 
 trait ChatHandler {
 	this: SocketHandler =>

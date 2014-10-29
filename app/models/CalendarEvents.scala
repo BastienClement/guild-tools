@@ -1,14 +1,10 @@
 package models
 
 import java.sql.Timestamp
-import models._
-import models.mysql._
-import scala.slick.jdbc.JdbcBackend.SessionDef
-import api.CalendarEventCreate
+
+import api.{CalendarEventCreate, CalendarEventDelete, CalendarEventUpdate}
 import gt.Socket
-import api.CalendarEventDelete
-import api.CalendarEventUpdate
-import api.CalendarHelper
+import models.mysql._
 
 object CalendarVisibility {
 	val Guild = 1
@@ -64,7 +60,7 @@ case class CalendarEvent(id: Int, title: String, desc: String, owner: Int, date:
 		}
 
 		// Rebuild slots for visible tabs
-		val slots = expanded.slots.filter { case(id, slots) => visibles_tabs.contains(id) }
+		val slots = expanded.slots.filter { case (id, slots) => visibles_tabs.contains(id) }
 
 		CalendarEventFull(this, tabs, slots)
 	}
