@@ -53,7 +53,7 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		// Incoming message
 		case message: JsValue => {
 			val id = message \ "#"
-			Logger.debug(s">>> $message")
+			//Logger.debug(s">>> $message")
 
 			try {
 				val cmd = (message \ "$").as[String]
@@ -94,7 +94,7 @@ class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 		if (id == JsNull) return
 
 		def outputJson(js: JsValue) = {
-			Logger.debug(s"<<< ${js.toString}")
+			//Logger.debug(s"<<< ${js.toString}")
 			out ! js
 		}
 
