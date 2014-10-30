@@ -3,6 +3,7 @@ package api
 import scala.concurrent.Future
 import gt.Global.ExecutionContext
 import play.api.libs.json.Json.JsValueWrapper
+import scala.language.implicitConversions
 
 abstract class OutgoingMessage
 case class Message(cmd: String, arg: JsValueWrapper) extends OutgoingMessage

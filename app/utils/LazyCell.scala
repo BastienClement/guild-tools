@@ -1,6 +1,7 @@
 package utils
 
 import scala.concurrent.duration._
+import scala.language.implicitConversions
 
 object LazyCell {
 	def apply[T](ttl: FiniteDuration)(generator: => T) = {
