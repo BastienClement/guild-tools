@@ -3,50 +3,50 @@
 		flex: 1;
 		margin-right: 6px;
 	}
-	
+
 	#dashboard-center {
 		flex: 1.7;
 		display: flex;
 		flex-direction: column;
 	}
-	
+
 	#dashboard-events {
 		/*flex: 1;*/
 		min-height: 250px;
 	}
-	
+
 	#dashboard-shoutbox {
 		flex: 1;
 		margin-top: 6px;
 	}
-	
+
 	#dashboard-right {
 		width: 300px;
 		margin-left: 6px;
 		display: flex;
 		flex-direction: column;
 	}
-	
+
 	#dashboard-right > div {
 		margin-bottom: 6px;
 	}
-	
+
 	#dashboard-connected {
 		flex: 1;
 		margin-bottom: 0 !important;
 	}
-	
+
 	#dashboard .box.parted {
 		display: flex;
 		flex-direction: column;
 	}
-	
+
 	#dashboard .box.parted h2 {
 		margin: 0 -15px;
 		border-bottom: 2px solid #426585;
 		padding: 0 15px 15px 15px;
 	}
-	
+
 	#dashboard .box.parted .panel {
 		padding-top: 10px;
 		flex: 1;
@@ -55,103 +55,103 @@
 		margin: 0 -15px -15px -15px;
 		padding: 15px;
 	}
-	
+
 	#dashboard-feed-filter {
 		float: right;
 		top: 2px;
 	}
-	
+
 	#dashboard-feed-filter button {
 		padding-bottom: 4px;
 		border-bottom: 2px solid #64B4FF;
 		z-index: 50;
 	}
-	
+
 	#dashboard-feed-filter button.disabled {
 		opacity: .3;
 		border-bottom: 2px solid transparent;
 	}
-	
+
 	#dashboard-feed-filter button:hover {
 		opacity: 1;
 	}
-	
+
 	#dashboard-feed .entry {
 		display: flex;
 		padding: 3px 5px;
 		margin: 0 -10px 0 -5px;
 	}
-	
+
 	#dashboard-feed .entry:hover {
 		background: rgba(99, 180, 255, 0.1);
 	}
-	
+
 	#dashboard-feed div:first-child {
 		margin-top: -5px;
 	}
-	
+
 	#dashboard-feed div:last-child {
 		margin-bottom: -5px;
 	}
-	
+
 	#dashboard-feed .entry img {
 		height: 15px;
 		margin-right: 10px;
 		top: 1px;
 	}
-	
+
 	#dashboard-feed .entry .title {
 		flex: 1;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
-	
+
 	#dashboard-feed .entry.blizz .title {
 		color: #00B4FF;
 	}
-	
+
 	#dashboard-feed .entry.mmo .title {
 		color: #90E055;
 	}
-	
+
 	#dashboard-feed .entry .time {
 		opacity: .75;
 		margin-left: 10px;
 	}
-	
+
 	#dashboard-feed .entry.animated.ng-enter {
 		transform: translateX(10px);
 	}
-	
+
 	#dashboard-feed .entry.animated.ng-enter-active {
 		transform: translateX(0px);
 	}
-	
+
 	#dashboard-feed .entry.animated.ng-leave {
 		transform: translateX(0px);
 	}
-	
+
 	#dashboard-feed .entry.animated.ng-leave-active {
 		transform: translateX(10px);
 	}
-	
+
 	#dashboard-events .panel {
 		display: flex;
 		padding: 0 !important;
 		overflow: hidden !important;
 	}
-	
+
 	#dashboard-events .panel > div {
 		padding: 15px;
 		width: 50%;
 	}
-	
+
 	#dashboard-events .panel .events {
 		border-right: 2px solid #426585;
 		padding-right: 5px;
 	}
-	
+
 	#dashboard-events .event-list {
 		display: table;
 		table-layout: fixed;
@@ -159,56 +159,66 @@
 		box-sizing: content-box;
 		margin: 0px -5px;
 	}
-	
+
 	#dashboard-events .event {
 		display: table-row;
 		transition: background ease-out .3s;
 	}
-	
+
 	#dashboard-events .event:hover {
 		background: rgba(99, 180, 255, 0.1);
 	}
-	
+
 	#dashboard-events .event > span {
 		display: table-cell;
 		padding: 3px 5px;
 	}
-	
+
 	#dashboard-events .event .date {
 		width: 35px;
 	}
-	
+
 	#dashboard-events .event .title {
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		color: #ffef64;
 	}
-	
+
 	#dashboard-events .event.accepted .title {
 		color: #70ea5c;
 	}
 	#dashboard-events .event.declined .title {
 		color: #ff693b;
 	}
-	
+
 	#dashboard-events .event.closed .title {
 		color: #64b4ff;
 	}
-	
+
 	#dashboard-events .event.canceled .title {
 		color: #aaa;
 	}
-	
+
 	#dashboard-events .event.note .title {
 		color: #fff;
 	}
-	
+
 	#dashboard-events .event .time {
 		opacity: .5;
 		width: 35px;
 	}
-	
+
+	#dashboard-events .log .title {
+		color: #64B4FF;
+	}
+
+	#dashboard-events .log .uploader {
+		margin-left: 10px;
+		color: #fff;
+		opacity: 0.5;
+	}
+
 	#dashboard-user img {
 		width: 60px;
 		height: 60px;
@@ -216,12 +226,12 @@
 		float: left;
 		border: 1px solid rgba(0, 0, 0, 0.1);
 	}
-	
+
 	#dashboard-user h2 {
 		font-weight: 300;
 		margin-bottom: 0;
 	}
-	
+
 	#dashboard-user .rank {
 		opacity: .5;
 	}
@@ -248,7 +258,7 @@
 			</div>
 		</div>
 	</div>
-	
+
 	<div id="dashboard-center">
 		<div class="box parted" id="dashboard-events">
 			<h2>Guild activity</h2>
@@ -264,11 +274,23 @@
 					</div>
 				</div>
 				<div>
-					<h3>Recent logs</h3>
+					<h3>WarcraftLogs</h3>
+					<div class="box" style="margin-bottom: 10px;" ng-if="!logs.length">
+						Logs unavailable
+					</div>
+					<div class="event-list">
+						<div class="event log" ng-repeat="log in logs" ng-click="openURL('http://www.warcraftlogs.com' + log.url)">
+							<span class="date">{{ formatLogDate(log.start) }}</span>
+							<span class="title">
+								{{ extractLogTitle(log.title) }}
+								<span class="uploader">{{ extractLogUploader(log.title) }}</span>
+							</span>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
-		
+
 		<div class="box parted" id="dashboard-shoutbox">
 			<h2>Shoutbox</h2>
 			<div class="panel">
@@ -276,7 +298,7 @@
 			<input type="text">
 		</div>
 	</div>
-	
+
 	<div id="dashboard-right">
 		<div id="dashboard-user" class="box">
 			<img ng-src="http://eu.battle.net/static-render/eu/{{ main.thumbnail }}">
@@ -289,14 +311,14 @@
 				{{ $.user.group }}
 			</div>
 		</div>
-		
+
 		<div class="box">
 			<h2>Informations</h2>
 			<div class="dashboard-connected-user" contenteditable>
 				Message de guilde de la part des officiers
 			</div>
 		</div>
-		
+
 		<div class="box" id="dashboard-connected">
 			<h2>Online</h2>
 			<div class="dashboard-connected-user" ng-repeat="player in $.online | orderBy:onlineSort">
