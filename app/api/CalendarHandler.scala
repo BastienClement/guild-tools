@@ -412,7 +412,7 @@ trait CalendarHandler {
 				case CalendarAnswerUpdate(answer) => (answer.event == id)
 
 				case CalendarEventUpdate(event) => (event.id == id)
-				case CalendarEventDelete(id) => (id == id)
+				case CalendarEventDelete(eid) => (eid == id)
 
 				case CalendarTabCreate(tab) => utils.doIf(tab.event == id) {
 					event_tabs += (tab.id -> tab)
