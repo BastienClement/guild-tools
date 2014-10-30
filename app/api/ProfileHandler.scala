@@ -116,7 +116,7 @@ trait ProfileHandler {
 		/**
 		 * $:profile:register
 		 */
-		def handleRegister(arg: JsValue): MessageResponse = utils.defer {
+		def handleRegister(arg: JsValue): MessageResponse = {
 			val server = (arg \ "server").as[String]
 			val name = (arg \ "char").as[String]
 			val role = validateRole((arg \ "role").as[String])

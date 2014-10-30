@@ -11,7 +11,7 @@ trait ChatHandler {
 		/**
 		 * $:chat:onlines
 		 */
-		def handleOnlines(): MessageResponse = utils.defer {
+		def handleOnlines(): MessageResponse = {
 			(ChatManagerRef ? ListOnlines).mapTo[Set[Int]]
 		}
 	}

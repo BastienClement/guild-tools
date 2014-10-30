@@ -12,21 +12,21 @@ trait RosterHandler {
 		/**
 		 * $:roster:load
 		 */
-		def handleLoad(): MessageResponse = utils.defer {
+		def handleLoad(): MessageResponse = {
 			(RosterManagerRef ? Api_ListRoster).mapTo[JsObject]
 		}
 
 		/**
 		 * $:roster:user
 		 */
-		def handleUser(arg: JsValue): MessageResponse = utils.defer {
+		def handleUser(arg: JsValue): MessageResponse = {
 			(RosterManagerRef ? Api_QueryUser((arg \ "id").as[Int])).mapTo[JsObject]
 		}
 
 		/**
 		 * $:roster:char
 		 */
-		def handleChar(arg: JsValue): MessageResponse = utils.defer {
+		def handleChar(arg: JsValue): MessageResponse = {
 			(RosterManagerRef ? QueryChar((arg \ "id").as[Int])).mapTo[Option[models.Char]]
 		}
 	}

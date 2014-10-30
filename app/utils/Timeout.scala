@@ -9,7 +9,7 @@ object Timeout {
 }
 
 class Timeout(d: FiniteDuration)(body: => Unit) {
-	var fuse: Option[Cancellable] = None
+	private var fuse: Option[Cancellable] = None
 
 	def start(): Unit = {
 		if (fuse.isDefined) return
