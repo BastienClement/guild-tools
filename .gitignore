@@ -16,5 +16,6 @@ dist
 /.worksheet
 /.cache
 /bin
+/conf/application.conf
 
 guild-tools.eml
