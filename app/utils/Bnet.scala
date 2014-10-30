@@ -2,13 +2,12 @@ package utils
 
 import scala.concurrent._
 import gt.Global.ExecutionContext
-import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._
 import play.api.libs.ws._
 
 object Bnet {
-	private val key = Play.current.configuration.getString("bnet.apiKey")
+	private val key = current.configuration.getString("bnet.apiKey") getOrElse ""
 
 	def query(api: String, user_params: (String, String)*): Future[Option[JsValue]] = {
 		val request = WS.url(s"https://eu.api.battle.net/wow$api")
