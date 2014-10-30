@@ -5,21 +5,21 @@ import actors.RosterManager._
 import models.mysql._
 
 case class Char(
-		               id: Int,
-		               name: String,
-		               server: String,
-		               owner: Int,
-		               main: Boolean,
-		               active: Boolean,
-		               `class`: Int,
-		               race: Int,
-		               gender: Int,
-		               level: Int,
-		               achievements: Int,
-		               thumbnail: String,
-		               ilvl: Int,
-		               role: String,
-		               last_update: Long) {
+	id: Int,
+	name: String,
+	server: String,
+	owner: Int,
+	main: Boolean,
+	active: Boolean,
+	`class`: Int,
+	race: Int,
+	gender: Int,
+	level: Int,
+	achievements: Int,
+	thumbnail: String,
+	ilvl: Int,
+	role: String,
+	last_update: Long) {
 	val clazz = `class`
 
 	if (!Chars.validateRole(role)) {
