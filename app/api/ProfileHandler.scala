@@ -1,7 +1,6 @@
 package api
 
 import java.util.Date
-
 import actors.SocketHandler
 import gt.Global.ExecutionContext
 import models._

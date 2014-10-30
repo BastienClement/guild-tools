@@ -1,9 +1,8 @@
 package utils
 
+import scala.concurrent.duration.FiniteDuration
 import akka.actor.Cancellable
 import gt.Global.ExecutionContext
-
-import scala.concurrent.duration.FiniteDuration
 
 object FuseTimer {
 	def create(dur: FiniteDuration)(body: => Unit): FuseTimer = new FuseTimer(dur, () => body)

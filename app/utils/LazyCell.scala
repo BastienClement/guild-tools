@@ -1,39 +1,30 @@
 package utils
 
-import akka.actor.Cancellable
-import gt.Global.ExecutionContext
-
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration._
 
 object LazyCell {
-	def apply[T](expire: FiniteDuration)(generator: => T) = {
-		new LazyCell[T](expire)(generator)
+	def apply[T](ttl: FiniteDuration)(generator: => T) = {
+		new LazyCell[T](ttl)(generator)
 	}
 
 	implicit def extract[T](cell: LazyCell[T]): T = cell.get
 }
 
-class LazyCell[T] private(expire: FiniteDuration)(generator: => T) {
-	/**
-	 * Keep track of cell state
-	 */
-	private var _defined = false
-	def defined: Boolean = _defined
-
+class LazyCell[T] private(ttl: FiniteDuration)(generator: => T) {
 	/**
 	 * This cell value
 	 */
 	private var value: T = _
 
 	/**
-	 * Expiration timeout
+	 * Cell expiration
 	 */
-	private var timeout: Option[Cancellable] = None
+	private var expiration: Deadline = Deadline.now
 
 	/**
 	 * Get internal value or generate it if not available
 	 */
-	def get: T = if (_defined) value else gen()
+	def get: T = if (expiration.hasTimeLeft()) value else gen()
 
 	/**
 	 * Explicitly set a new value for this cell
@@ -45,34 +36,25 @@ class LazyCell[T] private(expire: FiniteDuration)(generator: => T) {
 	/**
 	 * Remove cached value
 	 */
-	def clear(): Unit = this.synchronized {
-		_defined = false
-		timeout = timeout.flatMap { c =>
-			c.cancel()
-			None
-		}
+	def clear(): Unit = {
+		expiration = Deadline.now
 	}
+
+	/**
+	 * Check cell status
+	 */
+	def isExpired: Boolean = expiration.isOverdue()
 
 	/**
 	 * Generate a new value
 	 */
 	private def gen(): T = this.synchronized {
 		// Race-condition
-		if (_defined) return value
+		if (expiration.hasTimeLeft()) return value
 
+		// Set the value
 		set(generator)
-		_defined = true
-
-		// Cancel previous expiration
-		timeout.map(_.cancel())
-
-		// Schedule expiration
-		val t = scheduler.scheduleOnce(expire) {
-			timeout = None
-			clear()
-		}
-
-		timeout = Some(t)
+		expiration = ttl.fromNow
 
 		// Return the value
 		value

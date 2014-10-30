@@ -1,5 +1,6 @@
 package actors
 
+import scala.concurrent.duration._
 import actors.RosterManager._
 import akka.actor.{Actor, Props}
 import api._
@@ -10,8 +11,6 @@ import play.api.Play.current
 import play.api.libs.concurrent.Akka
 import play.api.libs.json._
 import utils.LazyCell
-
-import scala.concurrent.duration._
 
 object RosterManager {
 	val RosterManagerRef = Akka.system.actorOf(Props[RosterManager], name = "RosterManager")

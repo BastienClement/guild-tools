@@ -1,7 +1,8 @@
 package api
 
 import java.sql.SQLException
-
+import scala.annotation.tailrec
+import scala.concurrent.duration.DurationInt
 import actors.SocketHandler
 import gt.{Socket, User}
 import models._
@@ -9,9 +10,6 @@ import models.mysql._
 import models.sql._
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.api.libs.json.{JsNull, JsValue, Json}
-
-import scala.annotation.tailrec
-import scala.concurrent.duration.DurationInt
 
 object AuthHelper {
 	val allowedGroups = Set(8, 12, 9, 11)

@@ -1,7 +1,7 @@
 package actors
 
 import java.util.Date
-
+import scala.concurrent.duration._
 import actors.CalendarLockManager._
 import akka.actor._
 import api.{CalendarLockAcquire, CalendarLockRelease}
@@ -10,8 +10,6 @@ import gt.Socket
 import play.api.Play.current
 import play.api.libs.concurrent.Akka
 import utils.scheduler
-
-import scala.concurrent.duration._
 
 object CalendarLockManager {
 	val LockManager = Akka.system.actorOf(Props[CalendarLockManager], name = "CalendarLockManager")

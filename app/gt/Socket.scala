@@ -1,12 +1,11 @@
 package gt
 
-import akka.actor.{ActorRef, actorRef2Scala}
-import api._
-import utils.FuseTimer
-
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.duration.DurationInt
+import akka.actor.{ActorRef, actorRef2Scala}
+import api._
+import utils.FuseTimer
 
 object Socket {
 	var sockets = Map[String, Socket]()

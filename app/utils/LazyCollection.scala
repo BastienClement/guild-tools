@@ -1,41 +1,8 @@
 package utils
 
-import akka.actor.Cancellable
-import gt.Global.ExecutionContext
-
-import scala.collection.mutable
 import scala.concurrent.duration._
 
-object LazyCollection {
-	/**
-	 * All LazyCollection instances currently living
-	 */
-	private val instances = mutable.WeakHashMap[LazyCollection[_, _], Unit]()
-
-	/**
-	 * Track garbage collector status
-	 */
-	private var collector_started = false
-	private var collector: Cancellable = _
-
-	/**
-	 * Register a new collection in global registry and start garbage collection
-	 */
-	def register(col: LazyCollection[_, _]) = this.synchronized {
-		instances(col) = ()
-		if (!collector_started) {
-			collector_started = true
-			collector = scheduler.schedule(1.minute, 1.minute) {
-				if (instances.size > 0) {
-					instances.map(_._1.collect())
-				} else {
-					collector.cancel()
-					collector_started = false
-				}
-			}
-		}
-	}
-
+object LazyCollection extends Collector[LazyCollection[_, _]] {
 	/**
 	 * Constructor helper
 	 */
@@ -44,7 +11,7 @@ object LazyCollection {
 	}
 }
 
-class LazyCollection[K, T] private(generator: (K) => T, expire: FiniteDuration) {
+class LazyCollection[K, T] private(generator: (K) => T, expire: FiniteDuration) extends Collectable {
 	/**
 	 * Register in global registry
 	 */
@@ -77,6 +44,6 @@ class LazyCollection[K, T] private(generator: (K) => T, expire: FiniteDuration) 
 	 * Collect undefined cell to free memory
 	 */
 	def collect(): Unit = this.synchronized {
-		cells = cells.filter { case (key, cell) => cell.defined }
+		cells = cells.filter { case (key, cell) => !cell.isExpired }
 	}
 }

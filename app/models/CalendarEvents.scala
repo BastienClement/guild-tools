@@ -1,7 +1,6 @@
 package models
 
 import java.sql.Timestamp
-
 import api.{CalendarEventCreate, CalendarEventDelete, CalendarEventUpdate}
 import gt.Socket
 import models.mysql._

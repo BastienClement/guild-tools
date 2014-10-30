@@ -2,7 +2,7 @@ package api
 
 import java.sql.Timestamp
 import java.text.{ParseException, SimpleDateFormat}
-
+import scala.collection.mutable
 import actors.CalendarLockManager._
 import actors.SocketHandler
 import akka.pattern.ask
@@ -13,8 +13,6 @@ import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json.{JsNull, JsValue, Json}
 import utils.SmartTimestamp
 import utils.SmartTimestamp.Implicits._
-
-import scala.collection.mutable
 
 /**
  * Shared calendar-related values

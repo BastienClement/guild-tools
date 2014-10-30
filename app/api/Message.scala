@@ -1,8 +1,7 @@
 package api
 
-import play.api.libs.json.Json.JsValueWrapper
-
 import scala.concurrent.Future
+import play.api.libs.json.Json.JsValueWrapper
 
 trait OutgoingMessage
 case class Message(cmd: String, arg: JsValueWrapper) extends OutgoingMessage

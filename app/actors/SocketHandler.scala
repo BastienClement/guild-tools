@@ -1,5 +1,7 @@
 package actors
 
+import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 import akka.actor.{Actor, ActorRef, PoisonPill, actorRef2Scala}
 import akka.util.Timeout
 import api._
@@ -7,9 +9,6 @@ import gt.Global.ExecutionContext
 import gt.{Global, Socket, User}
 import play.api.Logger
 import play.api.libs.json._
-
-import scala.concurrent.duration._
-import scala.util.{Failure, Success}
 
 class SocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor
 with AuthHandler

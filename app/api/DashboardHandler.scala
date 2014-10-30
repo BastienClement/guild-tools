@@ -1,12 +1,11 @@
 package api
 
+import scala.concurrent.duration._
 import actors.SocketHandler
 import models._
 import models.mysql._
 import play.api.libs.json._
 import utils.{LazyCell, SmartTimestamp}
-
-import scala.concurrent.duration._
 
 object DashboardHelper {
 	/**

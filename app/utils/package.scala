@@ -1,14 +1,12 @@
 import java.math.BigInteger
 import java.security.{MessageDigest, SecureRandom}
-
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future, Promise}
+import scala.util.{Failure, Success}
 import api.{MessageDeferred, MessageResponse, MessageResults}
 import gt.Global.ExecutionContext
 import play.api.libs.json.Json.JsValueWrapper
 import play.libs.Akka
-
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future, Promise}
-import scala.util.{Failure, Success}
 
 package object utils {
 	/**
