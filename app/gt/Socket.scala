@@ -5,7 +5,7 @@ import scala.collection.mutable
 import scala.concurrent.duration.DurationInt
 import akka.actor.{ActorRef, actorRef2Scala}
 import api._
-import utils.FuseTimer
+import utils.Timeout
 
 object Socket {
 	var sockets = Map[String, Socket]()
@@ -92,7 +92,7 @@ class Socket private(val token: String, val user: User, val session: String, var
 	/**
 	 * Socket can be rebound for up to 30 secs after handler death
 	 */
-	private val disposeTimeout = FuseTimer.create(30.seconds) {
+	private val disposeTimeout = Timeout(30.seconds) {
 		dispose()
 	}
 

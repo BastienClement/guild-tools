@@ -4,17 +4,17 @@ import scala.concurrent.duration.FiniteDuration
 import akka.actor.Cancellable
 import gt.Global.ExecutionContext
 
-object FuseTimer {
-	def create(dur: FiniteDuration)(body: => Unit): FuseTimer = new FuseTimer(dur, () => body)
+object Timeout {
+	def apply(dur: FiniteDuration)(body: => Unit): Timeout = new Timeout(dur)(body)
 }
 
-class FuseTimer(val d: FiniteDuration, val body: () => Unit) {
+class Timeout(d: FiniteDuration)(body: => Unit) {
 	var fuse: Option[Cancellable] = None
 
 	def start(): Unit = {
 		if (fuse.isDefined) return
 		val f = scheduler.scheduleOnce(d) {
-			body()
+			body
 			fuse = None
 		}
 		fuse = Some(f)
