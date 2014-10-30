@@ -51,14 +51,14 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 
 	function pushEvent(event) {
 		var date = event.date.split(" ")[0];
-		
+
 		event.sortTime = (event.time < 600) ? event.time + 2400 : event.time;
 		event.time = zero_pad(event.time, 3);
-		
+
 		if (event.type === 4) {
 			event.sortTime -= 3000;
 		}
-		
+
 		if (!$scope.events[date]) {
 			$scope.events[date] = [event];
 		} else {
@@ -80,7 +80,7 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 			"event:create": function(event) {
 				pushEvent(event);
 			},
-			
+
 			"event:update": function(new_event) {
 				for (var day in $scope.events) {
 					for (var i in $scope.events[day]) {
@@ -127,13 +127,13 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 		var first_month_day = ((new Date($scope.year, $scope.month, 1).getDay()) + 6) % 7;
 
 		var today = new Date();
-		
+
 		var today_day = (today.getDay() + 6) % 7;
 		var day_in_lockout = (today_day + 5) % 7;
-		
+
 		var lockout_start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - day_in_lockout);
 		var lockout_end   = new Date(today.getFullYear(), today.getMonth(), today.getDate() + (6 - day_in_lockout));
-		
+
 		for (var r = 0; r < 6; r++) {
 			if (!$scope.data[r]) $scope.data[r] = [];
 
@@ -153,7 +153,7 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 					month = next_month_id;
 					year = next_month_year;
 				}
-				
+
 				var day_date = new Date(year, month, day);
 				var cell = $scope.data[r][c];
 				cell.day = day;
@@ -472,7 +472,7 @@ GuildTools.controller("CalendarAddEventCtrl", function($scope) {
 GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routeParams) {
 	if ($scope.restrict()) return;
 	var eventid = Number($routeParams.id);
-	
+
 	$scope.setNavigator("calendar", "event");
 
 	$scope.event = null;
@@ -485,12 +485,12 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	$scope.tab_selected = 0;
 	$scope.lock = null;
 	$scope.editable = false;
-	
+
 	$scope.setTab = function(t) {
 		$scope.tab_selected = t;
 		$scope.computeRaidBuffs();
 	};
-	
+
 	$scope.$watch("tab_selected", function(tab) {
 		$scope.updateNote();
 		if (tab === 0 || !$scope.editable) return;
@@ -505,11 +505,11 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 
 	$scope.answer = 1;
 	$scope.answer_note = "";
-	
+
 	$scope.picked = null;
 	$scope.pickedFromSlot = false;
 	$scope.setPicker = function(char, ev, slot) {
-		if (!char || !$scope.editable || ev.button !== 0 || char.unknown) return false;
+		if (!char || !$scope.editable || ev.button !== 0) return false;
 		$scope.picked = char;
 		$scope.pickedFromSlot = slot;
 		$scope.handlePicker(ev);
@@ -518,7 +518,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			$scope.handlePicker(ev);
 		}, 100);
 	};
-	
+
 	function filterChar(char) {
 		return {
 			owner: char.owner,
@@ -527,17 +527,17 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			role: char.role
 		};
 	}
-	
+
 	$scope.dropPicker = function() {
 		if ($scope.pickerTarget === $scope.pickedFromSlot || !$scope.picked) {
 			$scope.picked = null;
 			return;
 		}
-		
+
 		var template = {
 			tab: $scope.tab_selected,
 		};
-		
+
 		if (!$scope.pickerTarget) {
 			if ($scope.pickedFromSlot) {
 				template.slot = $scope.pickedFromSlot;
@@ -551,19 +551,22 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			}
 			template.slot = $scope.pickerTarget;
 			template.char = filterChar($scope.picked);
+			if ($scope.picked.unknown) {
+				template.char.role = "DPS";
+			}
 			$.call("calendar:comp:set", template);
 		}
-		
+
 		$scope.picked = null;
 	};
-	
+
 	$scope.pickerTarget = null;
 	$scope.pickerTargetChar = null;
 	$scope.setPickerTarget = function(slot, char) {
 		$scope.pickerTarget = slot;
 		$scope.pickerTargetChar = char;
 	};
-	
+
 	var lock = false;
 	$scope.handlePicker = function(ev) {
 		if (lock) return; else lock = true;
@@ -575,7 +578,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			});
 		});
 	};
-	
+
 	_("#calendar-event").mousemove($scope.handlePicker);
 
 	function extract_main(data) {
@@ -586,7 +589,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			}
 		};
 	}
-	
+
 	function build_tabs_idx() {
 		$scope.tabs_idx = {};
 		$scope.tabs.forEach(function(tab) {
@@ -609,7 +612,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		cached_tab = null;
 		$scope.updateNote();
 	}
-	
+
 	$scope.setContext("calendar:event", { id: eventid }, {
 		$: function(data) {
 			if (data.answer) {
@@ -630,18 +633,18 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				var answer = $scope.answers[user] || { answer: 0 };
 				$scope.answers_tab[answer.answer].push({ user: user, answer: answer });
 			}
-			
+
 			build_tabs_idx();
 			cached_tab = null;
 			$scope.computeRaidBuffs();
 			$scope.updateNote();
 			$scope.chars = $.roster.charsByUser($.user.id);
 		},
-		
+
 		"event:update": function(data) {
 			$scope.event = data;
 		},
-		
+
 		"event:update:full": function(data) {
 			$scope.event = data.event;
 			$scope.tabs = data.tabs;
@@ -649,7 +652,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			$scope.slots = data.slots;
 			$scope.updateNote();
 		},
-		
+
 		"event:delete": function(data) {
 			$scope.breadcrumb.push("/calendar");
 			$scope.error("Event deleted");
@@ -657,13 +660,13 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 
 		"answer:create": update_answer,
 		"answer:update": update_answer,
-		
+
 		"calendar:slot:update": function(data) {
 			var comp = $scope.slots[data.tab];
 			if (!comp) {
 				comp = $scope.slots[data.tab] = {};
 			}
-			
+
 			// Remove old entry
 			for (var slot in comp) {
 				var char = comp[slot];
@@ -671,16 +674,16 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 					delete comp[slot];
 				}
 			}
-			
+
 			// Add new entry
 			comp[data.slot] = data;
-			
+
 			if (data.tab === $scope.tab_selected) {
 				$scope.computeRaidBuffs();
 				$scope.updateNote();
 			}
 		},
-		
+
 		"calendar:slot:delete": function(data) {
 			var comp = $scope.slots[data.tab];
 			if (comp) delete comp[data.slot];
@@ -689,12 +692,12 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				$scope.updateNote();
 			}
 		},
-		
+
 		"calendar:tab:create": function(tab) {
 			$scope.tabs.push(tab);
 			build_tabs_idx();
 		},
-		
+
 		"calendar:tab:update": function(tab_new) {
 			$scope.tabs = $scope.tabs.map(function(tab) {
 				return (tab.id === tab_new.id) ? tab_new : tab;
@@ -703,17 +706,17 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			build_tabs_idx();
 			$scope.updateNote();
 		},
-		
+
 		"calendar:tab:delete": function(id) {
 			$scope.tabs = $scope.tabs.filter(function(tab) {
 				return tab.id !== id;
 			});
-			
+
 			if ($scope.tab_selected === id) {
 				$scope.tab_selected = $scope.tabs[0].id;
 			}
 		},
-		
+
 		"calendar:tab:wipe": function(id) {
 			delete $scope.slots[id];
 			if (id === $scope.tab_selected) {
@@ -721,13 +724,13 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				$scope.updateNote();
 			}
 		},
-		
+
 		"calendar:lock:acquire": function(data) {
 			if (data.id === $scope.tab_selected) {
 				$scope.lock = data.owner;
 			}
 		},
-		
+
 		"calendar:lock:release": function(id) {
 			if (id === $scope.tab_selected) {
 				$scope.lock = null;
@@ -751,7 +754,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		var hour = zero_pad(date.getHours(), 2) + ":" + zero_pad(date.getMinutes(), 2);
 		return day + " - " + hour;
 	};
-	
+
 	$scope.$on("roster-updated", function() {
 		cached_tab = null;
 		$scope.chars = $.roster.charsByUser($.user.id);
@@ -775,7 +778,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				return $.roster.mainForUser(e.user);
 			}
 		}
-		
+
 		var list = $scope.answers_tab[tab].map(function(e) {
 			return {
 				user: e.user,
@@ -783,7 +786,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				char: select_char(e)
 			};
 		});
-		
+
 		list.sort(function(a, b) {
 			a = a.char;
 			b = b.char;
@@ -896,27 +899,27 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 
 		$scope.menu(menu, ev);
 	};
-	
+
 	$scope.tabMenu = function(tab, ev) {
 		if (!$scope.editable) return;
-		
+
 		function greaterThan(x) {
 			return function(a) { return a.order > x.order; };
 		}
-		
+
 		function lesserThan(x) {
 			return function(a) { return a.order < x.order; };
 		}
-		
+
 		function max(n, b) { return (b.order > n) ? b.order : n; }
 		function min(n, b) { return (b.order < n || n < 0) ? b.order : n; }
-		
+
 		function extract(order) {
 			return $scope.tabs.reduce(function(a, b) {
 				return a || (b.order === order && b) || null;
 			}, null);
 		}
-		
+
 		var menu = [
 			{
 				icon: "awe-pencil",
@@ -986,11 +989,11 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 
 		$scope.menu(menu, ev);
 	};
-	
+
 	$scope.slotMenu = function(slot, ev) {
 		var template = { tab: $scope.tab_selected, slot: slot, char: $scope.slots[$scope.tab_selected][slot] };
 		var chars;
-		
+
 		try {
 			chars = $.roster.charsByUser($scope.slots[$scope.tab_selected][slot].owner).filter(function(char) {
 				return char.name !== template.char.name && char.active;
@@ -998,7 +1001,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		} catch (e) {
 			chars = [];
 		}
-		
+
 		var menu = [
 			{
 				icon: "icn-tank",
@@ -1029,7 +1032,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			},
 			{ separator: true, order: 3, visible: chars.length > 0 }
 		];
-		
+
 		chars.sort(function(a, b) { return b.ilvl - a.ilvl; });
 		chars.forEach(function(char, i) {
 			menu.push({
@@ -1042,7 +1045,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				order: i + 10,
 			});
 		});
-	
+
 		$scope.menu(menu, ev);
 	};
 
@@ -1108,23 +1111,23 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			multistrike: [167411, false],
 			versatility: [167409, false]
 		};
-	
+
 		var have = {};
-		
+
 		var slots = $scope.slots[$scope.tab_selected];
 		for (var slot in slots) {
 			var char = slots[slot];
 			have[char["class"]] = have[char["class"]] ? have[char["class"]] + 1 : 1;
 			have[char["class"] + ":" + char.role] = have[char["class"] + ":" + char.role] ? have[char["class"] + ":" + char.role] + 1 : 1;
 		}
-		
+
 		buffs_table.forEach(function(buff) {
 			if (buffs[buff.b][1] || buff.opt) return;
 			if (!have[buff.c]) return;
 			if (buff.r && !have[buff.c + ":" + buff.r]) return;
 			buffs[buff.b] = [buff.w, buff.i];
 		});
-		
+
 		buffs_table.forEach(function(buff) {
 			if (buffs[buff.b][1] || !buff.opt) return;
 			if (!have[buff.c] || have[buff.c] < 1) return;
@@ -1136,7 +1139,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	};
 
 	$scope.computeRaidBuffs();
-	
+
 	$scope.charDimmedInRoster = function(char) {
 		var comp = $scope.slots[$scope.tab_selected];
 		var in_comp = false;
@@ -1148,18 +1151,18 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				}
 			}
 		}
-		
+
 		return (char && $scope.picked && char.owner == $scope.picked.owner) || in_comp;
 	};
-	
+
 	$scope.charVisibleInComp = function(char) {
 		return (char && (!$scope.picked || char.owner != $scope.picked.owner)) ? 1 : 0;
 	};
-	
+
 	$scope.playerIsAvailable = function(owner) {
 		return $scope.answers[owner] && $scope.answers[owner].answer == 1;
 	};
-	
+
 	var tips = [
 		"Nearby questgivers that are awaiting your return are shown as a question mark on your mini-map.",
 		"Your spell casting can be cancelled by moving, jumping or hitting the escape key.",
@@ -1269,26 +1272,26 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		"The Raid UI can be customized in a number of different ways, such as how it shows debuffs or current health.",
 		"Dungeons are more fun when everyone works together as a team. Be patient with players who are still learning the game."
 	];
-	
+
 	$scope.randomTip = function() {
 		if (!$scope.tabs_idx[$scope.tab_selected])
 			return "Note unavailable";
-		
+
 		var i, l;
-		
+
 		var base = Math.sin($scope.event.id) * 100000;
 		var e_title = $scope.event.title;
 		for (i = 0, l = e_title.length; i < l; ++i)
 			base += Math.sin(e_title.charCodeAt(i) * base) * 100000;
-		
+
 		base += Math.sin($scope.tab_selected) * 100000;
 		var title = $scope.tabs_idx[$scope.tab_selected].title;
 		for (i = 0, l = title.length; i < l; ++i)
 			base += Math.sin(title.charCodeAt(i) * base) * 100000;
-		
+
 		return tips[Math.floor(Math.abs(base)) % tips.length];
 	};
-	
+
 	$scope.editNote = function() {
 		$.call("calendar:lock:acquire", { id: $scope.tab_selected }, function(err) {
 			if (!err) {
@@ -1296,36 +1299,36 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			}
 		});
 	};
-	
+
 	$scope.cached_note = "";
-	
+
 	$scope.updateNote = function() {
 		$scope.cached_note = $scope.$eval("(preprocessNote(tabs_idx[tab_selected].note) || '**Nothing has been written yet, but did you know that...**\n\n*' + randomTip() + '*') | markdown");
 	};
-	
+
 	$scope.updateNote();
-	
+
 	$scope.preprocessNote = function(note) {
 		if (!note) return note;
-		
+
 		var roster = [];
-		
+
 		function process_char(char) {
 			roster.push({
 				name: removeDiacritics(char.name),
 				char: char
 			});
 		}
-		
+
 		for(var id in $scope.answers) {
 			$.roster.charsByUser(id).forEach(process_char);
 		}
-		
+
 		note = note.replace(/@(\w+)/g, function(match, name) {
 			var simple_name = removeDiacritics(name);
 			var sample_length = simple_name.length;
 			var candidate = null;
-			
+
 			var matches = roster.map(function(candidate) {
 				return {
 					scoreA: levenshtein(candidate.name.slice(0, sample_length), simple_name),
@@ -1335,14 +1338,14 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			}).filter(function(candidate) {
 				return candidate.scoreA < (sample_length / 2);
 			});
-			
+
 			matches.sort(function(a, b) {
 				if (a.scoreA !== b.scoreA) return a.scoreA - b.scoreA;
 				return a.scoreB - b.scoreB;
 			});
-			
+
 			candidate = matches[0] && matches[0].char;
-			
+
 			var found = false;
 			if (candidate) {
 				for (var slot in $scope.slots[$scope.tab_selected]) {
@@ -1354,17 +1357,17 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 					}
 				}
 			}
-			
+
 			return (candidate) ? "@" + candidate.name + "(" + candidate["class"] + ")" + (found ? "" : ":") + "@" : "@" + name + "(99)" + "@";
 		});
-		
+
 		return note;
 	};
 });
 
 GuildTools.controller("CalendarAddTabCtrl", function($scope) {
 	$scope.inflight = false;
-	
+
 	$scope.create = function() {
 		$scope.inflight = true;
 		$.call("calendar:tab:create", { title: $scope.title }, function(err) {
@@ -1382,9 +1385,9 @@ GuildTools.controller("CalendarAddTabCtrl", function($scope) {
 GuildTools.controller("CalendarRenameTabCtrl", function($scope) {
 	$scope.inflight = false;
 	var tab = $scope.modalCtx;
-	
+
 	$scope.title = tab.title;
-	
+
 	$scope.rename = function() {
 		$scope.inflight = true;
 		$.call("calendar:tab:rename", { id: tab.id, title: $scope.title }, function() {
@@ -1396,10 +1399,10 @@ GuildTools.controller("CalendarRenameTabCtrl", function($scope) {
 GuildTools.controller("CalendarEditDescCtrl", function($scope) {
 	$scope.inflight = false;
 	var event = $scope.modalCtx;
-	
+
 	$scope.desc = event.desc;
 	$scope.title = event.title;
-	
+
 	$scope.save = function() {
 		$scope.inflight = true;
 		$.call("calendar:event:editdesc", { title: $scope.title, desc: $scope.desc.replace(/^\s+|\s+$/, "") }, function() {
@@ -1410,19 +1413,19 @@ GuildTools.controller("CalendarEditDescCtrl", function($scope) {
 
 GuildTools.controller("CalendarEditNoteCtrl", function($scope) {
 	$scope.inflight = false;
-	
+
 	var tab_id = $scope.modalCtx.id;
 	$scope.note = $scope.modalCtx.note || "";
-	
+
 	var lockPing = setInterval(function() {
 		$.exec("calendar:lock:refresh");
 	}, 10000);
-	
+
 	$scope.$on("$destroy", function() {
 		clearInterval(lockPing);
 		$.exec("calendar:lock:release");
 	});
-	
+
 	$scope.save = function() {
 		$scope.inflight = true;
 		$.call("calendar:tab:edit", { id: tab_id, note: $scope.note.replace(/^\s+|\s+$/, "") || null }, function() {

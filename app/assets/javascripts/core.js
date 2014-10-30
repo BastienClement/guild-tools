@@ -10,7 +10,7 @@ var $ = {};
 	_(function() {
 		ready = true;
 	});
-	
+
 	_(document).bind("contextmenu", function() { return false; });
 
 	$.init = function() {
@@ -89,7 +89,7 @@ var $ = {};
 				$.onlineMap[player.id] = player;
 			});
 		});
-		
+
 		$.exec("roster:load", function(err, data) {
 			if (err) return;
 			$.roster.users = [];
@@ -99,21 +99,21 @@ var $ = {};
 			$.roster.trigger();
 		});
 	};
-	
+
 //
 // Roster
 //
 	(function() {
 		var unknown_user_queries = {};
 		var unknown_char_queries = {};
-		
+
 		var idx_chars_by_user = [];
 		var idx_main_for_user = [];
-		
+
 		$.roster.user = function(id) {
 			id = Number(id);
 			var user = $.roster.users[id];
-			
+
 			if (!user) {
 				user = $.roster.users[id] = {
 					id: id,
@@ -122,7 +122,7 @@ var $ = {};
 					unknown: true
 				};
 			}
-			
+
 			if (user.unknown && (!unknown_user_queries[id] || (Date.now() - unknown_user_queries[id]) > 60000)) {
 				unknown_user_queries[id] = Date.now();
 				$.exec("roster:user", { id: id }, function(err, data) {
@@ -134,14 +134,14 @@ var $ = {};
 					$.roster.trigger();
 				});
 			}
-			
+
 			return user;
 		};
-		
+
 		$.roster.char = function(id) {
 			id = Number(id);
 			var char = $.roster.chars[id];
-			
+
 			if (!char) {
 				char = $.roster.chars[id] = {
 					id: id,
@@ -150,7 +150,7 @@ var $ = {};
 					unknown: true
 				};
 			}
-			
+
 			if (char.unknown && (!unknown_char_queries[id] || (Date.now() - unknown_char_queries[id]) > 60000)) {
 				unknown_char_queries[id] = Date.now();
 				$.exec("roster:char", { id: id }, function(err, char) {
@@ -159,10 +159,10 @@ var $ = {};
 					$.roster.trigger();
 				});
 			}
-			
+
 			return char;
 		};
-		
+
 		$.roster.buildIndexes = function() {
 			idx_chars_by_user = [];
 			$.roster.chars.forEach(function(char) {
@@ -171,27 +171,28 @@ var $ = {};
 				}
 				idx_chars_by_user[char.owner].push(char);
 			});
-			
+
 			idx_main_for_user = $.roster.users.map(function(user) {
 				return $.roster.charsByUser(user.id).filter(function(char) {
 					return char.main;
 				})[0];
 			});
 		};
-		
+
 		$.roster.trigger = function() {
 			$.roster.buildIndexes();
 			if (GuildToolsScope) GuildToolsScope.$broadcast("roster-updated");
 		};
-		
+
 		$.roster.charsByUser = function(user) {
 			return idx_chars_by_user[user] || [];
 		};
-		
+
 		$.roster.mainForUser = function(user) {
 			return idx_main_for_user[user] || {
 				name: $.roster.user(user).name,
 				"class": 99,
+				owner: Number(user),
 				role: "UNKNOW",
 				unknown: true
 			};
@@ -212,7 +213,7 @@ var $ = {};
 		var init_done = false;
 		var reason = null;
 		var serv_rev = null;
-		
+
 		function trigger_serv_update() {
 			_("#loading-error-title").text("The Guild-Tools server has just been upgraded");
 			_("#loading-error-text").text("You may continue what you were doing, but some features could now be broken.\nIt is recommended that you reload the client to get the latest upgrades.");
@@ -232,23 +233,23 @@ var $ = {};
 
 			"chat:onlines:update": function(msg) {
 				var user = msg.user;
-				
+
 				// Remove
 				$.online = $.online.filter(function(id) {
 					return id !== user;
 				});
-				
+
 				// Add
 				if (msg.type === "online") {
 					$.online.push(user);
 				}
 			},
-			
+
 			"roster:char:update": function(char) {
 				$.roster.chars[char.id] = char;
 				$.roster.trigger();
 			},
-			
+
 			"roster:char:delete": function(id) {
 				delete $.roster.chars[id];
 				$.roster.trigger();
@@ -279,7 +280,7 @@ var $ = {};
 				cb = arg;
 				arg = null;
 			}
-			
+
 			var run = false;
 			var wrapped_cb = function() {
 				if (run) return;
@@ -290,7 +291,7 @@ var $ = {};
 				}, 100);
 				if (cb) cb.apply(null, arguments);
 			};
-			
+
 			var timeout = setTimeout(function() {
 				wrapped_cb(new Error("TIMEOUT"));
 			}, 10000);
@@ -335,11 +336,11 @@ var $ = {};
 						"Error #113"
 					);
 				}
-				
+
 				if (serv_rev && serv_rev !== msg.rev) {
 					trigger_serv_update();
 				}
-				
+
 				serv_rev = msg.rev;
 
 				ws.onclose = $.wsReconnect;
@@ -356,9 +357,9 @@ var $ = {};
 					var id = msg["#"];
 					var arg = msg["&"];
 					var handler = typeof id === "number" ? calls[id] : null;
-					
+
 					var updateTimeout = null;
-					
+
 					function triggerUpdate() {
 						if (!GuildToolsScope) return;
 						if (updateTimeout) clearTimeout(updateTimeout);
@@ -394,7 +395,7 @@ var $ = {};
 							} catch (e) {
 								console.error(e);
 							}
-							
+
 							if (cmd === "alert" && typeof GuildToolsScope === "object") {
 								GuildToolsScope.error(arg);
 							}
@@ -600,28 +601,28 @@ var levenshtein = (function() {
 		if (s == t) return 0;
 		if (s.length === 0) return t.length;
 		if (t.length === 0) return s.length;
-		
+
 		var v0 = new Array(t.length + 1);
 		var v1 = new Array(t.length + 1);
-		
+
 		var i, j, k, l, m, n, cost;
-		
+
 		for (i = 0, k = v0.length; i < k; i++) {
 			v0[i] = i;
 		}
-		
+
 		for (i = 0, k = s.length; i < k; i++) {
 			v1[0] = i + 1;
-	
+
 			for (j = 0, l = t.length; j < l; j++) {
 				cost = (s.charAt(i) == t.charAt(j)) ? 0 : 1;
 				v1[j + 1] = Math.min(v1[j] + 1, v0[j + 1] + 1, v0[j] + cost);
 			}
-	
+
 			for (m = 0, n = v0.length; m < n; m++)
 				v0[m] = v1[m];
 		}
-		
+
 		return v1[t.length];
 	};
 })();
