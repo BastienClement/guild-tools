@@ -46,10 +46,7 @@ trait AuthHandler {
 			// Find user by session and create a new socket for it
 			def resumeSession(sid: Option[String]): Option[JsValue] = {
 				sid flatMap { session =>
-					User.findBySession(session) filter { u =>
-						u.updatePropreties()
-						AuthHelper.allowedGroups.contains(u.group)
-					} map {
+					User.findBySession(session) map {
 						_.createSocket(session, self)
 					}
 				} map { s =>

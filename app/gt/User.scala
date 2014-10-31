@@ -25,13 +25,15 @@ object User {
 			} catch {
 				case e: Throwable => None
 			}
+		} filter {
+			_.updatePropreties()
 		}
 	}
 
 	def findBySession(session: String): Option[User] = {
 		DB.withSession { implicit s =>
 			val user = for (s <- Sessions if s.token === session) yield s.user
-			user.firstOption flatMap (findByID)
+			user.firstOption flatMap { u => findByID(u) }
 		}
 	}
 
@@ -39,7 +41,7 @@ object User {
 	val officier_groups = Set(11)
 }
 
-class User(val id: Int) {
+class User private(val id: Int) {
 	var name = ""
 	var group = 0
 	var color = ""
@@ -50,23 +52,33 @@ class User(val id: Int) {
 
 	var sockets = Set[Socket]()
 
-	updatePropreties()
+	var first_update = true
+	//updatePropreties() <- must be called by initialization
 
-	lazy val announceLogin = {
-		ChatManagerRef ! UserLogin(this)
-	}
-
+	ChatManagerRef ! UserLogin(this)
 	Logger.info("Created user: " + asJson)
 
 	/**
 	 * Fetch user propreties
 	 */
-	def updatePropreties(): Unit = DB.withSession { implicit s =>
+	def updatePropreties(): Boolean = DB.withSession { implicit s =>
 		// Basic attributes
 		val user = Users.filter(_.id === id).first
 		name = user.name
 		group = user.group
 		color = user.color
+
+		// Check group authorization
+		if (!AuthHelper.allowedGroups.contains(group)) {
+			if (first_update) {
+				throw new Exception("Bad group for this user")
+			} else {
+				sockets foreach { _.close("Unallowed") }
+				return false
+			}
+		}
+
+		first_update = false
 
 		// Check if at least one caracter is registered for this user
 		val char = for (c <- Chars if c.owner === id) yield c.id
@@ -75,15 +87,14 @@ class User(val id: Int) {
 		// Access rights
 		developer = User.developers.contains(id)
 		officer = developer || User.officier_groups.contains(group)
+
+		true
 	}
 
 	/**
 	 * Create a new socket object for this user
 	 */
 	def createSocket(session: String, handler: ActorRef): Socket = {
-		// Broadcast login
-		announceLogin
-
 		// Create and register a new socket
 		val socket = Socket.create(this, session, handler)
 		this.synchronized { sockets += socket }
