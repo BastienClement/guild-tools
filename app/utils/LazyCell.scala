@@ -8,14 +8,14 @@ object LazyCell {
 		new LazyCell[T](ttl)(generator)
 	}
 
-	implicit def extract[T](cell: LazyCell[T]): T = cell.get
+	implicit def extract[T](cell: LazyCell[T]): T = cell.value
 }
 
 class LazyCell[T] private(ttl: FiniteDuration)(generator: => T) {
 	/**
 	 * This cell value
 	 */
-	private var value: T = _
+	private var _value: T = _
 
 	/**
 	 * Cell expiration
@@ -25,13 +25,13 @@ class LazyCell[T] private(ttl: FiniteDuration)(generator: => T) {
 	/**
 	 * Get internal value or generate it if not available
 	 */
-	def get: T = if (expiration.hasTimeLeft()) value else gen()
+	def value: T = if (hasValue) _value else gen()
 
 	/**
 	 * Explicitly set a new value for this cell
 	 */
-	def set(v: T): Unit = {
-		value = v
+	def :=(v: T): Unit = {
+		_value = v
 	}
 
 	/**
@@ -44,26 +44,25 @@ class LazyCell[T] private(ttl: FiniteDuration)(generator: => T) {
 	/**
 	 * Check cell status
 	 */
-	def isExpired: Boolean = expiration.isOverdue()
+	def hasValue: Boolean = expiration.hasTimeLeft()
 
 	/**
 	 * Generate a new value
 	 */
 	private def gen(): T = this.synchronized {
 		// Race-condition
-		if (expiration.hasTimeLeft()) return value
+		if (hasValue) return _value
 
 		// Set the value
-		set(generator)
+		this := generator
 		expiration = ttl.fromNow
 
 		// Return the value
-		value
+		_value
 	}
 
 	/**
 	 * Aliases
 	 */
-	def apply(): T = get
-	def :=(v: T): Unit = set(v)
+	def apply(): T = value
 }

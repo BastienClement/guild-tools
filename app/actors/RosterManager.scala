@@ -57,12 +57,12 @@ class RosterManager extends Actor {
 	 * Handle messages
 	 */
 	def receive = {
-		case QueryUsers => sender ! roster_users.get
-		case QueryChars => sender ! roster_chars.get
+		case QueryUsers => sender ! roster_users.value
+		case QueryChars => sender ! roster_chars.value
 		case QueryUser(id) => sender ! roster_users.get(id)
 		case QueryChar(id) => sender ! roster_chars.get(id)
 
-		case Api_ListRoster => sender ! roster_composite.get
+		case Api_ListRoster => sender ! roster_composite.value
 		case Api_QueryUser(id) => {
 			val chars = roster_chars.collect({ case (_, char) if char.owner == id => char }).toSet
 			sender ! Json.obj("user" -> roster_users.get(id), "chars" -> chars)
@@ -72,7 +72,7 @@ class RosterManager extends Actor {
 			if (roster_chars.contains(char.id))
 				roster_chars := roster_chars.updated(char.id, char)
 			else
-				roster_chars := roster_chars.get + (char.id -> char)
+				roster_chars := roster_chars.value + (char.id -> char)
 
 			roster_composite.clear()
 			Socket ! Message("roster:char:update", char)

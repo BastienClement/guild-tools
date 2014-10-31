@@ -59,9 +59,9 @@ trait DashboardHandler {
 			socket.bindEvents(events_filter)
 
 			MessageResults(Json.obj(
-				"feed" -> DashboardHelper.Feed.get,
+				"feed" -> DashboardHelper.Feed.value,
 				"events" -> Calendar.eventsToJs(events),
-				"logs" -> DashboardHelper.LogsFeed.get))
+				"logs" -> DashboardHelper.LogsFeed.value))
 		}
 	}
 }

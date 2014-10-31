@@ -32,7 +32,7 @@ class LazyCollection[K, T] private(generator: (K) => T, expire: FiniteDuration) 
 				cells = cells.updated(key, new_cell)
 				new_cell
 			}
-		}).get
+		}).value
 	}
 
 	/**
@@ -44,6 +44,6 @@ class LazyCollection[K, T] private(generator: (K) => T, expire: FiniteDuration) 
 	 * Collect undefined cell to free memory
 	 */
 	def collect(): Unit = this.synchronized {
-		cells = cells.filter { case (key, cell) => !cell.isExpired }
+		cells = cells.filter { case (key, cell) => cell.hasValue }
 	}
 }
