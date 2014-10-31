@@ -51,7 +51,10 @@ class User(val id: Int) {
 	var sockets = Set[Socket]()
 
 	updatePropreties()
-	ChatManagerRef ! UserLogin(this)
+
+	lazy val announceLogin = {
+		ChatManagerRef ! UserLogin(this)
+	}
 
 	Logger.info("Created user: " + asJson)
 
@@ -78,6 +81,9 @@ class User(val id: Int) {
 	 * Create a new socket object for this user
 	 */
 	def createSocket(session: String, handler: ActorRef): Socket = {
+		// Broadcast login
+		announceLogin
+
 		// Create and register a new socket
 		val socket = Socket.create(this, session, handler)
 		this.synchronized { sockets += socket }
