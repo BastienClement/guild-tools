@@ -24,7 +24,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	$scope.timeago = function(date) {
 		return _.timeago(new Date(date));
 	};
-	
+
 	_(window).resize(function() {
 		$scope.$broadcast("resize");
 	});
@@ -274,7 +274,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 		event.stopPropagation();
 		if (opening) return;
 		opening = true;
-		
+
 		$scope.menuContent = menu.filter(function(item) { return (typeof item.visible != "boolean" || item.visible); });
 
 		ctxMenu.css({
@@ -391,7 +391,9 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 			["main", "Dashboard", "/dashboard"]
 		],
 		"calendar": [
-			["main", "Calendar", "/calendar"]
+			["main", "Calendar", "/calendar"],
+			["lockout", "Lockout", "/lockout"],
+			["absences", "Absences", "/abs"]
 		],
 		"profile": [
 			["main", "Profile", "/profile"]
@@ -429,7 +431,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 			$scope.navigator = null;
 		}
 	};
-	
+
 	$scope.userMenu = [
 		{
 			icon: "awe-logout", text: "Logout",
@@ -444,7 +446,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 			order: 10
 		}
 	];
-	
+
 	$scope.openURL = function(url) {
 		window.open(url);
 	};

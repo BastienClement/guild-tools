@@ -2,18 +2,18 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	
+
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 	<link rel="apple-touch-icon-precomposed" sizes="196x196" href='@routes.Assets.versioned("/public", "images/icon_big.png")'>
 	<meta name="mobile-web-app-capable" content="yes">
 	<link rel="icon" sizes="196x196" href='@routes.Assets.versioned("/public", "images/icon_big.png")'>
 	<meta name="viewport" content="width=1200">
-	
+
 	<link rel="shortcut icon" href='@routes.Assets.versioned("/public", "images/favicon.ico")'>
-	
+
 	<title>GuildTools</title>
-	
+
 	<script>
 		(function(i,s,o,g,r,a,m){i["GoogleAnalyticsObject"]=r;i[r]=i[r]||function(){
 		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -23,7 +23,7 @@
 		ga("create", "UA-51329998-4", "auto");
 		ga("require", "displayfeatures");
 	</script>
-	
+
 	<script>
 		var paceOptions = {
 			elements: {
@@ -61,7 +61,7 @@
 	<link href='@routes.Assets.versioned("/public", "loading/loading.css")' rel="stylesheet" data-noprefix="true">
 	<script src='@routes.Assets.versioned("/public", "javascripts/pace.js")'></script>
 	<script src='@routes.WebJarAssets.at(WebJarAssets.locate("es6-shim.js"))'></script>
-	
+
 	<script src='@routes.Assets.versioned("/public", "javascripts/modernizr.js")'></script>
 	<script src='@routes.WebJarAssets.at(WebJarAssets.locate("jquery.min.js"))'></script>
 	<script>
@@ -83,7 +83,7 @@
 	<script src='@routes.Assets.versioned("/public", "javascripts/crypto.js")'></script>
 	<script src='@routes.Assets.versioned("/public", "javascripts/phpbb_hash.js")'></script>
 	<script src='@routes.Assets.versioned("/public", "javascripts/elastic.js")'></script>
-	
+
 	<script src='@routes.Assets.versioned("/public", "javascripts/core.js")'></script>
 	<script src='@routes.Assets.versioned("/public", "javascripts/app.js")'></script>
 	<script src='@routes.Assets.versioned("/public", "javascripts/tools.js")'></script>
@@ -93,27 +93,27 @@
 	<script src='@routes.Assets.versioned("/public", "javascripts/controllers/profile.js")'></script>
 	<script src='@routes.Assets.versioned("/public", "javascripts/controllers/calendar.js")'></script>
 	<script src='@routes.Assets.versioned("/public", "javascripts/controllers/misc.js")'></script>
-	
+
 	<link data-href='@routes.Assets.versioned("/public", "stylesheets/awe.css")' rel="stylesheet">
 	<link data-href='@routes.Assets.versioned("/public", "stylesheets/tools.css")' rel="stylesheet">
 	<link data-href='@routes.Assets.versioned("/public", "stylesheets/app.css")' rel="stylesheet">
 	<link data-href='@routes.Assets.versioned("/public", "stylesheets/pace.css")' rel="stylesheet">
 	<script src='@routes.WebJarAssets.at(WebJarAssets.locate("prefixfree.min.js"))'></script>
-	
+
 	<script>
 		ga("set", {
 			"appName": "GuildTools",
 			"appVersion": "fs-" + ($$ ? $$.version : "web")
 		});
-		
+
 		$.init();
 		Pace.once("hide", function() {
 			$.load();
-			
+
 			Pace.on("start", function() {
 				_("#app-menu-icon").css("opacity", 0.3);
 			});
-			
+
 			Pace.on("hide", function() {
 				_("#app-menu-icon").css("opacity", 1);
 			});
@@ -122,7 +122,7 @@
 </head>
 <body class="loading live" ng-controller="GlobalCtrl" ng-class="{ 'modal-visible': modalView, 'authenticated': $.user, 'navigator': navigator }">
 	<div id="loading-cover"></div>
-	
+
 	<div id="loading-error">
 		<div id="loading-error-frame">
 			<h2 id="loading-error-title"></h2>
@@ -134,7 +134,7 @@
 			</div>
 		</div>
 	</div>
-	
+
 	<ul id="context-menu" style="display: none">
 		<li ng-repeat="entry in menuContent | orderBy:'order'" ng-class="{ sub: !!entry.sub, separator: entry.separator }" ng-click="entry.action(); menuClose()">
 			<div ng-if="!entry.separator">
@@ -144,9 +144,9 @@
 			</div>
 		</li>
 	</ul>
-	
+
 	<div id="tooltip" class="tooltip"></div>
-	
+
 	<header ng-controller="TitleBarCtrl">
 		<div id="left-controls" ng-click="$.user && menu(titleMenu, $event)">
 			<img src="/assets/images/logo_small2.png" id="app-menu-icon">
@@ -164,7 +164,7 @@
 			</ul>
 		</div>
 		<div id="right-controls">
-			
+
 		</div>
 		<div id="window-controls">
 			<span class="minify"><i class="awe-minus"></i></span>
@@ -172,55 +172,46 @@
 			<span class="close"><i class="awe-cancel"></i></span>
 		</div>
 	</header>
-	
+
 	<div id="modal" class="animated" ng-if="modalView" ng-click="modalClose($event)">
 		<div ng-include="modalView" class="animated"></div>
 	</div>
-	
+
 	<nav id="sidebar">
 		<ul ng-if="$.user" class="animated">
 			<li ng-click="breadcrumb.rewind('/')" ng-class="{ active: navigator_current == 'dashboard' }">
 				<img src="/assets/images/icons/home.png">
-				<div>Dashboard</div>
 			</li>
-			
+
 			<li ng-click="breadcrumb.reset('/profile')" ng-class="{ active: navigator_current == 'profile' }">
 				<img src="/assets/images/icons/helm2.png">
-				<div>Player</div>
 			</li>
-		
+
 			<li ng-click="breadcrumb.reset('/calendar')" ng-class="{ active: navigator_current == 'calendar' }">
 				<img src="/assets/images/icons/calendar.png">
-				<div>Calendar</div>
 			</li>
-			
-			<li ng-click="breadcrumb.reset('/_')">
-				<img src="/assets/images/icons/afk.png">
-				<div>Absences</div>
-			</li>
-			
+
 			<li ng-click="breadcrumb.reset('/_')">
 				<img src="/assets/images/icons/whishlist.png">
-				<div>Whishlists</div>
 			</li>
-			
+
 			<li ng-click="breadcrumb.reset('/_')">
 				<img src="/assets/images/icons/roster.png">
-				<div>Roster</div>
 			</li>
-			
+
 			<li ng-click="breadcrumb.reset('/_')">
 				<img src="/assets/images/icons/forum.png">
-				<div>Forum</div>
 			</li>
-			
+
+			<!--
 			<li ng-click="breadcrumb.reset('/_')">
 				<img src="/assets/images/icons/blueprint.png">
 				<div>Blueprint</div>
 			</li>
+			-->
 		</ul>
 	</nav>
-	
+
 	<nav id="topbar" ng-if="navigator">
 		<ul id="topbar-nav">
 			<li ng-repeat="entry in navigator" ng-click="entry[2]()" ng-class="{ active: entry[0] == navigator_tab }">{{ entry[1] }}</li>
@@ -237,16 +228,16 @@
 			</button>
 		</div>
 	</nav>
-	
+
 	<div id="main-view-slider">
 		<div class="main-view animated" ng-view></div>
 	</div>
-	
+
 	<div id="error-popup" class="animated" ng-if="popupErrorText">
 		<i class="awe-attention-circled"></i>
 		{{ popupErrorText }}
 	</div>
-	
+
 	<script type="text/javascript" src="http://static.wowhead.com/widgets/power.js"></script>
 	<script>
 		var wowhead_tooltips = {}
