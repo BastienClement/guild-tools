@@ -4,8 +4,6 @@ import models.mysql._
 
 case class User(id: Int, name: String, group: Int, color: String)
 
-case class PublicUser(id: Int, name: String, group: Int, color: String)
-
 class Users(tag: Tag) extends Table[User](tag, "phpbb_users") {
 	def id = column[Int]("user_id", O.PrimaryKey)
 	def name = column[String]("username")
