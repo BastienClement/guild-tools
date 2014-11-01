@@ -56,7 +56,6 @@ class User private(val id: Int) {
 	//updatePropreties() <- must be called by initialization
 
 	ChatManagerRef ! UserLogin(this)
-	Logger.info("Created user: " + asJson)
 
 	/**
 	 * Fetch user propreties
@@ -135,8 +134,6 @@ class User private(val id: Int) {
 
 		// Broadcast offline event
 		ChatManagerRef ! UserLogout(this)
-
-		Logger.info("Disposed user: " + asJson)
 	}
 
 	/**
