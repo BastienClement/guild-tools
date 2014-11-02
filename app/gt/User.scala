@@ -14,20 +14,28 @@ object User {
 
 	def disposed(user: User): Unit = this.synchronized {
 		onlines -= user.id
+		ChatManagerRef ! UserLogout(user)
 	}
 
 	def findByID(id: Int): Option[User] = this.synchronized {
-		onlines.get(id) orElse {
+		val user = onlines.get(id) orElse {
+			Some(new User(id))
+		} filter { user =>
 			try {
-				val user = new User(id)
-				User.onlines += (id -> user)
-				Some(user)
+				user.updatePropreties()
 			} catch {
-				case e: Throwable => None
+				case e: Throwable => false
 			}
-		} filter {
-			_.updatePropreties()
 		}
+
+		user foreach { u =>
+			if (!onlines.contains(u.id)) {
+				ChatManagerRef ! UserLogin(u)
+				User.onlines += (id -> u)
+			}
+		}
+
+		user
 	}
 
 	def findBySession(session: String): Option[User] = {
@@ -52,11 +60,6 @@ class User private(val id: Int) {
 
 	var sockets = Set[Socket]()
 
-	var first_update = true
-	//updatePropreties() <- must be called by initialization
-
-	ChatManagerRef ! UserLogin(this)
-
 	/**
 	 * Fetch user propreties
 	 */
@@ -69,15 +72,9 @@ class User private(val id: Int) {
 
 		// Check group authorization
 		if (!AuthHelper.allowedGroups.contains(group)) {
-			if (first_update) {
-				throw new Exception("Bad group for this user")
-			} else {
-				sockets foreach { _.close("Unallowed") }
-				return false
-			}
+			sockets foreach { _.close("Unallowed") }
+			return false
 		}
-
-		first_update = false
 
 		// Check if at least one caracter is registered for this user
 		val char = for (c <- Chars if c.owner === id) yield c.id
@@ -131,9 +128,6 @@ class User private(val id: Int) {
 	private def dispose(): Unit = {
 		// Remove this user from online list
 		User.disposed(this)
-
-		// Broadcast offline event
-		ChatManagerRef ! UserLogout(this)
 	}
 
 	/**
