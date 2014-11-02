@@ -7,23 +7,23 @@
 	#calendar-event h2 {
 		flex-shrink: 0;
 	}
-	
+
 	#calendar-event-left {
-		width: 310px;
+		width: 330px;
 		display: flex;
 		flex-direction: column;
 		margin-right: 6px;
 	}
-	
+
 	#calendar-event-infos button {
-		float: right; 
+		float: right;
 		z-index: 50;
 	}
-	
+
 	#calendar-event-infos h3 {
 		z-index: 40;
 	}
-	
+
 	#calendar-event .chars {
 		border-top: 2px solid #426585;
 		padding: 15px 15px 0 15px;
@@ -31,15 +31,15 @@
 		overflow: auto;
 		flex: 1;
 	}
-	
+
 	#calendar-event .row {
 		display: flex;
 	}
-	
+
 	#calendar-event .char-wrapper {
 		flex: 1;
 	}
-	
+
 	#calendar-event .char-wrapper + .char-wrapper {
 		margin-left: 15px;
 	}
@@ -52,25 +52,25 @@
 		display: flex;
 		transition: background ease-out .3s;
 	}
-	
+
 	#calendar-event .char img, #calendar-event .char .name {
 		transition: all ease-out .3s;
 	}
-	
+
 	#calendar-event .char.picked {
 		background: rgba(0, 0, 0, 0.1);
 	}
-	
+
 	#calendar-event .char.picked img, #calendar-event .char.picked .name {
 		opacity: .5;
 	}
-	
+
 	#calendar-event .char img {
 		width: 11px;
 		height: 11px;
 		top: 4px;
 	}
-	
+
 	#calendar-event .char .name {
 		flex: 1;
 		padding: 0px 5px;
@@ -78,26 +78,26 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
-	
+
 	#calendar-event .char i {
 		color: #4b79a4;
 		margin: 0;
 		right: -3px;
 	}
-	
+
 	#calendar-event-answers {
-		width: 310px;
+		width: 330px;
 		padding-bottom: 0px;
 		flex: 1;
 		display: flex;
 		flex-direction: column;
 		margin-top: 6px;
 	}
-	
+
 	#calendar-event-answers .tabs, #calendar-event-answers h3 {
 		flex-shrink: 0;
 	}
-	
+
 	#calendar-event-answers .tabs button {
 		margin-top: 5px;
 		margin-bottom: -2px;
@@ -107,52 +107,52 @@
 		transition: border ease .3s, color ease .3s, background ease .3s;
 		z-index: 3;
 	}
-	
+
 	#calendar-event-comp .tabs button i {
 		float: left;
 		top: 0px;
 	}
-	
+
 	#calendar-event-answers button + button {
 		margin-left: 5px;
 	}
-	
+
 	#calendar-event-answers button.active {
 		background-color: #334453;
 	}
-	
+
 	#calendar-event-answers button.active, #calendar-event-answers button:hover {
 		border-color: #426585;
 	}
-	
+
 	#calendar-event-registering {
 		margin-top: 6px;
 	}
-	
+
 	#calendar-event-registering .opts {
 		float: left;
 		margin-top: 5px;
 		margin-bottom: 0;
 	}
-	
+
 	#calendar-event-registering .opts + .opts {
 		margin-left: 15px;
 	}
-	
+
 	#calendar-event-registering textarea {
 		width: 100%;
 	}
-	
+
 	#calendar-event-registering button {
 		float: right;
 	}
-	
+
 	#calendar-event-middle {
 		display: flex;
 		flex-direction: column;
 		flex: 1;
 	}
-	
+
 	#calendar-event-comp {
 		min-width: 310px;
 		padding-bottom: 0;
@@ -160,64 +160,64 @@
 		flex-direction: column;
 		flex: 1;
 	}
-	
+
 	#calendar-event-comp h3 {
 		margin-bottom: 5px;
 	}
-	
+
 	#calendar-event-comp .tabs {
 		flex-shrink: 0;
 		margin: 0px -15px;
 		padding: 0px 8px 5px 8px;
 		border-bottom: 2px solid #426585;
 	}
-	
+
 	#calendar-event-comp button {
 		margin: 0px 7px 5px 7px;
 	}
-	
+
 	#calendar-event-comp .bottom {
 		display: flex;
 		flex: 1;
 	}
-	
+
 	#calendar-event-comp .inner {
 		overflow: auto;
 		width: 310px;
 		margin-left: -15px;
 		padding: 10px 15px 10px 15px;
 	}
-	
+
 	#calendar-event-comp .row {
 		flex: 1;
 	}
-	
+
 	#calendar-event-comp .group {
 		flex: 1;
 	}
-	
+
 	#calendar-event .group + .group {
 		margin-left: 15px;
 	}
-	
+
 	#calendar-event-comp .group .label {
 		text-align: center;
 		margin-bottom: 5px;
 		font-size: 12px;
 		font-weight: 300;
 	}
-	
+
 	.picked #calendar-event-comp .hover .char {
 		box-shadow: 0px 0px 1px 2px #426585;
 	}
-	
+
 	#calendar-event-comp .raidbuffs {
 		display: flex;
 		flex-direction: column;
 		padding: 15px 20px 15px 8px;
 		border-right: 2px solid #395066;
 	}
-	
+
 	#calendar-event-comp .raidbuffs img {
 		width: 25px;
 		margin-bottom: 6px;
@@ -225,21 +225,21 @@
 		opacity: 0.5;
 		transition: opacity ease .3s;
 	}
-	
+
 	#calendar-event-comp .raidbuffs img.active {
 		opacity: 0.9;
 	}
-	
+
 	#calendar-event-comp .raidbuffs img:last-child {
 		margin-right: 0;
 	}
-	
+
 	#calendar-event-comp .note {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
 	}
-	
+
 	#calendar-char-picker.char {
 		position: fixed;
 		top: 5px;
@@ -248,28 +248,28 @@
 		background: rgba(42, 54, 66, 0.9);
 		z-index: 100;
 	}
-	
+
 	#calendar-event-comp .note-lock {
 		margin-right: -15px;
 		padding: 5px 15px 0 0;
 		background: #395066;
 	}
-	
+
 	#calendar-event-comp .note-lock span {
 		opacity: .75;
 	}
-	
+
 	#calendar-event-comp .markdown {
 		padding: 15px;
 		margin: 0px -15px 0px 0px;
 		overflow: auto;
 		flex: 1;
 	}
-	
+
 	#calendar-event-comp  .markdown .char {
 		display: inline-block;
 	}
-	
+
 	#calendar-event-comp .markdown .char i {
 		top: -1px;
 		right: 1px;
@@ -277,62 +277,62 @@
 		margin-left: -3px;
 		font-size: 10px;
 	}
-	
+
 	.markdown p {
 		margin-bottom: 5px;
 	}
-	
+
 	.markdown iframe {
 		width: 100%;
 		height: 400px;
 		border: 2px solid #426585;
 		margin-bottom: 5px;
 	}
-	
+
 	.markdown ol, .markdown ul {
 		margin-left: 35px;
 		margin-top: 5px;
 		margin-bottom: 5px;
 	}
-	
+
 	.markdown pre, .markdown li {
 		margin-bottom: 5px;
 	}
-	
+
 	.markdown hr {
 		border: 1px solid #395066;
 		margin-top: 10px;
 		margin-bottom: 10px;
 	}
-	
+
 	.markdown strong {
 		font-weight: 600;
 	}
-	
+
 	.markdown h1 {
 		font-size: 18px;
 		font-weight: 400;
 		margin-bottom: 5px;
 		line-height: 1em;
 	}
-	
+
 	.markdown h2 {
 		font-size: 16px;
 		font-weight: 400;
 		margin-bottom: 5px;
 		line-height: 1em;
 	}
-	
+
 	.markdown a {
 		color: #64B4FF;
 		cursor: pointer;
 		text-decoration: none;
 	}
-	
+
 	.markdown a:hover {
 		text-decoration: underline;
 	}
-	
+
 	.icn-tank:before, .icn-heal:before, .icn-dps:before {
 		display: inline-block;
 		width: 11px;
@@ -340,19 +340,19 @@
 		content: "";
 		background-size: contain;
 	}
-	
+
 	.icn-tank:before {
 		background-image: url("/assets/images/roles/TANK.png");
 	}
-	
+
 	.icn-heal:before {
 		background-image: url("/assets/images/roles/HEALING.png");
 	}
-	
+
 	.icn-dps:before {
 		background-image: url("/assets/images/roles/DPS.png");
 	}
-	
+
 	.cls-icon:before {
 		display: inline-block;
 		width: 9px;
@@ -360,7 +360,7 @@
 		content: "";
 		border-radius: 10px;
 	}
-	
+
 	.cls-icon.c1:before { background-color:#C69B6D!important; }
 	.cls-icon.c2:before { background-color:#F48CBA!important; }
 	.cls-icon.c3:before { background-color:#AAD372!important; }
@@ -401,7 +401,7 @@
 					<h3>Answers</h3>
 					<span></span>
 				</div>
-				
+
 				<div class="tabs">
 					<button ng-class="{ active: roster_tab == 1 }" ng-click="roster_tab = 1">
 						<i class="awe-ok"></i>
@@ -416,7 +416,7 @@
 						{{ answers_tab[0].length || 0 }}
 					</button>
 				</div>
-				
+
 				<div class="chars">
 					<div class="row" ng-repeat="groups in getAnswersGroups(roster_tab)">
 						<div class="char-wrapper" ng-repeat="row in groups">
@@ -470,7 +470,7 @@
 				</button>
 			</div>
 		</div>
-		
+
 		<div id="calendar-event-middle">
 			<div class="box" id="calendar-event-comp">
 				<div id="calendar-event-comp-top">
