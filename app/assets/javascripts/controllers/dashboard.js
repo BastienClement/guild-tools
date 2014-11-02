@@ -91,7 +91,13 @@ GuildTools.controller("DashboardCtrl", function($scope, $location) {
 			events.push(event);
 		});
 
-		events.sort(function(a, b) { return a.timeval - b.timeval; });
+		events.sort(function(a, b) {
+			if ((a.event.date == b.event.date) && (a.event.type != b.event.type) && (a.event.type == 4 || b.event.type == 4)) {
+				return a.event.type == 4 ? -1 : 1;
+			}
+			return a.timeval - b.timeval;
+		});
+
 		events = events.filter(function(entry) { return (entry.timeval - now) > -21600 /* 6 hours */; }).slice(0, 7);
 
 		var last = "";
