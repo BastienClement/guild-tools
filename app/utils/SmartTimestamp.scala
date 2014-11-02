@@ -3,37 +3,69 @@ package utils
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.{Calendar, Date, GregorianCalendar}
+import scala.compat.Platform
 import scala.language.implicitConversions
 
+/**
+ * Time manipulation object
+ */
 object SmartTimestamp {
+	/**
+	 * Display format
+	 */
 	val format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 
-	object Implicits {
-		implicit def timestamp2smart(t: Timestamp) = new SmartTimestamp(t.getTime)
+	/**
+	 * Convert a SQL timestamp to a SmartTimestamp
+	 */
+	implicit def fromTimestamp(t: Timestamp): SmartTimestamp = SmartTimestamp(t.getTime)
+
+	/**
+	 * Create a SmartTimestamp for the current time
+	 */
+	def now: SmartTimestamp = SmartTimestamp(Platform.currentTime)
+
+	/**
+	 * Create a SmartTimestamp for the current day at 00:00:00
+	 */
+	def today: SmartTimestamp = {
+		val n = now
+		SmartTimestamp(n.year, n.month, n.day)
 	}
 
-	def now: SmartTimestamp = new SmartTimestamp(new Date().getTime)
-
-	def create(year: Int, month: Int, day: Int): SmartTimestamp = {
+	/**
+	 * Create a SmartTimestamp for the given day and time
+	 */
+	def apply(year: Int, month: Int, day: Int, hours: Int = 0, mins: Int = 0, secs: Int = 0): SmartTimestamp = {
 		val calendar = new GregorianCalendar()
-		calendar.set(year, month, day, 0, 0, 0)
-		new SmartTimestamp(calendar.getTime.getTime)
+		calendar.set(year, month, day, hours, mins, secs)
+		SmartTimestamp(calendar.getTime.getTime)
 	}
 
-	def createSQL(y: Int, m: Int, d: Int): Timestamp = create(y, m, d)
+	/**
+	 * Create a SmartTimestamp from a given timestamp in milliseconds
+	 */
+	def apply(time: Long) = new SmartTimestamp(time / 1000 * 1000)
 
-	def parse(str: String, frmt: SimpleDateFormat = format): SmartTimestamp = {
-		new SmartTimestamp(frmt.parse(str).getTime)
-	}
+	/**
+	 * Create a SmartTimestamp from a string
+	 */
+	def parse(str: String, frmt: SimpleDateFormat = format): SmartTimestamp = SmartTimestamp(frmt.parse(str).getTime)
 }
 
 class SmartTimestamp(val time: Long) extends Timestamp(time) {
+	/**
+	 * Require to access calendar information about the timestamp
+	 */
 	lazy val calendar = {
 		val c = new GregorianCalendar()
 		c.setTimeInMillis(time)
 		c
 	}
 
+	/**
+	 * Comparators
+	 */
 	def ==(that: SmartTimestamp): Boolean = time == that.time
 	def !=(that: SmartTimestamp): Boolean = time != that.time
 	def >(that: SmartTimestamp): Boolean = time > that.time
@@ -41,14 +73,31 @@ class SmartTimestamp(val time: Long) extends Timestamp(time) {
 	def >=(that: SmartTimestamp): Boolean = time >= that.time
 	def <=(that: SmartTimestamp): Boolean = time <= that.time
 
-	def +(that: SmartTimestamp): SmartTimestamp = new SmartTimestamp(time + that.time)
-	def -(that: SmartTimestamp): SmartTimestamp = new SmartTimestamp(time - that.time)
+	/**
+	 * Date arithmetic
+	 */
+	def +(that: SmartTimestamp): SmartTimestamp = SmartTimestamp(time + that.time)
+	def -(that: SmartTimestamp): SmartTimestamp = SmartTimestamp(time - that.time)
 
 	def between(a: SmartTimestamp, b: SmartTimestamp): Boolean = this >= a && this <= b
 
+	/**
+	 * Access invidual date components
+	 */
 	def year = calendar.get(Calendar.YEAR)
 	def month = calendar.get(Calendar.MONTH)
 	def day = calendar.get(Calendar.DATE)
+	def hours = calendar.get(Calendar.HOUR)
+	def minutes = calendar.get(Calendar.MINUTE)
+	def seconds = calendar.get(Calendar.SECOND)
 
+	/**
+	 * Force this object to have the Timestamp type
+	 */
+	val asSQL: Timestamp = this
+
+	/**
+	 * Override the default toString implementation, use format in companion object
+	 */
 	override def toString: String = SmartTimestamp.format.format(this)
 }

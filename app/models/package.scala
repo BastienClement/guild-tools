@@ -22,4 +22,5 @@ package object models {
 	implicit val slotJsonFormat = Json.format[CalendarSlot]
 	implicit val eventFullJsonFormat = Json.format[CalendarEventFull]
 	implicit val feedJsonFormat = Json.format[Feed]
+	implicit val absenceJsonFormat = Json.format[Slack]
 }

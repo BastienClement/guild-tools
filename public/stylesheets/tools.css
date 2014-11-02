@@ -110,6 +110,10 @@ p {
 	margin-bottom: 10px;
 }
 
+p > i {
+	top: -2px;
+}
+
 p.light {
 	color: #8eafce;
 }
@@ -217,8 +221,8 @@ input:focus:not([type=radio]):not([type=checkbox]):not(:disabled), textarea:focu
 	border-color: #64b4ff;
 }
 
-input:disabled {
-	opacity: .3;
+input:disabled, select:disabled, textarea:disabled {
+	opacity: .4;
 }
 
 input.ng-invalid:not(.ng-pristine),
@@ -308,6 +312,31 @@ form .error {
 
 form.box {
 	padding: 20px;
+}
+
+.box.parted {
+	display: flex;
+	flex-direction: column;
+}
+
+.box.parted h2 {
+	margin: 0 -15px;
+	border-bottom: 2px solid #426585;
+	padding: 0 15px 15px 15px;
+}
+
+.box.parted .panel {
+	flex: 1;
+	overflow-y: auto;
+	overflow-x: hidden;
+	margin: 0 -15px -15px -15px;
+	padding: 15px;
+}
+
+.box .btns {
+	float: right;
+	z-index: 20;
+	top: 3px;
 }
 
 img, i {

@@ -38,7 +38,7 @@ class LazyCollection[K, T] private(generator: (K) => T, expire: FiniteDuration) 
 	/**
 	 * Force expiration of a given cell
 	 */
-	def clear(key: K): Unit = cells.get(key).map(_.clear())
+	def clear(key: K): Unit = cells.get(key).foreach(_.clear())
 
 	/**
 	 * Collect undefined cell to free memory

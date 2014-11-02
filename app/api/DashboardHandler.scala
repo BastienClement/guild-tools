@@ -51,8 +51,8 @@ trait DashboardHandler {
 		 */
 		def handleLoad(): MessageResponse = DB.withSession { implicit s =>
 			val now = SmartTimestamp.now
-			val ev_from = SmartTimestamp.create(now.year, now.month, now.day - 1)
-			val ev_to = SmartTimestamp.create(now.year, now.month, now.day + 7)
+			val ev_from = SmartTimestamp(now.year, now.month, now.day - 1)
+			val ev_to = SmartTimestamp(now.year, now.month, now.day + 7)
 
 			val (events, events_filter) = Calendar.loadCalendarAndCreateFilter(ev_from, ev_to)
 

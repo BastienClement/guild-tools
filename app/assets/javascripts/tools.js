@@ -35,6 +35,10 @@ GuildTools.config(function($routeProvider, $locationProvider, $animateProvider) 
 			templateUrl: "/assets/views/calendar-event.html",
 			controller: "CalendarEventCtrl"
 		})
+		.when("/calendar/abs", {
+			templateUrl: "/assets/views/absences.html",
+			controller: "AbsencesCtrl"
+		})
 		.when("/forum", {
 			templateUrl: "/assets/views/forum.html",
 			controller: "ForumCtrl"

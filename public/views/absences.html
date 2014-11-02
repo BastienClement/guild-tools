@@ -1,0 +1,78 @@
+<style>
+	#absences-mine {
+		min-width: 400px;
+		flex: 1;
+	}
+
+	#absences-overview {
+		margin-left: 6px;
+		flex: 3;
+	}
+
+	.absence-unit {
+		background: rgba(0, 0, 0, 0.2);
+		border: 1px solid rgba(0, 0, 0, 0.1);
+		padding: 10px;
+		margin-bottom: 6px;
+		transition: background ease-out .3s;
+	}
+
+	.absence-unit .dates {
+		font-weight: 300;
+	}
+
+	.absence-unit .dates span {
+		width: 50px;
+		display: inline-block;
+		font-weight: 400;
+	}
+
+	.absence-unit .actions {
+		text-align: right;
+	}
+</style>
+
+<div id="absences" class="tools-main">
+	<div id="absences-mine" class="box parted">
+		<div>
+			<div class="btns">
+				<button ng-click="createAbsence()"><i class="awe-plus"></i> Create</button>
+			</div>
+			<h2>Leaves of Absence</h2>
+		</div>
+		<div class="panel">
+			<h3 ng-if="upcoming.length > 0">Upcoming</h3>
+			<div class="absence-unit" ng-repeat="absence in upcoming | orderBy : '-from'" ng-if="upcoming.length > 0">
+				<p class="dates">
+					<span>From:</span> {{ formatDate(absence.from) }}<br>
+					<span>To:</span> {{ formatDate(absence.to) }}
+				</p>
+				<p>
+					{{ absence.reason }}
+				</p>
+				<p class="actions">
+					<button ng-click="cancelAbsence(absence)"><i class="awe-cancel"></i> Cancel</button>
+					<button ng-click="editAbsence(absence)"><i class="awe-pencil"></i> Edit</button>
+				</p>
+			</div>
+
+			<h3>Past</h3>
+			<div class="box" ng-if="past.length < 1">
+				You seem to have never been absent. Well played!
+			</div>
+			<div class="absence-unit" ng-repeat="absence in past | orderBy : '-from'">
+				<p class="dates">
+					<span>From:</span> {{ formatDate(absence.from) }}<br>
+					<span>To:</span> {{ formatDate(absence.to) }}
+				</p>
+				<p>
+					{{ absence.reason }}
+				</p>
+			</div>
+		</div>
+	</div>
+
+	<div id="absences-overview" class="box parted">
+		<h2>Guild Overview</h2>
+	</div>
+</div>

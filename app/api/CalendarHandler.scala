@@ -12,7 +12,7 @@ import models.{CalendarEvents, _}
 import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json.{JsNull, JsValue, Json}
 import utils.SmartTimestamp
-import utils.SmartTimestamp.Implicits._
+import utils.SmartTimestamp.fromTimestamp
 
 /**
  * Shared calendar-related values
@@ -187,8 +187,8 @@ trait CalendarHandler {
 			val month = (arg \ "month").as[Int]
 			val year = (arg \ "year").as[Int]
 
-			val from = SmartTimestamp.createSQL(year, month - 1, 21)
-			val to = SmartTimestamp.createSQL(year, month + 1, 15)
+			val from = SmartTimestamp(year, month - 1, 21)
+			val to = SmartTimestamp(year, month + 1, 15)
 
 			val (events, filter) = loadCalendarAndCreateFilter(from, to)
 

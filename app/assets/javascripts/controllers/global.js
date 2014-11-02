@@ -52,6 +52,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 
 			["/calendar", "calendar", "Calendar"],
 			[/^\/calendar\/event\/\d+$/, "events", ""],
+			["/calendar/abs", "afk", "Absences"],
 
 			["/social", "forum", "Social"],
 			["/roster", "roster", "Roster"],
@@ -392,8 +393,8 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 		],
 		"calendar": [
 			["main", "Calendar", "/calendar"],
-			["lockout", "Lockout", "/lockout"],
-			["absences", "Absences", "/abs"]
+			["lockout", "Lockout", "/calendar/lockout"],
+			["absences", "Absences", "/calendar/abs"]
 		],
 		"profile": [
 			["main", "Profile", "/profile"]

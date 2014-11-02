@@ -16,7 +16,8 @@ with ChatHandler
 with RosterHandler
 with DashboardHandler
 with ProfileHandler
-with CalendarHandler {
+with CalendarHandler
+with AbsencesHandler {
 	// Debug socket ID
 	val id = utils.randomToken()
 
@@ -197,6 +198,11 @@ with CalendarHandler {
 		case ("profile:role", arg) => Profile.handleRole(arg)
 		case ("profile:check", arg) => Profile.handleCheck(arg)
 		case ("profile:register", arg) => Profile.handleRegister(arg)
+
+		case ("absences:load", _) => Absences.handleLoad()
+		case ("absences:create", arg) => Absences.handleCreate(arg)
+		case ("absences:edit", arg) => Absences.handleEdit(arg)
+		case ("absences:cancel", arg) => Absences.handleCancel(arg)
 
 		case ("chat:onlines", _) => Chat.handleOnlines()
 
