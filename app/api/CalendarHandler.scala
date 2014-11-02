@@ -95,6 +95,14 @@ trait CalendarHandler {
 			var watched_events = events
 			var potential_events = mutable.Map[Int, Event]()
 
+			def slackFilter(slack: Slack, wrap: (Slack) => Event): Boolean = {
+				if (slack.from >= from || slack.to <= to) {
+					socket !< wrap(slack)
+				} else {
+					false
+				}
+			}
+
 			return {
 				// Event created
 				case ev@CalendarEventCreate(event) => {
@@ -158,6 +166,10 @@ trait CalendarHandler {
 				case CalendarAnswerDelete(answer_user, event) => {
 					answer_user == user.id && watched_events.contains(event)
 				}
+
+				case SlackCreate(slack) => slackFilter(slack, SlackCreate(_))
+				case SlackUpdate(slack) => slackFilter(slack, SlackUpdate(_))
+				case SlackDelete(slack) => true
 			}
 		}
 
@@ -413,6 +425,23 @@ trait CalendarHandler {
 				}
 			}
 
+			// Load absents for this event
+			var slacks = Slacks.filter(s => s.from <= event.date && s.to >= event.date).list
+			if (!user.officer) slacks = slacks.map(_.conceal)
+			var slacks_ids = slacks.map(_.id).toSet
+
+			def slackFilter(slack: Slack, wrap: (Slack) => Event): Boolean = {
+				if (slack.from <= event.date && slack.to >= event.date) {
+					if (user.officer) {
+						true
+					} else {
+						socket !< wrap(slack.conceal)
+					}
+				} else {
+					false
+				}
+			}
+
 			// Event page bindings
 			socket.bindEvents {
 				case CalendarAnswerCreate(answer) => (answer.event == id)
@@ -457,13 +486,13 @@ trait CalendarHandler {
 
 				case CalendarLockAcquire(tab, _) => (tabContentIsVisible(tab) && event_editable)
 				case CalendarLockRelease(tab) => (tabContentIsVisible(tab) && event_editable)
+
+				case SlackCreate(slack) => slackFilter(slack, SlackCreate(_))
+				case SlackUpdate(slack) => slackFilter(slack, SlackUpdate(_))
+				case SlackDelete(_) => true
 			} onUnbind {
 				resetEventContext()
 			}
-
-			// Load absences during this event
-			var slacks = Slacks.filter(s => s.from <= event.date && s.to >= event.date).list
-			if (!user.officer) slacks = slacks.map(_.conceal)
 
 			MessageResults(Json.obj(
 				"event" -> event,

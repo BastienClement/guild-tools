@@ -113,6 +113,22 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 
 			"answer:update": function(answer) {
 				$scope.answers[answer.event] = answer.answer;
+			},
+
+			"absence:create": function(abs) {
+				$scope.absences.push(abs);
+			},
+
+			"absence:update": function(abs) {
+				$scope.absences = $scope.absences.map(function(old) {
+					return old.id === abs.id ? abs : old;
+				});
+			},
+
+			"absence:delete": function (id) {
+				$scope.absences = $scope.absences.filter(function(abs) {
+					return abs.id !== id;
+				});
 			}
 		});
 
@@ -281,6 +297,7 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 
 	$scope.hasAbsentsOn = function(day) {
 		var date = new Date(day);
+		date.setHours(0, 0, 0, 0);
 
 		var cache_entry = $scope.absences.filter(function(abs) {
 			return (new Date(abs.from) <= date && new Date(abs.to) >= date);
@@ -766,6 +783,25 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			if (id === $scope.tab_selected) {
 				$scope.lock = null;
 			}
+		},
+
+		"absence:create": function(abs) {
+			$scope.absences.push(abs);
+			build_answers_tabs();
+		},
+
+		"absence:update": function(abs) {
+			$scope.absences = $scope.absences.map(function(old) {
+				return old.id === abs.id ? abs : old;
+			});
+			build_answers_tabs();
+		},
+
+		"absence:delete": function (id) {
+			$scope.absences = $scope.absences.filter(function(abs) {
+				return abs.id !== id;
+			});
+			build_answers_tabs();
 		}
 	});
 

@@ -34,6 +34,25 @@ GuildTools.controller("AbsencesCtrl", function($scope) {
 		$: function(data) {
 			$scope.absences = data.user;
 			format_absences();
+		},
+
+		"absence:create": function(abs) {
+			$scope.absences.push(abs);
+			format_absences();
+		},
+
+		"absence:update": function(abs) {
+			$scope.absences = $scope.absences.map(function(old) {
+				return old.id === abs.id ? abs : old;
+			});
+			format_absences();
+		},
+
+		"absence:delete": function (id) {
+			$scope.absences = $scope.absences.filter(function(abs) {
+				return abs.id !== id;
+			});
+			format_absences();
 		}
 	});
 

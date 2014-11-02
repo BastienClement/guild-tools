@@ -27,3 +27,7 @@ case class CalendarLockRelease(id: Int) extends Event("calendar:lock:release", i
 
 case class CalendarSlotUpdate(slot: CalendarSlot) extends Event("calendar:slot:update", slot)
 case class CalendarSlotDelete(tab: Int, slot: Int) extends Event("calendar:slot:delete", Json.obj("tab" -> tab, "slot" -> slot))
+
+case class SlackCreate(slack: Slack) extends Event("absence:create", slack)
+case class SlackUpdate(slack: Slack) extends Event("absence:update", slack)
+case class SlackDelete(id: Int) extends Event("absence:delete", id)

@@ -15,6 +15,13 @@ trait AbsencesHandler {
 		 */
 		def handleLoad(): MessageResponse = DB.withSession { implicit s =>
 			val user_abs = Slacks.filter(_.user === user.id).sortBy(_.from.desc).take(50).list
+
+			socket.bindEvents {
+				case SlackCreate(slack) => slack.user == user.id
+				case SlackUpdate(slack) => slack.user == user.id
+				case SlackDelete(_) => true
+			}
+
 			MessageResults(Json.obj("user" -> user_abs))
 		}
 
