@@ -299,8 +299,14 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 		var date = new Date(day);
 		date.setHours(0, 0, 0, 0);
 
+		var absent_ids = {};
+
 		var cache_entry = $scope.absences.filter(function(abs) {
-			return (new Date(abs.from) <= date && new Date(abs.to) >= date);
+			if ((new Date(abs.from) <= date && new Date(abs.to) >= date) && !absent_ids[abs.user]) {
+				return (absent_ids[abs.user] = true);
+			} else {
+				return false;
+			}
 		});
 
 		cache_entry = cache_entry.map(function(abs) {
