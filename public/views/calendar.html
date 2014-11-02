@@ -9,7 +9,7 @@
 		background: rgba(99, 180, 255, 0.1);
 		border: 2px solid #395066;
 	}
-	
+
 	#calendar-navigator {
 		background: rgba(99, 180, 255, 0.1);
 		padding: 10px;
@@ -19,50 +19,50 @@
 		font-size: 20px;
 		font-family: "Roboto Condensed";
 	}
-	
+
 	#calendar-navigator > div {
 		display: inline-block;
 	}
-	
+
 	#calendar-navigator-text {
 		width: 200px;
 		vertical-align: middle;
 	}
-	
+
 	.calendar-navigator-action {
 		color: #64b4ff;
 		font-size: 16px;
 		transition: color ease .3s;
 		vertical-align: middle;
 	}
-	
+
 	.calendar-navigator-action:hover {
 		color: #fff;
 	}
-	
+
 	.calendar-navigator-action.reset {
 		position: absolute;
 		top: 8px;
 		left: 13px;
 	}
-	
+
 	#calendar-header table {
 		width: 100%;
 		border-collapse: collapse;
 		table-layout: fixed;
 	}
-	
+
 	.calendar-navigator-action.buttons {
 		font-size: 14px;
 		position: absolute;
 		top: 12px;
 		right: 17px;
 	}
-	
+
 	.calendar-navigator-action.buttons button {
 		margin-top: 0;
 	}
-	
+
 	#calendar-header th {
 		background: rgba(99, 180, 255, 0.1);
 		border: 0;
@@ -71,19 +71,19 @@
 		font-size: 13px;
 		padding: 10px;
 	}
-	
+
 	#calendar-body {
 		flex: 1;
 		overflow: auto;
 	}
-	
+
 	#calendar-body table {
 		width: 100%;
 		border-collapse: collapse;
 		table-layout: fixed;
 		float: left;
 	}
-	
+
 	#calendar-body td {
 		width: 100%;
 		vertical-align: top;
@@ -93,47 +93,53 @@
 		opacity: .999;
 		transition: opacity ease .3s;
 	}
-	
+
 	#calendar-body td:not(.inactive) {
 		/*background: #354657;*/
 	}
-	
+
 	#calendar-body tr:first-child td {
 		border-top: 0;
 	}
-	
+
 	#calendar-body tr:last-child td {
 		border-bottom: 0;
 	}
-	
+
 	#calendar-body tr td:first-child {
 		border-left: 0;
 	}
-	
+
 	#calendar-body tr td:last-child {
 		border-right: 0;
 	}
-	
+
 	#calendar-body td.today {
 		/*background: #212531;*/
 	}
-	
+
 	#calendar-body td.today .day {
 		color: #64b4ff;
 	}
-	
+
 	/*#calendar-body td:not(.inactive) {
 		background: rgba(99, 180, 255, 0.05);
 	}*/
-	
+
 	#calendar-body td.inactive .day {
 		opacity: 0.5;
 	}
-	
+
 	#calendar .day {
 		font-size: 18px;
 	}
-	
+
+	#calendar .day i {
+		font-size: 12px;
+		top: -2px;
+		opacity: .5;
+	}
+
 	#calendar .day-wrapper .event {
 		display: flex;
 		border-radius: 50px;
@@ -141,11 +147,11 @@
 		padding: 2px 8px;
 		margin: 0 -8px;
 	}
-	
+
 	#calendar .day-wrapper .event:hover:not(.note) {
 		background: rgba(255, 255, 255, .1);
 	}
-	
+
 	#calendar .event .name {
 		flex: 1;
 		padding-right: 10px;
@@ -155,11 +161,11 @@
 		color: #ffef64;
 		transition: color ease .3s;
 	}
-	
+
 	.tooltip .name {
 		color: #ffef64;
 	}
-	
+
 	#calendar .event.accepted .name,
 	.tooltip .accepted .name {
 		color: #70ea5c;
@@ -168,60 +174,60 @@
 	.tooltip .declined .name {
 		color: #ff693b;
 	}
-	
+
 	#calendar .event.closed .name,
 	.tooltip .closed .name {
 		color: #64b4ff;
 	}
-	
+
 	#calendar .event.canceled .name,
 	.tooltip .canceled .name {
 		color: #aaa;
 	}
-	
+
 	#calendar .event.note .name,
 	.tooltip .note .name {
 		color: #fff;
 	}
-	
+
 	#calendar .event .name i {
 		top: -1px;
 		font-size: 14px;
 	}
-	
+
 	#calendar .event .actions {
 		display: none;
 	}
-	
+
 	#calendar .event:hover:not(.note) .hour {
 		display: none;
 	}
-	
+
 	#calendar .event .actions i {
 		top: -1px;
 		font-size: 14px;
 	}
-	
+
 	#calendar .event .actions i:not(.awe-lock):hover {
 		color: #64B4FF;
 	}
-	
+
 	#calendar .event:hover .actions {
 		display: block;
 	}
-	
+
 	#calendar-legend {
 		display: flex;
 		justify-content: space-around;
 		padding: 10px;
 		background: rgba(0, 0, 0, 0.1);
 	}
-	
+
 	.tooltip i {
 		top: -1px;
 		font-size: 14px;
 	}
-	
+
 	.tooltip i::before {
 		margin-left: 0px;
 	}
@@ -251,10 +257,19 @@
 					<td ng-repeat="data in row" ng-class="{ today: data.today, inactive: data.inactive }">
 						<div class="day-wrapper">
 							<div class="day">
-								<span>{{ data.day }}</span>
-								<!--<div class="actions">
-									<a ng-click="setDisplay('editevent', 0)"><i class="icon-plus"></i></a>							
-								</div>-->
+								<span>
+									{{ data.day }}
+									<i class="awe-flash" ng-tooltip=".tooltip" ng-if="hasAbsentsOn(data.id)">
+										<div class="tooltip">
+											<div class="light">Players absent this day</div>
+											<div class="spaced">
+												<div class="c{{ abs.class }}" ng-repeat="abs in absentsForDay(data.id) | orderBy : ['class', 'name']">
+													{{ abs.name }}
+												</div>
+											</div>
+										</div>
+									</i>
+								</span>
 							</div>
 							<div class="events">
 								<div class="event {{ stateClass(event) }}" ng-click="open(event.id, event.type)" ng-repeat="event in events[data.id] | orderBy : 'sortTime'" ng-contextmenu="eventMenu(event, $event)" ng-tooltip=".tooltip">

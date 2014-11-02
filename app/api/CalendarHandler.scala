@@ -190,11 +190,18 @@ trait CalendarHandler {
 			val from = SmartTimestamp(year, month - 1, 21)
 			val to = SmartTimestamp(year, month + 1, 15)
 
+			// Calendar events
 			val (events, filter) = loadCalendarAndCreateFilter(from, to)
 
+			// Matching absences
+			val slacks = DB.withSession { implicit s =>
+				Slacks.filter(s => s.from >= from.asSQL || s.to <= to.asSQL).list.map(_.conceal)
+			}
+
+			// Listen to both calendar events and absences events
 			socket.bindEvents(filter)
 
-			MessageResults(eventsToJs(events))
+			MessageResults(Json.obj("events" -> eventsToJs(events), "absences" -> slacks))
 		}
 
 		/**
@@ -340,7 +347,7 @@ trait CalendarHandler {
 			}
 
 			// Fetch answers for guild events
-			def fetchGuildAnswers = {
+			def fetchGuildAnswers: Map[String, Option[CalendarAnswer]] = {
 				CalendarHelper.guildAnswersQuery(id).list.groupBy(_._1.id.toString).mapValues { list =>
 					val user = list(0)._1
 					val (a_answer, a_date, a_note, a_char) = list(0)._2
@@ -362,14 +369,14 @@ trait CalendarHandler {
 			}
 
 			// Fetch answers for non-guild events
-			def fetchEventAnswers = {
+			def fetchEventAnswers: Map[String, Option[CalendarAnswer]] = {
 				CalendarHelper.answersQuery(id).list.groupBy(_._1.id.toString).mapValues { list =>
 					Some(list(0)._2)
 				}
 			}
 
 			// Select the correct answer fetcher for this event
-			val answers = {
+			val answers: Map[String, Option[CalendarAnswer]] = {
 				if (event.visibility == CalendarVisibility.Guild)
 					fetchGuildAnswers
 				else
@@ -454,13 +461,18 @@ trait CalendarHandler {
 				resetEventContext()
 			}
 
+			// Load absences during this event
+			var slacks = Slacks.filter(s => s.from <= event.date && s.to >= event.date).list
+			if (!user.officer) slacks = slacks.map(_.conceal)
+
 			MessageResults(Json.obj(
 				"event" -> event,
 				"answers" -> answers,
 				"answer" -> my_answer,
 				"tabs" -> visible.tabs,
 				"slots" -> visible.slots,
-				"editable" -> event_editable))
+				"editable" -> event_editable,
+				"absences" -> slacks))
 		}
 
 		/**

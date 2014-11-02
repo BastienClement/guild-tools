@@ -428,11 +428,15 @@
 									<div class="spaced" ng-if="row.answer.note">
 										{{ row.answer.note }}
 									</div>
+									<div class="spaced" ng-if="row.absence">
+										<div class="fsblue"><i class="awe-flash" style="top: -2px; margin-left: -0.2em;"></i>Absent</div>
+										<div ng-if="row.absence.reason">{{ row.absence.reason }}</div>
+									</div>
 								</div>
 								<div class="char" ng-mousedown="setPicker(row.char, $event)" ng-class="{ picked: charDimmedInRoster(row.char) }">
 									<img ng-src="/assets/images/roles/{{ row.char.role }}.png">
 									<span class="name c{{ row.char.class }}">{{ row.char.name | capitalize }}</span>
-									<i class="awe-pencil-squared" ng-if="row.answer.note"></i>
+									<i class="awe-{{ getPlayerIcon(row) }}"></i>
 								</div>
 							</div>
 						</div>
