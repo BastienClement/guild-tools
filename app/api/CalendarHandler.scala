@@ -428,7 +428,6 @@ trait CalendarHandler {
 			// Load absents for this event
 			var slacks = Slacks.filter(s => s.from <= event.date && s.to >= event.date).list
 			if (!user.officer) slacks = slacks.map(_.conceal)
-			var slacks_ids = slacks.map(_.id).toSet
 
 			def slackFilter(slack: Slack, wrap: (Slack) => Event): Boolean = {
 				if (slack.from <= event.date && slack.to >= event.date) {
