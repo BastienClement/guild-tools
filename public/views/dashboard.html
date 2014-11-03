@@ -261,7 +261,7 @@
 								<i class="awe-attention-alt" ng-if="entry.event.type == 4"></i>
 								{{ entry.event.title }}
 							</span>
-							<span class="time" ng-if="entry.event.type != 4">{{ entry.timestr }}</span>
+							<span class="time">{{ entry.event.type != 4 ? entry.timestr : '' }}</span>
 						</div>
 					</div>
 				</div>
