@@ -109,8 +109,6 @@ GuildTools.controller("AbsencesEditCtrl", function($scope) {
 
 			model.day = date.getDate();
 			model.month = date.getMonth();
-
-			console.log(new_date, model);
 		};
 	}
 
