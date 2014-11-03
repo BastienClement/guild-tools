@@ -138,6 +138,11 @@
 		font-size: 12px;
 		top: -2px;
 		opacity: .5;
+		font-style: normal;
+	}
+
+	#calendar .day i:before {
+		margin-right: -0.2em;
 	}
 
 	#calendar .day-wrapper .event {
@@ -260,6 +265,7 @@
 								<span>
 									{{ data.day }}
 									<i class="awe-flash" ng-tooltip=".tooltip" ng-if="hasAbsentsOn(data.id)">
+										{{ absentsForDay(data.id).length }}
 										<div class="tooltip">
 											<div class="light">Absent players this day</div>
 											<div class="spaced">
