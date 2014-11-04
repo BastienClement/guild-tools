@@ -339,7 +339,7 @@ trait CalendarHandler {
 				query = query.filter(_.owner === user.id)
 			}
 
-			if (query.delete > 0) {
+			if (query.map(_.garbage).update(true) > 0) {
 				CalendarEvents.notifyDelete(event_id)
 				MessageSuccess
 			} else {

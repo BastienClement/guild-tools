@@ -67,7 +67,7 @@ case class CalendarEvent(id: Int, title: String, desc: String, owner: Int, date:
 
 case class CalendarEventFull(event: CalendarEvent, tabs: List[CalendarTab], slots: Map[String, Map[String, CalendarSlot]])
 
-class CalendarEvents(tag: Tag) extends Table[CalendarEvent](tag, "gt_events") {
+class CalendarEvents(tag: Tag) extends Table[CalendarEvent](tag, "gt_events_visible") {
 	def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
 	def title = column[String]("title")
 	def desc = column[String]("desc")
@@ -76,6 +76,7 @@ class CalendarEvents(tag: Tag) extends Table[CalendarEvent](tag, "gt_events") {
 	def time = column[Int]("time")
 	def visibility = column[Int]("type")
 	def state = column[Int]("state")
+	def garbage = column[Boolean]("garbage")
 
 	def * = (id, title, desc, owner, date, time, visibility, state) <> (CalendarEvent.tupled, CalendarEvent.unapply)
 }
