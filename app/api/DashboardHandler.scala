@@ -3,6 +3,7 @@ package api
 import scala.compat.Platform
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.util.Try
 import actors.SocketHandler
 import gt.Global.ExecutionContext
 import models._
@@ -34,11 +35,7 @@ object DashboardHelper {
 			Json.parse(response.body).as[List[JsObject]].reverse.take(5)
 		}
 
-		try {
-			Await.result(res, 10.seconds)
-		} catch {
-			case _: Throwable => Nil
-		}
+		Try { Await.result(res, 10.seconds) } getOrElse { Nil }
 	}
 }
 
@@ -58,10 +55,10 @@ trait DashboardHandler {
 
 			socket.bindEvents(events_filter)
 
-			MessageResults(Json.obj(
+			Json.obj(
 				"feed" -> DashboardHelper.Feed.value,
 				"events" -> Calendar.eventsToJs(events),
-				"logs" -> DashboardHelper.LogsFeed.value))
+				"logs" -> DashboardHelper.LogsFeed.value)
 		}
 	}
 }

@@ -24,7 +24,7 @@ trait AuthHandler {
 		/**
 		 * $:auth
 		 */
-		def handleAuth(arg: JsValue): MessageResponse = utils.atLeast(250.milliseconds) {
+		def handleAuth(arg: JsValue): MessageResponse = utils.atLeast[JsValue](250.milliseconds) {
 			val socket_id = (arg \ "socket").asOpt[String]
 			val session_id = (arg \ "session").asOpt[String]
 
@@ -36,7 +36,7 @@ trait AuthHandler {
 
 			// Attach this handler to the requested socket if available
 			def resumeSocket(sid: Option[String]): Option[JsValue] = {
-				sid flatMap (Socket.findByID) map { s =>
+				sid flatMap { Socket.findByID(_) } map { s =>
 					s.updateHandler(self)
 					completeWithSocket(s)
 					Json.obj("resume" -> true)
@@ -57,10 +57,8 @@ trait AuthHandler {
 				}
 			}
 
-			val success = resumeSocket(socket_id) orElse (resumeSession(session_id))
-			val result = success getOrElse (Json.obj("socket" -> JsNull, "user" -> JsNull))
-
-			MessageResults(result)
+			val success = resumeSocket(socket_id) orElse { resumeSession(session_id) }
+			success getOrElse { Json.obj("socket" -> JsNull, "user" -> JsNull) }
 		}
 
 		/**

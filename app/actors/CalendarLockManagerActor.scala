@@ -58,7 +58,7 @@ class CalendarLockManagerActor extends Actor {
 	 */
 	scheduler.schedule(5.second, 5.second) {
 		val now = new Date().getTime
-		locks.values.filter(now - _.lastRefresh > 15000) foreach (_.release())
+		for (lock <- locks.values if lock.lastRefresh > 15000) lock.release()
 	}
 
 	def receive = {
@@ -78,7 +78,7 @@ class CalendarLockManagerActor extends Actor {
 		}
 
 		case LockRelease(lock) => {
-			locks.get(lock.tab) foreach { l =>
+			for (l <- locks.get(lock.tab)) {
 				if (lock == l) {
 					locks -= lock.tab
 					Socket !# CalendarLockRelease(lock.tab)

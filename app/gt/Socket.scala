@@ -101,7 +101,7 @@ class Socket private(val token: String, val user: User, val session: String, var
 	 */
 	def !(m: AnyRef): Unit = {
 		if (dead) {
-			return
+			// Nothing
 		} else if (open) {
 			handler ! m
 		} else {
@@ -131,7 +131,7 @@ class Socket private(val token: String, val user: User, val session: String, var
 
 			// Send queued messages
 			queue.synchronized {
-				queue.dequeueAll(m => open) foreach { m =>
+				for (m <- queue.dequeueAll(m => open)) {
 					handler ! m
 				}
 			}

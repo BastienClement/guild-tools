@@ -213,7 +213,7 @@ trait CalendarHandler {
 			// Listen to both calendar events and absences events
 			socket.bindEvents(filter)
 
-			MessageResults(Json.obj("events" -> eventsToJs(events), "absences" -> slacks))
+			Json.obj("events" -> eventsToJs(events), "absences" -> slacks)
 		}
 
 		/**
@@ -493,14 +493,14 @@ trait CalendarHandler {
 				resetEventContext()
 			}
 
-			MessageResults(Json.obj(
+			Json.obj(
 				"event" -> event,
 				"answers" -> answers,
 				"answer" -> my_answer,
 				"tabs" -> visible.tabs,
 				"slots" -> visible.slots,
 				"editable" -> event_editable,
-				"absences" -> slacks))
+				"absences" -> slacks)
 		}
 
 		/**

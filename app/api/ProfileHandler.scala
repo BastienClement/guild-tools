@@ -125,40 +125,36 @@ trait ProfileHandler {
 				return MessageFailure("INVALID_DATA")
 			}
 
-			Bnet.query(s"/character/$server/$name", ("fields" -> "items")) map {
-				_ map { char =>
-					DB.withTransaction { implicit s =>
-						val main = for (c <- Chars if c.main === true && c.owner === user.id) yield c.id
+			Bnet.query(s"/character/$server/$name", ("fields" -> "items")) map { char =>
+				DB.withTransaction { implicit s =>
+					val main = for (c <- Chars if c.main === true && c.owner === user.id) yield c.id
 
-						val template = Char(
-							id = 0,
-							name = name,
-							server = server,
-							owner = socket.user.id,
-							main = main.firstOption.isEmpty,
-							active = true,
-							`class` = (char \ "class").as[Int],
-							race = (char \ "race").as[Int],
-							gender = (char \ "gender").as[Int],
-							level = (char \ "level").as[Int],
-							achievements = (char \ "achievementPoints").as[Int],
-							thumbnail = (char \ "thumbnail").as[String],
-							ilvl = (char \ "items" \ "averageItemLevel").as[Int],
-							role = role,
-							last_update = (new Date()).getTime)
+					val template = Char(
+						id = 0,
+						name = name,
+						server = server,
+						owner = socket.user.id,
+						main = main.firstOption.isEmpty,
+						active = true,
+						`class` = (char \ "class").as[Int],
+						race = (char \ "race").as[Int],
+						gender = (char \ "gender").as[Int],
+						level = (char \ "level").as[Int],
+						achievements = (char \ "achievementPoints").as[Int],
+						thumbnail = (char \ "thumbnail").as[String],
+						ilvl = (char \ "items" \ "averageItemLevel").as[Int],
+						role = role,
+						last_update = (new Date()).getTime)
 
-						val id: Int = (Chars returning Chars.map(_.id)) += template
-						Chars.notifyCreate(template.copy(id = id))
+					val id: Int = (Chars returning Chars.map(_.id)) += template
+					Chars.notifyCreate(template.copy(id = id))
 
-						if (template.main) {
-							user.updatePropreties()
-						}
+					if (template.main) {
+						user.updatePropreties()
 					}
-
-					MessageSuccess
-				} getOrElse {
-					MessageFailure("CHAR_NOT_FOUND")
 				}
+
+				MessageSuccess
 			}
 		}
 	}
