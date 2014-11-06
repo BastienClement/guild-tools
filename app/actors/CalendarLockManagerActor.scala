@@ -2,7 +2,7 @@ package actors
 
 import java.util.Date
 import scala.concurrent.duration._
-import actors.CalendarLockManager._
+import actors.CalendarLockManagerActor._
 import akka.actor._
 import api.{CalendarLockAcquire, CalendarLockRelease}
 import gt.Global.ExecutionContext
@@ -11,8 +11,8 @@ import play.api.Play.current
 import play.api.libs.concurrent.Akka
 import utils.scheduler
 
-object CalendarLockManager {
-	val LockManager = Akka.system.actorOf(Props[CalendarLockManager], name = "CalendarLockManager")
+object CalendarLockManagerActor {
+	val CalendarLockManager = Akka.system.actorOf(Props[CalendarLockManagerActor], name = "CalendarLockManager")
 
 	case class LockAcquire(tab: Int, owner: String)
 	case class LockStatus(tab: Int)
@@ -41,13 +41,13 @@ object CalendarLockManager {
 		def release(): Unit = {
 			if (valid) {
 				valid = false
-				LockManager ! LockRelease(this)
+				CalendarLockManager ! LockRelease(this)
 			}
 		}
 	}
 }
 
-class CalendarLockManager extends Actor {
+class CalendarLockManagerActor extends Actor {
 	/**
 	 * Every locks currently in use
 	 */

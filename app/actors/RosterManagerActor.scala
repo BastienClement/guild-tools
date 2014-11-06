@@ -1,7 +1,7 @@
 package actors
 
 import scala.concurrent.duration._
-import actors.RosterManager._
+import actors.RosterManagerActor._
 import akka.actor.{Actor, Props}
 import api._
 import gt.Socket
@@ -12,8 +12,8 @@ import play.api.libs.concurrent.Akka
 import play.api.libs.json._
 import utils.LazyCell
 
-object RosterManager {
-	val RosterManagerRef = Akka.system.actorOf(Props[RosterManager], name = "RosterManager")
+object RosterManagerActor {
+	val RosterManager = Akka.system.actorOf(Props[RosterManagerActor], name = "RosterManager")
 
 	case class QueryUsers()
 	case class QueryChars()
@@ -27,7 +27,7 @@ object RosterManager {
 	case class CharDelete(id: Int)
 }
 
-class RosterManager extends Actor {
+class RosterManagerActor extends Actor {
 	/**
 	 * List of every users
 	 */

@@ -3,7 +3,7 @@ package api
 import java.sql.Timestamp
 import java.text.{ParseException, SimpleDateFormat}
 import scala.collection.mutable
-import actors.CalendarLockManager._
+import actors.CalendarLockManagerActor._
 import actors.SocketHandler
 import akka.pattern.ask
 import gt.Global.ExecutionContext
@@ -708,7 +708,7 @@ trait CalendarHandler {
 		def handleLockStatus(arg: JsValue): MessageResponse = {
 			val tab_id = (arg \ "id").as[Int]
 			ensureTabEditable(tab_id) {
-				(LockManager ? LockStatus(tab_id)).mapTo[Option[String]] map { status =>
+				(CalendarLockManager ? LockStatus(tab_id)).mapTo[Option[String]] map { status =>
 					MessageResults(Json.obj("owner" -> status))
 				}
 			}
@@ -720,7 +720,7 @@ trait CalendarHandler {
 		def handleLockAcquire(arg: JsValue): MessageResponse = {
 			val tab_id = (arg \ "id").as[Int]
 			ensureTabEditable(tab_id) {
-				(LockManager ? LockAcquire(tab_id, user.name)).mapTo[Option[CalendarLock]] map { lock =>
+				(CalendarLockManager ? LockAcquire(tab_id, user.name)).mapTo[Option[CalendarLock]] map { lock =>
 					lock map { l =>
 						edit_lock = lock
 						MessageSuccess

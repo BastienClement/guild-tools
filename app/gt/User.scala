@@ -1,6 +1,6 @@
 package gt
 
-import actors.ChatManager._
+import actors.ChatManagerActor._
 import akka.actor.ActorRef
 import api._
 import models._
@@ -14,7 +14,7 @@ object User {
 
 	def disposed(user: User): Unit = this.synchronized {
 		onlines -= user.id
-		ChatManagerRef ! UserLogout(user)
+		ChatManager ! UserLogout(user)
 	}
 
 	def findByID(id: Int): Option[User] = this.synchronized {
@@ -30,7 +30,7 @@ object User {
 
 		user foreach { u =>
 			if (!onlines.contains(u.id)) {
-				ChatManagerRef ! UserLogin(u)
+				ChatManager ! UserLogin(u)
 				User.onlines += (id -> u)
 			}
 		}

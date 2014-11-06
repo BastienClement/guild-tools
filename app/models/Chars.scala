@@ -1,7 +1,7 @@
 package models
 
 import scala.slick.jdbc.JdbcBackend.SessionDef
-import actors.RosterManager._
+import actors.RosterManagerActor._
 import models.mysql._
 
 case class Char(
@@ -49,15 +49,15 @@ class Chars(tag: Tag) extends Table[Char](tag, "gt_chars") {
 
 object Chars extends TableQuery(new Chars(_)) {
 	def notifyCreate(char: Char): Unit = {
-		RosterManagerRef ! CharUpdate(char)
+		RosterManager ! CharUpdate(char)
 	}
 
 	def notifyUpdate(char: Char)(implicit s: SessionDef): Unit = {
-		RosterManagerRef ! CharUpdate(char)
+		RosterManager ! CharUpdate(char)
 	}
 
 	def notifyDelete(id: Int): Unit = {
-		RosterManagerRef ! CharDelete(id)
+		RosterManager ! CharDelete(id)
 	}
 
 	def validateRole(role: String): Boolean = role match {

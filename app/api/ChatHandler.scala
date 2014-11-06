@@ -1,6 +1,6 @@
 package api
 
-import actors.ChatManager._
+import actors.ChatManagerActor._
 import actors.SocketHandler
 import akka.pattern.ask
 
@@ -12,7 +12,7 @@ trait ChatHandler {
 		 * $:chat:onlines
 		 */
 		def handleOnlines(): MessageResponse = {
-			(ChatManagerRef ? ListOnlines).mapTo[Set[Int]]
+			(ChatManager ? ListOnlines).mapTo[Set[Int]]
 		}
 	}
 }
