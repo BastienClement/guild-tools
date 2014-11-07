@@ -11,13 +11,16 @@ import play.api.Play.current
 import play.api.libs.concurrent.Akka
 import utils.scheduler
 
+trait CalendarLockManagerInterface {
+	def acquire(tab: Int, owner: String): Option[CalendarLock]
+	def status(tab: Int): Option[String]
+	def release(lock: CalendarLock): Unit
+}
+
 object CalendarLockManagerActor {
-	val CalendarLockManager = Akka.system.actorOf(Props[CalendarLockManagerActor], name = "CalendarLockManager")
+	val CalendarLockManager: CalendarLockManagerInterface = TypedActor(Akka.system).typedActorOf(TypedProps[CalendarLockManagerActor]())
 
-	case class LockAcquire(tab: Int, owner: String)
-	case class LockStatus(tab: Int)
-	case class LockRelease(lock: CalendarLock)
-
+	private val LockExpireDuration = 15.seconds
 	class CalendarLock(val tab: Int, val owner: String) {
 		/**
 		 * Lock is valid until released
@@ -27,13 +30,12 @@ object CalendarLockManagerActor {
 		/**
 		 * Keep last refresh time
 		 */
-		var lastRefresh: Long = 0
+		var deadline: Deadline = LockExpireDuration.fromNow
 
 		/**
 		 * Refresh the lock to prevent garbage collection
 		 */
-		def refresh(): Unit = { lastRefresh = new Date().getTime }
-		refresh()
+		def refresh(): Unit = { deadline = LockExpireDuration.fromNow }
 
 		/**
 		 * Release this log
@@ -41,13 +43,13 @@ object CalendarLockManagerActor {
 		def release(): Unit = {
 			if (valid) {
 				valid = false
-				CalendarLockManager ! LockRelease(this)
+				CalendarLockManager.release(this)
 			}
 		}
 	}
 }
 
-class CalendarLockManagerActor extends Actor {
+class CalendarLockManagerActor extends CalendarLockManagerInterface {
 	/**
 	 * Every locks currently in use
 	 */
@@ -58,31 +60,27 @@ class CalendarLockManagerActor extends Actor {
 	 */
 	scheduler.schedule(5.second, 5.second) {
 		val now = new Date().getTime
-		for (lock <- locks.values if lock.lastRefresh > 15000) lock.release()
+		for (lock <- locks.values if lock.deadline.isOverdue()) lock.release()
 	}
 
-	def receive = {
-		case LockAcquire(tab, owner) => {
-			if (locks.contains(tab)) {
-				sender ! None
-			} else {
-				val lock = new CalendarLock(tab, owner)
-				locks += (tab -> lock)
-				Socket !# CalendarLockAcquire(tab, owner)
-				sender ! Some(lock)
-			}
+	def acquire(tab: Int, owner: String): Option[CalendarLock] = {
+		if (locks.contains(tab)) {
+			None
+		} else {
+			val lock = new CalendarLock(tab, owner)
+			locks += (tab -> lock)
+			Socket !# CalendarLockAcquire(tab, owner)
+			Some(lock)
 		}
+	}
 
-		case LockStatus(tab) => {
-			sender ! locks.get(tab).map(_.owner)
-		}
+	def status(tab: Int): Option[String] = locks.get(tab).map(_.owner)
 
-		case LockRelease(lock) => {
-			for (l <- locks.get(lock.tab)) {
-				if (lock == l) {
-					locks -= lock.tab
-					Socket !# CalendarLockRelease(lock.tab)
-				}
+	def release(lock: CalendarLock): Unit = {
+		for (l <- locks.get(lock.tab)) {
+			if (lock == l) {
+				locks -= lock.tab
+				Socket !# CalendarLockRelease(lock.tab)
 			}
 		}
 	}

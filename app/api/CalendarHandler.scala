@@ -708,9 +708,7 @@ trait CalendarHandler {
 		def handleLockStatus(arg: JsValue): MessageResponse = {
 			val tab_id = (arg \ "id").as[Int]
 			ensureTabEditable(tab_id) {
-				(CalendarLockManager ? LockStatus(tab_id)).mapTo[Option[String]] map { status =>
-					MessageResults(Json.obj("owner" -> status))
-				}
+				Json.obj("owner" -> CalendarLockManager.status(tab_id))
 			}
 		}
 
@@ -720,13 +718,11 @@ trait CalendarHandler {
 		def handleLockAcquire(arg: JsValue): MessageResponse = {
 			val tab_id = (arg \ "id").as[Int]
 			ensureTabEditable(tab_id) {
-				(CalendarLockManager ? LockAcquire(tab_id, user.name)).mapTo[Option[CalendarLock]] map { lock =>
-					lock map { l =>
-						edit_lock = lock
-						MessageSuccess
-					} getOrElse {
-						MessageAlert("An error occurred while acquiring the edit lock for this tab")
-					}
+				CalendarLockManager.acquire(tab_id, user.name) map { lock =>
+					edit_lock = Some(lock)
+					MessageSuccess
+				} getOrElse {
+					MessageAlert("An error occured while acquiring the edit lock for this tab")
 				}
 			}
 		}
