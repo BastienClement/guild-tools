@@ -1,25 +1,24 @@
 package models
 
-import scala.slick.jdbc.JdbcBackend.SessionDef
 import actors.RosterManagerActor._
 import models.mysql._
 
 case class Char(
-	id: Int,
-	name: String,
-	server: String,
-	owner: Int,
-	main: Boolean,
-	active: Boolean,
-	`class`: Int,
-	race: Int,
-	gender: Int,
-	level: Int,
-	achievements: Int,
-	thumbnail: String,
-	ilvl: Int,
-	role: String,
-	last_update: Long) {
+		id: Int,
+		name: String,
+		server: String,
+		owner: Int,
+		main: Boolean,
+		active: Boolean,
+		`class`: Int,
+		race: Int,
+		gender: Int,
+		level: Int,
+		achievements: Int,
+		thumbnail: String,
+		ilvl: Int,
+		role: String,
+		last_update: Long) {
 	val clazz = `class`
 
 	if (!Chars.validateRole(role)) {
@@ -49,15 +48,15 @@ class Chars(tag: Tag) extends Table[Char](tag, "gt_chars") {
 
 object Chars extends TableQuery(new Chars(_)) {
 	def notifyCreate(char: Char): Unit = {
-		RosterManager ! CharUpdate(char)
+		RosterManager.updateChar(char)
 	}
 
-	def notifyUpdate(char: Char)(implicit s: SessionDef): Unit = {
-		RosterManager ! CharUpdate(char)
+	def notifyUpdate(char: Char): Unit = {
+		RosterManager.updateChar(char)
 	}
 
 	def notifyDelete(id: Int): Unit = {
-		RosterManager ! CharDelete(id)
+		RosterManager.deleteChar(id)
 	}
 
 	def validateRole(role: String): Boolean = role match {

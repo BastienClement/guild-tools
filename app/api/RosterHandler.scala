@@ -2,7 +2,6 @@ package api
 
 import actors.RosterManagerActor._
 import actors.SocketHandler
-import akka.pattern.ask
 import play.api.libs.json._
 
 trait RosterHandler {
@@ -12,22 +11,16 @@ trait RosterHandler {
 		/**
 		 * $:roster:load
 		 */
-		def handleLoad(): MessageResponse = {
-			(RosterManager ? Api_ListRoster).mapTo[JsObject]
-		}
+		def handleLoad(): MessageResponse = RosterManager.compositeRoster
 
 		/**
 		 * $:roster:user
 		 */
-		def handleUser(arg: JsValue): MessageResponse = {
-			(RosterManager ? Api_QueryUser((arg \ "id").as[Int])).mapTo[JsObject]
-		}
+		def handleUser(arg: JsValue): MessageResponse = RosterManager.compositeUser((arg \ "id").as[Int])
 
 		/**
 		 * $:roster:char
 		 */
-		def handleChar(arg: JsValue): MessageResponse = {
-			(RosterManager ? QueryChar((arg \ "id").as[Int])).mapTo[Option[models.Char]]
-		}
+		def handleChar(arg: JsValue): MessageResponse = RosterManager.char((arg \ "id").as[Int])
 	}
 }

@@ -1,8 +1,7 @@
 package actors
 
 import scala.concurrent.duration._
-import actors.RosterManagerActor._
-import akka.actor.{Actor, Props}
+import akka.actor.{TypedActor, TypedProps}
 import api._
 import gt.Socket
 import models._
@@ -12,22 +11,25 @@ import play.api.libs.concurrent.Akka
 import play.api.libs.json._
 import utils.LazyCell
 
-object RosterManagerActor {
-	val RosterManager = Akka.system.actorOf(Props[RosterManagerActor], name = "RosterManager")
+trait RosterManagerInterface {
+	def users: Map[Int, User]
+	def chars: Map[Int, Char]
 
-	case class QueryUsers()
-	case class QueryChars()
-	case class QueryUser(id: Int)
-	case class QueryChar(id: Int)
+	def user(id: Int): Option[User]
+	def char(id: Int): Option[Char]
 
-	case class Api_ListRoster()
-	case class Api_QueryUser(id: Int)
+	def compositeRoster: JsObject
+	def compositeUser(id: Int): JsObject
 
-	case class CharUpdate(char: Char)
-	case class CharDelete(id: Int)
+	def updateChar(char: Char): Unit
+	def deleteChar(id: Int): Unit
 }
 
-class RosterManagerActor extends Actor {
+object RosterManagerActor {
+	val RosterManager: RosterManagerInterface = TypedActor(Akka.system).typedActorOf(TypedProps[RosterManagerActor](), name = "RosterManager")
+}
+
+class RosterManagerActor extends RosterManagerInterface {
 	/**
 	 * List of every users
 	 */
@@ -53,36 +55,31 @@ class RosterManagerActor extends Actor {
 		Json.obj("users" -> roster_users.values.toList, "chars" -> roster_chars.values.toList)
 	}
 
-	/**
-	 * Handle messages
-	 */
-	def receive = {
-		case QueryUsers => sender ! roster_users.value
-		case QueryChars => sender ! roster_chars.value
-		case QueryUser(id) => sender ! roster_users.get(id)
-		case QueryChar(id) => sender ! roster_chars.get(id)
+	def users: Map[Int, User] = roster_users
+	def chars: Map[Int, Char] = roster_chars
 
-		case Api_ListRoster => sender ! roster_composite.value
-		case Api_QueryUser(id) => {
-			val chars = roster_chars.collect({ case (_, char) if char.owner == id => char }).toSet
-			sender ! Json.obj("user" -> roster_users.get(id), "chars" -> chars)
+	def user(id: Int): Option[User] = roster_users.get(id)
+	def char(id: Int): Option[Char] = roster_chars.get(id)
+
+	def compositeRoster: JsObject = roster_composite
+
+	def compositeUser(id: Int): JsObject = {
+		val chars = roster_chars.collect({ case (_, char) if char.owner == id => char }).toSet
+		Json.obj("user" -> roster_users.get(id), "chars" -> chars)
+	}
+
+	def updateChar(char: Char): Unit = {
+		roster_chars := {
+			if (roster_chars.contains(char.id)) roster_chars.updated(char.id, char)
+			else roster_chars.value + (char.id -> char)
 		}
+		roster_composite.clear()
+		Socket ! Message("roster:char:update", char)
+	}
 
-		case CharUpdate(char) => {
-			if (roster_chars.contains(char.id))
-				roster_chars := roster_chars.updated(char.id, char)
-			else
-				roster_chars := roster_chars.value + (char.id -> char)
-
-			roster_composite.clear()
-			Socket ! Message("roster:char:update", char)
-		}
-
-		case CharDelete(id) => {
-			roster_chars := roster_chars - id
-
-			roster_composite.clear()
-			Socket ! Message("roster:char:delete", id)
-		}
+	def deleteChar(id: Int): Unit = {
+		roster_chars := roster_chars - id
+		roster_composite.clear()
+		Socket ! Message("roster:char:delete", id)
 	}
 }
