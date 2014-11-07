@@ -35,6 +35,13 @@ class LazyCell[T] private(ttl: FiniteDuration)(generator: => T) {
 	}
 
 	/**
+	* Explicitly set a new value for this cell (function version)
+	*/
+	def :=(f: (T) => T): Unit = {
+		_value = f(_value)
+	}
+
+	/**
 	 * Remove cached value
 	 */
 	def clear(): Unit = {
