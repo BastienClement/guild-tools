@@ -3,15 +3,15 @@ package utils
 import scala.concurrent.duration._
 import scala.language.implicitConversions
 
-object LazyCell {
+object LazyCache {
 	def apply[T](ttl: FiniteDuration)(generator: => T) = {
-		new LazyCell[T](ttl)(generator)
+		new LazyCache[T](ttl)(generator)
 	}
 
-	implicit def extract[T](cell: LazyCell[T]): T = cell.value
+	implicit def extract[T](cell: LazyCache[T]): T = cell.value
 }
 
-class LazyCell[T] private(ttl: FiniteDuration)(generator: => T) {
+class LazyCache[T] private(ttl: FiniteDuration)(generator: => T) {
 	/**
 	 * This cell value
 	 */

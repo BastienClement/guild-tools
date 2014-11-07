@@ -20,7 +20,7 @@ class LazyCollection[K, T] private(generator: (K) => T, expire: FiniteDuration) 
 	/**
 	 * Every cells from this collection
 	 */
-	private var cells = Map[K, LazyCell[T]]()
+	private var cells = Map[K, LazyCache[T]]()
 
 	/**
 	 * Fetch or create a cell for a given key
@@ -28,7 +28,7 @@ class LazyCollection[K, T] private(generator: (K) => T, expire: FiniteDuration) 
 	def apply(key: K): T = {
 		cells.getOrElse(key, {
 			this.synchronized {
-				val new_cell = LazyCell[T](expire)(generator(key))
+				val new_cell = LazyCache[T](expire)(generator(key))
 				cells = cells.updated(key, new_cell)
 				new_cell
 			}

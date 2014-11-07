@@ -11,13 +11,13 @@ import models.mysql._
 import play.api.Play.current
 import play.api.libs.json._
 import play.api.libs.ws._
-import utils.{LazyCell, SmartTimestamp}
+import utils.{LazyCache, SmartTimestamp}
 
 object DashboardHelper {
 	/**
 	 * Cached feed value
 	 */
-	val Feed = LazyCell[List[Feed]](5.minute) {
+	val Feed = LazyCache[List[Feed]](5.minute) {
 		DB.withSession { implicit s =>
 			Feeds.sortBy(_.time.desc).take(50).list
 		}
@@ -26,7 +26,7 @@ object DashboardHelper {
 	/**
 	 * Fetch last public logs from WarcraftLogs
 	 */
-	val LogsFeed = LazyCell(15.minutes) {
+	val LogsFeed = LazyCache(15.minutes) {
 		val time_max = Platform.currentTime / 1000
 		val time_min = time_max - (60 * 60 * 24 * 7 * 4)
 

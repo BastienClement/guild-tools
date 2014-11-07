@@ -9,7 +9,7 @@ import models.mysql._
 import play.api.Play.current
 import play.api.libs.concurrent.Akka
 import play.api.libs.json._
-import utils.LazyCell
+import utils.LazyCache
 
 trait RosterManagerInterface {
 	def users: Map[Int, User]
@@ -33,7 +33,7 @@ class RosterManagerActor extends RosterManagerInterface {
 	/**
 	 * List of every users
 	 */
-	val roster_users = LazyCell(1.minute) {
+	val roster_users = LazyCache(1.minute) {
 		DB.withSession { implicit s =>
 			Users.filter(_.group inSet AuthHelper.allowedGroups).list.map(u => u.id -> u).toMap
 		}
@@ -42,7 +42,7 @@ class RosterManagerActor extends RosterManagerInterface {
 	/**
 	 * List of every chars
 	 */
-	val roster_chars = LazyCell(1.minute) {
+	val roster_chars = LazyCache(1.minute) {
 		DB.withSession { implicit s =>
 			Chars.list.map(c => c.id -> c).toMap
 		}
@@ -51,7 +51,7 @@ class RosterManagerActor extends RosterManagerInterface {
 	/**
 	 * The composite (users ++ chars)
 	 */
-	def roster_composite = LazyCell(1.minute) {
+	def roster_composite = LazyCache(1.minute) {
 		Json.obj("users" -> roster_users.values.toList, "chars" -> roster_chars.values.toList)
 	}
 
@@ -69,10 +69,10 @@ class RosterManagerActor extends RosterManagerInterface {
 	}
 
 	def updateChar(char: Char): Unit = {
-		roster_chars := {
-			if (roster_chars.contains(char.id)) roster_chars.updated(char.id, char)
-			else roster_chars.value + (char.id -> char)
-		}
+		if (roster_chars.contains(char.id))
+			roster_chars := (_.updated(char.id, char))
+		else
+			roster_chars := (_ + (char.id -> char))
 		roster_composite.clear()
 		Socket ! Message("roster:char:update", char)
 	}
