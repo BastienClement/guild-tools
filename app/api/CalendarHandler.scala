@@ -3,10 +3,9 @@ package api
 import java.sql.Timestamp
 import java.text.{ParseException, SimpleDateFormat}
 import scala.collection.mutable
-import actors.CalendarLockManagerActor._
+import actors.Actors.CalendarLockManager
+import actors.CalendarLockManager.CalendarLock
 import actors.SocketHandler
-import akka.pattern.ask
-import gt.Global.ExecutionContext
 import models.mysql._
 import models.{CalendarEvents, _}
 import play.api.libs.json.Json.JsValueWrapper

@@ -1,6 +1,6 @@
 package api
 
-import actors.RosterManagerActor._
+import actors.Actors.RosterManager
 import actors.SocketHandler
 import play.api.libs.json._
 

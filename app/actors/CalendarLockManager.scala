@@ -1,14 +1,10 @@
 package actors
 
-import java.util.Date
 import scala.concurrent.duration._
-import actors.CalendarLockManagerActor._
-import akka.actor._
+import actors.CalendarLockManager._
 import api.{CalendarLockAcquire, CalendarLockRelease}
 import gt.Global.ExecutionContext
 import gt.Socket
-import play.api.Play.current
-import play.api.libs.concurrent.Akka
 import utils.scheduler
 
 trait CalendarLockManagerInterface {
@@ -17,9 +13,7 @@ trait CalendarLockManagerInterface {
 	def release(lock: CalendarLock): Unit
 }
 
-object CalendarLockManagerActor {
-	val CalendarLockManager: CalendarLockManagerInterface = TypedActor(Akka.system).typedActorOf(TypedProps[CalendarLockManagerActor]())
-
+object CalendarLockManager {
 	private val LockExpireDuration = 15.seconds
 	class CalendarLock(val tab: Int, val owner: String) {
 		/**
@@ -43,13 +37,13 @@ object CalendarLockManagerActor {
 		def release(): Unit = {
 			if (valid) {
 				valid = false
-				CalendarLockManager.release(this)
+				Actors.CalendarLockManager.release(this)
 			}
 		}
 	}
 }
 
-class CalendarLockManagerActor extends CalendarLockManagerInterface {
+class CalendarLockManager extends CalendarLockManagerInterface {
 	/**
 	 * Every locks currently in use
 	 */
@@ -59,7 +53,6 @@ class CalendarLockManagerActor extends CalendarLockManagerInterface {
 	 * Locks garbage collector
 	 */
 	scheduler.schedule(5.second, 5.second) {
-		val now = new Date().getTime
 		for (lock <- locks.values if lock.deadline.isOverdue()) lock.release()
 	}
 

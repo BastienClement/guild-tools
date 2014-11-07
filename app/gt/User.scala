@@ -1,11 +1,10 @@
 package gt
 
-import actors.ChatManagerActor._
+import actors.Actors.ChatManager
 import akka.actor.ActorRef
 import api._
 import models._
 import models.mysql._
-import play.api.Logger
 import play.api.libs.json._
 import utils.SmartTimestamp
 
@@ -14,7 +13,7 @@ object User {
 
 	def disposed(user: User): Unit = this.synchronized {
 		onlines -= user.id
-		ChatManager ! UserLogout(user)
+		ChatManager.userLogout(user)
 	}
 
 	def findByID(id: Int): Option[User] = this.synchronized {
@@ -28,9 +27,9 @@ object User {
 			}
 		}
 
-		user foreach { u =>
+		for (u <- user) {
 			if (!onlines.contains(u.id)) {
-				ChatManager ! UserLogin(u)
+				ChatManager.userLogin(u)
 				User.onlines += (id -> u)
 			}
 		}
@@ -119,8 +118,8 @@ class User private(val id: Int) {
 	/**
 	 * Send a message or an event to every socket for this user
 	 */
-	def !(m: Message): Unit = sockets foreach (_ ! m)
-	def !#(e: Event): Unit = sockets foreach (_ ! e)
+	def ! (m: Message): Unit = sockets foreach (_ ! m)
+	def !# (e: Event): Unit = sockets foreach (_ ! e)
 
 	/**
 	 * No more socket available, user is now disconnected

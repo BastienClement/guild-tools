@@ -1,13 +1,10 @@
 package actors
 
 import scala.concurrent.duration._
-import akka.actor.{TypedActor, TypedProps}
 import api._
 import gt.Socket
 import models._
 import models.mysql._
-import play.api.Play.current
-import play.api.libs.concurrent.Akka
 import play.api.libs.json._
 import utils.LazyCache
 
@@ -25,11 +22,7 @@ trait RosterManagerInterface {
 	def deleteChar(id: Int): Unit
 }
 
-object RosterManagerActor {
-	val RosterManager: RosterManagerInterface = TypedActor(Akka.system).typedActorOf(TypedProps[RosterManagerActor](), name = "RosterManager")
-}
-
-class RosterManagerActor extends RosterManagerInterface {
+class RosterManager extends RosterManagerInterface {
 	/**
 	 * List of every users
 	 */

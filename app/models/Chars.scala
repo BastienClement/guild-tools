@@ -1,6 +1,6 @@
 package models
 
-import actors.RosterManagerActor._
+import actors.Actors.RosterManager
 import models.mysql._
 
 case class Char(
