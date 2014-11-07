@@ -74,7 +74,7 @@ with AbsencesHandler {
 		// Outgoing message
 		case Message(cmd, arg) => {
 			val msg = Json.obj("$" -> cmd, "&" -> arg)
-			Logger.debug(s"<<< ${msg.toString}")
+			//Logger.debug(s"<<< ${msg.toString}")
 			out ! msg
 		}
 
