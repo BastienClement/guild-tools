@@ -282,13 +282,16 @@
 							<div class="events">
 								<div class="event {{ stateClass(event) }}" ng-click="open(event.id, event.type)" ng-repeat="event in events[data.id] | orderBy : 'sortTime'" ng-contextmenu="eventMenu(event, $event)" ng-tooltip=".tooltip">
 									<div class="tooltip">
-										<div class="right">{{ formatTime(event.time) }}</div>
+										<div class="right" ng-if="event.type != 4">{{ formatTime(event.time) }}</div>
 										<div class="nowrap {{ stateClass(event) }}" style="padding-right: 50px">
 											<span class="name">{{ event.title }}</span>
 										</div>
-										<div class="light">
+										<div class="right light">
 											<!--<i ng-class="{ 'awe-star-empty': event.type == 2, 'awe-lock-open-alt': event.type == 3, 'awe-attention-alt': event.type == 4 }"></i>-->
 											{{ typeLabel(event.type) }}
+										</div>
+										<div class="c{{ $.roster.mainForUser(event.owner).class }}" style="padding-right: 130px;">
+											{{ $.roster.mainForUser(event.owner).name }}
 										</div>
 										<div class="spaced" ng-if="event.desc">
 											{{ event.desc }}
