@@ -198,6 +198,8 @@
 	#calendar .event .name i {
 		top: -1px;
 		font-size: 14px;
+		left: -1px;
+		margin-right: -1px;
 	}
 
 	#calendar .event .actions {
@@ -285,7 +287,7 @@
 											<span class="name">{{ event.title }}</span>
 										</div>
 										<div class="light">
-											<i ng-class="{ 'awe-star-empty': event.type == 2, 'awe-lock-open-alt': event.type == 3, 'awe-attention-alt': event.type == 4 }"></i>
+											<!--<i ng-class="{ 'awe-star-empty': event.type == 2, 'awe-lock-open-alt': event.type == 3, 'awe-attention-alt': event.type == 4 }"></i>-->
 											{{ typeLabel(event.type) }}
 										</div>
 										<div class="spaced" ng-if="event.desc">
@@ -295,8 +297,12 @@
 											<span class="name">{{ stateLabel(event.answer) }}</span>
 										</div>-->
 									</div>
-									<a class="name">
-										<i ng-class="{ 'awe-star-empty': event.type == 2, 'awe-lock-open-alt': event.type == 3, 'awe-attention-alt': event.type == 4 }"></i>
+									<a class="name" ng-switch="event.type">
+										<span ng-switch-when="1">[G]</span>
+										<span ng-switch-when="2">[P]</span>
+										<span ng-switch-when="3">[R]</span>
+										<span ng-switch-when="5">[O]</span>
+										<i class="awe-attention-alt" ng-if="event.type == 4"></i>
 										{{ event.title }}
 									</a>
 									<div class="hour" ng-if="event.type != 4">
@@ -321,6 +327,10 @@
 			<div class="event closed"><span class="name">Locked</span></div>
 			<div class="event canceled"><span class="name">Canceled</span></div>
 			<div class="event note"><span class="name">Announce</span></div>
+			<div class="fsblue">[G]uild</div>
+			<div class="fsblue">[O]ptional</div>
+			<div class="fsblue">[P]ublic</div>
+			<div class="fsblue">[R]estricted</div>
 		</div>
 	</div>
 </div>

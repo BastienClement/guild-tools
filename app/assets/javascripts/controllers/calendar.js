@@ -261,9 +261,11 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 			case 2:
 				return "Public event";
 			case 3:
-				return "Private event";
+				return "Restricted event";
 			case 4:
 				return "Announce";
+			case 5:
+				return "Optional event";
 		}
 	};
 

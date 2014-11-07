@@ -22,7 +22,7 @@ object CalendarHelper {
 	val guildAnswersQuery = Compiled { (event_id: Column[Int]) =>
 		for {
 			(u, a) <- Users leftJoin CalendarAnswers on ((u, a) => u.id === a.user && a.event === event_id)
-			if (u.group inSet CalendarHelper.guildies_groups)
+			if u.group inSet CalendarHelper.guildies_groups
 		} yield (u, (a.answer.?, a.date.?, a.note, a.char))
 	}
 
@@ -237,7 +237,8 @@ trait CalendarHandler {
 				if (visibility == CalendarVisibility.Announce) return MessageAlert("Creating announces on multiple days is not allowed.")
 			}
 
-			if (visibility != CalendarVisibility.Private && !user.officer) return MessageAlert("Members can only create restricted events.")
+			if (visibility != CalendarVisibility.Private && visibility != CalendarVisibility.Optional && !user.officer)
+				return MessageAlert("Members can only create optional or restricted events.")
 
 			val format = new SimpleDateFormat("yyyy-MM-dd")
 			val now = SmartTimestamp.now
@@ -388,7 +389,7 @@ trait CalendarHandler {
 
 			// Select the correct answer fetcher for this event
 			val answers: Map[String, Option[CalendarAnswer]] = {
-				if (event.visibility == CalendarVisibility.Guild)
+				if (event.visibility == CalendarVisibility.Guild || event.visibility == CalendarVisibility.Optional)
 					fetchGuildAnswers
 				else
 					fetchEventAnswers

@@ -10,7 +10,8 @@ object CalendarVisibility {
 	val Public = 2
 	val Private = 3
 	val Announce = 4
-	def isValid(v: Int) = (v > 0 && v < 5)
+	val Optional = 5
+	def isValid(v: Int) = (v > 0 && v < 6)
 }
 
 object CalendarEventState {
