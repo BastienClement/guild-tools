@@ -123,7 +123,7 @@ var $ = {};
 				};
 			}
 
-			if (user.unknown && (!unknown_user_queries[id] || (Date.now() - unknown_user_queries[id]) > 60000)) {
+			if (user.unknown && (!unknown_user_queries[id] || (Date.now() - unknown_user_queries[id]) > 60000) && !isNaN(id)) {
 				unknown_user_queries[id] = Date.now();
 				$.exec("roster:user", { id: id }, function(err, data) {
 					if (err || !data.user) return;
@@ -151,7 +151,7 @@ var $ = {};
 				};
 			}
 
-			if (char.unknown && (!unknown_char_queries[id] || (Date.now() - unknown_char_queries[id]) > 60000)) {
+			if (char.unknown && (!unknown_char_queries[id] || (Date.now() - unknown_char_queries[id]) > 60000) && !isNaN(id)) {
 				unknown_char_queries[id] = Date.now();
 				$.exec("roster:char", { id: id }, function(err, char) {
 					if (err || !char) return;
