@@ -1,0 +1,88 @@
+<style>
+	#roster-selector form {
+		width: 400px;
+	}
+
+	#roster-selector .results {
+		border-top: 2px solid #426585;
+		border-bottom: 2px solid #426585;
+		height: 250px;
+		margin: 5px -15px 15px -15px;
+		padding: 10px 15px 15px 10px;
+		overflow-x: hidden;
+		overflow-y: scroll;
+		/*display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		align-items: flex-start;
+		align-content: flex-start;*/
+	}
+
+	#roster-selector .results span {
+		background: rgba(0, 0, 0, 0.2);
+		border: 1px solid rgba(0, 0, 0, 0.1);
+		padding: 0 5px 1px 5px;
+		margin-top: 5px;
+		display: inline-block;
+		margin-left: 5px;
+		position: relative;
+	}
+
+	#roster-selector .results span.bad {
+		opacity: .3;
+	}
+
+	#roster-selector .results span.selected::after {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		margin: -2px;
+		color: inherit;
+		border: 1px solid;
+		opacity: 0.6;
+		display: block;
+		content: "";
+	}
+
+	#roster-selector button {
+		float: right;
+		margin-left: 15px;
+	}
+
+	#roster-selector label.flat {
+		display: flex;
+		margin: -15px 0 0 0;
+		padding: 10px 0 5px 0;
+		align-items: center;
+	}
+
+	#roster-selector label.flat input {
+		border: 0;
+		flex: 1;
+		margin-left: 10px;
+	}
+</style>
+
+<div id="roster-selector" ng-controller="RosterSelectorCtrl">
+	<form class="box" ng-submit="save()">
+		<label class="flat">
+			<i class="awe-search"></i>
+			<input type="text" ng-model="filter">
+		</label>
+		<div class="results">
+			<span ng-repeat="entry in view"
+			      class="c{{ entry.main.class }}"
+			      ng-class="{ selected: isSelected(entry), bad: entry.bad }"
+			      ng-click="toggleSelect(entry)" title="{{ entry.score }}">
+				{{ entry.main.name }}
+			</span>
+		</div>
+		<div class="overflow">
+			<button type="submit" ng-disabled="inflight">{{ ctx.action || "Confirm" }}</button>
+			<button ng-disabled="inflight" ng-click="modal()" type="button">Cancel</button>
+			<span style="font-weight: 300">{{ countSelected() }} selected</span>
+		</div>
+	</form>
+</div>
