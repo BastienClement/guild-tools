@@ -626,3 +626,24 @@ var levenshtein = (function() {
 		return v1[t.length];
 	};
 })();
+
+var fuzzyMatch = (function() {
+	var cached = null;
+	var filter, filter_clean, sample_length;
+
+	function match(raw_filter, name) {
+		if (raw_filter !== cached) {
+			filter = raw_filter.replace(/^\s+|\s+$/g, "").toLowerCase();
+			filter_clean = removeDiacritics(filter);
+			sample_length = filter.length;
+		}
+
+		var sample = name.toLowerCase().slice(0, sample_length);
+		var sample_exact = levenshtein(filter, sample) / sample_length;
+		var sample_clean = levenshtein(filter_clean, removeDiacritics(sample)) / sample_length;
+
+		return 1 / ((sample_exact * 0.8 + sample_clean * 1.2) / 2 + 1);
+	}
+
+	return match;
+})();
