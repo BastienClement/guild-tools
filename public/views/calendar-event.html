@@ -53,6 +53,24 @@
 		transition: background ease-out .3s;
 	}
 
+	#calendar-event .char.mine {
+		position: relative;
+	}
+
+	#calendar-event .char.mine::after {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		margin: -2px;
+		color: inherit;
+		border: 1px solid;
+		opacity: 0.6;
+		display: block;
+		content: "";
+	}
+
 	#calendar-event .char img, #calendar-event .char .name {
 		transition: all ease-out .3s;
 	}
@@ -401,7 +419,7 @@
 			</div>
 			<div class="box" id="calendar-event-answers">
 				<div>
-					<button class="box-right" ng-if="event.visibility == 3 && editable"><i class="awe-plus-squared"></i> Invite</button>
+					<button class="box-right" ng-if="event.type == 3 && editable"><i class="awe-plus-squared"></i> Invite</button>
 					<h3>Answers</h3>
 					<span></span>
 				</div>
@@ -507,9 +525,12 @@
 										ng-mouseover="setPickerTarget((row+offset-1)*5+slot, slots[tab_selected][(row+offset-1)*5+slot])"
 										ng-mouseout="setPickerTarget(null)"
 										ng-mousedown="setPicker(slots[tab_selected][(row+offset-1)*5+slot], $event, (row+offset-1)*5+slot)">
-									<div class="char" ng-switch-when="1" ng-contextmenu="slotMenu((row+offset-1)*5+slot, $event)">
+									<div class="char c{{ slots[tab_selected][(row+offset-1)*5+slot].class }}"
+									     ng-class="{ mine: slots[tab_selected][(row+offset-1)*5+slot].owner == $.user.id }"
+									     ng-switch-when="1"
+									     ng-contextmenu="slotMenu((row+offset-1)*5+slot, $event)">
 										<img ng-src="/assets/images/roles/{{ slots[tab_selected][(row+offset-1)*5+slot].role }}.png">
-										<span class="name c{{ slots[tab_selected][(row+offset-1)*5+slot].class }}">
+										<span class="name">
 											{{ slots[tab_selected][(row+offset-1)*5+slot].name }}
 										</span>
 										<i class="awe-attention" ng-if="!playerIsAvailable(slots[tab_selected][(row+offset-1)*5+slot].owner)" ng-tooltip="$This player does not seem to be available for this event"></i>
