@@ -310,10 +310,6 @@ form .error {
 	align-items: center;
 }
 
-form.box {
-	padding: 20px;
-}
-
 .box.parted {
 	display: flex;
 	flex-direction: column;
