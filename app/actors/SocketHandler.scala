@@ -173,6 +173,7 @@ with AbsencesHandler {
 		case ("calendar:answer", arg) => Calendar.handleAnswer(arg)
 		case ("calendar:delete", arg) => Calendar.handleDelete(arg)
 		case ("calendar:event", arg) => Calendar.handleEvent(arg)
+		case ("calendar:event:invite", arg) => Calendar.handleEventInvite(arg)
 		case ("calendar:event:state", arg) => Calendar.handleEventState(arg)
 		case ("calendar:event:editdesc", arg) => Calendar.handleEventEditDesc(arg)
 		case ("calendar:comp:set", arg) => Calendar.handleCompSet(arg, false)

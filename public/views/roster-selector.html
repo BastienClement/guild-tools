@@ -80,8 +80,8 @@
 			</span>
 		</div>
 		<div class="overflow">
-			<button type="submit" ng-disabled="inflight">{{ ctx.action || "Confirm" }}</button>
-			<button ng-disabled="inflight" ng-click="modal()" type="button">Cancel</button>
+			<button type="submit" ng-disabled="ctx.inflight">{{ ctx.action || "Confirm" }}</button>
+			<button ng-disabled="ctx.inflight" ng-click="ctx.cb(null)" type="button">Cancel</button>
 			<span style="font-weight: 300">{{ countSelected() }} selected</span>
 		</div>
 	</form>

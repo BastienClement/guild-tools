@@ -648,7 +648,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 
 	function update_answer(answer) {
 		if (answer.user === $.user.id) {
-			$scope.answer = answer.answer;
+			$scope.answer = answer.answer || 1;
 			$scope.answer_note = answer.note;
 		}
 
@@ -675,7 +675,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	$scope.setContext("calendar:event", { id: eventid }, {
 		$: function(data) {
 			if (data.answer) {
-				$scope.answer = data.answer.answer;
+				$scope.answer = data.answer.answer || 1;
 				$scope.answer_note = data.answer.note;
 			}
 
@@ -1450,6 +1450,26 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		});
 
 		return note;
+	};
+
+	$scope.inviteModal = function() {
+		var ctx = {
+			action: "Invite",
+			inflight: false,
+			cb: function(list) {
+				ctx.inflight = true;
+				if (list) {
+					$.call("calendar:event:invite", { users: list }, function(err) {
+						if (err) return (ctx.inflight = false);
+						$scope.modal();
+					});
+				} else {
+					$scope.modal();
+				}
+			}
+		};
+
+		$scope.modal("roster-selector", ctx);
 	};
 });
 

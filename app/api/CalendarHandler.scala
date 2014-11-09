@@ -2,7 +2,7 @@ package api
 
 import java.sql.Timestamp
 import java.text.{ParseException, SimpleDateFormat}
-import scala.collection.mutable
+import scala.util.Try
 import actors.Actors.CalendarLockManager
 import actors.CalendarLockManager.CalendarLock
 import actors.SocketHandler
@@ -81,7 +81,7 @@ trait CalendarHandler {
 			DB.withSession { implicit s =>
 				val events = for {
 					(e, a) <- CalendarEvents leftJoin CalendarAnswers on ((e, a) => a.event === e.id && a.user === user.id)
-					if (e.date >= from && e.date <= to) && (e.visibility =!= CalendarVisibility.Private || a.answer.?.isDefined)
+					if (e.date >= from && e.date <= to) && (e.visibility =!= CalendarVisibility.Restricted || a.answer.?.isDefined)
 				} yield (e, a.answer.?)
 				events.list
 			}
@@ -92,7 +92,6 @@ trait CalendarHandler {
 		 */
 		def createCalendarFilter(events: Set[Int], from: Timestamp, to: Timestamp): EventFilter = {
 			var watched_events = events
-			var potential_events = mutable.Map[Int, Event]()
 
 			def slackFilter(slack: Slack, wrap: (Slack) => Event): Boolean = {
 				if (slack.from >= from || slack.to <= to) {
@@ -110,9 +109,7 @@ trait CalendarHandler {
 						true
 					} else if (event.date.between(from, to)) {
 						// Visible event
-						if (event.visibility == CalendarVisibility.Private && event.owner != user.id) {
-							// Delay transmission of this event until invitation event
-							potential_events += (event.id -> ev)
+						if (event.visibility == CalendarVisibility.Restricted && event.owner != user.id) {
 							false
 						} else {
 							// Visible event, let's go!
@@ -126,19 +123,11 @@ trait CalendarHandler {
 				}
 
 				// Event updated
-				case CalendarEventUpdate(event) => {
-					if (potential_events.contains(event.id)) {
-						potential_events(event.id) = CalendarEventCreate(event)
-						false
-					} else {
-						watched_events.contains(event.id)
-					}
-				}
+				case CalendarEventUpdate(event) => watched_events.contains(event.id)
 
 				// Event deletes
-				case CalendarEventDelete(id) => {
-					potential_events -= id
-					utils.doIf(watched_events.contains(id)) { watched_events -= id }
+				case CalendarEventDelete(id) => utils.doIf(watched_events.contains(id)) {
+					watched_events -= id
 				}
 
 				// Answer created
@@ -146,14 +135,15 @@ trait CalendarHandler {
 					val eid = answer.event
 					if (answer.user != user.id) {
 						false
-					} else if (potential_events.contains(eid)) {
-						socket ! potential_events(eid)
-						socket ! ev
-						watched_events += eid
-						potential_events -= eid
+					} else if (!watched_events.contains(eid)) {
+						Try {
+							socket ! CalendarEventCreate(answer.fullEvent)
+							socket ! ev
+							watched_events += eid
+						}
 						false
 					} else {
-						watched_events.contains(eid)
+						true
 					}
 				}
 
@@ -237,7 +227,7 @@ trait CalendarHandler {
 				if (visibility == CalendarVisibility.Announce) return MessageAlert("Creating announces on multiple days is not allowed.")
 			}
 
-			if (visibility != CalendarVisibility.Private && visibility != CalendarVisibility.Optional && !user.officer)
+			if (visibility != CalendarVisibility.Restricted && visibility != CalendarVisibility.Optional && !user.officer)
 				return MessageAlert("Members can only create optional or restricted events.")
 
 			val format = new SimpleDateFormat("yyyy-MM-dd")
@@ -301,12 +291,12 @@ trait CalendarHandler {
 
 			val row = for {
 				(e, a) <- CalendarEvents leftJoin CalendarAnswers on ((e, a) => a.event === e.id && a.user === user.id)
-				if (e.id === event_id) && (e.visibility =!= CalendarVisibility.Private || a.answer.?.isDefined)
+				if (e.id === event_id) && (e.visibility =!= CalendarVisibility.Restricted || a.answer.?.isDefined)
 			} yield (e, a.answer.?, a.note, a.char)
 
 			row.firstOption map {
 				case (event, old_answer, old_note, old_char) =>
-					if (event.visibility == CalendarVisibility.Private && old_answer.isEmpty) return MessageFailure("UNINVITED")
+					if (event.visibility == CalendarVisibility.Restricted && old_answer.isEmpty) return MessageFailure("UNINVITED")
 					if (event.state != CalendarEventState.Open) return MessageFailure("CLOSED_EVENT")
 
 					val note = (if (note_raw.isDefined) note_raw else old_note) filter (!_.matches("^\\s*$"))
@@ -399,7 +389,7 @@ trait CalendarHandler {
 			val my_answer = answers.get(user.id.toString)
 
 			// Check invitation in private event
-			if (event.visibility == CalendarVisibility.Private && my_answer.isEmpty) return MessageFailure("NOT_INVITED")
+			if (event.visibility == CalendarVisibility.Restricted && my_answer.isEmpty) return MessageFailure("NOT_INVITED")
 
 			// Record successful event access
 			event_id = event.id
@@ -501,6 +491,26 @@ trait CalendarHandler {
 				"slots" -> visible.slots,
 				"editable" -> event_editable,
 				"absences" -> slacks)
+		}
+
+		/**
+		* $:calendar:event:invite
+		*/
+		def handleEventInvite(arg: JsValue): MessageResponse = {
+			val users = (arg \ "users").as[List[Int]]
+			if (!event_editable) return MessageFailure("FORBIDDEN")
+
+			DB.withSession { implicit s =>
+				for (user <- users) {
+					val answer = CalendarAnswer(user, event_id, SmartTimestamp.now, 0, None, None)
+					Try {
+						CalendarAnswers.insert(answer)
+						CalendarAnswers.notifyCreate(answer)
+					}
+				}
+
+				MessageSuccess
+			}
 		}
 
 		/**

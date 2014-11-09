@@ -12,6 +12,10 @@ case class CalendarAnswer(user: Int, event: Int, date: Timestamp, answer: Int, n
 	if (answer < 0 || answer > 2) {
 		throw new Exception("Invalid answer value")
 	}
+
+	lazy val fullEvent: CalendarEvent = DB.withSession { implicit s =>
+		CalendarEvents.filter(_.id === event).first
+	}
 }
 
 /**

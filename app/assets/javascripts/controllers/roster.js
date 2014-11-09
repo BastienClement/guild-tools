@@ -70,7 +70,8 @@ GuildTools.controller("RosterSelectorCtrl", function($scope) {
 
 	$scope.save = function() {
 		var list = Object.keys($scope.selected).filter(selected).map(Number);
-		if (list.length < 1 || typeof ctx.cb !== "function") return $scope.modal();
+		if (typeof ctx.cb !== "function") return $scope.modal();
+		if (list.length < 1) return ctx.cb(null);
 		return ctx.cb(list);
 	};
 });
