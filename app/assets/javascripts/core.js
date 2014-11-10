@@ -642,7 +642,7 @@ var fuzzyMatch = (function() {
 		var sample_exact = levenshtein(filter, sample) / sample_length;
 		var sample_clean = levenshtein(filter_clean, removeDiacritics(sample)) / sample_length;
 
-		return 1 / ((sample_exact * 0.8 + sample_clean * 1.2) / 2 + 1);
+		return 1 - ((sample_exact * 0.8 + sample_clean * 1.2) / 2);
 	}
 
 	return match;

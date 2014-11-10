@@ -51,7 +51,7 @@ GuildTools.controller("RosterSelectorCtrl", function($scope) {
 			var max = $scope.roster[0] ? $scope.roster[0].score : 0;
 
 			$scope.roster.forEach(function(entry) {
-				entry.bad = entry.score < 0.75 * Math.pow(max, 2);
+				entry.bad = entry.score < 0.75 * Math.pow(max, 2) || entry.score < 0.5;
 			});
 		} else {
 			$scope.roster.forEach(function(entry) {
