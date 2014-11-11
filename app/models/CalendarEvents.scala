@@ -11,18 +11,25 @@ object CalendarVisibility {
 	val Restricted = 3
 	val Announce = 4
 	val Optional = 5
-	def isValid(v: Int) = (v > 0 && v < 6)
+	def isValid(v: Int) = v > 0 && v < 6
 }
 
 object CalendarEventState {
 	val Open = 0
 	val Closed = 1
 	val Canceled = 2
-	def isValid(s: Int) = (s >= 0 && s <= 2)
+	def isValid(s: Int) = s >= 0 && s <= 2
 }
 
 case class CalendarEvent(id: Int, title: String, desc: String, owner: Int, date: Timestamp, time: Int, `type`: Int, state: Int) {
 	val visibility = `type`
+
+	// Check visibility and state
+	if (!CalendarVisibility.isValid(visibility)) throw new Exception("Invalid event visibility")
+	if (!CalendarEventState.isValid(state)) throw new Exception("Invalid event state")
+
+	val isRestricted = visibility == CalendarVisibility.Restricted
+	val isAnnounce = visibility == CalendarVisibility.Announce
 
 	/**
 	 * Expand this event to include tabs and slots data

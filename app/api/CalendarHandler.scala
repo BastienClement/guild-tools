@@ -119,7 +119,7 @@ trait CalendarHandler {
 						true
 					} else if (event.date.between(from, to)) {
 						// Visible event
-						if (event.visibility == CalendarVisibility.Restricted && event.owner != user.id) {
+						if (event.isRestricted && event.owner != user.id) {
 							false
 						} else {
 							// Visible event, let's go!
@@ -302,7 +302,7 @@ trait CalendarHandler {
 			val event = CalendarEvents.filter(_.id === event_id).first
 			val old_answer = CalendarAnswers.filter(a => a.user === user.id && a.event === event_id).firstOption
 
-			if (event.visibility == CalendarVisibility.Restricted && old_answer.isEmpty)
+			if (event.isRestricted && old_answer.isEmpty)
 				return MessageFailure("UNINVITED")
 
 			if (event.state != CalendarEventState.Open)
@@ -349,7 +349,7 @@ trait CalendarHandler {
 			val id = (arg \ "id").as[Int]
 			val event = CalendarEvents.filter(_.id === id).first
 
-			if (event.visibility == CalendarVisibility.Announce) {
+			if (event.isAnnounce) {
 				return MessageFailure("OPENING_ANNOUNCE")
 			}
 
@@ -395,7 +395,7 @@ trait CalendarHandler {
 			val my_answer = answers.get(user.id.toString)
 
 			// Check invitation in private event
-			if (event.visibility == CalendarVisibility.Restricted && my_answer.isEmpty) return MessageFailure("NOT_INVITED")
+			if (event.isRestricted && my_answer.isEmpty) return MessageFailure("NOT_INVITED")
 
 			// Record successful event access
 			event_current = event
@@ -451,7 +451,7 @@ trait CalendarHandler {
 				case CalendarEventUpdate(ev) => utils.doIf(ev.id == id) {
 					event_current = ev
 				}
-					
+
 				case CalendarEventDelete(eid) => eid == id
 
 				case CalendarTabCreate(tab) => utils.doIf(tab.event == id) {
@@ -591,7 +591,9 @@ trait CalendarHandler {
 		*/
 		def handleEventKick(arg: JsValue): MessageResponse = {
 			val user = (arg \ "user").as[Int]
-			if (!event_editable || user == event_current.owner) return MessageFailure("FORBIDDEN")
+
+			if (!event_editable || user == event_current.owner || !event_current.isRestricted)
+				return MessageFailure("FORBIDDEN")
 
 			DB.withSession { implicit s =>
 				if (CalendarAnswers.filter(a => a.event === event_current.id && a.user === user).delete > 0) {
