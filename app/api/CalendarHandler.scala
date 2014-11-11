@@ -136,8 +136,8 @@ trait CalendarHandler {
 				case CalendarEventUpdate(event) => watched_events.contains(event.id)
 
 				// Event deletes
-				case CalendarEventDelete(id) => utils.doIf(watched_events.contains(id)) {
-					watched_events -= id
+				case CalendarEventDelete(eid) => utils.doIf(watched_events.contains(eid)) {
+					watched_events -= eid
 				}
 
 				// Answer created
@@ -448,10 +448,12 @@ trait CalendarHandler {
 			// Handle changes in answers
 			def handleAnswerChanges(answer: CalendarAnswer): Boolean = utils.doIf(answer.event == id) {
 				if (answer.user == user.id) {
-					if (answer.promote) {
-						event_editable = true
-					} else {
-						event_editable = (event.owner == user.id) || user.officer
+					val editable = answer.promote || (event.owner == user.id) || user.officer
+					if (editable != event_editable) {
+						event_editable = editable
+						event_current = event_current.copy()
+						val event_view = if (editable) event_current.expand else event_current.partial
+ 						socket !~ CalendarEventUpdateFull(event_view)
 					}
 				}
 			}
