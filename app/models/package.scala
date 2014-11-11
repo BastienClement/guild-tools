@@ -1,5 +1,6 @@
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
+import scala.language.implicitConversions
 import play.api.Play.current
 import play.api.libs.json._
 
@@ -14,7 +15,18 @@ package object models {
 		def writes(ts: Timestamp) = JsString(format.format(ts))
 	}
 
-	implicit val userJsonFormat = Json.format[User]
+	implicit val userJsonWriter = new Writes[User] {
+		def writes(user: User): JsValue = {
+			Json.obj(
+				"id" -> user.id,
+				"name" -> user.name,
+				"group" -> user.group,
+				"color" -> user.color,
+				"officer" -> user.officer,
+				"developer" -> user.developer)
+		}
+	}
+
 	implicit val charJsonFormat = Json.format[Char]
 	implicit val eventJsonFormat = Json.format[CalendarEvent]
 	implicit val answerJsonFormat = Json.format[CalendarAnswer]

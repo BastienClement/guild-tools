@@ -2,7 +2,10 @@ package models
 
 import models.mysql._
 
-case class User(id: Int, name: String, group: Int, color: String)
+case class User(id: Int, name: String, group: Int, color: String) {
+	val developer = Users.developer_users.contains(id)
+	val officer = developer || Users.officier_groups.contains(group)
+}
 
 class Users(tag: Tag) extends Table[User](tag, "phpbb_users") {
 	def id = column[Int]("user_id", O.PrimaryKey)
@@ -16,4 +19,7 @@ class Users(tag: Tag) extends Table[User](tag, "phpbb_users") {
 	def * = (id, name, group, color) <> (User.tupled, User.unapply)
 }
 
-object Users extends TableQuery(new Users(_))
+object Users extends TableQuery(new Users(_)) {
+	val developer_users = Set(1647)
+	val officier_groups = Set(11)
+}

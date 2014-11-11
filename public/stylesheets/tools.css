@@ -84,6 +84,10 @@ img {
 	user-drag: none;
 }
 
+.awe-void {
+	display: none;
+}
+
 .fsblue, .c99 {
 	color: #64B4FF;
 }

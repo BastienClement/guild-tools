@@ -904,6 +904,17 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		return "void";
 	};
 
+	$scope.getPlayerStar = function(row) {
+		var user = $.roster.user(row.user);
+		if (row.user == $scope.event.owner) {
+			return "star";
+		} else if (row.answer.promote || (user.officer && !user.developer)) {
+			return "star-empty";
+		} else {
+			return "void";
+		}
+	};
+
 	$scope.inflight = false;
 	$scope.updateAnswer = function(answer, note, char) {
 		char = char ? Number(char) : null;
@@ -1470,6 +1481,45 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		};
 
 		$scope.modal("roster-selector", ctx);
+	};
+
+	$scope.answerMenu = function(row, ev) {
+		var user = $.roster.user(row.user);
+		var kickable = $scope.editable && ($scope.event.type === 3 && $scope.event.owner != user.id);
+		var promotable = $scope.editable && (!user.officer || user.id == $scope.event.owner) && kickable;
+
+		var menu = [
+			{
+				icon: "awe-link-ext", text: "View profile",
+				action: function() {
+					$scope.breadcrumb.push("/profile/" + user.id);
+				}, order: 0
+			},
+			{ separator: true, order: 1, visible: promotable || kickable },
+			{
+				icon: "awe-star-empty", text: "Promote",
+				action: function() {
+					$.call("calendar:event:promote", { user: user.id });
+				},
+				order: 10, visible: promotable && !row.answer.promote
+			},
+			{
+				icon: "awe-block", text: "Demote",
+				action: function() {
+					$.call("calendar:event:demote", { user: user.id });
+				},
+				order: 10, visible: promotable && row.answer.promote
+			},
+			{
+				icon: "awe-cancel", text: "Remove",
+				action: function() {
+					$.call("calendar:event:kick", { user: user.id });
+				},
+				order: 20, visible: kickable
+			}
+		];
+
+		$scope.menu(menu, ev);
 	};
 });
 

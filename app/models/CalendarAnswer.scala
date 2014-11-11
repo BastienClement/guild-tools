@@ -8,7 +8,7 @@ import models.mysql._
 /**
  * One answer for one event for one user
  */
-case class CalendarAnswer(user: Int, event: Int, date: Timestamp, answer: Int, note: Option[String], char: Option[Int]) {
+case class CalendarAnswer(user: Int, event: Int, date: Timestamp, answer: Int, note: Option[String], char: Option[Int], promote: Boolean) {
 	if (answer < 0 || answer > 2) {
 		throw new Exception("Invalid answer value")
 	}
@@ -28,8 +28,9 @@ class CalendarAnswers(tag: Tag) extends Table[CalendarAnswer](tag, "gt_answers")
 	def answer = column[Int]("answer")
 	def note = column[Option[String]]("note")
 	def char = column[Option[Int]]("char")
+	def promote = column[Boolean]("promote")
 
-	def * = (user, event, date, answer, note, char) <> (CalendarAnswer.tupled, CalendarAnswer.unapply)
+	def * = (user, event, date, answer, note, char, promote) <> (CalendarAnswer.tupled, CalendarAnswer.unapply)
 }
 
 /**

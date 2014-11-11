@@ -80,8 +80,8 @@ class User private(val id: Int) {
 		ready = char.firstOption.isDefined
 
 		// Access rights
-		developer = User.developers.contains(id)
-		officer = developer || User.officier_groups.contains(group)
+		developer = user.developer
+		officer = user.officer
 
 		true
 	}

@@ -47,6 +47,7 @@ trait CalendarHandler {
 		 * Event context
 		 */
 		var event_id = -1
+		var event_owner = -1
 		var event_editable = false
 		var event_tabs = Map[Int, CalendarTab]()
 		var edit_lock: Option[CalendarLock] = None
@@ -56,6 +57,7 @@ trait CalendarHandler {
 		 */
 		def resetEventContext() = {
 			event_id = -1
+			event_owner = -1
 			event_editable = false
 			event_tabs = Map()
 			edit_lock = edit_lock flatMap { lock =>
@@ -270,7 +272,7 @@ trait CalendarHandler {
 						CalendarTabs += CalendarTab(0, id, "Default", None, 0, false, true)
 
 						// Invite the owner into his event
-						val answer = CalendarAnswer(user.id, id, now, 1, None, None)
+						val answer = CalendarAnswer(user.id, id, now, 1, None, None, true)
 						CalendarAnswers += answer
 						CalendarAnswers.notifyCreate(answer)
 					}
@@ -307,7 +309,8 @@ trait CalendarHandler {
 						date = SmartTimestamp.now,
 						answer = answer,
 						note = note,
-						char = if (char.isDefined) char else old_char)
+						char = if (char.isDefined) char else old_char,
+						promote = false)
 
 					CalendarAnswers.insertOrUpdate(template)
 					CalendarAnswers.notifyUpdate(template)
@@ -361,7 +364,8 @@ trait CalendarHandler {
 							date = a_date.get,
 							answer = a_answer.get,
 							note = a_note,
-							char = a_char
+							char = a_char,
+							false
 						)
 						Some(a)
 					} else {
@@ -393,7 +397,14 @@ trait CalendarHandler {
 
 			// Record successful event access
 			event_id = event.id
+			event_owner = event.owner
 			event_editable = (event.owner == user.id) || user.officer
+
+			// Check for promote
+			for {
+				opt_answer <- my_answer
+				answer <- opt_answer if answer.promote
+			} event_editable = true
 
 			// Expand or conceal event
 			val visible = {
@@ -502,7 +513,7 @@ trait CalendarHandler {
 
 			DB.withSession { implicit s =>
 				for (user <- users) {
-					val answer = CalendarAnswer(user, event_id, SmartTimestamp.now, 0, None, None)
+					val answer = CalendarAnswer(user, event_id, SmartTimestamp.now, 0, None, None, false)
 					Try {
 						CalendarAnswers.insert(answer)
 						CalendarAnswers.notifyCreate(answer)
@@ -543,6 +554,45 @@ trait CalendarHandler {
 				val query = CalendarEvents.filter(_.id === event_id)
 				query.map(e => (e.title, e.desc)).update((title, desc))
 				CalendarEvents.notifyUpdate(query.first.copy(title = title, desc = desc))
+			}
+
+			MessageSuccess
+		}
+
+		/**
+		* $:calendar:event:promote
+		* $:calendar:event:demote
+		*/
+		def handleEventPromote(promote: Boolean)(arg: JsValue): MessageResponse = {
+			val user = (arg \ "user").as[Int]
+			if (!event_editable) return MessageFailure("FORBIDDEN")
+
+			DB.withTransaction { implicit s =>
+				val row = CalendarAnswers.filter(a => a.event === event_id && a.user === user)
+				if (row.map(_.promote).update(promote) < 1 && promote) {
+					val template = CalendarAnswer(user, event_id, SmartTimestamp.now, 0, None, None, true)
+					if (CalendarAnswers.insert(template) > 0) {
+						CalendarAnswers.notifyCreate(template)
+					}
+				} else {
+					CalendarAnswers.notifyUpdate(row.first)
+				}
+			}
+
+			MessageSuccess
+		}
+
+		/**
+		* $:calendar:event:kick
+		*/
+		def handleEventKick(arg: JsValue): MessageResponse = {
+			val user = (arg \ "user").as[Int]
+			if (!event_editable || user == event_owner) return MessageFailure("FORBIDDEN")
+
+			DB.withSession { implicit s =>
+				if (CalendarAnswers.filter(a => a.event === event_id && a.user === user).delete > 0) {
+					CalendarAnswers.notifyDelete(user, event_id)
+				}
 			}
 
 			MessageSuccess

@@ -103,6 +103,10 @@
 		right: -3px;
 	}
 
+	#calendar-event .char i.promote {
+		opacity: 0.6;
+	}
+
 	#calendar-event-answers {
 		width: 330px;
 		padding-bottom: 0px;
@@ -455,9 +459,13 @@
 										<div ng-if="row.absence.reason">{{ row.absence.reason }}</div>
 									</div>
 								</div>
-								<div class="char" ng-mousedown="setPicker(row.char, $event)" ng-class="{ picked: charDimmedInRoster(row.char) }">
+								<div class="char"
+									 ng-mousedown="setPicker(row.char, $event)"
+									 ng-contextmenu="answerMenu(row, $event)"
+									 ng-class="{ picked: charDimmedInRoster(row.char) }">
 									<img ng-src="/assets/images/roles/{{ row.char.role }}.png">
 									<span class="name c{{ row.char.class }}">{{ row.char.name | capitalize }}</span>
+									<i class="promote awe-{{ getPlayerStar(row) }}"></i>
 									<i class="awe-{{ getPlayerIcon(row) }}"></i>
 								</div>
 							</div>
