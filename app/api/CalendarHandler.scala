@@ -448,6 +448,13 @@ trait CalendarHandler {
 				case CalendarAnswerCreate(answer) => answer.event == id
 				case CalendarAnswerUpdate(answer) => answer.event == id
 
+				case CalendarAnswerDelete(uid, eid) => utils.doIf(eid == id) {
+					if (uid == user.id) {
+						// Just got kicked from the event
+						resetEventContext()
+					}
+				}
+
 				case CalendarEventUpdate(ev) => utils.doIf(ev.id == id) {
 					event_current = ev
 				}

@@ -1,7 +1,7 @@
 package models
 
 import java.sql.Timestamp
-import api.{CalendarAnswerCreate, CalendarAnswerUpdate}
+import api.{CalendarAnswerDelete, CalendarAnswerCreate, CalendarAnswerUpdate}
 import gt.Socket
 import models.mysql._
 
@@ -46,5 +46,6 @@ object CalendarAnswers extends TableQuery(new CalendarAnswers(_)) {
 	}
 
 	def notifyDelete(user: Int, event: Int): Unit = {
+		Socket !# CalendarAnswerDelete(user, event)
 	}
 }

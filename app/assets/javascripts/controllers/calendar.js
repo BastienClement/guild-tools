@@ -709,13 +709,23 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			$scope.updateNote();
 		},
 
-		"event:delete": function(data) {
+		"event:delete": function() {
 			$scope.breadcrumb.push("/calendar");
 			$scope.error("Event deleted");
 		},
 
 		"answer:create": update_answer,
 		"answer:update": update_answer,
+		"answer:delete": function(data) {
+			if (data.user === $.user.id && $scope.event.type == 3) {
+				$scope.breadcrumb.push("/calendar");
+				$scope.error("You just got kicked from this event");
+				return;
+			}
+
+			delete $scope.answers[data.user];
+			build_answers_tabs();
+		},
 
 		"calendar:slot:update": function(data) {
 			var comp = $scope.slots[data.tab];
