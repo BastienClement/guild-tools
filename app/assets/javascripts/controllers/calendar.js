@@ -67,6 +67,18 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 		}
 	}
 
+	function delete_event(id) {
+		for (var day in $scope.events) {
+			for (var i in $scope.events[day]) {
+				var event = $scope.events[day][i];
+				if (event.id === id) {
+					$scope.events[day].splice(i, 1);
+					return;
+				}
+			}
+		}
+	}
+
 	$scope.buildCalendar = function() {
 		$scope.setContext("calendar:load", { month: $scope.month, year: $scope.year }, {
 			$: function(data) {
@@ -96,15 +108,7 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 			},
 
 			"event:delete": function(eventid) {
-				for (var day in $scope.events) {
-					for (var i in $scope.events[day]) {
-						var event = $scope.events[day][i];
-						if (event.id === eventid) {
-							$scope.events[day].splice(i, 1);
-							return;
-						}
-					}
-				}
+				delete_event(eventid);
 			},
 
 			"answer:create": function(answer) {
@@ -113,6 +117,11 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 
 			"answer:update": function(answer) {
 				$scope.answers[answer.event] = answer.answer;
+			},
+
+			"answer:delete": function(answer) {
+				delete $scope.answers[answer.event];
+				delete_event(answer.event);
 			},
 
 			"absence:create": function(abs) {
