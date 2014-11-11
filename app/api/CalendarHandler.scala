@@ -443,10 +443,21 @@ trait CalendarHandler {
 				}
 			}
 
+			// Handle changes in answers
+			def handleAnswerChanges(answer: CalendarAnswer): Boolean = utils.doIf(answer.event == id) {
+				if (answer.user == user.id) {
+					if (answer.promote) {
+						event_editable = true
+					} else {
+						event_editable = (event.owner == user.id) || user.officer
+					}
+				}
+			}
+
 			// Event page bindings
 			socket.bindEvents {
-				case CalendarAnswerCreate(answer) => answer.event == id
-				case CalendarAnswerUpdate(answer) => answer.event == id
+				case CalendarAnswerCreate(answer) => handleAnswerChanges(answer)
+				case CalendarAnswerUpdate(answer) => handleAnswerChanges(answer)
 
 				case CalendarAnswerDelete(uid, eid) => utils.doIf(eid == id) {
 					if (uid == user.id) {
