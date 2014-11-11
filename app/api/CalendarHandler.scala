@@ -552,7 +552,7 @@ trait CalendarHandler {
 		 * $:calendar:comp:set
 		 * $:calendar:comp:reset
 		 */
-		def handleCompSet(arg: JsValue, reset: Boolean = false): MessageResponse = {
+		def handleCompSet(reset: Boolean)(arg: JsValue): MessageResponse = {
 			val tab = (arg \ "tab").as[Int]
 			val slot = (arg \ "slot").as[Int]
 
@@ -698,7 +698,7 @@ trait CalendarHandler {
 		 * $:calendar:tab:lock
 		 * $:calendar:tab:unlock
 		 */
-		def handleTabLock(arg: JsValue, lock: Boolean): MessageResponse = {
+		def handleTabLock(lock: Boolean)(arg: JsValue): MessageResponse = {
 			val tab_id = (arg \ "id").as[Int]
 			ensureTabEditable(tab_id) {
 				DB.withSession { implicit s =>
@@ -740,7 +740,7 @@ trait CalendarHandler {
 		/**
 		 * $:calendar:lock:refresh
 		 */
-		def handleLockRefresh(): MessageResponse = {
+		def handleLockRefresh(arg: JsValue): MessageResponse = {
 			edit_lock foreach (_.refresh())
 			MessageSuccess
 		}
@@ -748,7 +748,7 @@ trait CalendarHandler {
 		/**
 		 * $:calendar:lock:release
 		 */
-		def handleLockRelease(): MessageResponse = {
+		def handleLockRelease(arg: JsValue): MessageResponse = {
 			edit_lock foreach (_.release())
 			MessageSuccess
 		}

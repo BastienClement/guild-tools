@@ -36,7 +36,7 @@ trait ProfileHandler {
 		 * $:profile:enable
 		 * $:profile:disable
 		 */
-		def handleEnable(arg: JsValue, state: Boolean): MessageResponse = DB.withSession { implicit s =>
+		def handleEnable(state: Boolean)(arg: JsValue): MessageResponse = DB.withSession { implicit s =>
 			val char = (arg \ "id").as[Int]
 			val query = Chars.filter(c => c.id === char && c.owner === user.id && c.main === false)
 

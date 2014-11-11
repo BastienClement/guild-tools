@@ -2,6 +2,7 @@ package api
 
 import actors.Actors.ChatManager
 import actors.SocketHandler
+import play.api.libs.json.JsValue
 
 trait ChatHandler {
 	this: SocketHandler =>
@@ -10,6 +11,6 @@ trait ChatHandler {
 		/**
 		 * $:chat:onlines
 		 */
-		def handleOnlines(): MessageResponse = ChatManager.onlinesUsers
+		def handleOnlines(arg: JsValue): MessageResponse = ChatManager.onlinesUsers
 	}
 }

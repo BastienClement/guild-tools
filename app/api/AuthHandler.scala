@@ -127,7 +127,7 @@ trait AuthHandler {
 		/**
 		 * $:auth:logout
 		 */
-		def handleLogout(): MessageResponse = {
+		def handleLogout(arg: JsValue): MessageResponse = {
 			if (socket != null) {
 				DB.withSession { implicit s =>
 					val session = for (s <- Sessions if s.token === socket.session) yield s

@@ -13,7 +13,7 @@ trait AbsencesHandler {
 		/**
 		 * $:absences:load
 		 */
-		def handleLoad(): MessageResponse = DB.withSession { implicit s =>
+		def handleLoad(arg: JsValue): MessageResponse = DB.withSession { implicit s =>
 			val user_abs = Slacks.filter(_.user === user.id).sortBy(_.from.desc).take(50).list
 
 			socket.bindEvents {

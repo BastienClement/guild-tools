@@ -31,7 +31,7 @@ with AbsencesHandler {
 	Logger.debug(s"Socket open: $remoteAddr-$id")
 
 	// Current message handler
-	type MessageDispatcher = (String, JsValue) => MessageResponse
+	type MessageDispatcher = (String) => (JsValue) => MessageResponse
 	var dispatcher: MessageDispatcher = unauthenticatedDispatcher
 
 	// Attached socket object
@@ -58,7 +58,7 @@ with AbsencesHandler {
 			try {
 				val cmd = (message \ "$").as[String]
 				val arg = (message \ "&")
-				val response = dispatcher(cmd, arg)
+				val response = dispatcher(cmd)(arg)
 				responseResult(id, response)
 			} catch {
 				case e: Throwable => responseError(id, e)
@@ -150,75 +150,85 @@ with AbsencesHandler {
 	}
 
 	/**
+	* Handle unavailable calls
+	*/
+	def handleUnavailable(arg: JsValue): MessageResponse = {
+		MessageFailure("UNAVAILABLE")
+	}
+
+	/**
 	 * Dispatch unauthenticated calls
 	 */
 	def unauthenticatedDispatcher: MessageDispatcher = {
-		case ("auth", arg) => Auth.handleAuth(arg)
-		case ("auth:prepare", arg) => Auth.handlePrepare(arg)
-		case ("auth:login", arg) => Auth.handleLogin(arg)
+		case "auth" => Auth.handleAuth
+		case "auth:prepare" => Auth.handlePrepare
+		case "auth:login" => Auth.handleLogin
 
-		case _ => MessageFailure("UNAVAILABLE")
+		case _ => handleUnavailable
 	}
 
 	/**
 	 * Dispatch authenticated calls
 	 */
 	def authenticatedDispatcher: MessageDispatcher = {
-		case ("events:unbind", _) => handleEventUnbind()
+		case "events:unbind" => handleEventUnbind
 
-		case ("dashboard:load", _) => Dashboard.handleLoad()
+		case "dashboard:load" => Dashboard.handleLoad
 
-		case ("calendar:load", arg) => Calendar.handleLoad(arg)
-		case ("calendar:create", arg) => Calendar.handleCreate(arg)
-		case ("calendar:answer", arg) => Calendar.handleAnswer(arg)
-		case ("calendar:delete", arg) => Calendar.handleDelete(arg)
-		case ("calendar:event", arg) => Calendar.handleEvent(arg)
-		case ("calendar:event:invite", arg) => Calendar.handleEventInvite(arg)
-		case ("calendar:event:state", arg) => Calendar.handleEventState(arg)
-		case ("calendar:event:editdesc", arg) => Calendar.handleEventEditDesc(arg)
-		case ("calendar:comp:set", arg) => Calendar.handleCompSet(arg, false)
-		case ("calendar:comp:reset", arg) => Calendar.handleCompSet(arg, true)
-		case ("calendar:tab:create", arg) => Calendar.handleTabCreate(arg)
-		case ("calendar:tab:delete", arg) => Calendar.handleTabDelete(arg)
-		case ("calendar:tab:swap", arg) => Calendar.handleTabSwap(arg)
-		case ("calendar:tab:rename", arg) => Calendar.handleTabRename(arg)
-		case ("calendar:tab:wipe", arg) => Calendar.handleTabWipe(arg)
-		case ("calendar:tab:edit", arg) => Calendar.handleTabEdit(arg)
-		case ("calendar:tab:lock", arg) => Calendar.handleTabLock(arg, true)
-		case ("calendar:tab:unlock", arg) => Calendar.handleTabLock(arg, false)
-		case ("calendar:lock:status", arg) => Calendar.handleLockStatus(arg)
-		case ("calendar:lock:acquire", arg) => Calendar.handleLockAcquire(arg)
-		case ("calendar:lock:refresh", arg) => Calendar.handleLockRefresh()
-		case ("calendar:lock:release", arg) => Calendar.handleLockRelease()
+		case "calendar:load" => Calendar.handleLoad
+		case "calendar:create" => Calendar.handleCreate
+		case "calendar:answer" => Calendar.handleAnswer
+		case "calendar:delete" => Calendar.handleDelete
+		case "calendar:event" => Calendar.handleEvent
+		case "calendar:event:invite" => Calendar.handleEventInvite
+		case "calendar:event:state" => Calendar.handleEventState
+		case "calendar:event:editdesc" => Calendar.handleEventEditDesc
+		case "calendar:event:promote" => Calendar.handleEventPromote(true)
+		case "calendar:event:demote" => Calendar.handleEventPromote(false)
+		case "calendar:event:kick" => Calendar.handleEventKick
+		case "calendar:comp:set" => Calendar.handleCompSet(false)
+		case "calendar:comp:reset" => Calendar.handleCompSet(true)
+		case "calendar:tab:create" => Calendar.handleTabCreate
+		case "calendar:tab:delete" => Calendar.handleTabDelete
+		case "calendar:tab:swap" => Calendar.handleTabSwap
+		case "calendar:tab:rename" => Calendar.handleTabRename
+		case "calendar:tab:wipe" => Calendar.handleTabWipe
+		case "calendar:tab:edit" => Calendar.handleTabEdit
+		case "calendar:tab:lock" => Calendar.handleTabLock(true)
+		case "calendar:tab:unlock" => Calendar.handleTabLock(false)
+		case "calendar:lock:status" => Calendar.handleLockStatus
+		case "calendar:lock:acquire" => Calendar.handleLockAcquire
+		case "calendar:lock:refresh" => Calendar.handleLockRefresh
+		case "calendar:lock:release" => Calendar.handleLockRelease
 
-		case ("profile:load", arg) => Profile.handleLoad(arg)
-		case ("profile:enable", arg) => Profile.handleEnable(arg, true)
-		case ("profile:disable", arg) => Profile.handleEnable(arg, false)
-		case ("profile:promote", arg) => Profile.handlePromote(arg)
-		case ("profile:remove", arg) => Profile.handleRemove(arg)
-		case ("profile:role", arg) => Profile.handleRole(arg)
-		case ("profile:check", arg) => Profile.handleCheck(arg)
-		case ("profile:register", arg) => Profile.handleRegister(arg)
+		case "profile:load" => Profile.handleLoad
+		case "profile:enable" => Profile.handleEnable(true)
+		case "profile:disable" => Profile.handleEnable(false)
+		case "profile:promote" => Profile.handlePromote
+		case "profile:remove" => Profile.handleRemove
+		case "profile:role" => Profile.handleRole
+		case "profile:check" => Profile.handleCheck
+		case "profile:register" => Profile.handleRegister
 
-		case ("absences:load", _) => Absences.handleLoad()
-		case ("absences:create", arg) => Absences.handleCreate(arg)
-		case ("absences:edit", arg) => Absences.handleEdit(arg)
-		case ("absences:cancel", arg) => Absences.handleCancel(arg)
+		case "absences:load" => Absences.handleLoad
+		case "absences:create" => Absences.handleCreate
+		case "absences:edit" => Absences.handleEdit
+		case "absences:cancel" => Absences.handleCancel
 
-		case ("chat:onlines", _) => Chat.handleOnlines()
+		case "chat:onlines" => Chat.handleOnlines
 
-		case ("roster:load", _) => Roster.handleLoad()
-		case ("roster:user", arg) => Roster.handleUser(arg)
-		case ("roster:char", arg) => Roster.handleChar(arg)
+		case "roster:load" => Roster.handleLoad
+		case "roster:user" => Roster.handleUser
+		case "roster:char" => Roster.handleChar
 
-		case ("auth:logout", _) => Auth.handleLogout()
-		case _ => MessageFailure("UNAVAILABLE")
+		case "auth:logout" => Auth.handleLogout
+		case _ => handleUnavailable
 	}
 
 	/**
 	 * $:events:unbind
 	 */
-	def handleEventUnbind(): MessageResponse = {
+	def handleEventUnbind(arg: JsValue): MessageResponse = {
 		socket.unbindEvents()
 		MessageSuccess
 	}

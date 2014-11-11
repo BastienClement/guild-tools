@@ -11,7 +11,7 @@ trait RosterHandler {
 		/**
 		 * $:roster:load
 		 */
-		def handleLoad(): MessageResponse = RosterManager.compositeRoster
+		def handleLoad(arg: JsValue): MessageResponse = RosterManager.compositeRoster
 
 		/**
 		 * $:roster:user

@@ -46,7 +46,7 @@ trait DashboardHandler {
 		/**
 		 * $:dashboard:load
 		 */
-		def handleLoad(): MessageResponse = DB.withSession { implicit s =>
+		def handleLoad(arg: JsValue): MessageResponse = DB.withSession { implicit s =>
 			val now = SmartTimestamp.now
 			val ev_from = SmartTimestamp(now.year, now.month, now.day - 1)
 			val ev_to = SmartTimestamp(now.year, now.month, now.day + 14)
