@@ -19,7 +19,7 @@ class ChatManager extends ChatManagerInterface {
 		onlines += (user.id -> user)
 	}
 
-	def userLogout(user: User): Unit = if (!onlines.contains(user.id)) {
+	def userLogout(user: User): Unit = if (onlines.contains(user.id)) {
 		onlines -= user.id
 		for (u <- onlines.values) u ! Message("chat:onlines:update", Json.obj("type" -> "offline", "user" -> user.id))
 	}
