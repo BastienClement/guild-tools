@@ -1108,6 +1108,8 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	};
 
 	$scope.slotMenu = function(slot, ev) {
+		if (!$scope.editable) return;
+
 		var template = { tab: $scope.tab_selected, slot: slot, char: $scope.slots[$scope.tab_selected][slot] };
 		var chars;
 
