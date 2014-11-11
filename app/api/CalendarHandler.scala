@@ -163,7 +163,9 @@ trait CalendarHandler {
 				}
 
 				case CalendarAnswerDelete(answer_user, event) => {
-					answer_user == user.id && watched_events.contains(event)
+					utils.doIf(answer_user == user.id && watched_events.contains(event)) {
+						watched_events -= event
+					}
 				}
 
 				case SlackCreate(slack) => slackFilter(slack, SlackCreate(_))
