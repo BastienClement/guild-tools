@@ -1010,7 +1010,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 					if (confirm("Are you sure?"))
 						$.call("calendar:delete", { id: $scope.event.id });
 				},
-				order: 13
+				order: 13, visible: $.user.id == $scope.event.id || $.user.officer
 			}
 		];
 
