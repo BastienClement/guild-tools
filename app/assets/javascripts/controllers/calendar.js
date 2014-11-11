@@ -563,6 +563,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 
 	$scope.answer = 1;
 	$scope.answer_note = "";
+	$scope.answer_promote = false;
 
 	$scope.picked = null;
 	$scope.pickedFromSlot = false;
@@ -650,6 +651,10 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		if (answer.user === $.user.id) {
 			$scope.answer = answer.answer || 1;
 			$scope.answer_note = answer.note;
+			if (answer.promote != $scope.answer_promote) {
+				$scope.answer_promote = answer.promote;
+				$scope.editable = answer.promote;
+			}
 		}
 
 		$scope.answers[answer.user] = answer;
@@ -677,6 +682,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			if (data.answer) {
 				$scope.answer = data.answer.answer || 1;
 				$scope.answer_note = data.answer.note;
+				$scope.answer_promote = data.answer.promote;
 			}
 
 			$scope.breadcrumb.override({ name: data.event.title });
