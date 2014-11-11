@@ -713,6 +713,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			build_tabs_idx();
 			$scope.slots = data.slots;
 			$scope.updateNote();
+			$scope.computeRaidBuffs();
 		},
 
 		"event:delete": function() {
@@ -776,6 +777,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			});
 			if (tab_new.locked && !$scope.editable) { delete $scope.slots[tab_new.id]; }
 			build_tabs_idx();
+			$scope.computeRaidBuffs();
 			$scope.updateNote();
 		},
 
