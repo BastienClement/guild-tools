@@ -639,15 +639,6 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 
 	_("#calendar-event").mousemove($scope.handlePicker);
 
-	function extract_main(data) {
-		return function(char) {
-			if ((!data.main && char.main) || char.id === data.answer.char) {
-				data.main = char;
-				return true;
-			}
-		};
-	}
-
 	function build_tabs_idx() {
 		$scope.tabs_idx = {};
 		$scope.tabs.forEach(function(tab) {
