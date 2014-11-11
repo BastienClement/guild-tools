@@ -57,6 +57,7 @@ class Socket private(val token: String, val user: User, val session: String, var
 	private var eventFilter: EventFilter = FilterNone
 	private var eventCleanup: Option[CleanupHandler] = None
 	private var eventObject: Event = null
+	private var additionalEvents: List[Event] = Nil
 
 	def unbindEvents(): Unit = {
 		eventFilter = FilterNone
@@ -79,13 +80,24 @@ class Socket private(val token: String, val user: User, val session: String, var
 		true
 	}
 
+	def !~(e: Event): Boolean = {
+		additionalEvents ::= e
+		true
+	}
+
 	/**
 	 * Check if event is this socket listen to an event and send it
 	 */
 	def handleEvent(e: Event): Unit = this.synchronized {
 		eventObject = e
+		additionalEvents = Nil
+
 		if (eventFilter.applyOrElse(e, FilterNone)) {
-			handler ! Message("event:dispatch", eventObject.asJson)
+			additionalEvents ::= eventObject
+		}
+
+		for (event <- additionalEvents) {
+			handler ! Message("event:dispatch", event.asJson)
 		}
 	}
 
