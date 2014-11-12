@@ -1,12 +1,15 @@
 package controllers
 
+import scala.util.Try
 import models._
+import models.mysql._
 import models.sql._
 import play.api.Play.current
 import play.api.cache.Cached
 import play.api.libs.json.Json
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.api.mvc.{Action, Controller, RequestHeader}
+import utils.SmartTimestamp
 
 object Api extends Controller {
 	def catchall(path: String) = Action {
@@ -35,5 +38,23 @@ object Api extends Controller {
 					"races" -> list_to_map(races_list, "name", "side")))
 			}
 		}
+	}
+
+	def bugsack() = Action(parse.json) { request =>
+		val report = request.body
+
+		val user = (report \ "user").asOpt[Int] getOrElse 0
+		val rev = (report \ "rev").as[String]
+		val error = (report \ "msg").as[String]
+		val stack = (report \ "stack").as[String]
+
+		val key = (user, error, stack)
+		val bug = BugReport(utils.md5(key.toString()), user, SmartTimestamp.now, rev, error, stack)
+
+		Try {
+			DB.withSession { implicit s => BugSack.insert(bug) }
+		}
+
+		NoContent
 	}
 }

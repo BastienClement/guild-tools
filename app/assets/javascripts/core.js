@@ -1,11 +1,32 @@
 var $ = {};
 (function() {
+	// Error catcher
+	function bugsack_send(e) {
+		if (typeof e != "object") e = {};
+
+		var report = {
+			user: $.user.id || null,
+			rev: $.rev || null,
+			msg: e.message,
+			stack: e.stack
+		};
+
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", "/api/bugsack", true);
+		xhr.setRequestHeader("Content-Type", "application/json");
+		xhr.send(JSON.stringify(report));
+	}
+
+	window.addEventListener("error", function(e) {
+		bugsack_send(e.error);
+	});
 
 	var ready = false;
 	var dead = false;
 
 	$.online = [];
 	$.roster = { users: [], chars: [] };
+	$.rev = null;
 
 	_(function() {
 		ready = true;
@@ -212,7 +233,6 @@ var $ = {};
 		var sockid = null;
 		var init_done = false;
 		var reason = null;
-		var serv_rev = null;
 
 		function trigger_serv_update() {
 			_("#loading-error-title").text("The Guild-Tools server has just been upgraded");
@@ -337,11 +357,11 @@ var $ = {};
 					);
 				}
 
-				if (serv_rev && serv_rev !== msg.rev) {
+				if ($.rev && $.rev !== msg.rev) {
 					trigger_serv_update();
 				}
 
-				serv_rev = msg.rev;
+				$.rev = msg.rev;
 
 				ws.onclose = $.wsReconnect;
 				ws.onmessage = function(msg) {
@@ -349,6 +369,7 @@ var $ = {};
 						msg = JSON.parse(msg.data);
 					} catch (e) {
 						console.error(e);
+						bugsack_send(e);
 						ws.close();
 						return;
 					}
@@ -377,6 +398,7 @@ var $ = {};
 								triggerUpdate();
 							} catch (e) {
 								console.error(e);
+								bugsack_send(e);
 							}
 
 							delete calls[msg.results];
@@ -394,6 +416,7 @@ var $ = {};
 								}
 							} catch (e) {
 								console.error(e);
+								bugsack_send(e);
 							}
 
 							if (cmd === "alert" && typeof GuildToolsScope === "object") {
@@ -416,6 +439,7 @@ var $ = {};
 								triggerUpdate();
 							} catch (e) {
 								console.error(e);
+								bugsack_send(e);
 							}
 					}
 				};
