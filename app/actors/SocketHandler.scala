@@ -6,7 +6,9 @@ import akka.actor.{Actor, ActorRef, PoisonPill, actorRef2Scala}
 import akka.util.Timeout
 import api._
 import gt.Global.ExecutionContext
-import gt.{Global, Socket, User}
+import gt.{Global}
+import models._
+import actors.Actors._
 import play.api.Logger
 import play.api.libs.json._
 
@@ -33,9 +35,6 @@ with AbsencesHandler {
 	// Current message handler
 	type MessageDispatcher = (String) => (JsValue) => MessageResponse
 	var dispatcher: MessageDispatcher = unauthenticatedDispatcher
-
-	// Attached socket object
-	var socket: Socket = null
 
 	// Alias to the socket user
 	var user: User = null
@@ -238,8 +237,6 @@ with AbsencesHandler {
 	 */
 	override def postStop(): Unit = {
 		Logger.debug(s"Socket close: $remoteAddr-$id")
-		if (socket != null) {
-			socket.detach()
-		}
+		SessionManager
 	}
 }
