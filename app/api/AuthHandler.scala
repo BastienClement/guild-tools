@@ -1,64 +1,34 @@
 package api
 
-import java.sql.SQLException
-import scala.annotation.tailrec
 import scala.concurrent.duration.DurationInt
+import actors.Actors._
 import actors.SocketHandler
-import gt.{Socket, User}
 import models._
 import models.mysql._
-import models.sql._
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.api.libs.json.{JsNull, JsValue, Json}
 
-object AuthHelper {
-	val allowedGroups = Set(8, 12, 9, 11)
-}
-
 trait AuthHandler {
-	this: SocketHandler =>
+	socket: SocketHandler =>
 
 	object Auth {
-		var auth_salt = utils.randomToken()
+		private var auth_salt = utils.randomToken()
 
 		/**
 		 * $:auth
 		 */
 		def handleAuth(arg: JsValue): MessageResponse = utils.atLeast[JsValue](250.milliseconds) {
-			val socket_id = (arg \ "socket").asOpt[String]
-			val session_id = (arg \ "session").asOpt[String]
-
-			def completeWithSocket(s: Socket) = {
-				socket = s
-				user = s.user
+			(arg \ "session").asOpt[String] flatMap { token =>
+				session = Some(token)
+				SessionManager.auth(token)
+			} map { u =>
+				user = u
 				dispatcher = authenticatedDispatcher
+				Json.obj("user" -> user, "ready" -> user.ready)
+			} getOrElse {
+				session = None
+				Json.obj("socket" -> JsNull, "user" -> JsNull)
 			}
-
-			// Attach this handler to the requested socket if available
-			def resumeSocket(sid: Option[String]): Option[JsValue] = {
-				sid flatMap { Socket.findByID(_) } map { s =>
-					s.updateHandler(self)
-					completeWithSocket(s)
-					Json.obj("resume" -> true)
-				}
-			}
-
-			// Find user by session and create a new socket for it
-			def resumeSession(sid: Option[String]): Option[JsValue] = {
-				sid flatMap { session =>
-					User.findBySession(session) map {
-						_.createSocket(session, self)
-					}
-				} map { s =>
-					completeWithSocket(s)
-					Json.obj(
-						"socket" -> s.token,
-						"user" -> s.user.asJson)
-				}
-			}
-
-			val success = resumeSocket(socket_id) orElse { resumeSession(session_id) }
-			success getOrElse { Json.obj("socket" -> JsNull, "user" -> JsNull) }
 		}
 
 		/**
@@ -73,7 +43,7 @@ trait AuthHandler {
 					val setting = pass.slice(0, 12)
 					MessageResults(Json.obj("setting" -> setting, "salt" -> auth_salt))
 				} getOrElse {
-					MessageFailure("USER_NOT_FOUND")
+					MessageFailure("User not found")
 				}
 			}
 		}
@@ -89,38 +59,9 @@ trait AuthHandler {
 			val salt = auth_salt
 			auth_salt = utils.randomToken()
 
-			DB.withSession { implicit s =>
-				val user_credentials = for (u <- Users if (u.name === user || u.name_clean === user) && (u.group inSet AuthHelper.allowedGroups)) yield (u.pass, u.id)
-				user_credentials.firstOption filter {
-					case (pass_ref, user_id) =>
-						pass == utils.md5(pass_ref + salt)
-				} map {
-					case (pass_ref, user_id) =>
-						@tailrec def createSession(attempt: Int = 1): Option[String] = {
-							val token = utils.randomToken()
-							val query = sqlu"INSERT INTO gt_sessions SET token = $token, user = $user_id, ip = $remoteAddr, created = NOW(), last_access = NOW()"
-
-							try {
-								query.first
-								Some(token)
-							} catch {
-								case e: SQLException => {
-									if (attempt < 3)
-										createSession(attempt + 1)
-									else
-										None
-								}
-							}
-						}
-
-						createSession() map { s =>
-							MessageResults(Json.obj("session" -> s))
-						} getOrElse {
-							MessageFailure("UNABLE_TO_LOGIN")
-						}
-				} getOrElse {
-					MessageFailure("INVALID_CREDENTIALS")
-				}
+			SessionManager.login(user, pass, salt) match {
+				case Left(error) => MessageFailure(error)
+				case Right(token) => MessageResults(token)
 			}
 		}
 
@@ -128,19 +69,13 @@ trait AuthHandler {
 		 * $:auth:logout
 		 */
 		def handleLogout(arg: JsValue): MessageResponse = {
-			if (socket != null) {
-				DB.withSession { implicit s =>
-					val session = for (s <- Sessions if s.token === socket.session) yield s
-					session.delete
-					socket.dispose()
-					socket = null
-					user = null
-					dispatcher = unauthenticatedDispatcher
-					MessageSuccess
-				}
-			} else {
-				MessageFailure("NO_SESSION")
+			for (id <- session) {
+				SessionManager.logout(id)
+				dispatcher = zombieDispatcher
+				self ! CloseMessage("Logout")
 			}
+
+			MessageSuccess
 		}
 	}
 }

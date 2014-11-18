@@ -31,8 +31,11 @@ with AbsencesHandler {
 	type MessageDispatcher = (String) => (JsValue) => MessageResponse
 	var dispatcher: MessageDispatcher = unauthenticatedDispatcher
 
-	// Alias to the socket user
+	// Reference to the socket owner
 	var user: User = null
+
+	// The socket used session
+	var session: Option[String] = None
 
 	// Register with EventDispatcher
 	EventDispatcher.register(self)
@@ -207,6 +210,13 @@ with AbsencesHandler {
 	}
 
 	/**
+	 * Dispatch calls once socket is closed
+	 */
+	def zombieDispatcher: MessageDispatcher = {
+		case _ => handleUnavailable
+	}
+
+	/**
 	 * $:events:unbind
 	 */
 	def handleEventUnbind(arg: JsValue): MessageResponse = {
@@ -219,6 +229,5 @@ with AbsencesHandler {
 	 */
 	override def postStop(): Unit = {
 		EventDispatcher.unregister(self)
-		SessionManager.disconnect(self)
 	}
 }

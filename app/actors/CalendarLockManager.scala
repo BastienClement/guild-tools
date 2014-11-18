@@ -1,19 +1,19 @@
 package actors
 
 import scala.concurrent.duration._
-import actors.CalendarLockManager._
+import actors.Actors.EventDispatcher
+import actors.CalendarLockManagerImpl._
 import api.{CalendarLockAcquire, CalendarLockRelease}
 import gt.Global.ExecutionContext
-import gt.Socket
 import utils.scheduler
 
-trait CalendarLockManagerInterface {
+trait CalendarLockManager {
 	def acquire(tab: Int, owner: String): Option[CalendarLock]
 	def status(tab: Int): Option[String]
 	def release(lock: CalendarLock): Unit
 }
 
-object CalendarLockManager {
+object CalendarLockManagerImpl {
 	private val LockExpireDuration = 15.seconds
 	class CalendarLock(val tab: Int, val owner: String) {
 		/**
@@ -43,7 +43,7 @@ object CalendarLockManager {
 	}
 }
 
-class CalendarLockManager extends CalendarLockManagerInterface {
+class CalendarLockManagerImpl extends CalendarLockManager {
 	/**
 	 * Every locks currently in use
 	 */
@@ -62,7 +62,7 @@ class CalendarLockManager extends CalendarLockManagerInterface {
 		} else {
 			val lock = new CalendarLock(tab, owner)
 			locks += (tab -> lock)
-			Socket !# CalendarLockAcquire(tab, owner)
+			EventDispatcher !# CalendarLockAcquire(tab, owner)
 			Some(lock)
 		}
 	}
@@ -73,7 +73,7 @@ class CalendarLockManager extends CalendarLockManagerInterface {
 		for (l <- locks.get(lock.tab)) {
 			if (lock == l) {
 				locks -= lock.tab
-				Socket !# CalendarLockRelease(lock.tab)
+				EventDispatcher !# CalendarLockRelease(lock.tab)
 			}
 		}
 	}

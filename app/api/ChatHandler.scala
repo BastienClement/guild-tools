@@ -5,7 +5,7 @@ import actors.SocketHandler
 import play.api.libs.json.JsValue
 
 trait ChatHandler {
-	this: SocketHandler =>
+	socket: SocketHandler =>
 
 	object Chat {
 		/**

@@ -12,11 +12,11 @@ object Actors {
 		TypedActor(Akka.system).typedActorOf(TypedProps[A], name = n)
 	}
 
-	val CalendarLockManager = initActor[CalendarLockManagerInterface, CalendarLockManager]("CalendarLockManager")
-	val ChatManager = initActor[ChatManagerInterface, ChatManager]("ChatManager")
-	val EventDispatcher = initActor[EventDispatcherInterface, EventDispatcher]("EventDispatcher")
-	val RosterManager = initActor[RosterManagerInterface, RosterManager]("RosterManager")
-	val SessionManager = initActor[SessionManagerInterface, SessionManager]("SessionManager")
+	val CalendarLockManager = initActor[CalendarLockManager, CalendarLockManagerImpl]("CalendarLockManager")
+	val ChatManager = initActor[ChatManager, ChatManagerImpl]("ChatManager")
+	val EventDispatcher = initActor[EventDispatcher, EventDispatcherImpl]("EventDispatcher")
+	val RosterManager = initActor[RosterManager, RosterManagerImpl]("RosterManager")
+	val SessionManager = initActor[SessionManager, SessionManagerImpl]("SessionManager")
 
 	object Implicits {
 		implicit def FutureBoxing[T](v: T): Future[T] = Future.successful(v)

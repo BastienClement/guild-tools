@@ -15,7 +15,7 @@ class LazyCache[T] private(ttl: FiniteDuration)(generator: => T) {
 	/**
 	 * This cell value
 	 */
-	private var _value: T = _
+	private var _value: Option[T] = None
 
 	/**
 	 * Cell expiration
@@ -25,47 +25,48 @@ class LazyCache[T] private(ttl: FiniteDuration)(generator: => T) {
 	/**
 	 * Get internal value or generate it if not available
 	 */
-	def value: T = if (hasValue) _value else gen()
+	def value: T = if (hasValue) _value.get else gen()
 
 	/**
 	 * Explicitly set a new value for this cell
 	 */
 	def :=(v: T): Unit = {
-		_value = v
+		_value = Some(v)
 	}
 
 	/**
 	* Explicitly set a new value for this cell (function version)
 	*/
 	def :=(f: (T) => T): Unit = {
-		_value = f(_value)
+		_value = Some(f(_value.get))
 	}
 
 	/**
 	 * Remove cached value
 	 */
 	def clear(): Unit = {
+		_value = None
 		expiration = Deadline.now
 	}
 
 	/**
 	 * Check cell status
 	 */
-	def hasValue: Boolean = expiration.hasTimeLeft()
+	def hasValue: Boolean = _value.isDefined && expiration.hasTimeLeft()
 
 	/**
 	 * Generate a new value
 	 */
 	private def gen(): T = this.synchronized {
 		// Race-condition
-		if (hasValue) return _value
+		if (hasValue) return _value.get
 
 		// Set the value
 		this := generator
 		expiration = ttl.fromNow
 
 		// Return the value
-		_value
+		_value.get
 	}
 
 	/**

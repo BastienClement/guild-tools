@@ -1,8 +1,8 @@
 package models
 
 import java.sql.Timestamp
+import actors.Actors._
 import api.{SlackCreate, SlackDelete, SlackUpdate}
-import gt.Socket
 import models.mysql._
 
 case class Slack(id: Int, user: Int, from: Timestamp, to: Timestamp, reason: Option[String]) {
@@ -27,14 +27,14 @@ class Slacks(tag: Tag) extends Table[Slack](tag, "gt_slacks") {
  */
 object Slacks extends TableQuery(new Slacks(_)) {
 	def notifyCreate(slack: Slack): Unit = {
-		Socket !# SlackCreate(slack)
+		EventDispatcher !# SlackCreate(slack)
 	}
 
 	def notifyUpdate(slack: Slack): Unit = {
-		Socket !# SlackUpdate(slack)
+		EventDispatcher !# SlackUpdate(slack)
 	}
 
 	def notifyDelete(id: Int): Unit = {
-		Socket !# SlackDelete(id)
+		EventDispatcher !# SlackDelete(id)
 	}
 }

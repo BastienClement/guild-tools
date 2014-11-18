@@ -1,8 +1,8 @@
 package models
 
 import java.sql.Timestamp
+import actors.Actors.EventDispatcher
 import api.{CalendarEventCreate, CalendarEventDelete, CalendarEventUpdate}
-import gt.Socket
 import models.mysql._
 
 object CalendarVisibility {
@@ -91,14 +91,14 @@ class CalendarEvents(tag: Tag) extends Table[CalendarEvent](tag, "gt_events_visi
 
 object CalendarEvents extends TableQuery(new CalendarEvents(_)) {
 	def notifyCreate(event: CalendarEvent): Unit = {
-		Socket !# CalendarEventCreate(event)
+		EventDispatcher !# CalendarEventCreate(event)
 	}
 
 	def notifyUpdate(event: CalendarEvent): Unit = {
-		Socket !# CalendarEventUpdate(event)
+		EventDispatcher !# CalendarEventUpdate(event)
 	}
 
 	def notifyDelete(id: Int): Unit = {
-		Socket !# CalendarEventDelete(id)
+		EventDispatcher !# CalendarEventDelete(id)
 	}
 }

@@ -1,8 +1,8 @@
 package models
 
 import java.sql.Timestamp
-import api.{CalendarAnswerDelete, CalendarAnswerCreate, CalendarAnswerUpdate}
-import gt.Socket
+import actors.Actors.EventDispatcher
+import api.{CalendarAnswerCreate, CalendarAnswerDelete, CalendarAnswerUpdate}
 import models.mysql._
 
 /**
@@ -38,14 +38,14 @@ class CalendarAnswers(tag: Tag) extends Table[CalendarAnswer](tag, "gt_answers")
  */
 object CalendarAnswers extends TableQuery(new CalendarAnswers(_)) {
 	def notifyCreate(answer: CalendarAnswer): Unit = {
-		Socket !# CalendarAnswerCreate(answer)
+		EventDispatcher !# CalendarAnswerCreate(answer)
 	}
 
 	def notifyUpdate(answer: CalendarAnswer): Unit = {
-		Socket !# CalendarAnswerUpdate(answer)
+		EventDispatcher !# CalendarAnswerUpdate(answer)
 	}
 
 	def notifyDelete(user: Int, event: Int): Unit = {
-		Socket !# CalendarAnswerDelete(user, event)
+		EventDispatcher !# CalendarAnswerDelete(user, event)
 	}
 }

@@ -5,13 +5,13 @@ import java.text.{ParseException, SimpleDateFormat}
 import scala.slick.jdbc.JdbcBackend.SessionDef
 import scala.util.Try
 import actors.Actors.CalendarLockManager
-import actors.CalendarLockManager.CalendarLock
+import actors.CalendarLockManagerImpl.CalendarLock
 import actors.SocketHandler
 import models.mysql._
 import models.{CalendarEvents, _}
 import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json.{JsNull, JsValue, Json}
-import utils.SmartTimestamp
+import utils.{EventFilter, SmartTimestamp}
 import utils.SmartTimestamp.fromTimestamp
 
 /**
@@ -48,7 +48,7 @@ object CalendarHelper {
  * Implements calendar-related API
  */
 trait CalendarHandler {
-	self: SocketHandler =>
+	socket: SocketHandler =>
 
 	object Calendar {
 		type EventsAndAnswers = List[(CalendarEvent, Option[Int])]
@@ -100,7 +100,7 @@ trait CalendarHandler {
 		/**
 		 * Create an event filter for current calendar page
 		 */
-		def createCalendarFilter(events: Set[Int], from: Timestamp, to: Timestamp): EventFilter = {
+		def createCalendarFilter(events: Set[Int], from: Timestamp, to: Timestamp): EventFilter.FilterFunction = {
 			var watched_events = events
 
 			def slackFilter(slack: Slack, wrap: (Slack) => Event): Boolean = {
@@ -147,8 +147,8 @@ trait CalendarHandler {
 						false
 					} else if (!watched_events.contains(eid)) {
 						Try {
-							socket ! CalendarEventCreate(answer.fullEvent)
-							socket ! ev
+							self ! CalendarEventCreate(answer.fullEvent)
+							self ! ev
 							watched_events += eid
 						}
 						false
@@ -177,7 +177,7 @@ trait CalendarHandler {
 		/**
 		 * Helper for load + create event filter
 		 */
-		def loadCalendarAndCreateFilter(from: Timestamp, to: Timestamp): (EventsAndAnswers, EventFilter) = {
+		def loadCalendarAndCreateFilter(from: Timestamp, to: Timestamp): (EventsAndAnswers, EventFilter.FilterFunction) = {
 			val events = loadCalendarEvents(from, to)
 			val filter = createCalendarFilter(events.map(_._1.id).toSet, from, to)
 			(events, filter)
@@ -236,11 +236,11 @@ trait CalendarHandler {
 
 			if (dates_raw.length > 1) {
 				if (!user.officer) return MessageFailure("MULTI_NOT_ALLOWED")
-				if (visibility == CalendarVisibility.Announce) return MessageAlert("Creating announces on multiple days is not allowed.")
+				if (visibility == CalendarVisibility.Announce) return MessageFailure("Creating announces on multiple days is not allowed.")
 			}
 
 			if (visibility != CalendarVisibility.Restricted && visibility != CalendarVisibility.Optional && !user.officer)
-				return MessageAlert("Members can only create optional or restricted events.")
+				return MessageFailure("Members can only create optional or restricted events.")
 
 			val format = new SimpleDateFormat("yyyy-MM-dd")
 			val now = SmartTimestamp.now
@@ -453,13 +453,13 @@ trait CalendarHandler {
 						event_editable = editable
 						event_current = event_current.copy()
 						val event_view = if (editable) event_current.expand else event_current.partial
- 						socket !~ CalendarEventUpdateFull(event_view)
+						socket !~ CalendarEventUpdateFull(event_view)
 					}
 				}
 			}
 
 			// Event page bindings
-			socket.bindEvents {
+			bindEvents {
 				case CalendarAnswerCreate(answer) => handleAnswerChanges(answer)
 				case CalendarAnswerUpdate(answer) => handleAnswerChanges(answer)
 
@@ -810,7 +810,7 @@ trait CalendarHandler {
 					edit_lock = Some(lock)
 					MessageSuccess
 				} getOrElse {
-					MessageAlert("An error occured while acquiring the edit lock for this tab")
+					MessageFailure("An error occured while acquiring the edit lock for this tab")
 				}
 			}
 		}

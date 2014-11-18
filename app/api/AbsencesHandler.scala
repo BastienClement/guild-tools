@@ -7,7 +7,7 @@ import play.api.libs.json.{JsValue, Json}
 import utils.SmartTimestamp
 
 trait AbsencesHandler {
-	this: SocketHandler =>
+	socket: SocketHandler =>
 
 	object Absences {
 		/**
@@ -16,7 +16,7 @@ trait AbsencesHandler {
 		def handleLoad(arg: JsValue): MessageResponse = DB.withSession { implicit s =>
 			val user_abs = Slacks.filter(_.user === user.id).sortBy(_.from.desc).take(50).list
 
-			socket.bindEvents {
+			bindEvents {
 				case SlackCreate(slack) => slack.user == user.id
 				case SlackUpdate(slack) => slack.user == user.id
 				case SlackDelete(_) => true
@@ -61,8 +61,8 @@ trait AbsencesHandler {
 			val to = parseDate(arg \ "to", false)
 			val reason = parseReason(arg \ "reason")
 
-			if (from > to) return MessageAlert("The requested range is invalid")
-			if (!reason.isDefined) return MessageAlert("You must provide a reason for this absence")
+			if (from > to) return MessageFailure("The requested range is invalid")
+			if (!reason.isDefined) return MessageFailure("You must provide a reason for this absence")
 
 			handler(from, to, reason)
 		}
@@ -91,7 +91,7 @@ trait AbsencesHandler {
 			val slack = query.first
 
 			val today = SmartTimestamp.today
-			if (today > slack.to) return MessageAlert("You cannot edit a past absences")
+			if (today > slack.to) return MessageFailure("You cannot edit a past absence")
 			val from_locked = today > slack.from
 
 			withAbsenceData(arg, from_locked) { (from, to, reason) =>

@@ -1,7 +1,7 @@
 package models
 
+import actors.Actors.EventDispatcher
 import api._
-import gt.Socket
 import models.mysql._
 
 case class CalendarTab(id: Int, event: Int, title: String, note: Option[String], order: Int, locked: Boolean, undeletable: Boolean) {
@@ -30,18 +30,18 @@ class CalendarTabs(tag: Tag) extends Table[CalendarTab](tag, "gt_events_tabs") {
  */
 object CalendarTabs extends TableQuery(new CalendarTabs(_)) {
 	def notifyCreate(tab: CalendarTab): Unit = {
-		Socket !# CalendarTabCreate(tab)
+		EventDispatcher !# CalendarTabCreate(tab)
 	}
 
 	def notifyUpdate(tab: CalendarTab): Unit = {
-		Socket !# CalendarTabUpdate(tab)
+		EventDispatcher !# CalendarTabUpdate(tab)
 	}
 
 	def notifyDelete(id: Int): Unit = {
-		Socket !# CalendarTabDelete(id)
+		EventDispatcher !# CalendarTabDelete(id)
 	}
 
 	def notifyWipe(id: Int): Unit = {
-		Socket !# CalendarTabWipe(id)
+		EventDispatcher !# CalendarTabWipe(id)
 	}
 }

@@ -9,7 +9,7 @@ import play.api.libs.json._
 import utils.Bnet
 
 trait ProfileHandler {
-	self: SocketHandler =>
+	socket: SocketHandler =>
 
 	object Profile {
 		/**
@@ -133,7 +133,7 @@ trait ProfileHandler {
 						id = 0,
 						name = name,
 						server = server,
-						owner = socket.user.id,
+						owner = user.id,
 						main = main.firstOption.isEmpty,
 						active = true,
 						`class` = (char \ "class").as[Int],
@@ -148,10 +148,6 @@ trait ProfileHandler {
 
 					val id: Int = (Chars returning Chars.map(_.id)) += template
 					Chars.notifyCreate(template.copy(id = id))
-
-					if (template.main) {
-						user.updatePropreties()
-					}
 				}
 
 				MessageSuccess

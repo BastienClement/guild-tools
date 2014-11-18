@@ -17,7 +17,7 @@ trait EventListener {
 /**
  * Public interface
  */
-trait EventDispatcherInterface {
+trait EventDispatcher {
 	/**
 	 * Register a new event listener interested in generated events
 	 * Can be both a plain obejct handler or an Akka actor
@@ -40,7 +40,7 @@ trait EventDispatcherInterface {
 /**
  * Actor implementation
  */
-class EventDispatcher extends EventDispatcherInterface with TypedActor.Receiver {
+class EventDispatcherImpl extends EventDispatcher with TypedActor.Receiver {
 	private var listeners = Set[AnyRef]()
 
 	def register(listener: EventListener): Unit = listeners += listener

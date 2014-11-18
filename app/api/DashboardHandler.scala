@@ -40,7 +40,7 @@ object DashboardHelper {
 }
 
 trait DashboardHandler {
-	this: SocketHandler =>
+	socket: SocketHandler =>
 
 	object Dashboard {
 		/**

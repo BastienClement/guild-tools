@@ -5,7 +5,7 @@ import actors.SocketHandler
 import play.api.libs.json._
 
 trait RosterHandler {
-	this: SocketHandler =>
+	socket: SocketHandler =>
 
 	object Roster {
 		/**

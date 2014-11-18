@@ -1,9 +1,8 @@
 package actors
 
 import scala.concurrent.duration._
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Try}
 import api._
-import gt.User
 import models._
 import models.mysql._
 import play.api.libs.json._
@@ -15,7 +14,7 @@ case class ChatManagerChannel(var channel: ChatChannel, var members: Set[Int]) {
 
 }
 
-trait ChatManagerInterface {
+trait ChatManager {
 	def userLogin(user: User): Unit
 	def userLogout(user: User): Unit
 
@@ -25,7 +24,7 @@ trait ChatManagerInterface {
 	def sendWhisper(from: User, to: Int, message: String): Try[ChatWhisper]
 }
 
-class ChatManager extends ChatManagerInterface {
+class ChatManagerImpl extends ChatManager {
 	var onlines = Map[Int, User]()
 
 	val channels = LazyCache[Map[Int, ChatManagerChannel]](5.minutes) {
@@ -44,13 +43,13 @@ class ChatManager extends ChatManagerInterface {
 	}
 
 	def userLogin(user: User): Unit = if (!onlines.contains(user.id)) {
-		for (u <- onlines.values) u ! Message("chat:onlines:update", Json.obj("type" -> "online", "user" -> user.id))
+		//for (u <- onlines.values) u ! Message("chat:onlines:update", Json.obj("type" -> "online", "user" -> user.id))
 		onlines += (user.id -> user)
 	}
 
 	def userLogout(user: User): Unit = if (onlines.contains(user.id)) {
 		onlines -= user.id
-		for (u <- onlines.values) u ! Message("chat:onlines:update", Json.obj("type" -> "offline", "user" -> user.id))
+		//for (u <- onlines.values) u ! Message("chat:onlines:update", Json.obj("type" -> "offline", "user" -> user.id))
 	}
 
 	def onlinesUsers: Set[Int] = onlines.keySet
@@ -69,16 +68,18 @@ class ChatManager extends ChatManagerInterface {
 		DB.withSession { implicit s => ChatMessages.insert(msg) }
 
 		// Broadcast message
-		for {
+		/*for {
 			userid <- channel.map(_.members) getOrElse onlines.keySet
 			user <- onlines.get(userid)
-		} user ! Message("chat:message", msg)
+		} user ! Message("chat:message", msg)*/
+
+		msg
 	}
 
 	def sendWhisper(from: User, to: Int, message: String): Try[ChatWhisper] = {
-		val message = ChatWhisper(0, from.id, to, SmartTimestamp.now, message)
-		DB.withSession { implicit s => ChatWhispers.insert(message) }
+		val msg = ChatWhisper(0, from.id, to, SmartTimestamp.now, message)
+		DB.withSession { implicit s => ChatWhispers.insert(msg) }
 
-		Success(message)
+		Success(msg)
 	}
 }

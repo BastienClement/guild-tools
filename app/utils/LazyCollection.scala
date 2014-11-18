@@ -6,12 +6,12 @@ object LazyCollection extends Collector[LazyCollection[_, _]] {
 	/**
 	 * Constructor helper
 	 */
-	def apply[K, T](generator: (K) => T, expire: FiniteDuration) = {
-		new LazyCollection[K, T](generator, expire)
+	def apply[K, T](expire: FiniteDuration)(generator: (K) => T) = {
+		new LazyCollection[K, T](expire)(generator)
 	}
 }
 
-class LazyCollection[K, T] private(generator: (K) => T, expire: FiniteDuration) extends Collectable {
+class LazyCollection[K, T] private(expire: FiniteDuration)(generator: (K) => T) extends Collectable {
 	/**
 	 * Register in global registry
 	 */
@@ -28,9 +28,11 @@ class LazyCollection[K, T] private(generator: (K) => T, expire: FiniteDuration) 
 	def apply(key: K): T = {
 		cells.getOrElse(key, {
 			this.synchronized {
-				val new_cell = LazyCache[T](expire)(generator(key))
-				cells = cells.updated(key, new_cell)
-				new_cell
+				cells.getOrElse(key, {
+					val new_cell = LazyCache[T](expire)(generator(key))
+					cells = cells.updated(key, new_cell)
+					new_cell
+				})
 			}
 		}).value
 	}

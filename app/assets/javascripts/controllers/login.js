@@ -28,11 +28,11 @@ GuildTools.controller("LoginCtrl", function($scope, $location) {
 			}
 
 			var pass = CryptoJS.MD5(phpbb_hash($scope.pass, res.setting) + res.salt).toString();
-			$.call("auth:login", { user: $scope.user, pass: pass }, function(err, res) {
+			$.call("auth:login", { user: $scope.user, pass: pass }, function(err, session) {
 				$scope.inflight = false;
 
-				if (res && res.session) {
-					localStorage.setItem("session.token", res.session);
+				if (!err && session) {
+					localStorage.setItem("session.token", session);
 					$.wsAuth(true);
 				} else {
 					$scope.pass = "";
