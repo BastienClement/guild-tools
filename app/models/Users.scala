@@ -5,6 +5,10 @@ import models.mysql._
 case class User(id: Int, name: String, group: Int, color: String) {
 	val developer = Users.developer_users.contains(id)
 	val officer = developer || Users.officier_groups.contains(group)
+
+	def ready: Boolean = DB.withSession { implicit s =>
+		Chars.filter(_.owner === id).firstOption.isDefined
+	}
 }
 
 class Users(tag: Tag) extends Table[User](tag, "phpbb_users") {

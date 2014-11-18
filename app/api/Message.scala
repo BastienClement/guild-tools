@@ -1,10 +1,13 @@
 package api
 
 import scala.concurrent.Future
+import scala.language.implicitConversions
 import gt.Global.ExecutionContext
 import play.api.libs.json.Json.JsValueWrapper
-import scala.language.implicitConversions
 
+/**
+ * Server-initiated outgoing message
+ */
 abstract class OutgoingMessage
 case class Message(cmd: String, arg: JsValueWrapper) extends OutgoingMessage
 case class CloseMessage(arg: String) extends OutgoingMessage
@@ -17,9 +20,11 @@ object MessageResponse {
 	implicit def fromJsValue[T <% JsValueWrapper](v: T): MessageResponse = MessageResults(v)
 }
 
+/**
+ * Response to client request
+ */
 abstract class MessageResponse
 case object MessageSuccess extends MessageResponse
 case class MessageResults(res: JsValueWrapper) extends MessageResponse
-case class MessageFailure(err: String, message: String = "") extends MessageResponse
-case class MessageAlert(alert: String) extends MessageResponse
+case class MessageFailure(err: String = "") extends MessageResponse
 case class MessageDeferred(f: Future[MessageResponse]) extends MessageResponse

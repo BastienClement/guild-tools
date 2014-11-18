@@ -230,7 +230,6 @@ var $ = {};
 		var calls = [];
 		var inflight = 0;
 		var queue = [];
-		var sockid = null;
 		var init_done = false;
 		var reason = null;
 
@@ -247,10 +246,6 @@ var $ = {};
 		};
 
 		$.wsAPI = {
-			"ping": function(cb) {
-				cb();
-			},
-
 			"chat:onlines:update": function(msg) {
 				var user = msg.user;
 
@@ -317,7 +312,6 @@ var $ = {};
 			}, 10000);
 
 			++inflight;
-			//console.log("START", args);
 			if (!Pace.running) Pace.restart();
 
 			$.exec(cmd, arg, wrapped_cb);
@@ -406,21 +400,16 @@ var $ = {};
 
 						case "nok":
 						case "err":
-						case "alert":
 							if (typeof handler !== "function") return;
 							try {
 								handler.call(null, arg);
-								if (GuildToolsScope) {
-									GuildToolsScope.error("An error occurred. Please try again.");
+								if (GuildToolsScope && cmd === "nok") {
+									GuildToolsScope.error(arg || "An error occurred. Please try again.");
 									triggerUpdate();
 								}
 							} catch (e) {
 								console.error(e);
 								bugsack_send(e);
-							}
-
-							if (cmd === "alert" && typeof GuildToolsScope === "object") {
-								GuildToolsScope.error(arg);
 							}
 
 							delete calls[msg.results];
@@ -449,37 +438,23 @@ var $ = {};
 		};
 
 		$.wsAuth = function(redirect) {
-			$.call("auth", { session: localStorage.getItem("session.token"), socket: sockid }, function(err, res) {
+			$.call("auth", { session: localStorage.getItem("session.token") }, function(err, res) {
 				if (err) return;
-				if (res.resume) {
-					for (var i = 0; i < queue.length; ++i) {
-						$.wsSend(queue[i]);
-					}
-					if ($.user) ga('send', 'event', 'session', 'resume', $.anonSessId());
-					queue = [];
-				} else if (sockid !== null) {
-					sockid = res.socket;
-					$.user = res.user;
-					if ($.user) {
-						$.syncOnlines();
-						ga('set', 'userId', $.user.id);
-						ga('send', 'event', 'session', 'resync', $.anonSessId());
-					}
-					GuildToolsScope.syncContext();
-				} else {
-					sockid = res.socket;
-					$.user = res.user;
-					if ($.user) {
-						$.syncOnlines();
-						ga('set', 'userId', $.user.id);
-						ga('send', 'event', 'session', 'continue', $.anonSessId());
-					}
+				$.user = res.user;
+
+				if ($.user) {
+					$.user.ready = res.ready;
+					$.syncOnlines();
+					ga('set', 'userId', $.user.id);
+					ga('send', 'event', 'session', 'continue', $.anonSessId());
 				}
 
 				if (!init_done) {
 					init_done = true;
 					angular.bootstrap(document, ["GuildTools"]);
 					_("body").append("<div id='loading-done'></div>");
+				} else {
+					GuildToolsScope.syncContext();
 				}
 
 				GuildToolsScope.popupErrorText = null;
