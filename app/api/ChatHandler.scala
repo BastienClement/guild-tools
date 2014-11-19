@@ -11,6 +11,6 @@ trait ChatHandler {
 		/**
 		 * $:chat:onlines
 		 */
-		def handleOnlines(arg: JsValue): MessageResponse = ChatManager.onlinesUsers
+		def handleOnlines(arg: JsValue): MessageResponse = ChatManager.onlines
 	}
 }

@@ -24,6 +24,7 @@ trait AuthHandler {
 			} map { u =>
 				user = u
 				dispatcher = authenticatedDispatcher
+				ChatManager.connect(u, socket.self)
 				Json.obj("user" -> user, "ready" -> user.ready)
 			} getOrElse {
 				session = None

@@ -229,5 +229,6 @@ with AbsencesHandler {
 	 */
 	override def postStop(): Unit = {
 		EventDispatcher.unregister(self)
+		ChatManager.disconnect(self)
 	}
 }

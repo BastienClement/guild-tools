@@ -2,30 +2,31 @@ package actors
 
 import scala.concurrent.duration._
 import scala.util.{Success, Try}
-import api._
+import akka.actor.ActorRef
 import models._
 import models.mysql._
-import play.api.libs.json._
 import utils.{LazyCache, SmartTimestamp}
 
 case class ChatException(msg: String) extends Exception(msg)
+
+case class ChatManagerSession(user: User, var sockets: Set[ActorRef])
 
 case class ChatManagerChannel(var channel: ChatChannel, var members: Set[Int]) {
 
 }
 
 trait ChatManager {
-	def userLogin(user: User): Unit
-	def userLogout(user: User): Unit
+	def onlines: Set[Int]
 
-	def onlinesUsers: Set[Int]
+	def connect(user: User, socket: ActorRef): Unit
+	def disconnect(socket: ActorRef): Unit
 
 	def sendMessage(channel: Option[Int], from: User, message: String): Try[ChatMessage]
 	def sendWhisper(from: User, to: Int, message: String): Try[ChatWhisper]
 }
 
 class ChatManagerImpl extends ChatManager {
-	var onlines = Map[Int, User]()
+	private var sessions = Map[Int, ChatManagerSession]()
 
 	val channels = LazyCache[Map[Int, ChatManagerChannel]](5.minutes) {
 		DB.withSession { implicit s =>
@@ -42,17 +43,29 @@ class ChatManagerImpl extends ChatManager {
 		}
 	}
 
-	def userLogin(user: User): Unit = if (!onlines.contains(user.id)) {
-		//for (u <- onlines.values) u ! Message("chat:onlines:update", Json.obj("type" -> "online", "user" -> user.id))
-		onlines += (user.id -> user)
+	def connect(user: User, socket: ActorRef): Unit = {
+		sessions.get(user.id) match {
+			case Some(session) =>
+				session.sockets += socket
+
+			case None =>
+				sessions += user.id -> ChatManagerSession(user, Set(socket))
+		}
 	}
 
-	def userLogout(user: User): Unit = if (onlines.contains(user.id)) {
-		onlines -= user.id
-		//for (u <- onlines.values) u ! Message("chat:onlines:update", Json.obj("type" -> "offline", "user" -> user.id))
+	def disconnect(socket: ActorRef): Unit = {
+		sessions.find {
+			case (user, session) => session.sockets.contains(socket)
+		} map {
+			case (user, session) =>
+				session.sockets -= socket
+				if (session.sockets.size < 1) {
+					sessions -= user
+				}
+		}
 	}
 
-	def onlinesUsers: Set[Int] = onlines.keySet
+	def onlines: Set[Int] = sessions.keySet
 
 	def sendMessage(chanid: Option[Int], from: User, message: String): Try[ChatMessage] = Try {
 		// Load channel if specified
