@@ -11,8 +11,8 @@ import models.mysql._
 import models.{CalendarEvents, _}
 import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json.{JsNull, JsValue, Json}
-import utils.{EventFilter, SmartTimestamp}
 import utils.SmartTimestamp.fromTimestamp
+import utils.{EventFilter, SmartTimestamp}
 
 /**
  * Shared calendar-related values
@@ -103,7 +103,7 @@ trait CalendarHandler {
 		def createCalendarFilter(events: Set[Int], from: Timestamp, to: Timestamp): EventFilter.FilterFunction = {
 			var watched_events = events
 
-			def slackFilter(slack: Slack, wrap: (Slack) => Event): Boolean = {
+			def slackFilter(slack: Slack, wrap: (Slack) => CtxEvent): Boolean = {
 				if (slack.from >= from || slack.to <= to) {
 					socket !< wrap(slack)
 				} else {
@@ -433,7 +433,7 @@ trait CalendarHandler {
 			var slacks = Slacks.filter(s => s.from <= event.date && s.to >= event.date).list
 			if (!user.officer) slacks = slacks.map(_.conceal)
 
-			def slackFilter(slack: Slack, wrap: (Slack) => Event): Boolean = {
+			def slackFilter(slack: Slack, wrap: (Slack) => CtxEvent): Boolean = {
 				if (slack.from <= event.date && slack.to >= event.date) {
 					if (user.officer) {
 						true

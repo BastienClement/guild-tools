@@ -2,7 +2,9 @@ package actors
 
 import scala.concurrent.duration._
 import scala.util.{Success, Try}
+import actors.Actors.EventDispatcher
 import akka.actor.ActorRef
+import api.{ChatUserConnect, ChatUserDisconnect}
 import models._
 import models.mysql._
 import utils.{LazyCache, SmartTimestamp}
@@ -50,6 +52,7 @@ class ChatManagerImpl extends ChatManager {
 
 			case None =>
 				sessions += user.id -> ChatManagerSession(user, Set(socket))
+				EventDispatcher !# ChatUserConnect(user.id)
 		}
 	}
 
@@ -61,6 +64,7 @@ class ChatManagerImpl extends ChatManager {
 				session.sockets -= socket
 				if (session.sockets.size < 1) {
 					sessions -= user
+					EventDispatcher !# ChatUserDisconnect(user)
 				}
 		}
 	}

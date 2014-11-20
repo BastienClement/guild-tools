@@ -129,7 +129,7 @@ with AbsencesHandler {
 	 * Handle filtered events
 	 */
 	def onEventFiltered(e: Dispatchable): Unit = e match {
-		case event: Event => self ! Message("event:dispatch", event.asJson)
+		case event: Event => self ! Message("event", event.asJson)
 		case _ => // Internal event are not to be send to the client
 	}
 

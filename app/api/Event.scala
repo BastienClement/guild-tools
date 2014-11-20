@@ -4,6 +4,7 @@ import actors.Dispatchable
 import models._
 import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json._
+import utils.AllowedByDefault
 
 /**
  * Base class for internal-only events
@@ -18,43 +19,59 @@ abstract class Event(val name: String, val arg: JsValueWrapper) extends Dispatch
 }
 
 /**
+ * Base class for core.js-managed events
+ */
+abstract class CoreEvent(name: String, arg: JsValueWrapper) extends Event(name, arg) with AllowedByDefault
+
+/**
+ * Chat event
+ */
+case class ChatUserConnect(user: Int) extends CoreEvent("chat:user:connect", user)
+case class ChatUserDisconnect(user: Int) extends CoreEvent("chat:user:disconnect", user)
+
+/**
+ * Context-specific events
+ */
+abstract class CtxEvent(name: String, arg: JsValueWrapper) extends Event(name, arg)
+
+/**
  * Calendar events
  */
-case class CalendarEventCreate(event: CalendarEvent) extends Event("event:create", event)
-case class CalendarEventUpdate(event: CalendarEvent) extends Event("event:update", event)
-case class CalendarEventUpdateFull(full: CalendarEventFull) extends Event("event:update:full", full)
-case class CalendarEventDelete(id: Int) extends Event("event:delete", id)
+case class CalendarEventCreate(event: CalendarEvent) extends CtxEvent("calendar:event:create", event)
+case class CalendarEventUpdate(event: CalendarEvent) extends CtxEvent("calendar:event:update", event)
+case class CalendarEventUpdateFull(full: CalendarEventFull) extends CtxEvent("calendar:event:update:full", full)
+case class CalendarEventDelete(id: Int) extends CtxEvent("calendar:event:delete", id)
 
 /**
  * Calendar answers
  */
-case class CalendarAnswerCreate(answer: CalendarAnswer) extends Event("answer:create", answer)
-case class CalendarAnswerUpdate(answer: CalendarAnswer) extends Event("answer:update", answer)
-case class CalendarAnswerDelete(user: Int, event: Int) extends Event("answer:delete", Json.obj("user" -> user, "event" -> event))
+case class CalendarAnswerCreate(answer: CalendarAnswer) extends CtxEvent("calendar:answer:create", answer)
+case class CalendarAnswerUpdate(answer: CalendarAnswer) extends CtxEvent("calendar:answer:update", answer)
+case class CalendarAnswerDelete(user: Int, event: Int) extends CtxEvent("calendar:answer:delete", Json.obj("user" -> user, "event" -> event))
 
 /**
  * Calendar tabs manipulations
  */
-case class CalendarTabCreate(tab: CalendarTab) extends Event("calendar:tab:create", tab)
-case class CalendarTabUpdate(tab: CalendarTab) extends Event("calendar:tab:update", tab)
-case class CalendarTabDelete(id: Int) extends Event("calendar:tab:delete", id)
-case class CalendarTabWipe(id: Int) extends Event("calendar:tab:wipe", id)
+case class CalendarTabCreate(tab: CalendarTab) extends CtxEvent("calendar:tab:create", tab)
+case class CalendarTabUpdate(tab: CalendarTab) extends CtxEvent("calendar:tab:update", tab)
+case class CalendarTabDelete(id: Int) extends CtxEvent("calendar:tab:delete", id)
+case class CalendarTabWipe(id: Int) extends CtxEvent("calendar:tab:wipe", id)
 
 /**
  * Calendar locks
  */
-case class CalendarLockAcquire(id: Int, owner: String) extends Event("calendar:lock:acquire", Json.obj("id" -> id, "owner" -> owner))
-case class CalendarLockRelease(id: Int) extends Event("calendar:lock:release", id)
+case class CalendarLockAcquire(id: Int, owner: String) extends CtxEvent("calendar:lock:acquire", Json.obj("id" -> id, "owner" -> owner))
+case class CalendarLockRelease(id: Int) extends CtxEvent("calendar:lock:release", id)
 
 /**
  * Calendar raid-comp
  */
-case class CalendarSlotUpdate(slot: CalendarSlot) extends Event("calendar:slot:update", slot)
-case class CalendarSlotDelete(tab: Int, slot: Int) extends Event("calendar:slot:delete", Json.obj("tab" -> tab, "slot" -> slot))
+case class CalendarSlotUpdate(slot: CalendarSlot) extends CtxEvent("calendar:slot:update", slot)
+case class CalendarSlotDelete(tab: Int, slot: Int) extends CtxEvent("calendar:slot:delete", Json.obj("tab" -> tab, "slot" -> slot))
 
 /**
  * Absences
  */
-case class SlackCreate(slack: Slack) extends Event("absence:create", slack)
-case class SlackUpdate(slack: Slack) extends Event("absence:update", slack)
-case class SlackDelete(id: Int) extends Event("absence:delete", id)
+case class SlackCreate(slack: Slack) extends CtxEvent("absence:create", slack)
+case class SlackUpdate(slack: Slack) extends CtxEvent("absence:update", slack)
+case class SlackDelete(id: Int) extends CtxEvent("absence:delete", id)

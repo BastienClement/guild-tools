@@ -91,11 +91,11 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 				$scope.absences = data.absences;
 			},
 
-			"event:create": function(event) {
+			"calendar:event:create": function(event) {
 				pushEvent(event);
 			},
 
-			"event:update": function(new_event) {
+			"calendar:event:update": function(new_event) {
 				for (var day in $scope.events) {
 					for (var i in $scope.events[day]) {
 						var event = $scope.events[day][i];
@@ -107,19 +107,19 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 				}
 			},
 
-			"event:delete": function(eventid) {
+			"calendar:event:delete": function(eventid) {
 				delete_event(eventid);
 			},
 
-			"answer:create": function(answer) {
+			"calendar:answer:create": function(answer) {
 				$scope.answers[answer.event] = answer.answer;
 			},
 
-			"answer:update": function(answer) {
+			"calendar:answer:update": function(answer) {
 				$scope.answers[answer.event] = answer.answer;
 			},
 
-			"answer:delete": function(answer) {
+			"calendar:answer:delete": function(answer) {
 				delete $scope.answers[answer.event];
 				delete_event(answer.event);
 			},
@@ -703,11 +703,11 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			$scope.chars = $.roster.charsByUser($.user.id);
 		},
 
-		"event:update": function(data) {
+		"calendar:event:update": function(data) {
 			$scope.event = data;
 		},
 
-		"event:update:full": function(data) {
+		"calendar:event:update:full": function(data) {
 			$scope.event = data.event;
 			$scope.tabs = data.tabs;
 			build_tabs_idx();
@@ -716,14 +716,14 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			$scope.computeRaidBuffs();
 		},
 
-		"event:delete": function() {
+		"calendar:event:delete": function() {
 			$scope.breadcrumb.push("/calendar");
 			$scope.error("Event deleted");
 		},
 
-		"answer:create": update_answer,
-		"answer:update": update_answer,
-		"answer:delete": function(data) {
+		"calendar:answer:create": update_answer,
+		"calendar:answer:update": update_answer,
+		"calendar:answer:delete": function(data) {
 			if (data.user === $.user.id && $scope.event.type == 3) {
 				$scope.breadcrumb.push("/calendar");
 				$scope.error("You just got kicked from this event");

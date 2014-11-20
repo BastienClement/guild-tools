@@ -246,18 +246,13 @@ var $ = {};
 		};
 
 		$.wsAPI = {
-			"chat:onlines:update": function(msg) {
-				var user = msg.user;
+			"chat:user:connect": function(user) {
+				$.online = $.online.filter(function(id) { return id !== user; });
+				$.online.push(user);
+			},
 
-				// Remove
-				$.online = $.online.filter(function(id) {
-					return id !== user;
-				});
-
-				// Add
-				if (msg.type === "online") {
-					$.online.push(user);
-				}
+			"chat:user:disconnect": function(user) {
+				$.online = $.online.filter(function(id) { return id !== user; });
 			},
 
 			"roster:char:update": function(char) {
@@ -270,7 +265,8 @@ var $ = {};
 				$.roster.trigger();
 			},
 
-			"event:dispatch": function(event) {
+			"event": function(event) {
+				if ($.wsAPI[event.name]) return $.wsAPI[event.name](event.arg);
 				GuildToolsScope.dispatchEvent(event.name, event.arg);
 			}
 		};

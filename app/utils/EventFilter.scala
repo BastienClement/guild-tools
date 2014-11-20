@@ -4,6 +4,11 @@ import actors.{Dispatchable, EventListener}
 import utils.EventFilter._
 
 /**
+ * Trait used to allow an event by default
+ */
+trait AllowedByDefault
+
+/**
  * Common event-filtering related utilities
  */
 object EventFilter {
@@ -41,6 +46,7 @@ object EventFilter {
 	 * Default filter, returning false for any event
 	 */
 	private val FilterNone: FilterFunction = {
+		case _: AllowedByDefault => true
 		case _ => false
 	}
 }
@@ -111,7 +117,7 @@ trait EventFilter extends EventListener {
 		events = Nil
 
 		// Apply the filter function and then add the event to the final list
-		if (filter.applyOrElse(e, FilterNone)) events ::= event
+		if (filter.applyOrElse(event, FilterNone)) events ::= event
 
 		// Dispatch every generated events
 		for (event <- events) onEventFiltered(event)
