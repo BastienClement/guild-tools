@@ -12,13 +12,13 @@ object AuthenticatorHelper {
 	val allowedGroups = Set(8, 12, 9, 11)
 }
 
-trait Authenticator {
+trait AuthService {
 	def auth(session: String): Option[User]
 	def login(name: String, password: String, salt: String): Either[String, String]
 	def logout(session: String): Unit
 }
 
-class AuthenticatorImpl extends Authenticator {
+class AuthServiceImpl extends AuthService {
 	/**
 	 *
 	 */

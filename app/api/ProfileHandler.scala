@@ -1,12 +1,11 @@
 package api
 
-import java.util.Date
+import actors.Actors.BattleNet
 import actors.SocketHandler
 import gt.Global.ExecutionContext
 import models._
 import models.mysql._
 import play.api.libs.json._
-import utils.Bnet
 
 trait ProfileHandler {
 	socket: SocketHandler =>
@@ -125,32 +124,16 @@ trait ProfileHandler {
 				return MessageFailure("INVALID_DATA")
 			}
 
-			Bnet.query(s"/character/$server/$name", ("fields" -> "items")) map { char =>
-				DB.withTransaction { implicit s =>
+			BattleNet.fetchChar(server, name) map { char =>
+				DB.withSession { implicit s =>
 					val main = for (c <- Chars if c.main === true && c.owner === user.id) yield c.id
-
-					val template = Char(
-						id = 0,
-						name = name,
-						server = server,
-						owner = user.id,
-						main = main.firstOption.isEmpty,
-						active = true,
-						`class` = (char \ "class").as[Int],
-						race = (char \ "race").as[Int],
-						gender = (char \ "gender").as[Int],
-						level = (char \ "level").as[Int],
-						achievements = (char \ "achievementPoints").as[Int],
-						thumbnail = (char \ "thumbnail").as[String],
-						ilvl = (char \ "items" \ "averageItemLevel").as[Int],
-						role = role,
-						last_update = (new Date()).getTime)
+					val template = char.copy(owner = user.id, main = main.firstOption.isEmpty)
 
 					val id: Int = (Chars returning Chars.map(_.id)) += template
 					Chars.notifyCreate(template.copy(id = id))
-				}
 
-				MessageSuccess
+					MessageSuccess
+				}
 			}
 		}
 	}

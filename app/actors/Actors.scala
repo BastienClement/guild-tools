@@ -12,12 +12,12 @@ object Actors {
 		TypedActor(Akka.system).typedActorOf(TypedProps[A], name = n)
 	}
 
-	val Authenticator = initActor[Authenticator, AuthenticatorImpl]("Authenticator")
+	val AuthService = initActor[AuthService, AuthServiceImpl]("AuthService")
 	val BattleNet = initActor[BattleNet, BattleNetImpl]("BattleNet")
-	val CalendarLocks = initActor[CalendarLocks, CalendarLocksImpl]("CalendarLockManager")
-	val Chat = initActor[Chat, ChatImpl]("ChatManager")
-	val Dispatcher = initActor[Dispatcher, DispatcherImpl]("EventDispatcher")
-	val Roster = initActor[Roster, RosterImpl]("RosterManager")
+	val CalendarLocks = initActor[CalendarLocks, CalendarLocksImpl]("CalendarLocks")
+	val ChatService = initActor[ChatService, ChatServiceImpl]("ChatService")
+	val Dispatcher = initActor[Dispatcher, DispatcherImpl]("Dispatcher")
+	val RosterService = initActor[RosterService, RosterServiceImpl]("RosterService")
 
 	object Implicits {
 		implicit def FutureBoxing[T](v: T): Future[T] = Future.successful(v)

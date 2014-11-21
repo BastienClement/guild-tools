@@ -11,13 +11,11 @@ import utils.{LazyCache, SmartTimestamp}
 
 case class ChatException(msg: String) extends Exception(msg)
 
-case class ChatSession(user: User, var sockets: Set[ActorRef])
+private case class Session(user: User, var sockets: Set[ActorRef])
 
-case class ChatChannel(var channel: ChatChannel, var members: Set[Int]) {
+private case class Channel(var channel: ChatChannel, var members: Set[Int])
 
-}
-
-trait Chat {
+trait ChatService {
 	def onlines: Set[Int]
 
 	def connect(user: User, socket: ActorRef): Unit
@@ -27,10 +25,10 @@ trait Chat {
 	def sendWhisper(from: User, to: Int, message: String): Try[ChatWhisper]
 }
 
-class ChatImpl extends Chat {
-	private var sessions = Map[Int, ChatSession]()
+class ChatServiceImpl extends ChatService {
+	private var sessions = Map[Int, Session]()
 
-	val channels = LazyCache[Map[Int, ChatChannel]](5.minutes) {
+	private val channels = LazyCache[Map[Int, Channel]](5.minutes) {
 		DB.withSession { implicit s =>
 			val query = for {
 				channel <- ChatChannels
@@ -40,7 +38,7 @@ class ChatImpl extends Chat {
 			val res: List[(ChatChannel, Int)] = query.list
 			res.groupBy(_._1.id).mapValues { list =>
 				val channel = list(0)._1
-				ChatChannel(channel, list.map(_._2).toSet)
+				Channel(channel, list.map(_._2).toSet)
 			}
 		}
 	}
@@ -51,7 +49,7 @@ class ChatImpl extends Chat {
 				session.sockets += socket
 
 			case None =>
-				sessions += user.id -> ChatSession(user, Set(socket))
+				sessions += user.id -> Session(user, Set(socket))
 				Dispatcher !# ChatUserConnect(user.id)
 		}
 	}

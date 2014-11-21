@@ -1,6 +1,6 @@
 package api
 
-import actors.Actors.Roster
+import actors.Actors.RosterService
 import actors.SocketHandler
 import play.api.libs.json._
 
@@ -11,16 +11,16 @@ trait RosterHandler {
 		/**
 		 * $:roster:load
 		 */
-		def handleLoad(arg: JsValue): MessageResponse = Roster.compositeRoster
+		def handleLoad(arg: JsValue): MessageResponse = RosterService.compositeRoster
 
 		/**
 		 * $:roster:user
 		 */
-		def handleUser(arg: JsValue): MessageResponse = Roster.compositeUser((arg \ "id").as[Int])
+		def handleUser(arg: JsValue): MessageResponse = RosterService.compositeUser((arg \ "id").as[Int])
 
 		/**
 		 * $:roster:char
 		 */
-		def handleChar(arg: JsValue): MessageResponse = Roster.char((arg \ "id").as[Int])
+		def handleChar(arg: JsValue): MessageResponse = RosterService.char((arg \ "id").as[Int])
 	}
 }

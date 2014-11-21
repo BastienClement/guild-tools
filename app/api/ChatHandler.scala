@@ -1,6 +1,6 @@
 package api
 
-import actors.Actors.Chat
+import actors.Actors.ChatService
 import actors.SocketHandler
 import play.api.libs.json.JsValue
 
@@ -11,6 +11,6 @@ trait ChatHandler {
 		/**
 		 * $:chat:onlines
 		 */
-		def handleOnlines(arg: JsValue): MessageResponse = Chat.onlines
+		def handleOnlines(arg: JsValue): MessageResponse = ChatService.onlines
 	}
 }

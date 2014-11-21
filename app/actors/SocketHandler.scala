@@ -32,7 +32,7 @@ with AbsencesHandler {
 	var dispatcher: MessageDispatcher = unauthenticatedDispatcher
 
 	// Reference to the socket owner
-	var user: User = null
+	implicit var user: User = null
 
 	// The socket used session
 	var session: Option[String] = None
@@ -229,6 +229,6 @@ with AbsencesHandler {
 	 */
 	override def postStop(): Unit = {
 		Dispatcher.unregister(self)
-		Chat.disconnect(self)
+		ChatService.disconnect(self)
 	}
 }

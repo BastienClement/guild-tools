@@ -8,7 +8,7 @@ import models.mysql._
 import play.api.libs.json._
 import utils.LazyCache
 
-trait Roster {
+trait RosterService {
 	def users: Map[Int, User]
 	def chars: Map[Int, Char]
 
@@ -22,7 +22,7 @@ trait Roster {
 	def deleteChar(id: Int): Unit
 }
 
-class RosterImpl extends Roster {
+class RosterServiceImpl extends RosterService {
 	/**
 	 * List of every users
 	 */

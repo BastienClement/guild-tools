@@ -1,7 +1,7 @@
 package actors
 
 import scala.concurrent.duration._
-import actors.Actors.EventDispatcher
+import actors.Actors.Dispatcher
 import actors.CalendarLocksImpl._
 import api.{CalendarLockAcquire, CalendarLockRelease}
 import gt.Global.ExecutionContext
@@ -37,7 +37,7 @@ object CalendarLocksImpl {
 		def release(): Unit = {
 			if (valid) {
 				valid = false
-				Actors.CalendarLockManager.release(this)
+				Actors.CalendarLocks.release(this)
 			}
 		}
 	}
@@ -62,7 +62,7 @@ class CalendarLocksImpl extends CalendarLocks {
 		} else {
 			val lock = new CalendarLock(tab, owner)
 			locks += (tab -> lock)
-			EventDispatcher !# CalendarLockAcquire(tab, owner)
+			Dispatcher !# CalendarLockAcquire(tab, owner)
 			Some(lock)
 		}
 	}
@@ -73,7 +73,7 @@ class CalendarLocksImpl extends CalendarLocks {
 		for (l <- locks.get(lock.tab)) {
 			if (lock == l) {
 				locks -= lock.tab
-				EventDispatcher !# CalendarLockRelease(lock.tab)
+				Dispatcher !# CalendarLockRelease(lock.tab)
 			}
 		}
 	}
