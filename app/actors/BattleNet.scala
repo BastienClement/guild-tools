@@ -1,6 +1,5 @@
 package actors
 
-import scala.compat.Platform
 import scala.concurrent.Future
 import gt.Global.ExecutionContext
 import models._
@@ -59,8 +58,7 @@ class BattleNetImpl extends BattleNet {
 				achievements = (char \ "achievementPoints").as[Int],
 				thumbnail = (char \ "thumbnail").as[String],
 				ilvl = (char \ "items" \ "averageItemLevel").as[Int],
-				role = role,
-				last_update = Platform.currentTime)
+				role = role)
 		}
 	}
 }

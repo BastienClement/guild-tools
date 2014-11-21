@@ -2,6 +2,7 @@ package actors
 
 import scala.compat.Platform
 import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 import actors.Actors.{Dispatcher, _}
 import api._
 import gt.Global.ExecutionContext
@@ -92,20 +93,27 @@ class RosterServiceImpl extends RosterService {
 		if (inflightUpdates.contains(id)) return
 		val char_query = Chars.filter(_.id === id)
 
-		def performUpdate(nc: Char) = DB.withSession { implicit s =>
-			char_query.map { c =>
-				(c.klass, c.race, c.gender, c.level, c.achievements, c.thumbnail, c.ilvl, c.last_update)
-			} update {
-				(nc.clazz, nc.race, nc.gender, nc.level, nc.achievements, nc.thumbnail, nc.ilvl, Platform.currentTime)
-			}
-
-			RosterService.updateChar(char_query.first)
-		}
-
 		DB.withSession { implicit s =>
 			for (char <- char_query.firstOption if Platform.currentTime - char.last_update > 3600000) {
 				inflightUpdates += char.id
-				BattleNet.fetchChar(char.server, char.name) map performUpdate
+				BattleNet.fetchChar(char.server, char.name) onComplete {
+					case Success(nc) =>
+						DB.withSession { implicit s =>
+							char_query.map { c =>
+								(c.klass, c.race, c.gender, c.level, c.achievements, c.thumbnail, c.ilvl, c.last_update)
+							} update {
+								(nc.clazz, nc.race, nc.gender, nc.level, nc.achievements, nc.thumbnail, nc.ilvl, Platform.currentTime)
+							}
+
+							RosterService.updateChar(char_query.first)
+						}
+
+					case Failure(_) =>
+						DB.withSession { implicit s =>
+							char_query.map(_.invalid).update(true)
+							RosterService.updateChar(char_query.first)
+						}
+				}
 			}
 		}
 	}

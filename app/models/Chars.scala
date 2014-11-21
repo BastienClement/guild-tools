@@ -1,5 +1,6 @@
 package models
 
+import scala.compat.Platform
 import actors.Actors.RosterService
 import models.mysql._
 
@@ -18,7 +19,8 @@ case class Char(
 		thumbnail: String,
 		ilvl: Int,
 		role: String,
-		last_update: Long) {
+		invalid: Boolean = false,
+		last_update: Long = Platform.currentTime) {
 	val clazz = `class`
 
 	if (!Chars.validateRole(role)) {
@@ -41,9 +43,10 @@ class Chars(tag: Tag) extends Table[Char](tag, "gt_chars") {
 	def thumbnail = column[String]("thumbnail")
 	def ilvl = column[Int]("ilvl")
 	def role = column[String]("role")
+	def invalid = column[Boolean]("invalid")
 	def last_update = column[Long]("last_update")
 
-	def * = (id, name, server, owner, main, active, klass, race, gender, level, achievements, thumbnail, ilvl, role, last_update) <> (Char.tupled, Char.unapply)
+	def * = (id, name, server, owner, main, active, klass, race, gender, level, achievements, thumbnail, ilvl, role, invalid, last_update) <> (Char.tupled, Char.unapply)
 }
 
 object Chars extends TableQuery(new Chars(_)) {
