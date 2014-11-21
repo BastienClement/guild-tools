@@ -46,10 +46,11 @@ object Api extends Controller {
 		val user = (report \ "user").asOpt[Int] getOrElse 0
 		val rev = (report \ "rev").as[String]
 		val error = (report \ "msg").as[String]
-		val stack = (report \ "stack").as[String]
+		val stack = (report \ "stack").asOpt[String] getOrElse ""
+		val navigator = (report \ "stack").asOpt[String] getOrElse ""
 
 		val key = (user, error, stack)
-		val bug = BugReport(utils.md5(key.toString()), user, SmartTimestamp.now, rev, error, stack)
+		val bug = BugReport(utils.md5(key.toString()), user, SmartTimestamp.now, rev, error, stack, navigator)
 
 		Try {
 			DB.withSession { implicit s => BugSack.insert(bug) }

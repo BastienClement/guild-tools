@@ -8,7 +8,8 @@ var $ = {};
 			user: $.user.id || null,
 			rev: $.rev || null,
 			msg: e.message,
-			stack: e.stack
+			stack: e.stack,
+			nav: navigator.userAgent
 		};
 
 		var xhr = new XMLHttpRequest();
