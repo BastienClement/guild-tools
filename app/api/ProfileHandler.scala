@@ -1,6 +1,7 @@
 package api
 
 import actors.Actors.BattleNet
+import actors.Actors.RosterService
 import actors.SocketHandler
 import gt.Global.ExecutionContext
 import models._
@@ -135,6 +136,15 @@ trait ProfileHandler {
 					MessageSuccess
 				}
 			}
+		}
+
+		/**
+		 * $:profile:refresh
+		 */
+		def handleRefresh(arg: JsValue): MessageResponse = {
+			val id = (arg \ "id").as[Int]
+			RosterService.refreshChar(id)
+			MessageSuccess
 		}
 	}
 }

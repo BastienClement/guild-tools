@@ -193,6 +193,7 @@ with AbsencesHandler {
 		case "profile:role" => Profile.handleRole
 		case "profile:check" => Profile.handleCheck
 		case "profile:register" => Profile.handleRegister
+		case "profile:refresh" => Profile.handleRefresh
 
 		case "absences:load" => Absences.handleLoad
 		case "absences:create" => Absences.handleCreate

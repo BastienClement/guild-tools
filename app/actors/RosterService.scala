@@ -1,8 +1,10 @@
 package actors
 
+import scala.compat.Platform
 import scala.concurrent.duration._
-import actors.Actors.Dispatcher
+import actors.Actors.{Dispatcher, _}
 import api._
+import gt.Global.ExecutionContext
 import models._
 import models.mysql._
 import play.api.libs.json._
@@ -20,6 +22,8 @@ trait RosterService {
 
 	def updateChar(char: Char): Unit
 	def deleteChar(id: Int): Unit
+
+	def refreshChar(id: Int): Unit
 }
 
 class RosterServiceImpl extends RosterService {
@@ -48,6 +52,11 @@ class RosterServiceImpl extends RosterService {
 		Json.obj("users" -> roster_users.values.toList, "chars" -> roster_chars.values.toList)
 	}
 
+	/**
+	 * Locks for currently updated chars
+	 */
+	var inflightUpdates = Set[Int]()
+
 	def users: Map[Int, User] = roster_users
 	def chars: Map[Int, Char] = roster_chars
 
@@ -69,6 +78,7 @@ class RosterServiceImpl extends RosterService {
 			roster_chars := (_ + (char.id -> char))
 
 		roster_composite.clear()
+		inflightUpdates -= char.id
 		Dispatcher !# RosterCharUpdate(char)
 	}
 
@@ -76,5 +86,27 @@ class RosterServiceImpl extends RosterService {
 		roster_chars := roster_chars - id
 		roster_composite.clear()
 		Dispatcher !# RosterCharDelete(id)
+	}
+
+	def refreshChar(id: Int): Unit = {
+		if (inflightUpdates.contains(id)) return
+		val char_query = Chars.filter(_.id === id)
+
+		def performUpdate(nc: Char) = DB.withSession { implicit s =>
+			char_query.map { c =>
+				(c.klass, c.race, c.gender, c.level, c.achievements, c.thumbnail, c.ilvl, c.last_update)
+			} update {
+				(nc.clazz, nc.race, nc.gender, nc.level, nc.achievements, nc.thumbnail, nc.ilvl, Platform.currentTime)
+			}
+
+			RosterService.updateChar(char_query.first)
+		}
+
+		DB.withSession { implicit s =>
+			for (char <- char_query.firstOption if Platform.currentTime - char.last_update > 3600000) {
+				inflightUpdates += char.id
+				BattleNet.fetchChar(char.server, char.name) map performUpdate
+			}
+		}
 	}
 }
