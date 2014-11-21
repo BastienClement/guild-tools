@@ -127,7 +127,7 @@ trait ProfileHandler {
 			BattleNet.fetchChar(server, name) map { char =>
 				DB.withSession { implicit s =>
 					val main = for (c <- Chars if c.main === true && c.owner === user.id) yield c.id
-					val template = char.copy(owner = user.id, main = main.firstOption.isEmpty)
+					val template = char.copy(owner = user.id, main = main.firstOption.isEmpty, role = role)
 
 					val id: Int = (Chars returning Chars.map(_.id)) += template
 					Chars.notifyCreate(template.copy(id = id))

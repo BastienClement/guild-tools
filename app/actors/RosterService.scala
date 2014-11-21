@@ -62,17 +62,19 @@ class RosterServiceImpl extends RosterService {
 	}
 
 	def updateChar(char: Char): Unit = {
+		// Update the cached object
 		if (roster_chars.contains(char.id))
 			roster_chars := (_.updated(char.id, char))
 		else
 			roster_chars := (_ + (char.id -> char))
+
 		roster_composite.clear()
-		//EventDispatcher !# Message("roster:char:update", char)
+		Dispatcher !# RosterCharUpdate(char)
 	}
 
 	def deleteChar(id: Int): Unit = {
 		roster_chars := roster_chars - id
 		roster_composite.clear()
-		//EventDispatcher !# Message("roster:char:delete", id)
+		Dispatcher !# RosterCharDelete(id)
 	}
 }

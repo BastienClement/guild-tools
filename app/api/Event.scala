@@ -30,6 +30,12 @@ case class ChatUserConnect(user: Int) extends CoreEvent("chat:user:connect", use
 case class ChatUserDisconnect(user: Int) extends CoreEvent("chat:user:disconnect", user)
 
 /**
+ * RosterEvent
+ */
+case class RosterCharUpdate(char: Char) extends CoreEvent("roster:char:update", char)
+case class RosterCharDelete(char: Int) extends CoreEvent("roster:char:delete", char)
+
+/**
  * Context-specific events
  */
 abstract class CtxEvent(name: String, arg: JsValueWrapper) extends Event(name, arg)
