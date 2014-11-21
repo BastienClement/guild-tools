@@ -20,11 +20,11 @@ trait AuthHandler {
 		def handleAuth(arg: JsValue): MessageResponse = utils.atLeast[JsValue](250.milliseconds) {
 			(arg \ "session").asOpt[String] flatMap { token =>
 				session = Some(token)
-				SessionManager.auth(token)
+				Authenticator.auth(token)
 			} map { u =>
 				user = u
 				dispatcher = authenticatedDispatcher
-				ChatManager.connect(u, socket.self)
+				Chat.connect(u, socket.self)
 				Json.obj("user" -> user, "ready" -> user.ready)
 			} getOrElse {
 				session = None
@@ -60,7 +60,7 @@ trait AuthHandler {
 			val salt = auth_salt
 			auth_salt = utils.randomToken()
 
-			SessionManager.login(user, pass, salt) match {
+			Authenticator.login(user, pass, salt) match {
 				case Left(error) => MessageFailure(error)
 				case Right(token) => MessageResults(token)
 			}
@@ -71,7 +71,7 @@ trait AuthHandler {
 		 */
 		def handleLogout(arg: JsValue): MessageResponse = {
 			for (id <- session) {
-				SessionManager.logout(id)
+				Authenticator.logout(id)
 				dispatcher = zombieDispatcher
 				self ! CloseMessage("Logout")
 			}

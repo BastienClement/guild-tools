@@ -2,23 +2,23 @@ package actors
 
 import scala.concurrent.duration._
 import scala.util.Try
-import actors.SessionManagerHelper._
+import actors.AuthenticatorHelper._
 import models._
 import models.mysql._
 import models.sql._
 import utils.LazyCollection
 
-object SessionManagerHelper {
+object AuthenticatorHelper {
 	val allowedGroups = Set(8, 12, 9, 11)
 }
 
-trait SessionManager {
+trait Authenticator {
 	def auth(session: String): Option[User]
 	def login(name: String, password: String, salt: String): Either[String, String]
 	def logout(session: String): Unit
 }
 
-class SessionManagerImpl extends SessionManager {
+class AuthenticatorImpl extends Authenticator {
 	/**
 	 *
 	 */

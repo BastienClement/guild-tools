@@ -1,6 +1,6 @@
 package models
 
-import actors.Actors.RosterManager
+import actors.Actors.Roster
 import models.mysql._
 
 case class Char(
@@ -48,15 +48,15 @@ class Chars(tag: Tag) extends Table[Char](tag, "gt_chars") {
 
 object Chars extends TableQuery(new Chars(_)) {
 	def notifyCreate(char: Char): Unit = {
-		RosterManager.updateChar(char)
+		Roster.updateChar(char)
 	}
 
 	def notifyUpdate(char: Char): Unit = {
-		RosterManager.updateChar(char)
+		Roster.updateChar(char)
 	}
 
 	def notifyDelete(id: Int): Unit = {
-		RosterManager.deleteChar(id)
+		Roster.deleteChar(id)
 	}
 
 	def validateRole(role: String): Boolean = role match {

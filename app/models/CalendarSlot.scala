@@ -1,6 +1,6 @@
 package models
 
-import actors.Actors.EventDispatcher
+import actors.Actors.Dispatcher
 import api.{CalendarSlotDelete, CalendarSlotUpdate}
 import models.mysql._
 
@@ -29,10 +29,10 @@ class CalendarSlots(tag: Tag) extends Table[CalendarSlot](tag, "gt_events_slots"
  */
 object CalendarSlots extends TableQuery(new CalendarSlots(_)) {
 	def notifyUpdate(slot: CalendarSlot): Unit = {
-		EventDispatcher !# CalendarSlotUpdate(slot)
+		Dispatcher !# CalendarSlotUpdate(slot)
 	}
 
 	def notifyDelete(tab: Int, slot: Int): Unit = {
-		EventDispatcher !# CalendarSlotDelete(tab, slot)
+		Dispatcher !# CalendarSlotDelete(tab, slot)
 	}
 }

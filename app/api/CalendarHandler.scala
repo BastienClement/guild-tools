@@ -4,8 +4,8 @@ import java.sql.Timestamp
 import java.text.{ParseException, SimpleDateFormat}
 import scala.slick.jdbc.JdbcBackend.SessionDef
 import scala.util.Try
-import actors.Actors.CalendarLockManager
-import actors.CalendarLockManagerImpl.CalendarLock
+import actors.Actors.CalendarLocks
+import actors.CalendarLocksImpl.CalendarLock
 import actors.SocketHandler
 import models.mysql._
 import models.{CalendarEvents, _}
@@ -796,7 +796,7 @@ trait CalendarHandler {
 		def handleLockStatus(arg: JsValue): MessageResponse = {
 			val tab_id = (arg \ "id").as[Int]
 			ensureTabEditable(tab_id) {
-				Json.obj("owner" -> CalendarLockManager.status(tab_id))
+				Json.obj("owner" -> CalendarLocks.status(tab_id))
 			}
 		}
 
@@ -806,7 +806,7 @@ trait CalendarHandler {
 		def handleLockAcquire(arg: JsValue): MessageResponse = {
 			val tab_id = (arg \ "id").as[Int]
 			ensureTabEditable(tab_id) {
-				CalendarLockManager.acquire(tab_id, user.name) map { lock =>
+				CalendarLocks.acquire(tab_id, user.name) map { lock =>
 					edit_lock = Some(lock)
 					MessageSuccess
 				} getOrElse {

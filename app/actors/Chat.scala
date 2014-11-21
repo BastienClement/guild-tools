@@ -2,7 +2,7 @@ package actors
 
 import scala.concurrent.duration._
 import scala.util.{Success, Try}
-import actors.Actors.EventDispatcher
+import actors.Actors.Dispatcher
 import akka.actor.ActorRef
 import api.{ChatUserConnect, ChatUserDisconnect}
 import models._
@@ -11,13 +11,13 @@ import utils.{LazyCache, SmartTimestamp}
 
 case class ChatException(msg: String) extends Exception(msg)
 
-case class ChatManagerSession(user: User, var sockets: Set[ActorRef])
+case class ChatSession(user: User, var sockets: Set[ActorRef])
 
-case class ChatManagerChannel(var channel: ChatChannel, var members: Set[Int]) {
+case class ChatChannel(var channel: ChatChannel, var members: Set[Int]) {
 
 }
 
-trait ChatManager {
+trait Chat {
 	def onlines: Set[Int]
 
 	def connect(user: User, socket: ActorRef): Unit
@@ -27,10 +27,10 @@ trait ChatManager {
 	def sendWhisper(from: User, to: Int, message: String): Try[ChatWhisper]
 }
 
-class ChatManagerImpl extends ChatManager {
-	private var sessions = Map[Int, ChatManagerSession]()
+class ChatImpl extends Chat {
+	private var sessions = Map[Int, ChatSession]()
 
-	val channels = LazyCache[Map[Int, ChatManagerChannel]](5.minutes) {
+	val channels = LazyCache[Map[Int, ChatChannel]](5.minutes) {
 		DB.withSession { implicit s =>
 			val query = for {
 				channel <- ChatChannels
@@ -40,7 +40,7 @@ class ChatManagerImpl extends ChatManager {
 			val res: List[(ChatChannel, Int)] = query.list
 			res.groupBy(_._1.id).mapValues { list =>
 				val channel = list(0)._1
-				ChatManagerChannel(channel, list.map(_._2).toSet)
+				ChatChannel(channel, list.map(_._2).toSet)
 			}
 		}
 	}
@@ -51,8 +51,8 @@ class ChatManagerImpl extends ChatManager {
 				session.sockets += socket
 
 			case None =>
-				sessions += user.id -> ChatManagerSession(user, Set(socket))
-				EventDispatcher !# ChatUserConnect(user.id)
+				sessions += user.id -> ChatSession(user, Set(socket))
+				Dispatcher !# ChatUserConnect(user.id)
 		}
 	}
 
@@ -64,7 +64,7 @@ class ChatManagerImpl extends ChatManager {
 				session.sockets -= socket
 				if (session.sockets.size < 1) {
 					sessions -= user
-					EventDispatcher !# ChatUserDisconnect(user)
+					Dispatcher !# ChatUserDisconnect(user)
 				}
 		}
 	}

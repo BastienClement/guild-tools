@@ -27,14 +27,14 @@ class Slacks(tag: Tag) extends Table[Slack](tag, "gt_slacks") {
  */
 object Slacks extends TableQuery(new Slacks(_)) {
 	def notifyCreate(slack: Slack): Unit = {
-		EventDispatcher !# SlackCreate(slack)
+		Dispatcher !# SlackCreate(slack)
 	}
 
 	def notifyUpdate(slack: Slack): Unit = {
-		EventDispatcher !# SlackUpdate(slack)
+		Dispatcher !# SlackUpdate(slack)
 	}
 
 	def notifyDelete(id: Int): Unit = {
-		EventDispatcher !# SlackDelete(id)
+		Dispatcher !# SlackDelete(id)
 	}
 }

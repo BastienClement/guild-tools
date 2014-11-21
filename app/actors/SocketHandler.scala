@@ -38,7 +38,7 @@ with AbsencesHandler {
 	var session: Option[String] = None
 
 	// Register with EventDispatcher
-	EventDispatcher.register(self)
+	Dispatcher.register(self)
 
 	/**
 	 * Handle actor messages
@@ -228,7 +228,7 @@ with AbsencesHandler {
 	 * Websocket is now closed
 	 */
 	override def postStop(): Unit = {
-		EventDispatcher.unregister(self)
-		ChatManager.disconnect(self)
+		Dispatcher.unregister(self)
+		Chat.disconnect(self)
 	}
 }

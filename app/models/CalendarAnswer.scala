@@ -1,7 +1,7 @@
 package models
 
 import java.sql.Timestamp
-import actors.Actors.EventDispatcher
+import actors.Actors.Dispatcher
 import api.{CalendarAnswerCreate, CalendarAnswerDelete, CalendarAnswerUpdate}
 import models.mysql._
 
@@ -38,14 +38,14 @@ class CalendarAnswers(tag: Tag) extends Table[CalendarAnswer](tag, "gt_answers")
  */
 object CalendarAnswers extends TableQuery(new CalendarAnswers(_)) {
 	def notifyCreate(answer: CalendarAnswer): Unit = {
-		EventDispatcher !# CalendarAnswerCreate(answer)
+		Dispatcher !# CalendarAnswerCreate(answer)
 	}
 
 	def notifyUpdate(answer: CalendarAnswer): Unit = {
-		EventDispatcher !# CalendarAnswerUpdate(answer)
+		Dispatcher !# CalendarAnswerUpdate(answer)
 	}
 
 	def notifyDelete(user: Int, event: Int): Unit = {
-		EventDispatcher !# CalendarAnswerDelete(user, event)
+		Dispatcher !# CalendarAnswerDelete(user, event)
 	}
 }

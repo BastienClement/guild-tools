@@ -1,6 +1,6 @@
 package models
 
-import actors.Actors.EventDispatcher
+import actors.Actors.Dispatcher
 import api._
 import models.mysql._
 
@@ -30,18 +30,18 @@ class CalendarTabs(tag: Tag) extends Table[CalendarTab](tag, "gt_events_tabs") {
  */
 object CalendarTabs extends TableQuery(new CalendarTabs(_)) {
 	def notifyCreate(tab: CalendarTab): Unit = {
-		EventDispatcher !# CalendarTabCreate(tab)
+		Dispatcher !# CalendarTabCreate(tab)
 	}
 
 	def notifyUpdate(tab: CalendarTab): Unit = {
-		EventDispatcher !# CalendarTabUpdate(tab)
+		Dispatcher !# CalendarTabUpdate(tab)
 	}
 
 	def notifyDelete(id: Int): Unit = {
-		EventDispatcher !# CalendarTabDelete(id)
+		Dispatcher !# CalendarTabDelete(id)
 	}
 
 	def notifyWipe(id: Int): Unit = {
-		EventDispatcher !# CalendarTabWipe(id)
+		Dispatcher !# CalendarTabWipe(id)
 	}
 }

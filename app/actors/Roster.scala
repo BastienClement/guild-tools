@@ -1,14 +1,14 @@
 package actors
 
 import scala.concurrent.duration._
-import actors.Actors.EventDispatcher
+import actors.Actors.Dispatcher
 import api._
 import models._
 import models.mysql._
 import play.api.libs.json._
 import utils.LazyCache
 
-trait RosterManager {
+trait Roster {
 	def users: Map[Int, User]
 	def chars: Map[Int, Char]
 
@@ -22,13 +22,13 @@ trait RosterManager {
 	def deleteChar(id: Int): Unit
 }
 
-class RosterManagerImpl extends RosterManager {
+class RosterImpl extends Roster {
 	/**
 	 * List of every users
 	 */
 	val roster_users = LazyCache(1.minute) {
 		DB.withSession { implicit s =>
-			Users.filter(_.group inSet SessionManagerHelper.allowedGroups).list.map(u => u.id -> u).toMap
+			Users.filter(_.group inSet AuthenticatorHelper.allowedGroups).list.map(u => u.id -> u).toMap
 		}
 	}
 
