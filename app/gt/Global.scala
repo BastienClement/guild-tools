@@ -17,13 +17,12 @@ object Global {
 	// Char update job
 	scheduler.schedule(15.seconds, 15.minutes) {
 		DB.withSession { implicit s =>
-			Chars
-					.filter(c => c.active && !c.invalid && c.last_update < Platform.currentTime - 21600000)
-					.sortBy(_.last_update.asc)
-					.take(5)
-					.list
-					.map(_.id)
-					.foreach(RosterService.refreshChar)
+			Chars.filter(c => c.active && !c.invalid && c.last_update < Platform.currentTime - 21600000)
+				.sortBy(_.last_update.asc)
+				.take(5)
+				.list
+				.map(_.id)
+				.foreach(RosterService.refreshChar)
 		}
 	}
 }

@@ -22,11 +22,6 @@ GuildTools.controller("SlacksCtrl", function($scope) {
 GuildTools.controller("ForumCtrl", function($scope) {
 	if ($scope.restrict()) return;
 });
-
-GuildTools.controller("RosterCtrl", function($scope) {
-	if ($scope.restrict()) return;
-});
-
 GuildTools.controller("WhishlistCtrl", function($scope) {
 	if ($scope.restrict()) return;
 });

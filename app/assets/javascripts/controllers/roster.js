@@ -1,3 +1,13 @@
+GuildTools.controller("RosterCtrl", function($scope) {
+	if ($scope.restrict()) return;
+
+	$scope.setNavigator("roster", "main");
+
+	$scope.formatServer = function(server) {
+		return server.replace(/\-/g, " ");
+	};
+});
+
 GuildTools.controller("RosterSelectorCtrl", function($scope) {
 	var ctx = $scope.ctx = $scope.modalCtx;
 

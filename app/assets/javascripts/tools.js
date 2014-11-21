@@ -47,14 +47,6 @@ GuildTools.config(function($routeProvider, $locationProvider, $animateProvider) 
 			templateUrl: "/assets/views/roster.html",
 			controller: "RosterCtrl"
 		})
-		.when("/whishlist", {
-			templateUrl: "/assets/views/whishlist.html",
-			controller: "WhishlistCtrl"
-		})
-		.when("/blueprints", {
-			templateUrl: "/assets/views/blueprints.html",
-			controller: "BlueprintsCtrl"
-		})
 		.otherwise({
 			redirectTo: function() {
 				return $.user ? "/dashboard" : "/login";

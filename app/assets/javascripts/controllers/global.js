@@ -398,6 +398,9 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 		],
 		"profile": [
 			["main", "Profile", "/profile"]
+		],
+		"roster": [
+			["main", "Roster", "/roster"]
 		]
 	};
 
