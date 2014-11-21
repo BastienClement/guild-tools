@@ -2,6 +2,7 @@ GuildTools.controller("RosterCtrl", function($scope) {
 	if ($scope.restrict()) return;
 
 	$scope.setNavigator("roster", "main");
+	$scope.setContext();
 
 	$scope.formatServer = function(server) {
 		return server.replace(/\-/g, " ");
