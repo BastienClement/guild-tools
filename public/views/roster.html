@@ -77,7 +77,11 @@
 	<div id="roster-container">
 		<div id="roster-head">
 			<div id="roster-filters">
-				<em>Work in progress...</em>
+				<em>Work in progress...</em><br>
+				<label>
+					Display inactive characters
+					<input type="checkbox" ng-model="display_inactive">
+				</label>
 			</div>
 			<div class="row headers">
 				<span class="player">Player</span>
@@ -92,7 +96,8 @@
 			<div class="user" ng-repeat="user in $.roster.users track by $index | orderBy: ['name']" ng-if="user">
 				<div class="row"
 				     ng-repeat="char in $.roster.charsByUser(user.id) | orderBy: ['-main', '-active', '-ilvl']"
-					 ng-class="{ main: char.main, reroll: !char.main, inactive: !char.active }">
+					 ng-class="{ main: char.main, reroll: !char.main, inactive: !char.active }"
+					 ng-if="char.active || display_inactive">
 					<span class="player c{{ char.class }}">
 						<img ng-src="http://eu.battle.net/static-render/eu/{{ char.thumbnail }}">
 						{{ char.name }}
