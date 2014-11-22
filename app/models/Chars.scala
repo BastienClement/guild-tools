@@ -43,6 +43,7 @@ class Chars(tag: Tag) extends Table[Char](tag, "gt_chars") {
 	def thumbnail = column[String]("thumbnail")
 	def ilvl = column[Int]("ilvl")
 	def role = column[String]("role")
+	def failures = column[Int]("failures")
 	def invalid = column[Boolean]("invalid")
 	def last_update = column[Long]("last_update")
 

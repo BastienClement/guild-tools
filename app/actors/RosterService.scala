@@ -100,9 +100,9 @@ class RosterServiceImpl extends RosterService {
 					case Success(nc) =>
 						DB.withSession { implicit s =>
 							char_query.map { c =>
-								(c.klass, c.race, c.gender, c.level, c.achievements, c.thumbnail, c.ilvl, c.last_update)
+								(c.klass, c.race, c.gender, c.level, c.achievements, c.thumbnail, c.ilvl, c.failures, c.invalid, c.last_update)
 							} update {
-								(nc.clazz, nc.race, nc.gender, nc.level, nc.achievements, nc.thumbnail, nc.ilvl, Platform.currentTime)
+								(nc.clazz, nc.race, nc.gender, nc.level, nc.achievements, nc.thumbnail, nc.ilvl, 0,  false, Platform.currentTime)
 							}
 
 							RosterService.updateChar(char_query.first)
@@ -110,7 +110,13 @@ class RosterServiceImpl extends RosterService {
 
 					case Failure(_) =>
 						DB.withSession { implicit s =>
-							char_query.map(_.invalid).update(true)
+							val failures = char_query.map(_.failures).first
+							char_query.map { c =>
+								(c.active, c.failures, c.invalid, c.last_update)
+							} update {
+								(char.main, failures + 1, failures > 2, Platform.currentTime)
+							}
+
 							RosterService.updateChar(char_query.first)
 						}
 				}
