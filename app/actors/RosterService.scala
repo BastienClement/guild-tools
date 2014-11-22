@@ -110,11 +110,13 @@ class RosterServiceImpl extends RosterService {
 
 					case Failure(_) =>
 						DB.withSession { implicit s =>
-							val failures = char_query.map(_.failures).first
+							val failures = char_query.map(_.failures).first + 1
+							val invalid = failures >= 3
+
 							char_query.map { c =>
 								(c.active, c.failures, c.invalid, c.last_update)
 							} update {
-								(char.main, failures + 1, failures > 2, Platform.currentTime)
+								(char.active && (!invalid || char.main), failures, invalid, Platform.currentTime)
 							}
 
 							RosterService.updateChar(char_query.first)
