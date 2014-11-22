@@ -257,6 +257,9 @@ var $ = {};
 			},
 
 			"roster:char:update": function(char) {
+				if ($.roster.chars[char.id]) {
+					char.$$hashKey = $.roster.chars[char.id].$$hashKey;
+				}
 				$.roster.chars[char.id] = char;
 				$.roster.trigger();
 			},
