@@ -94,7 +94,7 @@ class RosterServiceImpl extends RosterService {
 		val char_query = Chars.filter(_.id === id)
 
 		DB.withSession { implicit s =>
-			for (char <- char_query.firstOption if Platform.currentTime - char.last_update > 3600000) {
+			for (char <- char_query.firstOption if Platform.currentTime - char.last_update > 1800000) {
 				inflightUpdates += char.id
 				BattleNet.fetchChar(char.server, char.name) onComplete {
 					case Success(nc) =>
