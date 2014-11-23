@@ -47,7 +47,7 @@ object Api extends Controller {
 		val rev = (report \ "rev").as[String]
 		val error = (report \ "msg").as[String]
 		val stack = (report \ "stack").asOpt[String] getOrElse ""
-		val navigator = (report \ "stack").asOpt[String] getOrElse ""
+		val navigator = (report \ "nav").asOpt[String] getOrElse ""
 
 		val key = (user, error, stack)
 		val bug = BugReport(utils.md5(key.toString()), user, SmartTimestamp.now, rev, error, stack, navigator)
