@@ -467,10 +467,6 @@ header {
 	opacity: 1;
 }
 
-#breadcrumb li:first-child i {
-	display: none;
-}
-
 #right-controls {
 	position: absolute;
 	top: 12px;

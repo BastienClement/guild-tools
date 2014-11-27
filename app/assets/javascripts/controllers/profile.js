@@ -4,32 +4,31 @@
 
 GuildTools.controller("ProfileCtrl", function($scope, $location, $routeParams) {
 	if ($scope.restrict()) return;
-	
+
 	$scope.setNavigator("profile", "main");
 
 	var userid = Number($routeParams.id || $.user.id);
 	$scope.editable = (userid === $.user.id);
-	
+
 	$scope.chars = [];
-	
+
 	function update() {
 		$scope.user = $.roster.user(userid);
 		$scope.chars = $.roster.charsByUser(userid);
-		
-		$scope.breadcrumb.override({ name: $scope.user.name });
+
 		$scope.chars.sort(function(a, b) {
 			if (a.main !== b.main) return a.main ? -1 : 1;
 			if (a.active !== b.active) return a.active ? -1 : 1;
 			return a.name.localeCompare(b.name);
 		});
 	}
-	
+
 	update();
 	$scope.$on("roster-updated", update);
 
 	$scope.setContext("profile:load", { id: userid }, {
 		$: function(res) {
-			
+
 		}
 	});
 

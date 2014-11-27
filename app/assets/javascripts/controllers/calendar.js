@@ -197,7 +197,7 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 
 	$scope.open = function(id, type) {
 		if (type === 4) return;
-		$scope.breadcrumb.push("/calendar/event/" + id);
+		$scope.goto("/calendar/event/" + id);
 	};
 
 	$scope.accept = function(id, ev) {
@@ -685,7 +685,6 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				$scope.answer_promote = data.answer.promote;
 			}
 
-			$scope.breadcrumb.override({ name: data.event.title });
 			$scope.event = data.event;
 			$scope.tabs = data.tabs;
 			$scope.tab_selected = data.tabs[0].id;
@@ -717,7 +716,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		},
 
 		"calendar:event:delete": function() {
-			$scope.breadcrumb.push("/calendar");
+			$scope.goto("/calendar");
 			$scope.error("Event deleted");
 		},
 
@@ -725,7 +724,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		"calendar:answer:update": update_answer,
 		"calendar:answer:delete": function(data) {
 			if (data.user === $.user.id && $scope.event.type == 3) {
-				$scope.breadcrumb.push("/calendar");
+				$scope.goto("/calendar");
 				$scope.error("You just got kicked from this event");
 				return;
 			}
@@ -1512,7 +1511,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			{
 				icon: "awe-link-ext", text: "View profile",
 				action: function() {
-					$scope.breadcrumb.push("/profile/" + user.id);
+					$scope.goto("/profile/" + user.id);
 				}, order: 0
 			},
 			{ separator: true, order: 1, visible: promotable || kickable },

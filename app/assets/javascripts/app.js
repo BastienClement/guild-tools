@@ -62,7 +62,7 @@ try {
 		};
 
 		$$.error = function() {
-			_("#left-controls, #right-controls, #window-controls .minify, #window-controls .maximize, #breadcrumb").remove();
+			_("#left-controls, #right-controls, #window-controls .minify, #window-controls .maximize").remove();
 			_("header").hide().css({
 				"background": "transparent",
 				"border": "none",

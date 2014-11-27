@@ -1,3 +1,5 @@
+var GuildToolsScope, GuildToolsLocation;
+
 GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	GuildToolsScope = $scope;
 	GuildToolsLocation = $location;
@@ -29,174 +31,17 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 		$scope.$broadcast("resize");
 	});
 
-	$scope.breadcrumb = (function() {
-		var baseURL = document.location.origin;
+	//
+	// --- Location ---
+	//
 
-		var stack = [
-			{
-				icon: "home",
-				name: "Dashboard",
-				location: baseURL + "/dashboard",
-				path: "/dashboard",
-				root: true
-			}
-		];
-
-		var forward = [];
-
-		var location_data = [
-			["/welcome", "planet", "Getting Started"],
-			["/about", "tools", "Guild-Tools"],
-
-			[/^\/profile(\/\d+)?$/, "helm2", ""],
-
-			["/calendar", "calendar", "Calendar"],
-			[/^\/calendar\/event\/\d+$/, "events", ""],
-			["/calendar/abs", "afk", "Absences"],
-
-			["/social", "forum", "Social"],
-			["/roster", "roster", "Roster"],
-			["/whishlist", "whishlist", "Whishlist"],
-			["/blueprint", "blueprint", "Blueprint"]
-		];
-
-		function resolve(path, override) {
-			if (path[0] !== "/") {
-				path = path.slice(baseURL.length);
-			}
-
-			for (var i = 0; i < location_data.length; ++i) {
-				var entry = location_data[i];
-				if ((entry[0] instanceof RegExp && entry[0].test(path)) || entry[0] === path) {
-					return {
-						icon: (override && override.icon) || entry[1],
-						name: (override && override.name) || entry[2],
-						location: baseURL + path,
-						path: path
-					};
-				}
-			}
+	$scope.goto = function(path, override, replace) {
+		if (!$.user || !$.user.ready) return;
+		$location.path(path);
+		if (replace) {
+			$location.replace();
 		}
-
-		if ($location.absUrl() !== stack[0].location) {
-			stack.push(resolve($location.path()) || {
-				icon: "page",
-				name: "Current page",
-				location: $location.absUrl()
-			});
-		}
-
-		$scope.$on("$locationChangeStart", function(e, next, prev) {
-			$scope.modal();
-			_("#tooltip").hide();
-			if (next === prev) return;
-			if (stack.length > 1 && next === stack[stack.length - 2].location) {
-				forward.unshift(stack.pop());
-				updateTitle();
-			} else if (forward.length && forward[0].location === next) {
-				stack.push(forward.shift());
-			} else if ($.user) {
-				$scope.breadcrumb.updateTitle();
-			}
-		});
-
-		var last = null;
-
-		function updateTitle() {
-			var s = $scope.breadcrumb.stack;
-			var f = s[s.length - 1];
-
-			if (/^\s*$/.test(f.name)) return;
-			var name = f.name === "Current page" ? "GuildTools" : f.name;
-			document.title = name;
-
-			if (last !== f) {
-				last = f;
-				ga('send', 'pageview', {
-					'page': f.path,
-					'title': name
-				});
-			}
-		}
-
-		return {
-			stack: stack,
-			updateTitle: updateTitle,
-
-			push: function(path, override, replace, test) {
-				if (!$.user || !$.user.ready) return;
-
-				var target = resolve(path, override);
-				if (!target || stack[stack.length - 1].path === path) return;
-				if (test) return true;
-
-				if (path === "/") return $scope.breadcrumb.rewind("/");
-
-				for (var i = 0; i < stack.length; ++i) {
-					if (stack[i].location === target.location) {
-						//stack[i].icon = target.icon;
-						//stack[i].name = target.name;
-						return $scope.breadcrumb.rewind(target.location);
-					}
-				}
-
-				$location.path(target.path);
-				forward = [];
-
-				if (replace) {
-					$location.replace();
-					stack.pop();
-				}
-
-				stack.push(target);
-				updateTitle();
-			},
-
-			override: function(override) {
-				if (!override) return;
-				var cur = stack[stack.length - 1];
-				if (cur.root) return;
-				if (override.icon) cur.icon = override.icon;
-				if (override.name) cur.name = override.name;
-				updateTitle();
-			},
-
-			replace: function(path, override) {
-				$scope.breadcrumb.push(path, override, true);
-			},
-
-			rewind: function(target) {
-				if (!$.user || !$.user.ready) return;
-				if (target === stack[stack.length - 1].location || target === stack[stack.length - 1].path) return;
-
-				for (var i = 0; ; --i) {
-					var entry = stack.pop();
-					if (entry.location === target || entry.path === target || entry.root) {
-						stack.push(entry);
-						$location.path(entry.path);
-						break;
-					} else {
-						forward.unshift(entry);
-					}
-				}
-
-				updateTitle();
-			},
-
-			reset: function(path) {
-				if ($scope.breadcrumb.push(path, false, false, true)) {
-					$scope.breadcrumb.rewind("/");
-					$scope.breadcrumb.push(path);
-				}
-			},
-
-			current: function(path) {
-				return path === stack[stack.length - 1].path;
-			}
-		};
-	})();
-
-	if ($.user) $scope.breadcrumb.updateTitle();
+	};
 
 	$scope.restrict = function() {
 		if ($.user) {
@@ -251,7 +96,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 			if (ctx_inflight !== ctx_loader) return;
 			if (err) {
 				$scope.error("Error while switching contexts");
-				$scope.breadcrumb.rewind("/dashboard");
+				$scope.goto("/dashboard");
 			} else {
 				ctx_valid = true;
 				if (typeof ctx_handlers.$ === "function") {
@@ -389,18 +234,18 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 
 	var navigators = {
 		"dashboard": [
-			["main", "Dashboard", "/dashboard"]
+			{ id: "main", title: "Dashboard", target: "/dashboard" }
 		],
 		"calendar": [
-			["main", "Calendar", "/calendar"],
-			["lockout", "Lockout", "/calendar/lockout"],
-			["absences", "Absences", "/calendar/abs"]
+			{ id: "main", title: "Calendar", target: "/calendar" },
+			{ id: "absences", title: "Absences", target: "/calendar/abs" },
+			{ id: "lockout", title: "Lockout", target: "/calendar/lockout" }
 		],
 		"profile": [
-			["main", "Profile", "/profile"]
+			{ id: "main", title: "Profile", target: "/profile" }
 		],
 		"roster": [
-			["main", "Roster", "/roster"]
+			{ id: "main", title: "Roster", target: "/roster" }
 		]
 	};
 
@@ -411,27 +256,37 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 		if (name && navigators[name]) {
 			$scope.navigator = [];
 			navigators[name].forEach(function(item) {
-				var id = item[0];
-				var name = item[1];
-				var action = item[2];
+				var id = item.id;
+				var title = item.title;
+				var target = item.target;
+				var visible = item.visible;
 
-				if (overrides && overrides[id]) {
-					name = overrides[id][0];
-					action = overrides[id][1];
+				if (typeof visible == "function") {
+					if (!visible()) return;
 				}
 
-				$scope.navigator.push([id, name, function() {
-					if (typeof action === "function") {
+				if (tab == id) {
+					document.title = title || "Guild-Tools";
+				}
+
+				if (overrides && overrides[id]) {
+					title = overrides[id][0];
+					target = overrides[id][1];
+				}
+
+				$scope.navigator.push([id, title, function() {
+					if (typeof target === "function") {
 						try {
-							action();
+							target();
 						} catch (e) {}
 					} else {
-						$scope.breadcrumb.push(action);
+						$scope.goto(target);
 					}
 				}]);
 			});
 		} else {
 			$scope.navigator = null;
+			document.title = "Guild-Tools";
 		}
 	};
 

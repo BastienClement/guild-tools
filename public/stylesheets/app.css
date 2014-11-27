@@ -9,7 +9,6 @@
 }
 
 .app #left-controls,
-.app #breadcrumb,
 .app #right-controls {
 	-webkit-app-region: no-drag;
 }

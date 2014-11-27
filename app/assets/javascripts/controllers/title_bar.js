@@ -3,14 +3,14 @@ GuildTools.controller("TitleBarCtrl", function($scope) {
 		{
 			icon: "awe-help", text: "About",
 			action: function() {
-				$scope.breadcrumb.push("/about");
+				$scope.goto("/about");
 			},
 			order: 1
 		},
 		{
 			icon: "awe-cog", text: "Settings",
 			action: function() {
-				$scope.breadcrumb.push("/settings");
+				$scope.goto("/settings");
 			},
 			order: 2
 		},

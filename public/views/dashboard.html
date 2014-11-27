@@ -254,7 +254,7 @@
 					<div class="event-list">
 						<div class="event {{ stateClass(entry) }}"
 							ng-repeat="entry in formattedEventsList()"
-							ng-click="entry.event.type != 4 && breadcrumb.push('/calendar/event/' + entry.id)"
+							ng-click="entry.event.type != 4 && goto('/calendar/event/' + entry.id)"
 							ng-class="{ announce: entry.event.type == 4 }">
 							<span class="date">{{ entry._datestr }}</span>
 							<span class="title">

@@ -181,15 +181,15 @@
 
 	<nav id="sidebar">
 		<ul ng-if="$.user" class="animated">
-			<li ng-click="breadcrumb.rewind('/')" ng-class="{ active: navigator_current == 'dashboard' }">
+			<li ng-click="goto('/')" ng-class="{ active: navigator_current == 'dashboard' }">
 				<img src="/assets/images/icons/home.png">
 			</li>
 
-			<li ng-click="breadcrumb.reset('/profile')" ng-class="{ active: navigator_current == 'profile' }">
+			<li ng-click="goto('/profile')" ng-class="{ active: navigator_current == 'profile' }">
 				<img src="/assets/images/icons/helm2.png">
 			</li>
 
-			<li ng-click="breadcrumb.reset('/calendar')" ng-class="{ active: navigator_current == 'calendar' }">
+			<li ng-click="goto('/calendar')" ng-class="{ active: navigator_current == 'calendar' }">
 				<img src="/assets/images/icons/calendar.png">
 			</li>
 
@@ -197,11 +197,11 @@
 				<img src="/assets/images/icons/whishlist.png">
 			</li>-->
 
-			<li ng-click="breadcrumb.reset('/roster')" ng-class="{ active: navigator_current == 'roster' }">
+			<li ng-click="goto('/roster')" ng-class="{ active: navigator_current == 'roster' }">
 				<img src="/assets/images/icons/roster.png">
 			</li>
 
-			<li ng-click="breadcrumb.reset('/_')" onclick="document.location = 'http://www.fs-guild.net/forum/';">
+			<li ng-click="goto('/_')" onclick="document.location = 'http://www.fs-guild.net/forum/';">
 				<img src="/assets/images/icons/forum.png">
 			</li>
 
