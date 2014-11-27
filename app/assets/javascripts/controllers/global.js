@@ -424,8 +424,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 					if (typeof action === "function") {
 						try {
 							action();
-						} catch (e) {
-						}
+						} catch (e) {}
 					} else {
 						$scope.breadcrumb.push(action);
 					}

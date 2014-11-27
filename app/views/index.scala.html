@@ -123,7 +123,7 @@
 		});
 	</script>
 </head>
-<body class="loading live" ng-controller="GlobalCtrl" ng-class="{ 'modal-visible': modalView, 'authenticated': $.user, 'navigator': navigator }">
+<body class="loading live" ng-controller="GlobalCtrl" ng-class="{ 'modal-visible': modalView, 'authenticated': $.user }">
 	<div id="loading-cover"></div>
 
 	<div id="loading-error">
@@ -151,23 +151,22 @@
 	<div id="tooltip" class="tooltip"></div>
 
 	<header ng-controller="TitleBarCtrl">
-		<div id="left-controls" ng-click="$.user && menu(titleMenu, $event)">
-			<img src="/assets/images/logo_small2.png" id="app-menu-icon">
-			<i class="awe-down-dir" ng-if="$.user"></i>
+		<div id="left-controls">
+			<img src="/assets/images/logo_small2.png" id="app-menu-icon" ng-click="$.user && menu(titleMenu, $event)">
+			<nav ng-if="$.user">
+				<button ng-repeat="entry in navigator" ng-click="entry[2]()" ng-class="{ active: entry[0] == navigator_tab }">{{ entry[1] }}</button>
+			</nav>
 		</div>
-		<div id="breadcrumb" ng-if="$.user">
-			<ul>
-				<li ng-repeat="entry in breadcrumb.stack" ng-if="entry.name != ''">
-					<i class="awe-angle-right"></i>
-					<span ng-click="breadcrumb.rewind(entry.location)">
-						<img ng-src="/assets/images/icons/{{ entry.icon }}.png">
-						{{ entry.name }}
-					</span>
-				</li>
-			</ul>
-		</div>
-		<div id="right-controls">
-
+		<div id="right-controls" ng-if="$.user">
+			<div class="user" ng-if="$.user" ng-click="menu(userMenu, $event)">
+				<span class="status-dot"></span>
+				{{ $.user.name }}
+				<i class="awe-down-dir"></i>
+			</div>
+			<button id="chat-control">
+				<i class="awe-chat-empty"></i>
+				{{ $.online.length }}
+			</button>
 		</div>
 		<div id="window-controls">
 			<span class="minify"><i class="awe-minus"></i></span>
@@ -213,23 +212,6 @@
 			</li>
 			-->
 		</ul>
-	</nav>
-
-	<nav id="topbar" ng-if="navigator">
-		<ul id="topbar-nav">
-			<li ng-repeat="entry in navigator" ng-click="entry[2]()" ng-class="{ active: entry[0] == navigator_tab }">{{ entry[1] }}</li>
-		</ul>
-		<div id="topbar-chat">
-			<div class="user" ng-if="$.user" ng-click="menu(userMenu, $event)">
-				<span class="status-dot"></span>
-				{{ $.user.name }}
-				<i class="awe-down-dir"></i>
-			</div>
-			<button>
-				<i class="awe-chat-empty"></i>
-				{{ $.online.length }}
-			</button>
-		</div>
 	</nav>
 
 	<div id="main-view-slider">

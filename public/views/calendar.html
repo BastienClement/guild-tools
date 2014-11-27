@@ -4,17 +4,12 @@
 		display: flex;
 		flex-direction: column;
 		align-items: stretch;
-		/*background: rgba(99, 180, 255, 0.1);*/
-		/*background: #32404d;*/
-		background: rgba(99, 180, 255, 0.1);
-		border: 2px solid #395066;
+		padding: 0;
 	}
 
 	#calendar-navigator {
 		background: rgba(99, 180, 255, 0.1);
-		padding: 10px;
-		padding-bottom: 0px;
-		padding-top: 5px;
+		padding: 5px 10px 0;
 		text-align:center;
 		font-size: 20px;
 		font-family: "Roboto Condensed";
@@ -44,6 +39,11 @@
 		position: absolute;
 		top: 8px;
 		left: 13px;
+		color: #fff;
+	}
+
+	.calendar-navigator-action.reset:hover {
+		color: #64b4ff;
 	}
 
 	#calendar-header table {
@@ -61,6 +61,10 @@
 
 	.calendar-navigator-action.buttons button {
 		margin-top: 0;
+	}
+
+	.calendar-navigator-action.buttons button i {
+		top: -1px;
 	}
 
 	#calendar-header th {
@@ -241,7 +245,7 @@
 </style>
 
 <div id="calendar" class="tools-main">
-	<div id="calendar-container">
+	<div id="calendar-container" class="box">
 		<div id="calendar-header">
 			<div id="calendar-navigator">
 				<div class="calendar-navigator-action reset" ng-click="monthCurrent()"><i class="awe-history"></i></div>

@@ -258,7 +258,7 @@ button {
 }
 
 button + button {
-	margin-left: 15px;
+	margin-left: 12px;
 }
 
 button i {
@@ -267,7 +267,7 @@ button i {
 
 button:disabled {
 	color: #fff !important;
-	opacity: 0.3;
+	opacity: 0.26;
 }
 
 button.left {
@@ -298,10 +298,11 @@ form .error {
 }
 
 .box {
+	padding: 16px;
 	background: #32404d;
 	background: rgba(99, 180, 255, 0.1);
-	border: 2px solid #395066;
-	padding: 15px;
+	border: 1px solid #395066;
+	box-shadow: 0 1px 1px rgba(17, 17, 17, 0.3);
 }
 
 .box *:last-child {
@@ -320,17 +321,17 @@ form .error {
 }
 
 .box.parted h2 {
-	margin: 0 -15px;
+	margin: 0 -16px;
 	border-bottom: 2px solid #426585;
-	padding: 0 15px 15px 15px;
+	padding: 0 16px 16px 16px;
 }
 
 .box.parted .panel {
 	flex: 1;
 	overflow-y: auto;
 	overflow-x: hidden;
-	margin: 0 -15px -15px -15px;
-	padding: 15px;
+	margin: 0 -16px -16px -16px;
+	padding: 16px;
 }
 
 .box .btns {
@@ -425,21 +426,30 @@ header {
 	top: 0;
 	left: 0;
 	right: 0;
-	height: 52px;
-	padding: 10px;
-	background-color: #426585;
-	background-color: rgba(99, 180, 255, 0.3);
-	z-index: 200;
+	height: 56px;
+	padding: 12px;
+	z-index: 50;
+	font-size: 14px;
 }
 
 #left-controls {
-	position: absolute;
-	top: 10px;
-	left: 10px;
+	display: flex;
+	align-items: center;
 }
 
 #left-controls img {
 	height: 32px;
+	width: 32px;
+	margin-right: 24px;
+}
+
+#left-controls nav {
+	display: inline-block;
+	top: -1px;
+}
+
+#left-controls button + button {
+	margin-left: 24px;
 }
 
 #app-menu-icon {
@@ -457,56 +467,52 @@ header {
 	opacity: 1;
 }
 
-#breadcrumb {
-	position: absolute;
-	top: 15px;
-	left: 85px;
-	font-size: 14px;
-}
-
-#breadcrumb img {
-	width: 18px;
-	top: -2px;
-	margin-right: 5px;
-}
-
-#breadcrumb li {
-	display: inline-block;
-	color: #fff;
-	vertical-align: middle;
-}
-
-#breadcrumb i {
-	top: -2px;
-	margin-left: 5px;
-	margin-right: 3px;
-	color: #fff;
-}
-
 #breadcrumb li:first-child i {
 	display: none;
 }
 
 #right-controls {
 	position: absolute;
-	top: 10px;
-	right: 10px;
-	color: #fff;
+	top: 12px;
+	right: 12px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+}
+
+#right-controls .user {
+	line-height: 35px;
+}
+
+#right-controls .user i {
+	opacity: .5;
+	top: -2px;
+	transition: opacity ease-out .3s;
+}
+
+#right-controls .user:hover i {
+	opacity: 1;
+}
+
+#right-controls #chat-control {
+	padding-left: 4px;
+	margin-left: 12px;
+	padding-right: 4px;
+}
+
+#right-controls #chat-control i {
+	font-size: 18px;
+	vertical-align: -2px;
 }
 
 #sidebar {
 	display: none;
 	position: fixed;
-	top: 52px;
+	top: 56px;
 	bottom: 0;
 	left: 0;
-	width: 62px;
-	background-color: rgba(50, 64, 78, 0.8);
-	padding: 10px 0;
-	transition: width ease-out .2s, background-color ease-out .2s .1s, box-shadow ease-out .2s;
+	width: 56px;
 	z-index: 20;
-	overflow: hidden;
-	transform: translate3d(0, 0, 0);
 }
 
 .authenticated #sidebar {
@@ -514,7 +520,7 @@ header {
 }
 
 #sidebar li {
-	padding: 10px;
+	padding: 12px;
 	transition: background ease-out .3s;
 }
 
@@ -528,164 +534,28 @@ header {
 
 #sidebar img {
 	width: 28px;
-	margin-left: 7px;
-}
-
-#topbar {
-	position: fixed;
-	top: 52px;
-	left: 62px;
-	right: 0;
-	background-color: rgba(99, 180, 255, 0.13);
-	z-index: 15;
-	display: flex;
-	height: 35px;
-	opacity: 0;
-	transition: opacity ease-out .2s;
-}
-
-.navigator #topbar {
-	opacity: 1;
-}
-
-#topbar #topbar-nav {
-	list-style: none;
-	display: flex;
-	align-items: flex-end;
-	padding: 0 6px;
-	flex: 1;
-}
-
-#topbar #topbar-nav > li {
-	display: inline-block;
-	padding: 0 6px 8px 6px;
-	margin: 0 12px;
-	font-size: 13px;
-	text-transform: uppercase;
-	font-weight: 600;
-	color: #EEE;
-}
-
-#topbar #topbar-nav > li:before {
-	content: "";
-	position: absolute;
-	width: 100%;
-	height: 3px;
-	bottom: 0;
-	left: 0;
-	background-color: #64b4ff;
-	opacity: 0;
-	transition: opacity .2s ease-out;
-}
-
-#topbar #topbar-nav > li:hover:before {
-	opacity: 1;
-}
-
-#topbar #topbar-nav > li.active:before {
-	opacity: 1;
-	transition: none;
-}
-
-#topbar #topbar-chat {
-	display: flex;
-	justify-content: flex-end;
-	padding-right: 15px;
-}
-
-#topbar #topbar-chat ul {
-	list-style: none;
-}
-
-#topbar #topbar-chat li {
-	display: inline-block;
-}
-
-#topbar #topbar-chat .user {
-	line-height: 35px;
-}
-
-#topbar #topbar-chat .user i {
-	opacity: .5;
-	top: -1px;
-	transition: opacity ease-out .3s;
-}
-
-#topbar #topbar-chat .user:hover i {
-	opacity: 1;
-}
-
-#topbar #topbar-chat button {
-	padding-left: 3px;
-	margin-left: 10px;
-	padding-right: 3px;
-	color: #EEE;
-}
-
-#topbar #topbar-chat button i {
-	font-size: 18px;
-	vertical-align: -2px;
-}
-
-#topbar #topbar-chat button:hover {
-	color: #EEE;
-}
-
-#topbar #topbar-chat button:before {
-	content: "";
-	position: absolute;
-	width: 100%;
-	height: 3px;
-	bottom: 0;
-	left: 0;
-	background-color: #64b4ff;
-	opacity: 0;
-	transition: opacity .2s ease-out;
-}
-
-#topbar #topbar-chat button.attention:before {
-	animation-duration: 0.5s;
-	animation-name: chat-attention;
-	animation-iteration-count: infinite;
-	animation-direction: alternate;
-}
-
-@keyframes chat-attention {
-	from {
-		opacity: .25;
-	}
-
-	to {
-		opacity: .75;
-	}
-}
-
-#topbar #topbar-chat button:hover:before, #topbar #topbar-chat button.active:before {
-	opacity: 1;
+	margin-left: 2px;
 }
 
 #main-view-slider {
 	position: absolute;
 	top: 0;
-	bottom: 0;
+	bottom: 12px;
 	left: 0;
 	right: 0;
-	padding-top: 52px;
+	padding-top: 56px;
 	z-index: 5;
 	transition: all .2s ease-out;
 }
 
-.navigator #main-view-slider {
-	padding-top: 87px;
-}
-
 .authenticated #main-view-slider {
-	left: 62px;
+	left: 56px;
 }
 
 .main-view {
 	transition: all ease-out .3s;
 	height: 100%;
+	padding: 0 12px;
 }
 
 .main-view.ng-enter {
@@ -711,7 +581,7 @@ header {
 	z-index: 100;
 }
 
-.modal-visible .tools-main {
+.modal-visible .main-view, .modal-visible header, .modal-visible #sidebar {
 	opacity: .3;
 }
 
@@ -737,7 +607,6 @@ header {
 	width: 100%;
 	height: 100%;
 	align-items: stretch;
-	padding: 15px;
 }
 
 #context-menu {
@@ -750,7 +619,8 @@ header {
 
 #context-menu, #context-menu ul {
 	background: rgba(31, 41, 52, 0.95);
-	box-shadow: 0 1px 10px 0 rgba(0, 0, 0, 0.5);
+	box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+	border-radius: 2px;
 }
 
 #context-menu li {
@@ -886,7 +756,8 @@ header {
 
 .wowhead-tooltip {
 	background: rgba(31, 41, 52, 0.95);
-	box-shadow: 0 1px 10px 0 rgba(0, 0, 0, 0.5);
+	box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+	border-radius: 2px;
 }
 
 .wowhead-tooltip p {
@@ -904,11 +775,11 @@ header {
 #tooltip {
 	position: fixed;
 	background: rgba(31, 41, 52, 0.95);
-	box-shadow: 0 1px 10px 0 rgba(0, 0, 0, 0.5);
-	padding: 8px 10px;
+	box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+	padding: 8px 12px;
 	display: none;
 	z-index: 2000;
-	max-width: 250px;
+	max-width: 300px;
 	border-radius: 2px;
 }
 
