@@ -155,6 +155,7 @@
 			<img src="/assets/images/logo_small2.png" id="app-menu-icon" ng-click="$.user && menu(titleMenu, $event)">
 			<nav ng-if="$.user">
 				<button ng-repeat="entry in navigator" ng-click="entry[2]()" ng-class="{ active: entry[0] == navigator_tab }">{{ entry[1] }}</button>
+				<button ng-if="!navigator" class="active">{{ navigator_fallback }}</button>
 			</nav>
 		</div>
 		<div id="right-controls" ng-if="$.user">

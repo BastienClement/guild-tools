@@ -12,7 +12,7 @@ GuildTools.controller("WelcomeCtrl", function($scope, $location) {
 });
 
 GuildTools.controller("AboutCtrl", function($scope) {
-	$scope.setNavigator();
+	$scope.setAutoNavigator("About");
 });
 
 GuildTools.controller("SlacksCtrl", function($scope) {

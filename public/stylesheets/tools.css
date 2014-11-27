@@ -452,6 +452,10 @@ header {
 	margin-left: 24px;
 }
 
+/*#left-controls button.active:not(:hover) {
+	color: #fff;
+}*/
+
 #app-menu-icon {
 	transition: opacity ease-out .3s;
 }

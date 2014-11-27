@@ -231,6 +231,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	$scope.navigator = null;
 	$scope.navigator_current = null;
 	$scope.navigator_tab = null;
+	$scope.navigator_fallback = null;
 
 	var navigators = {
 		"dashboard": [
@@ -252,6 +253,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	$scope.setNavigator = function(name, tab, overrides) {
 		$scope.navigator_current = name;
 		$scope.navigator_tab = tab;
+		$scope.navigator_fallback = null;
 
 		if (name && navigators[name]) {
 			$scope.navigator = [];
@@ -288,6 +290,14 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 			$scope.navigator = null;
 			document.title = "Guild-Tools";
 		}
+	};
+
+	$scope.setAutoNavigator = function(name) {
+		$scope.navigator_current = null;
+		$scope.navigator_tab = null;
+		$scope.navigator = null;
+		$scope.navigator_fallback = name;
+		document.title = name;
 	};
 
 	$scope.userMenu = [
