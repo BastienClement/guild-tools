@@ -3,7 +3,7 @@ package actors
 import scala.concurrent.Future
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
-import akka.actor.{TypedActor, TypedProps}
+import akka.actor.{DeadLetter, Props, TypedActor, TypedProps}
 import play.api.Play.current
 import play.api.libs.concurrent.Akka
 
@@ -11,6 +11,9 @@ object Actors {
 	private def initActor[I <: AnyRef, A <: I](n: String)(implicit ct: ClassTag[A]): I = {
 		TypedActor(Akka.system).typedActorOf(TypedProps[A], name = n)
 	}
+
+	var DeadLetterLogger = Akka.system.actorOf(Props[DeadLetterLogger], "DeadlettersLogger")
+	Akka.system.eventStream.subscribe(DeadLetterLogger, classOf[DeadLetter])
 
 	val AuthService = initActor[AuthService, AuthServiceImpl]("AuthService")
 	val BattleNet = initActor[BattleNet, BattleNetImpl]("BattleNet")
