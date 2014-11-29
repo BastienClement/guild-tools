@@ -35,12 +35,21 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	// --- Location ---
 	//
 
+	function close_ui_popups() {
+		$scope.modal();
+		_("#tooltip").hide();
+		_(".wowhead-tooltip").hide();
+	}
+
+	$scope.$on("$locationChangeStart", function(e, next, prev) {
+		close_ui_popups();
+		setTimeout(close_ui_popups, 500);
+	});
+
 	$scope.goto = function(path, override, replace) {
 		if (!$.user || !$.user.ready) return;
 		$location.path(path);
-		if (replace) {
-			$location.replace();
-		}
+		if (replace) $location.replace();
 	};
 
 	$scope.restrict = function() {
