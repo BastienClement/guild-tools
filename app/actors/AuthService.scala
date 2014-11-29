@@ -5,8 +5,7 @@ import scala.util.Try
 import actors.AuthenticatorHelper._
 import models._
 import models.mysql._
-import models.sql._
-import utils.LazyCollection
+import utils.{LazyCollection, SmartTimestamp}
 
 object AuthenticatorHelper {
 	val allowedGroups = Set(8, 12, 9, 11)
@@ -24,7 +23,9 @@ class AuthServiceImpl extends AuthService {
 	 */
 	private val sessionCache = LazyCollection(1.minute) { (session: String) =>
 		DB.withSession { implicit s =>
-			Sessions.filter(_.token === session).map(_.user).firstOption flatMap { user_id =>
+			val sess_query = Sessions.filter(_.token === session)
+			sess_query.map(_.user).firstOption flatMap { user_id =>
+				sess_query.map(_.last_access).update(SmartTimestamp.now)
 				Users.filter(u => u.id === user_id && u.group.inSet(allowedGroups)).firstOption
 			}
 		}
@@ -48,16 +49,17 @@ class AuthServiceImpl extends AuthService {
 				case (pass_ref, user_id) =>
 					def createSession(attempt: Int = 1): Option[String] = {
 						val token = utils.randomToken()
-						val query = sqlu"INSERT INTO gt_sessions SET token = $token, user = $user_id, ip = '', created = NOW(), last_access = NOW()"
-
 						Try {
-							query.first
+							val now = SmartTimestamp.now
+							Sessions.map { s =>
+								(s.token, s.user, s.ip, s.created, s.last_access)
+							} insert {
+								(token, user_id, "", now, now)
+							}
 							Some(token)
 						} getOrElse {
-							if (attempt < 3)
-								createSession(attempt + 1)
-							else
-								None
+							if (attempt < 3) createSession(attempt + 1)
+							else None
 						}
 					}
 
