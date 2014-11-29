@@ -42,7 +42,7 @@ class RosterServiceImpl extends RosterService {
 	 */
 	val roster_chars = LazyCache(1.minute) {
 		DB.withSession { implicit s =>
-			Chars.list.map(c => c.id -> c).toMap
+			Chars.filter(_.owner inSet roster_users.keySet).list.map(c => c.id -> c).toMap
 		}
 	}
 
