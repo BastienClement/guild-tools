@@ -19,8 +19,8 @@
 
 .app #window-controls {
 	position: absolute;
-	top: 9px;
-	right: 10px;
+	top: 12px;
+	right: 12px;
 	-webkit-app-region: no-drag;
 }
 

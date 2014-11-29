@@ -435,6 +435,9 @@ header {
 #left-controls {
 	display: flex;
 	align-items: center;
+	position: absolute;
+	top: 12px;
+	left: 12px;
 }
 
 #left-controls img {
