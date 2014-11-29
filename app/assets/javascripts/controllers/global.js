@@ -249,7 +249,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 		"calendar": [
 			{ id: "main", title: "Calendar", target: "/calendar" },
 			{ id: "absences", title: "Absences", target: "/calendar/abs" },
-			{ id: "lockout", title: "Lockout", target: "/calendar/lockout" }
+			{ id: "composer", title: "Composer", target: "/calendar/composer", visible: function() { return $.user.officer; } }
 		],
 		"profile": [
 			{ id: "main", title: "Profile", target: "/profile" }

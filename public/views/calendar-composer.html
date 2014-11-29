@@ -1,0 +1,58 @@
+<style>
+	#composer .char {
+		background: rgba(0, 0, 0, 0.2);
+		border: 1px solid rgba(0, 0, 0, 0.1);
+		padding: 0 5px 1px 5px;
+		margin-bottom: 4px;
+		display: flex;
+		margin-right: 6px;
+		transition: background ease-out .3s;
+		width: 110px;
+	}
+
+	#composer .char img {
+		width: 11px;
+		height: 11px;
+		top: 4px;
+		margin-right: 4px;
+	}
+
+	#composer-roster {
+		width: 390px;
+	}
+
+	#composer-roster .group {
+		display: flex;
+		flex-wrap: wrap;
+		margin-right: -10px;
+		margin-bottom: 12px;
+	}
+
+	#composer-roster .name {
+		flex: 1;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	#composer-roster h3 {
+		font-size: 16px;
+	}
+</style>
+
+<div id="composer" class="tools-main">
+	<div class="box parted" id="composer-roster">
+		<h2>Roster</h2>
+		<div class="panel">
+			<div ng-repeat="group in roster">
+				<h3>{{ group.title }}</h3>
+				<div class="group">
+					<span ng-repeat="char in group.chars" class="char c{{ char.class }}">
+						<img ng-src="/assets/images/roles/{{ char.role }}.png">
+						<span class="name">{{ char.name }}</span>
+					</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

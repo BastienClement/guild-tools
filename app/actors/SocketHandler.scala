@@ -19,7 +19,8 @@ with RosterHandler
 with DashboardHandler
 with ProfileHandler
 with CalendarHandler
-with AbsencesHandler {
+with AbsencesHandler
+with ComposerHandler {
 	// Protocol banner
 	out ! Json.obj(
 		"service" -> "GuildTools",
