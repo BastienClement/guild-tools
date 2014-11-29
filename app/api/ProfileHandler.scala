@@ -1,7 +1,6 @@
 package api
 
-import actors.Actors.BattleNet
-import actors.Actors.RosterService
+import actors.Actors.{BattleNet, RosterService}
 import actors.SocketHandler
 import gt.Global.ExecutionContext
 import models._
@@ -135,6 +134,8 @@ trait ProfileHandler {
 
 					MessageSuccess
 				}
+			} recover {
+				case _ => MessageFailure("Unable to fetch character")
 			}
 		}
 

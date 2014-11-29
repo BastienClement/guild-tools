@@ -5,7 +5,7 @@ import gt.Global.ExecutionContext
 import models._
 import play.api.Play._
 import play.api.libs.json.JsValue
-import play.api.libs.ws.WS
+import play.api.libs.ws.{WS, WSResponse}
 
 /**
  * Public interface
@@ -14,6 +14,11 @@ trait BattleNet {
 	def query(api: String, user_params: (String, String)*): Future[JsValue]
 	def fetchChar(server: String, name: String): Future[Char]
 }
+
+/**
+ * An error on Battle.net side
+ */
+case class BattleNetFailure(response: WSResponse) extends Exception
 
 /**
  * Actor implementation
@@ -25,10 +30,9 @@ class BattleNetImpl extends BattleNet {
 		val params = user_params :+ ("apikey" -> key)
 		val request = WS.url(s"https://eu.api.battle.net/wow$api").withQueryString(params: _*)
 
-		request.withHeaders("Accept" -> "application/json").get() filter {
-			_.status == 200
-		} map {
-			_.json
+		request.withHeaders("Accept" -> "application/json").get() flatMap {
+			case res if res.status == 200 => Future.successful(res.json)
+			case res => Future.failed(BattleNetFailure(res))
 		}
 	}
 

@@ -2,7 +2,8 @@ package actors
 
 import scala.compat.Platform
 import scala.concurrent.duration._
-import scala.util.{Failure, Success}
+import scala.slick.jdbc.JdbcBackend.SessionDef
+import scala.util.{Failure, Success, Try}
 import actors.Actors.{Dispatcher, _}
 import api._
 import gt.Global.ExecutionContext
@@ -89,6 +90,9 @@ class RosterServiceImpl extends RosterService {
 		Dispatcher !# RosterCharDelete(id)
 	}
 
+	/**
+	 * Fetch a character from Battle.net and update its cached value in DB
+	 */
 	def refreshChar(id: Int): Unit = {
 		if (inflightUpdates.contains(id)) return
 		val char_query = Chars.filter(_.id === id)
@@ -96,33 +100,47 @@ class RosterServiceImpl extends RosterService {
 		DB.withSession { implicit s =>
 			for (char <- char_query.firstOption if Platform.currentTime - char.last_update > 1800000) {
 				inflightUpdates += char.id
-				BattleNet.fetchChar(char.server, char.name) onComplete {
-					case Success(nc) =>
-						DB.withSession { implicit s =>
-							char_query.map { c =>
-								(c.klass, c.race, c.gender, c.level, c.achievements, c.thumbnail, c.ilvl, c.failures, c.invalid, c.last_update)
-							} update {
-								(nc.clazz, nc.race, nc.gender, nc.level, nc.achievements, nc.thumbnail, math.max(nc.ilvl, char.ilvl), 0,  false, Platform.currentTime)
-							}
-
-							RosterService.updateChar(char_query.first)
-						}
-
-					case Failure(_) =>
-						DB.withSession { implicit s =>
-							val failures = char_query.map(_.failures).first + 1
-							val invalid = failures >= 5
-
-							char_query.map { c =>
-								(c.active, c.failures, c.invalid, c.last_update)
-							} update {
-								(char.active && (!invalid || char.main), failures, invalid, Platform.currentTime)
-							}
-
-							RosterService.updateChar(char_query.first)
-						}
-				}
+				BattleNet.fetchChar(char.server, char.name) onComplete handleResult(char)
 			}
+		}
+
+		// Handle Battle.net response, both success and failure
+		def handleResult(char: Char)(res: Try[Char]): Unit = {
+			DB.withSession { implicit s =>
+				res match {
+					case Success(new_char) => handleSuccess(new_char, char)
+					case Failure(e) => handleFailure(e, char)
+				}
+
+				RosterService.updateChar(char_query.first)
+			}
+		}
+
+		// Handle a sucessful char retrieval
+		def handleSuccess(nc: Char, char: Char)(implicit s: SessionDef): Unit = {
+			char_query.map { c =>
+				(c.klass, c.race, c.gender, c.level, c.achievements, c.thumbnail, c.ilvl, c.failures, c.invalid, c.last_update)
+			} update {
+				(nc.clazz, nc.race, nc.gender, nc.level, nc.achievements, nc.thumbnail, math.max(nc.ilvl, char.ilvl), 0, false, Platform.currentTime)
+			}
+		}
+
+		// Handle an error on char retrieval
+		def handleFailure(e: Throwable, char: Char)(implicit s: SessionDef): Unit = e match {
+			// The character is not found on Battle.net, increment failures counter
+			case BattleNetFailure(response) if response.status == 404 =>
+				val failures = char_query.map(_.failures).first + 1
+				val invalid = failures >= 3
+
+				char_query.map { c =>
+					(c.active, c.failures, c.invalid, c.last_update)
+				} update {
+					(char.active && (!invalid || char.main), failures, invalid, Platform.currentTime)
+				}
+
+			// Another error occured, just update the update date, but don't count as failure
+			case _ =>
+				char_query.map(_.last_update).update(Platform.currentTime)
 		}
 	}
 }
