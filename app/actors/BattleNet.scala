@@ -57,7 +57,7 @@ class BattleNetImpl extends BattleNet {
 				level = (char \ "level").as[Int],
 				achievements = (char \ "achievementPoints").as[Int],
 				thumbnail = (char \ "thumbnail").as[String],
-				ilvl = (char \ "items" \ "averageItemLevel").as[Int],
+				ilvl = (char \ "items" \ "averageItemLevelEquipped").as[Int],
 				role = role)
 		}
 	}

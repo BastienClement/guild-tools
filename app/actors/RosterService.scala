@@ -102,7 +102,7 @@ class RosterServiceImpl extends RosterService {
 							char_query.map { c =>
 								(c.klass, c.race, c.gender, c.level, c.achievements, c.thumbnail, c.ilvl, c.failures, c.invalid, c.last_update)
 							} update {
-								(nc.clazz, nc.race, nc.gender, nc.level, nc.achievements, nc.thumbnail, nc.ilvl, 0,  false, Platform.currentTime)
+								(nc.clazz, nc.race, nc.gender, nc.level, nc.achievements, nc.thumbnail, math.max(nc.ilvl, char.ilvl), 0,  false, Platform.currentTime)
 							}
 
 							RosterService.updateChar(char_query.first)
