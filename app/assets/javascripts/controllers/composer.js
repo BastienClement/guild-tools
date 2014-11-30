@@ -20,17 +20,17 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 		}
 
 		mains.sort(sort_group(false));
-		roster.push({ title: "Mains", chars: mains });
+		roster.push({ title: "Mains", chars: mains, icon: "star" });
 
 		var alt_groups = [
 			{ title: "Alts 685+", ilvl: 685, chars: [] },
-			{ title: "Alts 670+", ilvl: 670, chars: [] },
-			{ title: "Alts 655+", ilvl: 655, chars: [] },
-			{ title: "Alts 640+", ilvl: 640, chars: [] },
-			{ title: "Alts 630+", ilvl: 630, chars: [] },
-			{ title: "Alts 615+", ilvl: 615, chars: [] },
-			{ title: "Alts 600+", ilvl: 600, chars: [] },
-			{ title: "Alts crappy", ilvl: 0, chars: [] }
+			{ title: "Alts 670+", ilvl: 670, chars: [], icon: "circle" },
+			{ title: "Alts 655+", ilvl: 655, chars: [], icon: "diamond" },
+			{ title: "Alts 640+", ilvl: 640, chars: [], icon: "triangle" },
+			{ title: "Alts 630+", ilvl: 630, chars: [], icon: "square" },
+			{ title: "Alts 615+", ilvl: 615, chars: [], icon: "moon" },
+			{ title: "Alts 600+", ilvl: 600, chars: [], icon: "cross" },
+			{ title: "Alts crappy", ilvl: 0, chars: [], icon: "skull" }
 		];
 
 		alts.forEach(function(char) {

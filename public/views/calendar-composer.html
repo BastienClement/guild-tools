@@ -3,7 +3,8 @@
 		background: rgba(0, 0, 0, 0.2);
 		border: 1px solid rgba(0, 0, 0, 0.1);
 		padding: 0 5px 1px 5px;
-		margin-bottom: 4px;
+		margin-bottom: 2px;
+		margin-top: 2px;
 		display: flex;
 		margin-right: 6px;
 		transition: background ease-out .3s;
@@ -17,8 +18,16 @@
 		margin-right: 4px;
 	}
 
+	#composer .char .name {
+		flex: 1;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
 	#composer-roster {
 		width: 390px;
+		margin-right: 12px;
 	}
 
 	#composer-roster .group {
@@ -28,21 +37,102 @@
 		margin-bottom: 12px;
 	}
 
-	#composer-roster .name {
-		flex: 1;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
 	#composer-roster h3 {
 		font-size: 16px;
+	}
+
+	#composer-lockouts {
+		flex: 1;
+		overflow: auto;
+	}
+
+	#composer-lockouts h2 i {
+		font-size: 16px;
+		margin-top: -6px;
+		left: -4px;
+		display: inline-block;
+	}
+
+	#composer-lockouts .lockout {
+		margin-bottom: 6px;
+	}
+
+	#composer-lockouts .group {
+		margin-bottom: 12px;
+		display: flex;
+		align-items: center;
+	}
+
+	#composer-lockouts .group > img {
+		width: 24px;
+		height: 24px;
+		margin-right: 12px;
+		margin-left: 6px;
+	}
+
+	#composer-lockouts .group.drop {
+		text-align: center;
+		display: block;
+		margin: 0;
+		padding: 4px 0 5px 0;
+	}
+
+	#composer-lockouts .comp {
+		flex: 1;
+		margin-left: 12px;
+		display: flex;
+		flex-wrap: wrap;
+		min-height: 24px;
+	}
+
+	#composer-lockouts .actions {
+		text-align: right;
+		display: flex;
+		flex-direction: column;
+		align-self: stretch;
+		justify-content: flex-end;
+	}
+
+	#composer-lockouts .actions button {
+		margin: 0;
+		text-align: right;
+	}
+
+	#composer-lockouts .spacing {
+		flex: 1;
+		min-height: 12px;
+	}
+
+	#composer-lockouts .stats span {
+		margin-left: 2px;
+		font-weight: 600;
+	}
+
+	#composer-lockouts .stats img {
+		width: 14px;
+		height: 14px;
+		top: -1px;
+	}
+
+	#composer .drop {
+		opacity: .5;
+		transition: opacity ease-out .2s;
+		transform: translateZ(1px);
+	}
+
+	#composer .drop:hover {
+		opacity: 1;
 	}
 </style>
 
 <div id="composer" class="tools-main">
 	<div class="box parted" id="composer-roster">
-		<h2>Roster</h2>
+		<div>
+			<div class="btns">
+				<button><i class="awe-plus"></i> New lockout</button>
+			</div>
+			<h2>Roster</h2>
+		</div>
 		<div class="panel">
 			<div ng-repeat="group in roster">
 				<h3>{{ group.title }}</h3>
@@ -51,6 +141,47 @@
 						<img ng-src="/assets/images/roles/{{ char.role }}.png">
 						<span class="name">{{ char.name }}</span>
 					</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="composer-lockouts">
+		<div class="box lockout parted">
+			<div>
+				<div class="btns">
+					<button><i class="awe-export-alt"></i> Export all</button>
+					<button><i class="awe-recycle"></i> Wipe</button>
+					<button><i class="awe-cancel"></i> Delete</button>
+				</div>
+				<h2>
+					<i class="awe-sort"></i>
+					<i class="awe-eye fsblue"></i>
+					Mythic
+				</h2>
+			</div>
+			<div class="panel">
+				<div class="group box" ng-repeat="group in roster">
+					<img ng-src="/assets/images/raidm/{{ group.icon }}.png">
+					<div class="comp">
+						<span ng-repeat="char in group.chars" class="char c{{ char.class }}">
+							<img ng-src="/assets/images/roles/{{ char.role }}.png">
+							<span class="name">{{ char.name }}</span>
+						</span>
+					</div>
+					<div class="actions">
+						<button><i class="awe-export-alt"></i> Export</button>
+						<button><i class="awe-cancel"></i> Delete</button>
+						<div class="spacing"></div>
+						<div class="stats">
+							<span>2 <img src="/assets/images/roles/TANK.png"></span>
+							<span>4 <img src="/assets/images/roles/HEALING.png"></span>
+							<span>12 <img src="/assets/images/roles/DPS.png"></span>
+						</div>
+					</div>
+				</div>
+				<div class="group box drop">
+					<i class="awe-plus"></i>
 				</div>
 			</div>
 		</div>
