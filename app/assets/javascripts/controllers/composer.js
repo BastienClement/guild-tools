@@ -1,6 +1,13 @@
 GuildTools.controller("ComposerCtrl", function($scope) {
-	if ($scope.restrict()) return;
+	if ($scope.restrict($scope.isOfficer)) return;
 	$scope.setNavigator("calendar", "composer");
+
+	$scope.icons = ["star", "circle", "diamond", "triangle", "moon", "square", "cross", "skull"];
+	$scope.hidden = {};
+
+	$scope.toggleHidden = function(lockout) {
+		$scope.hidden[lockout] = !$scope.hidden[lockout];
+	};
 
 	function build_roster() {
 		var mains = [];
@@ -20,17 +27,17 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 		}
 
 		mains.sort(sort_group(false));
-		roster.push({ title: "Mains", chars: mains, icon: "star" });
+		roster.push({ title: "Mains", chars: mains });
 
 		var alt_groups = [
 			{ title: "Alts 685+", ilvl: 685, chars: [] },
-			{ title: "Alts 670+", ilvl: 670, chars: [], icon: "circle" },
-			{ title: "Alts 655+", ilvl: 655, chars: [], icon: "diamond" },
-			{ title: "Alts 640+", ilvl: 640, chars: [], icon: "triangle" },
-			{ title: "Alts 630+", ilvl: 630, chars: [], icon: "square" },
-			{ title: "Alts 615+", ilvl: 615, chars: [], icon: "moon" },
-			{ title: "Alts 600+", ilvl: 600, chars: [], icon: "cross" },
-			{ title: "Alts crappy", ilvl: 0, chars: [], icon: "skull" }
+			{ title: "Alts 670+", ilvl: 670, chars: [] },
+			{ title: "Alts 655+", ilvl: 655, chars: [] },
+			{ title: "Alts 640+", ilvl: 640, chars: [] },
+			{ title: "Alts 630+", ilvl: 630, chars: [] },
+			{ title: "Alts 615+", ilvl: 615, chars: [] },
+			{ title: "Alts 600+", ilvl: 600, chars: [] },
+			{ title: "Alts crappy", ilvl: 0, chars: [] }
 		];
 
 		alts.forEach(function(char) {
@@ -50,4 +57,85 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 
 	build_roster();
 	$scope.$on("roster-updated", build_roster);
+
+	$scope.setContext("composer:load", {}, {
+		$: function(data) {
+			$scope.lockouts = data.lockouts;
+			$scope.groups = data.groups;
+			$scope.slots = data.slots;
+		},
+
+		"composer:lockout:create": function(lockout) {
+			$scope.lockouts.push(lockout);
+		},
+
+		"composer:lockout:delete": function(id) {
+			$scope.lockouts = $scope.lockouts.filter(function(lockout) {
+				return lockout.id != id;
+			});
+
+			var removed_groups = {};
+			$scope.groups = $scope.groups.filter(function(group) {
+				if (group.lockout == id) {
+					removed_groups[group.id] = true;
+					return false;
+				}
+
+				return true;
+			});
+
+			$scope.slots = $scope.slots.filter(function(slot) {
+				return !removed_groups[slot.group];
+			});
+		},
+
+		"composer:group:create": function(group) {
+			$scope.groups.push(group);
+		},
+
+		"composer:group:delete": function(id) {
+			$scope.groups = $scope.groups.filter(function(group) {
+				return group.id != id;
+			});
+
+			$scope.slots = $scope.slots.filter(function(slot) {
+				return slot.group != id;
+			});
+		}
+	});
+
+	$scope.deleteLockout = function(id) {
+		if (confirm("Are you sure?")) {
+			$.call("composer:lockout:delete", {lockout: id});
+		}
+	};
+
+	$scope.createGroup = function(lockout) {
+		$.call("composer:group:create", { lockout: lockout });
+	};
+
+	$scope.deleteGroup = function(id) {
+		if (confirm("Are you sure?")) {
+			$.call("composer:group:delete", {group: id});
+		}
+	};
+
+	$scope.groupsForLockout = function(lockout) {
+		return $scope.groups.filter(function(group) {
+			return group.lockout == lockout;
+		});
+	};
+});
+
+GuildTools.controller("ComposerNewCtrl", function($scope) {
+	$scope.inflight = false;
+
+	$scope.title = "";
+
+	$scope.create = function() {
+		$scope.inflight = true;
+		$.call("composer:lockout:create", { title: $scope.title }, function() {
+			$scope.modal();
+		});
+	};
 });

@@ -52,9 +52,9 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 		if (replace) $location.replace();
 	};
 
-	$scope.restrict = function() {
+	$scope.restrict = function(custom) {
 		if ($.user) {
-			if (!$.user.ready) {
+			if (!$.user.ready && (custom != "function" || custom())) {
 				$location.path("/welcome").replace();
 				return true;
 			} else {
@@ -64,6 +64,10 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 			$location.path("/login").replace();
 			return true;
 		}
+	};
+
+	$scope.isOfficer = function() {
+		return $.user && $.user.officer;
 	};
 
 	$scope.gameData = {};

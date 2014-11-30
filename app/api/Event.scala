@@ -81,3 +81,12 @@ case class CalendarSlotDelete(tab: Int, slot: Int) extends CtxEvent("calendar:sl
 case class SlackCreate(slack: Slack) extends CtxEvent("absence:create", slack)
 case class SlackUpdate(slack: Slack) extends CtxEvent("absence:update", slack)
 case class SlackDelete(id: Int) extends CtxEvent("absence:delete", id)
+
+/**
+ * Composer
+ */
+case class ComposerLockoutCreate(lockout: ComposerLockout) extends CtxEvent("composer:lockout:create", lockout)
+case class ComposerLockoutDelete(id: Int) extends CtxEvent("composer:lockout:delete", id)
+case class ComposerGroupCreate(group: ComposerGroup) extends CtxEvent("composer:group:create", group)
+case class ComposerGroupDelete(id: Int) extends CtxEvent("composer:group:delete", id)
+//case class ComposerCreate(id: Int) extends CtxEvent("absence:delete", id)

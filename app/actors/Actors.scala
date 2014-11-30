@@ -19,6 +19,7 @@ object Actors {
 	val BattleNet = initActor[BattleNet, BattleNetImpl]("BattleNet")
 	val CalendarLocks = initActor[CalendarLocks, CalendarLocksImpl]("CalendarLocks")
 	val ChatService = initActor[ChatService, ChatServiceImpl]("ChatService")
+	val ComposerService = initActor[ComposerService, ComposerServiceImpl]("ComposerService")
 	val Dispatcher = initActor[Dispatcher, DispatcherImpl]("Dispatcher")
 	val RosterService = initActor[RosterService, RosterServiceImpl]("RosterService")
 

@@ -1,0 +1,80 @@
+package actors
+
+import api._
+import models._
+import models.mysql._
+import utils.LazyCache
+import scala.concurrent.duration._
+import actors.Actors._
+
+trait ComposerService {
+
+	def load: (List[ComposerLockout], List[ComposerGroup], List[ComposerSlot])
+	def createLockout(title: String): Unit
+	def deleteLockout(id: Int): Unit
+	def createGroup(lockout: Int): Unit
+	def deleteGroup(id: Int): Unit
+}
+
+class ComposerServiceImpl extends ComposerService {
+	val composer_lockouts = LazyCache(1.minute) {
+		DB.withSession { implicit s => ComposerLockouts.list }
+	}
+
+	val composer_groups = LazyCache(1.minute) {
+		DB.withSession { implicit s => ComposerGroups.list }
+	}
+
+	val composer_slots = LazyCache(1.minute) {
+		DB.withSession { implicit s => ComposerSlots.list }
+	}
+
+	def load: (List[ComposerLockout], List[ComposerGroup], List[ComposerSlot]) = {
+		(composer_lockouts, composer_groups, composer_slots)
+	}
+
+	def createLockout(title: String): Unit = DB.withSession { implicit s =>
+		val template = ComposerLockout(0, title)
+		val id = (ComposerLockouts returning ComposerLockouts.map(_.id)).insert(template)
+		val lockout = template.copy(id = id)
+
+		composer_lockouts := (lockout :: _)
+		Dispatcher !# ComposerLockoutCreate(lockout)
+	}
+
+	def deleteLockout(id: Int): Unit = DB.withSession { implicit s =>
+		if (ComposerLockouts.filter(_.id === id).delete > 0) {
+			composer_lockouts := (_ filter (_.id != id))
+
+			val (deleted, kept) = composer_groups.partition(_.lockout == id)
+			composer_groups := kept
+
+			val deleted_groups = deleted.map(_.id).toSet
+			composer_slots := (_ filter (s => deleted_groups.contains(s.group)))
+
+			Dispatcher !# ComposerLockoutDelete(id)
+		}
+	}
+
+	def createGroup(lockout: Int): Unit = {
+		// Ensure we do not create more than 8 groups per lockout
+		if (composer_groups.count(_.lockout == lockout) >= 8) return
+
+		DB.withSession { implicit s =>
+			val template = ComposerGroup(0, lockout)
+			val id = (ComposerGroups returning ComposerGroups.map(_.id)).insert(template)
+			val group = template.copy(id = id)
+
+			composer_groups := (group :: _)
+			Dispatcher !# ComposerGroupCreate(group)
+		}
+	}
+
+	def deleteGroup(id: Int): Unit = DB.withSession { implicit s =>
+		if (ComposerGroups.filter(_.id === id).delete > 0) {
+			composer_groups := (_ filter (_.id != id))
+			composer_slots := (_ filter (_.group != id))
+			Dispatcher !# ComposerGroupDelete(id)
+		}
+	}
+}

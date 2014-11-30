@@ -37,4 +37,7 @@ package object models {
 	implicit val absenceJsonFormat = Json.format[Slack]
 	implicit val chatMessageFormat = Json.format[ChatMessage]
 	implicit val chatWhisperFormat = Json.format[ChatWhisper]
+	implicit val composerLockoutFormat = Json.format[ComposerLockout]
+	implicit val composerGroupFormat = Json.format[ComposerGroup]
+	implicit val composerSlotFormat = Json.format[ComposerSlot]
 }

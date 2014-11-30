@@ -207,6 +207,12 @@ with ComposerHandler {
 		case "roster:user" => Roster.handleUser
 		case "roster:char" => Roster.handleChar
 
+		case "composer:load" => Composer.handleLoad
+		case "composer:lockout:create" => Composer.handleLockoutCreate
+		case "composer:lockout:delete" => Composer.handleLockoutDelete
+		case "composer:group:create" => Composer.handleGroupCreate
+		case "composer:group:delete" => Composer.handleGroupDelete
+
 		case "auth:logout" => Auth.handleLogout
 		case _ => handleUnavailable
 	}
