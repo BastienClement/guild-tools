@@ -61,6 +61,15 @@
 		margin-top: -6px;
 		left: -4px;
 		display: inline-block;
+		transition: color ease-out .3s, opacity ease-out .3s;
+	}
+
+	#composer-lockouts h2 i.awe-eye:not(.fsblue) {
+		opacity: .3;
+	}
+
+	#composer-lockouts h2 i.awe-eye:not(.fsblue):hover {
+		opacity: 1;
 	}
 
 	#composer-lockouts .lockout {
@@ -175,7 +184,7 @@
 				</div>
 				<h2 ng-click="toggleHidden(lockout.id)">
 					<i class="awe-sort"></i>
-					<i class="awe-eye fsblue" ng-click="setFocus(lockout.id) + $event.stopPropagation()"></i>
+					<i class="awe-eye" ng-class="{ fsblue: focus == lockout.id }" ng-click="setFocus(lockout.id, $event)"></i>
 					{{ lockout.title }}
 				</h2>
 			</div>

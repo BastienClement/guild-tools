@@ -65,6 +65,12 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 		$scope.hidden[lockout] = !$scope.hidden[lockout];
 	};
 
+	$scope.focus = null;
+	$scope.setFocus = function(lockout, ev) {
+		$scope.focus = lockout;
+		ev.stopPropagation();
+	};
+
 	function build_roster() {
 		var mains = [];
 		var alts = [];
@@ -120,6 +126,10 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 			$scope.groups = data.groups;
 			$scope.slots = data.slots;
 			slots_cache = {};
+
+			if (!$scope.focus) {
+				$scope.focus = data.lockouts[0] && data.lockouts[0].id;
+			}
 		},
 
 		"composer:lockout:create": function(lockout) {
@@ -147,6 +157,10 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 			});
 
 			slots_cache = {};
+
+			if ($scope.focus == id) {
+				$scope.focus = data.lockouts[0] && data.lockouts[0].id;
+			}
 		},
 
 		"composer:group:create": function(group) {
