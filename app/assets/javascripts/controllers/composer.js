@@ -240,6 +240,7 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 		var roster = $scope.roster = [];
 
 		$.roster.chars.forEach(function(char) {
+			if (char.level < 100) return;
 			(char.main ? mains : alts).push(char);
 		});
 

@@ -9,10 +9,13 @@ import utils.LazyCache
 
 trait ComposerService {
 	def load: (List[ComposerLockout], List[ComposerGroup], List[ComposerSlot])
+
 	def createLockout(title: String): Unit
 	def deleteLockout(id: Int): Unit
+
 	def createGroup(lockout: Int): Unit
 	def deleteGroup(id: Int): Unit
+
 	def setSlot(group: Int, char: Int, role: String): Unit
 	def unsetSlot(group: Int, char: Int): Unit
 }
