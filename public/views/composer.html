@@ -88,9 +88,9 @@
 
 	#composer-lockouts .group > i {
 		font-size: 15px;
-		margin-right: 6px;
 		transition: opacity ease-out .3s, color ease-out .3s;
 		opacity: .3;
+		left: -2px;
 	}
 
 	#composer-lockouts .group > i.fsblue {
@@ -117,7 +117,7 @@
 
 	#composer-lockouts .comp {
 		flex: 1;
-		margin-left: 12px;
+		margin-left: 8px;
 		display: flex;
 		flex-wrap: wrap;
 		min-height: 24px;
@@ -249,10 +249,16 @@
 						</div>
 						<div class="spacing"></div>
 						<div class="stats">
-							<span>2 <img src="/assets/images/roles/TANK.png"></span>
-							<span>4 <img src="/assets/images/roles/HEALING.png"></span>
-							<span>12 <img src="/assets/images/roles/DPS.png"></span>
-							<span>(25)</span>
+							<span>{{ stats[group.id].tank }}</span> /
+							<span>{{ stats[group.id].heal }}</span> /
+							<span>{{ stats[group.id].dps }}</span>
+							<span>({{ stats[group.id].total }})</span>
+						</div>
+						<div style="font-weight: 300">
+							<span>{{ stats[group.id].tank_ilvl }}</span> /
+							<span>{{ stats[group.id].heal_ilvl }}</span> /
+							<span>{{ stats[group.id].dps_ilvl }}</span>
+							<span>({{ stats[group.id].total_ilvl }})</span>
 						</div>
 					</div>
 				</div>

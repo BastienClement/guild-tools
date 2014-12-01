@@ -36,6 +36,7 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 
 		build_picked();
 		build_conflicts();
+		build_stats();
 		slots_cache = {};
 	}
 
@@ -45,6 +46,7 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 
 		build_picked();
 		build_conflicts();
+		build_stats();
 		slots_cache = {};
 	}
 
@@ -86,6 +88,67 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 		$scope.linked[group] = !$scope.linked[group];
 		build_conflicts();
 	};
+
+	var stats = $scope.stats = {};
+
+	function build_stats() {
+		stats = $scope.stats = {};
+
+		$scope.groups.forEach(function(group) {
+			stats[group.id] = {
+				tank: 0,
+				heal: 0,
+				dps: 0,
+				total: 0,
+
+				tank_ilvl: 0,
+				heal_ilvl: 0,
+				dps_ilvl: 0,
+				total_ilvl: 0
+			};
+		});
+
+		function get_ilvl(id) {
+			var char = $.roster.chars[id];
+			return (id) ? char.ilvl : 0;
+		}
+
+		$scope.slots.forEach(function(slot) {
+			var stat = stats[slot.group];
+			var ilvl = get_ilvl(slot.char);
+
+			switch (slot.role) {
+				case "TANK":
+					stat.tank++;
+					stat.tank_ilvl += ilvl;
+					break;
+				case "HEALING":
+					stat.heal++;
+					stat.heal_ilvl += ilvl;
+					break;
+				case "DPS":
+					stat.dps++;
+					stat.dps_ilvl += ilvl;
+					break;
+			}
+
+			stat.total++;
+			stat.total_ilvl += ilvl;
+		});
+
+		function compute_avg(ilvl, count) {
+			if (count < 1) return 0;
+			return Math.round(ilvl / count);
+		}
+
+		$scope.groups.forEach(function(group) {
+			var stat = stats[group.id];
+			stat.tank_ilvl = compute_avg(stat.tank_ilvl, stat.tank);
+			stat.heal_ilvl = compute_avg(stat.heal_ilvl, stat.heal);
+			stat.dps_ilvl = compute_avg(stat.dps_ilvl, stat.dps);
+			stat.total_ilvl = compute_avg(stat.total_ilvl, stat.total);
+		});
+	}
 
 	var picked = {};
 
@@ -232,6 +295,7 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 			}
 
 			build_conflicts();
+			build_stats();
 		},
 
 		"composer:lockout:create": function(lockout) {
