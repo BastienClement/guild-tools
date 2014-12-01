@@ -9,7 +9,7 @@ trait ComposerHandler {
 
 	private def ComposerHandler(body: (JsValue) => MessageResponse): (JsValue) => MessageResponse = {
 		(arg: JsValue) => {
-			if (!user.officer) MessageFailure("You are not allowed to access the composer")
+			if (!user.promoted) MessageFailure("You are not allowed to access the composer")
 			else body(arg)
 		}
 	}

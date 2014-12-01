@@ -275,7 +275,7 @@
 						<td ng-class="{ old: day.old, today: day.today, selected: isSelected(day.id) }" ng-repeat="day in row" ng-click="(!day.old) && select($event, day.id)">{{ day.text }}</td>
 					</tr>
 				</table>
-				<div class="tip" ng-if="$.user.officer">
+				<div class="tip" ng-if="$.user.promoted">
 					<strong>Tip:</strong> hold shift or ctrl to create the same event on multiple days.
 				</div>
 				<div class="buttons">
@@ -355,7 +355,7 @@
 				<div>
 					<label class="empty no-collapse">Type</label>
 					<label class="opts">
-						<input type="radio" ng-model="eventType" value="1" ng-disabled="!$.user.officer"> Guild
+						<input type="radio" ng-model="eventType" value="1" ng-disabled="!$.user.promoted"> Guild
 					</label>
 					<label class="opts">
 						<input type="radio" ng-model="eventType" value="5"> Optional
@@ -364,10 +364,10 @@
 						<input type="radio" ng-model="eventType" value="3"> Restricted
 					</label>
 					<label class="opts">
-						<input type="radio" ng-model="eventType" value="2" ng-disabled="!$.user.officer"> Public
+						<input type="radio" ng-model="eventType" value="2" ng-disabled="!$.user.promoted"> Public
 					</label>
 					<label class="opts newline">
-						<input type="radio" ng-model="eventType" value="4" ng-disabled="!$.user.officer"> Announce
+						<input type="radio" ng-model="eventType" value="4" ng-disabled="!$.user.promoted"> Announce
 					</label>
 				</div>
 				<div class="buttons">

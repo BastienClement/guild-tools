@@ -23,6 +23,7 @@ package object models {
 				"group" -> user.group,
 				"color" -> user.color,
 				"officer" -> user.officer,
+				"promoted" -> user.promoted,
 				"developer" -> user.developer)
 		}
 	}

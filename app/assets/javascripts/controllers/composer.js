@@ -1,5 +1,5 @@
 GuildTools.controller("ComposerCtrl", function($scope) {
-	if ($scope.restrict($scope.isOfficer)) return;
+	if ($scope.restrict($scope.isPromoted)) return;
 	$scope.setNavigator("calendar", "composer");
 
 	$scope.pickedChar = null;

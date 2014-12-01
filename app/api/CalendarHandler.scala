@@ -235,11 +235,11 @@ trait CalendarHandler {
 			}
 
 			if (dates_raw.length > 1) {
-				if (!user.officer) return MessageFailure("MULTI_NOT_ALLOWED")
+				if (!user.promoted) return MessageFailure("MULTI_NOT_ALLOWED")
 				if (visibility == CalendarVisibility.Announce) return MessageFailure("Creating announces on multiple days is not allowed.")
 			}
 
-			if (visibility != CalendarVisibility.Restricted && visibility != CalendarVisibility.Optional && !user.officer)
+			if (visibility != CalendarVisibility.Restricted && visibility != CalendarVisibility.Optional && !user.promoted)
 				return MessageFailure("Members can only create optional or restricted events.")
 
 			val format = new SimpleDateFormat("yyyy-MM-dd")
@@ -332,7 +332,7 @@ trait CalendarHandler {
 			val event_id = (arg \ "id").as[Int]
 
 			var query = CalendarEvents.filter(_.id === event_id)
-			if (!user.officer) {
+			if (!user.promoted) {
 				query = query.filter(_.owner === user.id)
 			}
 
@@ -401,7 +401,7 @@ trait CalendarHandler {
 
 			// Record successful event access
 			event_current = event
-			event_editable = (event.owner == user.id) || user.officer
+			event_editable = (event.owner == user.id) || user.promoted
 
 			// Check for promote
 			for {
@@ -431,11 +431,11 @@ trait CalendarHandler {
 
 			// Load absents for this event
 			var slacks = Slacks.filter(s => s.from <= event.date && s.to >= event.date).list
-			if (!user.officer) slacks = slacks.map(_.conceal)
+			if (!user.promoted) slacks = slacks.map(_.conceal)
 
 			def slackFilter(slack: Slack, wrap: (Slack) => CtxEvent): Boolean = {
 				if (slack.from <= event.date && slack.to >= event.date) {
-					if (user.officer) {
+					if (user.promoted) {
 						true
 					} else {
 						socket !< wrap(slack.conceal)
@@ -448,7 +448,7 @@ trait CalendarHandler {
 			// Handle changes in answers
 			def handleAnswerChanges(answer: CalendarAnswer): Boolean = utils.doIf(answer.event == id) {
 				if (answer.user == user.id) {
-					val editable = answer.promote || (event.owner == user.id) || user.officer
+					val editable = answer.promote || (event.owner == user.id) || user.promoted
 					if (editable != event_editable) {
 						event_editable = editable
 						event_current = event_current.copy()

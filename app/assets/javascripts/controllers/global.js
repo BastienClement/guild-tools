@@ -66,8 +66,8 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 		}
 	};
 
-	$scope.isOfficer = function() {
-		return $.user && $.user.officer;
+	$scope.isPromoted = function() {
+		return $.user && $.user.promoted;
 	};
 
 	$scope.gameData = {};
@@ -253,7 +253,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 		"calendar": [
 			{ id: "main", title: "Calendar", target: "/calendar" },
 			{ id: "absences", title: "Absences", target: "/calendar/abs" },
-			{ id: "composer", title: "Composer", target: "/calendar/composer", visible: function() { return $.user.officer; } }
+			{ id: "composer", title: "Composer", target: "/calendar/composer", visible: function() { return $.user.promoted; } }
 		],
 		"profile": [
 			{ id: "main", title: "Profile", target: "/profile" }

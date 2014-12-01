@@ -216,7 +216,7 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 		var hasDelete = false;
 		var hasControls = false;
 
-		if (event.owner === $.user.id || $.user.officer) {
+		if (event.owner === $.user.id || $.user.promoted) {
 			hasDelete = true;
 			menu.push({
 				icon: "awe-trash", text: "Delete", action: function() {
@@ -433,9 +433,9 @@ GuildTools.controller("CalendarAddEventCtrl", function($scope) {
 			return date.getFullYear() + "-" + zero_pad(date.getMonth() + 1) + "-" + zero_pad(date.getDate());
 		}
 
-		if (ev.ctrlKey && $.user.officer) {
+		if (ev.ctrlKey && $.user.promoted) {
 			selected.push(id);
-		} else if (ev.shiftKey && lastClick && $.user.officer) {
+		} else if (ev.shiftKey && lastClick && $.user.promoted) {
 			if (id === lastClick) return;
 			var d1 = new Date(id);
 			var d2 = new Date(lastClick);
@@ -483,7 +483,7 @@ GuildTools.controller("CalendarAddEventCtrl", function($scope) {
 
 		$scope.eventTitle = "";
 		$scope.eventDesc = "";
-		$scope.eventType = $.user.officer ? 1 : 3;
+		$scope.eventType = $.user.promoted ? 1 : 3;
 
 		$scope.eventHour = 0;
 		$scope.eventMin = 0;
@@ -925,7 +925,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		var user = $.roster.user(row.user);
 		if (row.user == $scope.event.owner) {
 			return "star";
-		} else if (row.answer.promote || (user.officer && !user.developer)) {
+		} else if (row.answer.promote || user.officer) {
 			return "star-empty";
 		} else {
 			return "void";
@@ -1009,7 +1009,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 					if (confirm("Are you sure?"))
 						$.call("calendar:delete", { id: $scope.event.id });
 				},
-				order: 13, visible: $.user.id == $scope.event.id || $.user.officer
+				order: 13, visible: $.user.id == $scope.event.id || $.user.promoted
 			}
 		];
 
@@ -1503,9 +1503,10 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	};
 
 	$scope.answerMenu = function(row, ev) {
+
 		var user = $.roster.user(row.user);
 		var kickable = $scope.editable && ($scope.event.type === 3 && $scope.event.owner != user.id);
-		var promotable = $scope.editable && (!user.officer || user.id == $scope.event.owner) && kickable;
+		var promotable = $scope.editable && !(user.promoted || user.id == $scope.event.owner) && ($scope.event.type !== 3 || kickable);
 
 		var menu = [
 			{
@@ -1527,7 +1528,7 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 				action: function() {
 					$.call("calendar:event:demote", { user: user.id });
 				},
-				order: 10, visible: promotable && row.answer.promote
+				order: 10, visible: promotable && !!row.answer.promote
 			},
 			{
 				icon: "awe-cancel", text: "Remove",
