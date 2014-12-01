@@ -261,8 +261,8 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 			{ title: "Alts 655+", ilvl: 655, chars: [] },
 			{ title: "Alts 640+", ilvl: 640, chars: [] },
 			{ title: "Alts 630+", ilvl: 630, chars: [] },
-			{ title: "Alts 615+", ilvl: 615, chars: [] },
-			{ title: "Alts 600+", ilvl: 600, chars: [] },
+			{ title: "Alts 620+", ilvl: 615, chars: [] },
+			{ title: "Alts 610+", ilvl: 615, chars: [] },
 			{ title: "Alts crappy", ilvl: 0, chars: [] }
 		];
 
@@ -416,5 +416,19 @@ GuildTools.controller("ComposerNewCtrl", function($scope) {
 		$.call("composer:lockout:create", { title: $scope.title }, function() {
 			$scope.modal();
 		});
+	};
+});
+
+
+GuildTools.controller("ComposerExportCtrl", function($scope) {
+	$scope.inflight = false;
+
+	//$scope.title = "";
+
+	$scope.execute = function() {
+		$scope.inflight = true;
+		//$.call("composer:export", { title: $scope.title }, function() {
+			$scope.modal();
+		//});
 	};
 });
