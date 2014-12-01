@@ -20,6 +20,8 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 		});
 	};
 
+	_("#composer").mousemove($scope.handleMousemove);
+
 	$scope.pickChar = function(char, group, lockout) {
 		$scope.pickedChar = char;
 		$scope.pickedGroup = group;
@@ -33,6 +35,7 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 		});
 
 		build_picked();
+		build_conflicts();
 		slots_cache = {};
 	}
 
@@ -41,6 +44,7 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 		$scope.slots.push({ group: id, char: char, role: role });
 
 		build_picked();
+		build_conflicts();
 		slots_cache = {};
 	}
 
@@ -104,6 +108,47 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 		}
 	}
 
+	var conflicts = {};
+
+	function build_conflicts() {
+		conflicts = {};
+		var groups = {};
+		var slots = {};
+
+		$scope.groups.forEach(function(group) {
+			if (!groups[group.lockout])
+				groups[group.lockout] = [];
+			groups[group.lockout].push(group);
+		});
+
+		$scope.slots.forEach(function(slot) {
+			if (!slots[slot.group])
+				slots[slot.group] = [];
+			slots[slot.group].push(slot);
+		});
+
+		function handle_group(chars) {
+			return function(group) {
+				if (slots[group.id]) {
+					slots[group.id].forEach(function (slot) {
+						if (chars[slot.char]) {
+							conflicts[lockout][slot.char] = true;
+						}
+						chars[slot.char] = true;
+					});
+				}
+			};
+		}
+
+		for (var lockout in groups) {
+			conflicts[lockout] = {};
+			var chars = {};
+			groups[lockout].forEach(handle_group(chars));
+		}
+
+		console.log(conflicts);
+	}
+
 	function build_roster() {
 		var mains = [];
 		var alts = [];
@@ -163,6 +208,8 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 			if (!$scope.focus) {
 				$scope.focus = data.lockouts[0] && data.lockouts[0].id;
 			}
+
+			build_conflicts();
 		},
 
 		"composer:lockout:create": function(lockout) {
@@ -262,6 +309,11 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 
 	$scope.isCharPicked = function(id) {
 		return !!picked[id] || ($scope.pickedChar && $scope.pickedChar.id == id);
+	};
+
+	$scope.conflictForSlot = function(slot, group) {
+		if (conflicts[group.lockout] && conflicts[group.lockout][slot.char.id]) return "duplicate";
+		return "none";
 	};
 });
 

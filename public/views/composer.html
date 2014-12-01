@@ -146,10 +146,31 @@
 	#composer .drop:hover {
 		opacity: 1;
 	}
+
+	#composer-lockouts .char:after {
+		display: block;
+		content: "";
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		outline: solid 1px;
+		outline-offset: 1px;
+		opacity: .7;
+	}
+
+	#composer-lockouts .char.conflict-none:after {
+		outline: none;
+	}
+
+	#composer-lockouts .char.conflict-duplicate:after {
+		/*outline-color: orangered;*/
+	}
 </style>
 
 
-<div id="composer" class="tools-main" ng-mousemove="handleMousemove($event)" ng-mouseup="dropChar()" ng-class="{ picking: pickedChar }">
+<div id="composer" class="tools-main" ng-mouseup="dropChar()" ng-class="{ picking: pickedChar }">
 	<div id="composer-char-picker" class="char c{{ pickedChar.class }}" ng-show="pickedChar">
 		<img ng-src="/assets/images/roles/{{ pickedChar.role }}.png">
 		<span class="name">{{ pickedChar.name }}</span>
@@ -199,7 +220,7 @@
 					<img ng-src="/assets/images/raidm/{{ icons[id] }}.png">
 					<div class="comp">
 						<span ng-repeat="slot in slotsForGroup(group.id) | orderBy : ['-role', 'class', 'name']"
-						      class="char c{{ slot.char.class }}"
+						      class="char c{{ slot.char.class }} conflict-{{ conflictForSlot(slot, group) }}"
 						      ng-mousedown="pickChar(slot.char, group.id, lockout.id)">
 							<img ng-src="/assets/images/roles/{{ slot.role }}.png">
 							<span class="name">{{ slot.char.name }}</span>
