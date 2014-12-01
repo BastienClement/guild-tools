@@ -7,8 +7,12 @@
 		margin-top: 2px;
 		display: flex;
 		margin-right: 6px;
-		transition: background ease-out .3s;
+		transition: opacity ease-out .3s;
 		width: 110px;
+	}
+
+	#composer .char.picked {
+		opacity: .5;
 	}
 
 	#composer .char img {
@@ -23,6 +27,12 @@
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+	}
+
+	#composer-char-picker {
+		position: fixed;
+		background: rgba(42, 54, 66, 0.9) !important;
+		z-index: 100;
 	}
 
 	#composer-roster {
@@ -61,6 +71,10 @@
 		margin-bottom: 12px;
 		display: flex;
 		align-items: center;
+	}
+
+	.picking #composer-lockouts .group.hover {
+		border-color: #426585;
 	}
 
 	#composer-lockouts .group > img {
@@ -125,7 +139,13 @@
 	}
 </style>
 
-<div id="composer" class="tools-main">
+
+<div id="composer" class="tools-main" ng-mousemove="handleMousemove($event)" ng-mouseup="dropChar()" ng-class="{ picking: pickedChar }">
+	<div id="composer-char-picker" class="char c{{ pickedChar.class }}" ng-show="pickedChar">
+		<img ng-src="/assets/images/roles/{{ pickedChar.role }}.png">
+		<span class="name">{{ pickedChar.name }}</span>
+	</div>
+
 	<div class="box parted" id="composer-roster">
 		<div>
 			<div class="btns">
@@ -137,7 +157,7 @@
 			<div ng-repeat="group in roster">
 				<h3>{{ group.title }}</h3>
 				<div class="group">
-					<span ng-repeat="char in group.chars" class="char c{{ char.class }}">
+					<span ng-repeat="char in group.chars" class="char c{{ char.class }}" ng-mousedown="pickChar(char, null, null)">
 						<img ng-src="/assets/images/roles/{{ char.role }}.png">
 						<span class="name">{{ char.name }}</span>
 					</span>
@@ -160,10 +180,15 @@
 				</h2>
 			</div>
 			<div class="panel" ng-hide="hidden[lockout.id]">
-				<div class="group box" ng-repeat="(id, group) in groupsForLockout(lockout.id) | orderBy : 'id'">
+				<div class="group box" ng-repeat="(id, group) in groupsForLockout(lockout.id) | orderBy : 'id'"
+				     ng-class="{ hover: hover.group == group.id }"
+				     ng-mouseenter="(!pickedLockout || pickedLockout == lockout.id) && (hover.group = group.id)"
+					 ng-mouseleave="hover.group = null">
 					<img ng-src="/assets/images/raidm/{{ icons[id] }}.png">
 					<div class="comp">
-						<span ng-repeat="char in group.chars" class="char c{{ char.class }}">
+						<span ng-repeat="char in charsForGroup(group.id) | orderBy : ['-role', 'class', 'name']"
+						      class="char c{{ char.class }}"
+						      ng-mousedown="pickChar(char, group.id, lockout.id)">
 							<img ng-src="/assets/images/roles/{{ char.role }}.png">
 							<span class="name">{{ char.name }}</span>
 						</span>

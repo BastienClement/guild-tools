@@ -2,6 +2,46 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 	if ($scope.restrict($scope.isOfficer)) return;
 	$scope.setNavigator("calendar", "composer");
 
+	$scope.pickedChar = null;
+	$scope.pickedGroup = null;
+	$scope.pickedLockout = null;
+
+	$scope.hover = {};
+
+	var lock = false;
+	$scope.handleMousemove = function(ev) {
+		if (lock) return; else lock = true;
+		requestAnimationFrame(function() {
+			lock = false;
+			_("#composer-char-picker").css({
+				top: ev.clientY + 10,
+				left: ev.clientX + 10
+			});
+		});
+	};
+
+	$scope.pickChar = function(char, group, lockout) {
+		$scope.pickedChar = char;
+		$scope.pickedGroup = group;
+		$scope.pickedLockout = lockout;
+	};
+
+	$scope.dropChar = function() {
+		if ($scope.hover.group) {
+			if ($scope.pickedGroup) {
+				
+			}
+			$scope.slots.push({ group: $scope.hover.group, char: $scope.pickedChar.id });
+		} else {
+
+		}
+
+		$scope.hover = {};
+		$scope.pickedChar = null;
+		$scope.pickedGroup = null;
+		$scope.pickedLockout = null;
+	};
+
 	$scope.icons = ["star", "circle", "diamond", "triangle", "moon", "square", "cross", "skull"];
 	$scope.hidden = {};
 
@@ -123,6 +163,14 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 	$scope.groupsForLockout = function(lockout) {
 		return $scope.groups.filter(function(group) {
 			return group.lockout == lockout;
+		});
+	};
+
+	$scope.charsForGroup = function(group) {
+		return $scope.slots.filter(function(slot) {
+			return slot.group == group;
+		}).map(function(slot) {
+			return $.roster.char(slot.char);
 		});
 	};
 });
