@@ -15,9 +15,7 @@ trait ComposerHandler {
 	}
 
 	private def ComposerHandler(body: => MessageResponse): (JsValue) => MessageResponse = {
-		ComposerHandler { arg =>
-			body
-		}
+		ComposerHandler { arg => body }
 	}
 
 	object Composer {
@@ -29,6 +27,8 @@ trait ComposerHandler {
 				case ComposerLockoutDelete(_) => true
 				case ComposerGroupCreate(_) => true
 				case ComposerGroupDelete(_) => true
+				case ComposerSlotSet(_) => true
+				case ComposerSlotUnset(_, _) => true
 			}
 
 			Json.obj("lockouts" -> lockouts, "groups" -> groups, "slots" -> slots)
@@ -55,6 +55,21 @@ trait ComposerHandler {
 		def handleGroupDelete = ComposerHandler { arg =>
 			val id = (arg \ "group").as[Int]
 			ComposerService.deleteGroup(id)
+			MessageSuccess
+		}
+
+		def handleSlotSet = ComposerHandler { arg =>
+			val group = (arg \ "group").as[Int]
+			val char = (arg \ "char").as[Int]
+			val role = (arg \ "role").as[String]
+			ComposerService.setSlot(group, char, role)
+			MessageSuccess
+		}
+
+		def handleSlotUnset = ComposerHandler { arg =>
+			val group = (arg \ "group").as[Int]
+			val char = (arg \ "char").as[Int]
+			ComposerService.unsetSlot(group, char)
 			MessageSuccess
 		}
 	}

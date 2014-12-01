@@ -89,4 +89,7 @@ case class ComposerLockoutCreate(lockout: ComposerLockout) extends CtxEvent("com
 case class ComposerLockoutDelete(id: Int) extends CtxEvent("composer:lockout:delete", id)
 case class ComposerGroupCreate(group: ComposerGroup) extends CtxEvent("composer:group:create", group)
 case class ComposerGroupDelete(id: Int) extends CtxEvent("composer:group:delete", id)
+case class ComposerSlotSet(slot: ComposerSlot) extends CtxEvent("composer:slot:set", slot)
+case class ComposerSlotUnset(group: Int, char: Int) extends CtxEvent("composer:slot:unset", Json.obj("group" -> group, "char" -> char))
+
 //case class ComposerCreate(id: Int) extends CtxEvent("absence:delete", id)

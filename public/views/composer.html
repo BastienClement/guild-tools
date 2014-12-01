@@ -186,11 +186,11 @@
 					 ng-mouseleave="hover.group = null">
 					<img ng-src="/assets/images/raidm/{{ icons[id] }}.png">
 					<div class="comp">
-						<span ng-repeat="char in charsForGroup(group.id) | orderBy : ['-role', 'class', 'name']"
-						      class="char c{{ char.class }}"
-						      ng-mousedown="pickChar(char, group.id, lockout.id)">
-							<img ng-src="/assets/images/roles/{{ char.role }}.png">
-							<span class="name">{{ char.name }}</span>
+						<span ng-repeat="slot in slotsForGroup(group.id) | orderBy : ['-role', 'class', 'name']"
+						      class="char c{{ slot.char.class }}"
+						      ng-mousedown="pickChar(slot.char, group.id, lockout.id)">
+							<img ng-src="/assets/images/roles/{{ slot.role }}.png">
+							<span class="name">{{ slot.char.name }}</span>
 						</span>
 					</div>
 					<div class="actions">

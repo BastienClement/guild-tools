@@ -1,19 +1,20 @@
 package actors
 
+import scala.concurrent.duration._
+import actors.Actors._
 import api._
 import models._
 import models.mysql._
 import utils.LazyCache
-import scala.concurrent.duration._
-import actors.Actors._
 
 trait ComposerService {
-
 	def load: (List[ComposerLockout], List[ComposerGroup], List[ComposerSlot])
 	def createLockout(title: String): Unit
 	def deleteLockout(id: Int): Unit
 	def createGroup(lockout: Int): Unit
 	def deleteGroup(id: Int): Unit
+	def setSlot(group: Int, char: Int, role: String): Unit
+	def unsetSlot(group: Int, char: Int): Unit
 }
 
 class ComposerServiceImpl extends ComposerService {
@@ -75,6 +76,23 @@ class ComposerServiceImpl extends ComposerService {
 			composer_groups := (_ filter (_.id != id))
 			composer_slots := (_ filter (_.group != id))
 			Dispatcher !# ComposerGroupDelete(id)
+		}
+	}
+
+	def setSlot(group: Int, char: Int, role: String): Unit = DB.withSession { implicit s =>
+		val slot = ComposerSlot(group, char, role)
+		ComposerSlots.insertOrUpdate(slot)
+
+		composer_slots := (_ filter (s => s.group != group || s.char != char))
+		composer_slots := (slot :: _)
+
+		Dispatcher !# ComposerSlotSet(slot)
+	}
+
+	def unsetSlot(group: Int, char: Int): Unit = DB.withSession { implicit s =>
+		if (ComposerSlots.filter(s => s.group === group && s.char === char).delete > 0) {
+			composer_slots := (_ filter (s => s.group != group || s.char != char))
+			Dispatcher !# ComposerSlotUnset(group, char)
 		}
 	}
 }

@@ -24,22 +24,38 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 		$scope.pickedChar = char;
 		$scope.pickedGroup = group;
 		$scope.pickedLockout = lockout;
+		$scope.hover.group = group;
 	};
 
-	$scope.dropChar = function() {
-		if ($scope.hover.group) {
-			if ($scope.pickedGroup) {
-				
-			}
-			$scope.slots.push({ group: $scope.hover.group, char: $scope.pickedChar.id });
-		} else {
+	function remove_from_group(id, char) {
+		$scope.slots = $scope.slots.filter(function(slot) {
+			return slot.group != id || slot.char != char;
+		});
+	}
 
+	function add_to_group(id, char, role) {
+		remove_from_group(id, char);
+		$scope.slots.push({ group: id, char: char, role: role });
+	}
+
+	$scope.dropChar = function() {
+		if ($scope.pickedChar && $scope.hover.group !== $scope.pickedGroup) {
+			if ($scope.pickedGroup) {
+				$.call("composer:slot:unset", { group: $scope.pickedGroup, char: $scope.pickedChar.id });
+				remove_from_group($scope.pickedGroup, $scope.pickedChar.id);
+			}
+
+			if ($scope.hover.group && !$scope.slots.some(function(slot) { return slot.group == $scope.hover.group && slot.char == $scope.pickedChar.id; })) {
+				$.call("composer:slot:set", { group: $scope.hover.group, char: $scope.pickedChar.id, role: $scope.pickedChar.role });
+				add_to_group($scope.hover.group, $scope.pickedChar.id, $scope.pickedChar.role);
+			}
 		}
 
 		$scope.hover = {};
 		$scope.pickedChar = null;
 		$scope.pickedGroup = null;
 		$scope.pickedLockout = null;
+		slots_cache = {};
 	};
 
 	$scope.icons = ["star", "circle", "diamond", "triangle", "moon", "square", "cross", "skull"];
@@ -103,10 +119,12 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 			$scope.lockouts = data.lockouts;
 			$scope.groups = data.groups;
 			$scope.slots = data.slots;
+			slots_cache = {};
 		},
 
 		"composer:lockout:create": function(lockout) {
 			$scope.lockouts.push(lockout);
+			slots_cache = {};
 		},
 
 		"composer:lockout:delete": function(id) {
@@ -127,10 +145,13 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 			$scope.slots = $scope.slots.filter(function(slot) {
 				return !removed_groups[slot.group];
 			});
+
+			slots_cache = {};
 		},
 
 		"composer:group:create": function(group) {
 			$scope.groups.push(group);
+			slots_cache = {};
 		},
 
 		"composer:group:delete": function(id) {
@@ -141,6 +162,18 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 			$scope.slots = $scope.slots.filter(function(slot) {
 				return slot.group != id;
 			});
+
+			slots_cache = {};
+		},
+
+		"composer:slot:set": function(slot) {
+			add_to_group(slot.group, slot.char, slot.role);
+			slots_cache = {};
+		},
+
+		"composer:slot:unset": function(slot) {
+			remove_from_group(slot.group, slot.char);
+			slots_cache = {};
 		}
 	});
 
@@ -166,12 +199,18 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 		});
 	};
 
-	$scope.charsForGroup = function(group) {
-		return $scope.slots.filter(function(slot) {
-			return slot.group == group;
-		}).map(function(slot) {
-			return $.roster.char(slot.char);
-		});
+	var slots_cache = {};
+	$scope.slotsForGroup = function(group) {
+		if (!slots_cache[group]) {
+			slots_cache[group] = $scope.slots.filter(function (slot) {
+				return slot.group == group;
+			}).map(function (slot) {
+				var char = $.roster.char(slot.char);
+				return { char: char, role: slot.role, "class": char["class"], name: char.name };
+			});
+		}
+
+		return slots_cache[group];
 	};
 });
 
