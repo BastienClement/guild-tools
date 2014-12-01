@@ -86,10 +86,25 @@
 		border-color: #426585;
 	}
 
+	#composer-lockouts .group > i {
+		font-size: 15px;
+		margin-right: 6px;
+		transition: opacity ease-out .3s, color ease-out .3s;
+		opacity: .3;
+	}
+
+	#composer-lockouts .group > i.fsblue {
+		opacity: 1;
+	}
+
+	#composer-lockouts .group > i:hover {
+		opacity: 1;
+	}
+
 	#composer-lockouts .group > img {
 		width: 24px;
 		height: 24px;
-		margin-right: 12px;
+		margin-right: 6px;
 		margin-left: 6px;
 	}
 
@@ -217,6 +232,7 @@
 				     ng-class="{ hover: hover.group == group.id }"
 				     ng-mouseenter="(!pickedLockout || pickedLockout == lockout.id) && (hover.group = group.id)"
 					 ng-mouseleave="hover.group = null">
+					<i class="awe-link" ng-class="{ fsblue: linked[group.id] }" ng-click="toggleLinked(group.id)"></i>
 					<img ng-src="/assets/images/raidm/{{ icons[id] }}.png">
 					<div class="comp">
 						<span ng-repeat="slot in slotsForGroup(group.id) | orderBy : ['-role', 'class', 'name']"

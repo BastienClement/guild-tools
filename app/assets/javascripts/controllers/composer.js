@@ -69,8 +69,8 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 	};
 
 	$scope.icons = ["star", "circle", "diamond", "triangle", "moon", "square", "cross", "skull"];
-	$scope.hidden = {};
 
+	$scope.hidden = {};
 	$scope.toggleHidden = function(lockout) {
 		$scope.hidden[lockout] = !$scope.hidden[lockout];
 	};
@@ -79,6 +79,11 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 	$scope.setFocus = function(lockout, ev) {
 		$scope.focus = lockout;
 		ev.stopPropagation();
+	};
+
+	$scope.linked = {};
+	$scope.toggleLinked = function(group) {
+		$scope.linked[group] = !$scope.linked[group];
 	};
 
 	var picked = {};
