@@ -84,6 +84,7 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 	$scope.linked = {};
 	$scope.toggleLinked = function(group) {
 		$scope.linked[group] = !$scope.linked[group];
+		build_conflicts();
 	};
 
 	var picked = {};
@@ -114,9 +115,12 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 	}
 
 	var conflicts = {};
+	var conflicts_owner = {};
 
 	function build_conflicts() {
 		conflicts = {};
+		conflicts_owner = {};
+
 		var groups = {};
 		var slots = {};
 
@@ -132,13 +136,28 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 			slots[slot.group].push(slot);
 		});
 
-		function handle_group(chars) {
+		function handle_group() {
+			var chars = {};
+			var owners = {};
+
 			return function(group) {
 				if (slots[group.id]) {
 					slots[group.id].forEach(function (slot) {
+						// Linked events
+						var char = $.roster.chars[slot.char];
+						if (char && $scope.linked[group.id]) {
+							if (owners[char.owner]) {
+								conflicts_owner[lockout][char.owner] = true;
+							}
+
+							owners[char.owner] = true;
+						}
+
+						// Char in multiple events
 						if (chars[slot.char]) {
 							conflicts[lockout][slot.char] = true;
 						}
+
 						chars[slot.char] = true;
 					});
 				}
@@ -147,11 +166,9 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 
 		for (var lockout in groups) {
 			conflicts[lockout] = {};
-			var chars = {};
-			groups[lockout].forEach(handle_group(chars));
+			conflicts_owner[lockout] = {};
+			groups[lockout].forEach(handle_group());
 		}
-
-		console.log(conflicts);
 	}
 
 	function build_roster() {
@@ -317,6 +334,7 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 	};
 
 	$scope.conflictForSlot = function(slot, group) {
+		if (conflicts_owner[group.lockout] && conflicts_owner[group.lockout][slot.char.owner] && $scope.linked[group.id]) return "concurent";
 		if (conflicts[group.lockout] && conflicts[group.lockout][slot.char.id]) return "duplicate";
 		return "none";
 	};
