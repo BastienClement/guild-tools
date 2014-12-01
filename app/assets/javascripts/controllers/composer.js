@@ -109,7 +109,7 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 		});
 
 		function get_ilvl(id) {
-			var char = $.roster.chars[id];
+			var char = $.roster.char(id);
 			return (id) ? char.ilvl : 0;
 		}
 
@@ -207,7 +207,7 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 				if (slots[group.id]) {
 					slots[group.id].forEach(function (slot) {
 						// Linked events
-						var char = $.roster.chars[slot.char];
+						var char = $.roster.char(slot.char);
 						if (char && $scope.linked[group.id]) {
 							if (owners[char.owner]) {
 								conflicts_owner[lockout][char.owner] = true;
