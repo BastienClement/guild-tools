@@ -261,8 +261,8 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 			{ title: "Alts 655+", ilvl: 655, chars: [] },
 			{ title: "Alts 640+", ilvl: 640, chars: [] },
 			{ title: "Alts 630+", ilvl: 630, chars: [] },
-			{ title: "Alts 620+", ilvl: 615, chars: [] },
-			{ title: "Alts 610+", ilvl: 615, chars: [] },
+			{ title: "Alts 620+", ilvl: 620, chars: [] },
+			{ title: "Alts 610+", ilvl: 610, chars: [] },
 			{ title: "Alts crappy", ilvl: 0, chars: [] }
 		];
 
