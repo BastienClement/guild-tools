@@ -325,7 +325,7 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 			slots_cache = {};
 
 			if ($scope.focus == id) {
-				$scope.focus = data.lockouts[0] && data.lockouts[0].id;
+				$scope.focus = $scope.lockouts[0] && $scope.lockouts[0].id;
 			}
 		},
 
@@ -343,6 +343,7 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 				return slot.group != id;
 			});
 
+			build_picked();
 			slots_cache = {};
 		},
 
