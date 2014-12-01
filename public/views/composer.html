@@ -166,7 +166,10 @@
 			<div ng-repeat="group in roster">
 				<h3>{{ group.title }}</h3>
 				<div class="group">
-					<span ng-repeat="char in group.chars" class="char c{{ char.class }}" ng-mousedown="pickChar(char, null, null)">
+					<span ng-repeat="char in group.chars"
+						  class="char c{{ char.class }}"
+						  ng-mousedown="pickChar(char, null, null)"
+						  ng-class="{ picked: isCharPicked(char.id) }">
 						<img ng-src="/assets/images/roles/{{ char.role }}.png">
 						<span class="name">{{ char.name }}</span>
 					</span>
