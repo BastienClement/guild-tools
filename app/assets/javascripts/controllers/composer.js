@@ -333,6 +333,7 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 		"composer:group:create": function(group) {
 			$scope.groups.push(group);
 			slots_cache = {};
+			build_stats();
 		},
 
 		"composer:group:delete": function(id) {
