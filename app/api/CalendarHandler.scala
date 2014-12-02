@@ -5,7 +5,7 @@ import java.text.{ParseException, SimpleDateFormat}
 import scala.slick.jdbc.JdbcBackend.SessionDef
 import scala.util.Try
 import actors.Actors.CalendarService
-import actors.CalendarServiceImpl.CalendarLock
+import actors.CalendarService.CalendarLock
 import actors.SocketHandler
 import models.mysql._
 import models.{CalendarEvents, _}

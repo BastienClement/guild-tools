@@ -2,7 +2,7 @@ package actors
 
 import scala.concurrent.duration._
 import actors.Actors.Dispatcher
-import actors.CalendarServiceImpl._
+import actors.CalendarService.CalendarLock
 import api.{CalendarLockAcquire, CalendarLockRelease}
 import gt.Global.ExecutionContext
 import models.mysql._
@@ -11,16 +11,29 @@ import utils.scheduler
 import scala.concurrent.Future
 import utils._
 
+/**
+ * Public interface
+ */
 trait CalendarService {
+	def createTab(event: Int, title: String): Future[CalendarTab]
+
 	def tabStatus(tab: Int): Option[String]
 	def lockTab(tab: Int, owner: String): Option[CalendarLock]
 	def unlockTab(lock: CalendarLock): Unit
-
-	def createTab(event: Int, title: String): Future[CalendarTab]
 }
 
-object CalendarServiceImpl {
+/**
+ * Common shared elements
+ */
+object CalendarService {
+	/**
+	 * Time before lock expiration
+	 */
 	private val LockExpireDuration = 15.seconds
+
+	/**
+	 * Calendar lock subclass
+	 */
 	class CalendarLock(val tab: Int, val owner: String) {
 		/**
 		 * Lock is valid until released
@@ -38,7 +51,7 @@ object CalendarServiceImpl {
 		def refresh(): Unit = { deadline = LockExpireDuration.fromNow }
 
 		/**
-		 * Release this log
+		 * Release this lock
 		 */
 		def release(): Unit = {
 			if (valid) {
@@ -49,6 +62,9 @@ object CalendarServiceImpl {
 	}
 }
 
+/**
+ * Actor implementation
+ */
 class CalendarServiceImpl extends CalendarService {
 	/**
 	 * Every locks currently in use
