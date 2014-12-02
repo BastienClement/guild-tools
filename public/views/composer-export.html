@@ -1,0 +1,60 @@
+<style>
+	#composer-export {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex: 1;
+	}
+
+	#composer-export form {
+		width: 600px;
+	}
+
+	#composer-export .selector {
+		display: flex;
+	}
+
+	#composer-export .selector .left, #composer-export .selector .right {
+		flex: 1;
+	}
+
+	#composer-export .selector .middle {
+		font-size: 36px;
+		padding: 12px;
+	}
+
+	#composer-export input, #calendar-add-tab select {
+		width: 100%;
+	}
+
+	#composer-export button {
+		float: right;
+		margin-left: 15px;
+	}
+</style>
+
+<div id="composer-export" ng-controller="ComposerNewCtrl">
+	<form class="box" ng-submit="execute()">
+		<h2>Export</h2>
+		<div class="selector">
+			<div class="left">
+				Hello
+			</div>
+			<div class="middle"><i class="awe-right-dir"></i></div>
+			<div class="right">
+				World
+			</div>
+		</div>
+		<label>
+			Lockout title
+			<input type="text" id="composer-new-title" ng-model="title" required>
+		</label>
+		<div class="overflow">
+			<button type="submit" ng-disabled="inflight">Create</button>
+			<button ng-disabled="inflight" ng-click="modal()" type="button">Cancel</button>
+		</div>
+	</form>
+	<script>
+		_("#composer-new-title").focus();
+	</script>
+</div>
