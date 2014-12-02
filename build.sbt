@@ -15,7 +15,7 @@ libraryDependencies ++= Seq(
 	"com.typesafe.play" %% "play-slick" % "0.8.0",
 	"org.scala-lang.modules" %% "scala-async" % "0.9.2",
 	"org.webjars" %% "webjars-play" % "2.3.0",
-	"org.webjars" % "angularjs" % "1.3.3",
+	"org.webjars" % "angularjs" % "1.3.4",
 	"org.webjars" % "jquery" % "2.1.1",
 	"org.webjars" % "prefixfree" % "b44a065",
 	"org.webjars" % "es6-shim" % "0.20.2",
