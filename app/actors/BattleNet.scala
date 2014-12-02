@@ -38,8 +38,10 @@ class BattleNetImpl extends BattleNet {
 
 	def fetchChar(server: String, name: String): Future[Char] = {
 		query(s"/character/$server/$name", "fields" -> "items,talents") map { char =>
+			// Fetch talents
 			val talents = char \ "talents"
 
+			// Get primary role
 			val role = (talents(0) :: talents(1) :: Nil) find { tree =>
 				(tree \ "selected").asOpt[Boolean] getOrElse false
 			} flatMap { tree =>

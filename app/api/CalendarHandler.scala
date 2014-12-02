@@ -4,8 +4,8 @@ import java.sql.Timestamp
 import java.text.{ParseException, SimpleDateFormat}
 import scala.slick.jdbc.JdbcBackend.SessionDef
 import scala.util.Try
-import actors.Actors.CalendarLocks
-import actors.CalendarLocksImpl.CalendarLock
+import actors.Actors.CalendarService
+import actors.CalendarServiceImpl.CalendarLock
 import actors.SocketHandler
 import models.mysql._
 import models.{CalendarEvents, _}
@@ -41,6 +41,13 @@ object CalendarHelper {
 
 	def eventAnswers(event_id: Int)(implicit s: SessionDef): List[(User, CalendarAnswer)] = {
 		answersQuery(event_id).list
+	}
+
+	def createTab(event: Int, title: String)(implicit s: SessionDef): CalendarTab = {
+		val max_order = CalendarTabs.filter(_.event === event).map(_.order).max.run.get
+		val template = CalendarTab(0, event, title, None, max_order + 1, false, false)
+		val id = (CalendarTabs returning CalendarTabs.map(_.id)).insert(template)
+		template.copy(id = id)
 	}
 }
 
@@ -670,10 +677,8 @@ trait CalendarHandler {
 			if (!event_editable) return MessageFailure("FORBIDDEN")
 
 			DB.withTransaction { implicit s =>
-				val max_order = CalendarTabs.filter(_.event === event_current.id).map(_.order).max.run.get
-				val template = CalendarTab(0, event_current.id, title, None, max_order + 1, false, false)
-				val id: Int = (CalendarTabs returning CalendarTabs.map(_.id)) += template
-				CalendarTabs.notifyCreate(template.copy(id = id))
+				val tab = CalendarHelper.createTab(event_current.id, title)
+				CalendarTabs.notifyCreate(tab)
 			}
 
 			MessageSuccess
@@ -796,7 +801,7 @@ trait CalendarHandler {
 		def handleLockStatus(arg: JsValue): MessageResponse = {
 			val tab_id = (arg \ "id").as[Int]
 			ensureTabEditable(tab_id) {
-				Json.obj("owner" -> CalendarLocks.status(tab_id))
+				Json.obj("owner" -> CalendarService.tabStatus(tab_id))
 			}
 		}
 
@@ -806,7 +811,7 @@ trait CalendarHandler {
 		def handleLockAcquire(arg: JsValue): MessageResponse = {
 			val tab_id = (arg \ "id").as[Int]
 			ensureTabEditable(tab_id) {
-				CalendarLocks.acquire(tab_id, user.name) map { lock =>
+				CalendarService.lockTab(tab_id, user.name) map { lock =>
 					edit_lock = Some(lock)
 					MessageSuccess
 				} getOrElse {

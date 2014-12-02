@@ -2,18 +2,18 @@ package actors
 
 import scala.concurrent.duration._
 import actors.Actors.Dispatcher
-import actors.CalendarLocksImpl._
+import actors.CalendarServiceImpl._
 import api.{CalendarLockAcquire, CalendarLockRelease}
 import gt.Global.ExecutionContext
 import utils.scheduler
 
-trait CalendarLocks {
-	def acquire(tab: Int, owner: String): Option[CalendarLock]
-	def status(tab: Int): Option[String]
-	def release(lock: CalendarLock): Unit
+trait CalendarService {
+	def tabStatus(tab: Int): Option[String]
+	def lockTab(tab: Int, owner: String): Option[CalendarLock]
+	def unlockTab(lock: CalendarLock): Unit
 }
 
-object CalendarLocksImpl {
+object CalendarServiceImpl {
 	private val LockExpireDuration = 15.seconds
 	class CalendarLock(val tab: Int, val owner: String) {
 		/**
@@ -37,13 +37,13 @@ object CalendarLocksImpl {
 		def release(): Unit = {
 			if (valid) {
 				valid = false
-				Actors.CalendarLocks.release(this)
+				Actors.CalendarService.unlockTab(this)
 			}
 		}
 	}
 }
 
-class CalendarLocksImpl extends CalendarLocks {
+class CalendarServiceImpl extends CalendarService {
 	/**
 	 * Every locks currently in use
 	 */
@@ -56,7 +56,7 @@ class CalendarLocksImpl extends CalendarLocks {
 		for (lock <- locks.values if lock.deadline.isOverdue()) lock.release()
 	}
 
-	def acquire(tab: Int, owner: String): Option[CalendarLock] = {
+	def lockTab(tab: Int, owner: String): Option[CalendarLock] = {
 		if (locks.contains(tab)) {
 			None
 		} else {
@@ -67,9 +67,9 @@ class CalendarLocksImpl extends CalendarLocks {
 		}
 	}
 
-	def status(tab: Int): Option[String] = locks.get(tab).map(_.owner)
+	def tabStatus(tab: Int): Option[String] = locks.get(tab).map(_.owner)
 
-	def release(lock: CalendarLock): Unit = {
+	def unlockTab(lock: CalendarLock): Unit = {
 		for (l <- locks.get(lock.tab)) {
 			if (lock == l) {
 				locks -= lock.tab
