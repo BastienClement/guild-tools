@@ -18,6 +18,9 @@ trait ComposerService {
 
 	def setSlot(group: Int, char: Int, role: String): Unit
 	def unsetSlot(group: Int, char: Int): Unit
+
+	def exportLockout(lockout: Int, events: List[Int]): Unit
+	def exportGroup(group: Int, events: List[Int]): Unit
 }
 
 class ComposerServiceImpl extends ComposerService {
@@ -96,6 +99,25 @@ class ComposerServiceImpl extends ComposerService {
 		if (ComposerSlots.filter(s => s.group === group && s.char === char).delete > 0) {
 			composer_slots := (_ filter (s => s.group != group || s.char != char))
 			Dispatcher !# ComposerSlotUnset(group, char)
+		}
+	}
+
+	def exportLockout(lockout: Int, events: List[Int]): Unit = {
+
+	}
+
+	def exportGroup(group: Int, events: List[Int]): Unit = {
+		DB.withSession { implicit s =>
+			val slots = ComposerSlots.filter(_.group === group).list
+			if (slots.size > 30) return
+
+			val chars = slots.map {
+				s => (RosterService.char(s.char), s.role)
+			} collect {
+				case (Some(char), role) => char.copy(role = role)
+			} sortWith { (a, b) =>
+				???
+			}
 		}
 	}
 }

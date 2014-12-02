@@ -2,6 +2,7 @@ import java.math.BigInteger
 import java.security.{MessageDigest, SecureRandom}
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future, Promise}
+import scala.language.implicitConversions
 import scala.util.{Failure, Success}
 import gt.Global.ExecutionContext
 import play.libs.Akka
@@ -55,4 +56,9 @@ package object utils {
 			false
 		}
 	}
+
+	/**
+	 * Automatically promote a T into a Future[T]
+     */
+	implicit def toFuture[T](value: T): Future[T] = Future.successful(value)
 }

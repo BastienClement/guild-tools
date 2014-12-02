@@ -13,6 +13,8 @@ import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json.{JsNull, JsValue, Json}
 import utils.SmartTimestamp.fromTimestamp
 import utils.{EventFilter, SmartTimestamp}
+import actors.Actors._
+import gt.Global.ExecutionContext
 
 /**
  * Shared calendar-related values
@@ -41,13 +43,6 @@ object CalendarHelper {
 
 	def eventAnswers(event_id: Int)(implicit s: SessionDef): List[(User, CalendarAnswer)] = {
 		answersQuery(event_id).list
-	}
-
-	def createTab(event: Int, title: String)(implicit s: SessionDef): CalendarTab = {
-		val max_order = CalendarTabs.filter(_.event === event).map(_.order).max.run.get
-		val template = CalendarTab(0, event, title, None, max_order + 1, false, false)
-		val id = (CalendarTabs returning CalendarTabs.map(_.id)).insert(template)
-		template.copy(id = id)
 	}
 }
 
@@ -676,12 +671,10 @@ trait CalendarHandler {
 
 			if (!event_editable) return MessageFailure("FORBIDDEN")
 
-			DB.withTransaction { implicit s =>
-				val tab = CalendarHelper.createTab(event_current.id, title)
+			CalendarService.createTab(event_current.id, title) map { tab =>
 				CalendarTabs.notifyCreate(tab)
+				MessageSuccess
 			}
-
-			MessageSuccess
 		}
 
 		/**
