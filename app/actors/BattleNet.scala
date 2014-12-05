@@ -28,7 +28,7 @@ class BattleNetImpl extends BattleNet {
 
 	def query(api: String, user_params: (String, String)*): Future[JsValue] = {
 		val params = user_params :+ ("apikey" -> key)
-		val request = WS.url(s"https://eu.api.battle.net/wow$api").withQueryString(params: _*)
+		val request = WS.url(s"https://eu.api.battle.net/wow$api").withQueryString(params: _*).withRequestTimeout(10000)
 
 		request.withHeaders("Accept" -> "application/json").get() flatMap {
 			case res if res.status == 200 => Future.successful(res.json)
