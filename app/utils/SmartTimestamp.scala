@@ -90,6 +90,7 @@ class SmartTimestamp(val time: Long) extends Timestamp(time) {
 	def hours = calendar.get(Calendar.HOUR)
 	def minutes = calendar.get(Calendar.MINUTE)
 	def seconds = calendar.get(Calendar.SECOND)
+	def dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
 
 	/**
 	 * Force this object to have the Timestamp type
