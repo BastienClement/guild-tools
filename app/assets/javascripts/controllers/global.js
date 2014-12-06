@@ -229,6 +229,14 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 		"Sunday"
 	];
 
+	$scope.groupNames = {
+		"10": "Guest",
+		"8": "Apply",
+		"12": "Casual",
+		"9": "Member",
+		"11": "Officer"
+	};
+
 	$scope.popupErrorText = null;
 	var popupErrorTimeout = null;
 
