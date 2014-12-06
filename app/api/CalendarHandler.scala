@@ -210,7 +210,7 @@ trait CalendarHandler {
 
 			// Matching absences
 			val slacks = DB.withSession { implicit s =>
-				Slacks.filter(s => s.from >= from.asSQL || s.to <= to.asSQL).list.map(_.conceal)
+				Slacks.filter(s => s.from >= from.toSQL || s.to <= to.toSQL).list.map(_.conceal)
 			}
 
 			// Listen to both calendar events and absences events

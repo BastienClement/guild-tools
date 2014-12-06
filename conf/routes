@@ -2,16 +2,18 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET         /assets/*file         controllers.Assets.versioned(path="/public", file: Asset)
-GET         /views/*file          controllers.Assets.versioned(path="/public/views", file: Asset)
+GET         /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+GET         /views/*file                controllers.Assets.versioned(path="/public/views", file: Asset)
 
-GET         /webjars/*file        controllers.WebJarAssets.at(file)
+GET         /webjars/*file              controllers.WebJarAssets.at(file)
 
-GET         /socket               controllers.Application.socket
+GET         /socket                     controllers.Application.socket
 
-GET         /api/gamedata         controllers.Api.gamedata
-POST        /api/bugsack          controllers.Api.bugsack
-GET         /api/*path            controllers.Api.catchall(path)
+GET         /api/gamedata               controllers.Api.gamedata
+POST        /api/bugsack                controllers.Api.bugsack
+GET         /api/*path                  controllers.Api.catchall(path)
 
-GET         /                     controllers.Application.index
-GET         /*path                controllers.Application.catchall(path)
+GET         /ping/dashboard/feed        controllers.Ping.dashboardFeed
+
+GET         /                           controllers.Application.index
+GET         /*path                      controllers.Application.catchall(path)

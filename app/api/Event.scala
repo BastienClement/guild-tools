@@ -28,6 +28,7 @@ abstract class CoreEvent(name: String, arg: JsValueWrapper) extends Event(name, 
  */
 case class ChatUserConnect(user: Int) extends CoreEvent("chat:user:connect", user)
 case class ChatUserDisconnect(user: Int) extends CoreEvent("chat:user:disconnect", user)
+case class ChatShoutboxMsg(msg: ChatMessage) extends CoreEvent("chat:shoutbox:msg", msg)
 
 /**
  * RosterEvent
@@ -39,6 +40,11 @@ case class RosterCharDelete(char: Int) extends CoreEvent("roster:char:delete", c
  * Context-specific events
  */
 abstract class CtxEvent(name: String, arg: JsValueWrapper) extends Event(name, arg)
+
+/**
+ * Dashboard events
+ */
+case class DashboardFeedUpdate(data: List[Feed]) extends CtxEvent("dashboard:feed:update", data)
 
 /**
  * Calendar events

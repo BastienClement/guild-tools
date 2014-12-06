@@ -95,7 +95,7 @@ class SmartTimestamp(val time: Long) extends Timestamp(time) {
 	/**
 	 * Force this object to have the Timestamp type
 	 */
-	val asSQL: Timestamp = this
+	val toSQL: Timestamp = this
 
 	/**
 	 * Override the default toString implementation, use format in companion object

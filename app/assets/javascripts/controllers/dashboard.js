@@ -65,6 +65,11 @@ GuildTools.controller("DashboardCtrl", function($scope, $location) {
 			});
 
 			$scope.logs = data.logs;
+		},
+
+		"dashboard:feed:update": function(data) {
+			raw_feed = data;
+			update_feed();
 		}
 	});
 

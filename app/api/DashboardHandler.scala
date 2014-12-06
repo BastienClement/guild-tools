@@ -4,6 +4,7 @@ import scala.compat.Platform
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Try
+import actors.Actors._
 import actors.SocketHandler
 import gt.Global.ExecutionContext
 import models._
@@ -11,15 +12,17 @@ import models.mysql._
 import play.api.Play.current
 import play.api.libs.json._
 import play.api.libs.ws._
-import utils.{LazyCache, SmartTimestamp}
+import utils.{LazyCache, SmartTimestamp, scheduler}
 
-object DashboardHelper {
+object DashboardHandler {
 	/**
 	 * Cached feed value
 	 */
 	val Feed = LazyCache[List[Feed]](5.minute) {
 		DB.withSession { implicit s =>
-			Feeds.sortBy(_.time.desc).take(50).list
+			val data = Feeds.sortBy(_.time.desc).take(50).list
+			Dispatcher !# DashboardFeedUpdate(data)
+			data
 		}
 	}
 
@@ -53,12 +56,15 @@ trait DashboardHandler {
 
 			val (events, events_filter) = Calendar.loadCalendarAndCreateFilter(ev_from, ev_to)
 
-			socket.bindEvents(events_filter)
+			socket.bindEvents(events_filter orElse {
+				case DashboardFeedUpdate(_) => true
+			})
 
 			Json.obj(
-				"feed" -> DashboardHelper.Feed.value,
+				"feed" -> DashboardHandler.Feed.value,
 				"events" -> Calendar.eventsToJs(events),
-				"logs" -> DashboardHelper.LogsFeed.value)
+				"logs" -> DashboardHandler.LogsFeed.value,
+				"shoutbox" -> ChatService.loadShoutbox())
 		}
 	}
 }

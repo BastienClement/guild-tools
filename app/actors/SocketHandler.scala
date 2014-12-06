@@ -202,6 +202,7 @@ with ComposerHandler {
 		case "absences:cancel" => Absences.handleCancel
 
 		case "chat:onlines" => Chat.handleOnlines
+		case "chat:shoutbox:send" => Chat.handleShoutboxSend
 
 		case "roster:load" => Roster.handleLoad
 		case "roster:user" => Roster.handleUser

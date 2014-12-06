@@ -1,13 +1,14 @@
 package actors
 
 import scala.concurrent.duration._
+import scala.language.implicitConversions
 import scala.util.{Success, Try}
 import actors.Actors.Dispatcher
 import akka.actor.ActorRef
-import api.{ChatUserConnect, ChatUserDisconnect}
+import api.{ChatShoutboxMsg, ChatUserConnect, ChatUserDisconnect}
 import models._
 import models.mysql._
-import utils.{LazyCache, SmartTimestamp}
+import utils._
 
 case class ChatException(msg: String) extends Exception(msg)
 
@@ -21,27 +22,20 @@ trait ChatService {
 	def connect(user: User, socket: ActorRef): Unit
 	def disconnect(socket: ActorRef): Unit
 
-	def sendMessage(channel: Option[Int], from: User, message: String): Try[ChatMessage]
+	def loadShoutbox(): List[ChatMessage]
+	def sendShoutbox(from: User, message: String): Unit
+
+	def userInChannel(user: User, channel: Option[Int]): Boolean
+	def fetchMessages(channel: Option[Int], select: Option[ChatSelect] = None): List[ChatMessage]
+
+	def sendMessage(channel: Int, from: User, message: String): Try[ChatMessage]
 	def sendWhisper(from: User, to: Int, message: String): Try[ChatWhisper]
 }
 
 class ChatServiceImpl extends ChatService {
 	private var sessions = Map[Int, Session]()
 
-	private val channels = LazyCache[Map[Int, Channel]](5.minutes) {
-		DB.withSession { implicit s =>
-			val query = for {
-				channel <- ChatChannels
-				membership <- ChatMembers if membership.channel === channel.id
-			} yield (channel, membership.user)
-
-			val res: List[(ChatChannel, Int)] = query.list
-			res.groupBy(_._1.id).mapValues { list =>
-				val channel = list(0)._1
-				Channel(channel, list.map(_._2).toSet)
-			}
-		}
-	}
+	def onlines: Set[Int] = sessions.keySet
 
 	def connect(user: User, socket: ActorRef): Unit = {
 		sessions.get(user.id) match {
@@ -67,34 +61,50 @@ class ChatServiceImpl extends ChatService {
 		}
 	}
 
-	def onlines: Set[Int] = sessions.keySet
+	private val shoutbox_backlog = LazyCache[List[ChatMessage]](1.minute) {
+		DB.withSession { implicit s =>
+			ChatMessages.filter(_.channel.isEmpty).sortBy(_.id.desc).list
+		}
+	}
 
-	def sendMessage(chanid: Option[Int], from: User, message: String): Try[ChatMessage] = Try {
-		// Load channel if specified
-		val channel = for (id <- chanid) yield channels.value(id)
+	def loadShoutbox(): List[ChatMessage] = shoutbox_backlog
 
-		// Check if user is in channel
-		for (chan <- channel) {
-			if (!chan.members.contains(from.id)) throw ChatException("User not in channel")
+	def sendShoutbox(from: User, msg: String): Unit = {
+		val message = DB.withSession { implicit s =>
+			val template = ChatMessage(0, None, from.id, from.name, msg)
+			val id = (ChatMessages returning ChatMessages.map(_.id)).insert(template)
+			template.copy(id = id)
 		}
 
-		// Save message in database
-		val msg = ChatMessage(0, chanid, Some(from.id), from.name, SmartTimestamp.now, message)
-		DB.withSession { implicit s => ChatMessages.insert(msg) }
-
-		// Broadcast message
-		/*for {
-			userid <- channel.map(_.members) getOrElse onlines.keySet
-			user <- onlines.get(userid)
-		} user ! Message("chat:message", msg)*/
-
-		msg
+		shoutbox_backlog := (message :: _)
+		Dispatcher !# ChatShoutboxMsg(message)
 	}
 
-	def sendWhisper(from: User, to: Int, message: String): Try[ChatWhisper] = {
-		val msg = ChatWhisper(0, from.id, to, SmartTimestamp.now, message)
-		DB.withSession { implicit s => ChatWhispers.insert(msg) }
-
-		Success(msg)
+	private val memberships = LazyCollection[Int, Set[Int]](1.minute) { channel =>
+		DB.withSession { implicit s =>
+			ChatMembers.filter(_.channel === channel).map(_.user).list.toSet
+		}
 	}
+
+	private implicit def unpackSelect(s: Option[ChatSelect]): ChatSelect = s.getOrElse(ChatSelect.all)
+
+	def userInChannel(user: User, channel: Option[Int]): Boolean = channel match {
+		case Some(cid) => memberships(cid).contains(user.id)
+		case None => true
+	}
+
+	def fetchMessages(channel: Option[Int], select: Option[ChatSelect] = None): List[ChatMessage] = {
+		DB.withSession { implicit s =>
+			var query = select.toQuery
+			channel match {
+				case Some(cid) => query = query.filter(_.channel === cid)
+				case None => query = query.filter(_.channel.isEmpty)
+			}
+			query.list
+		}
+	}
+
+	def sendMessage(chanid: Int, from: User, message: String): Try[ChatMessage] = ???
+
+	def sendWhisper(from: User, to: Int, message: String): Try[ChatWhisper] = ???
 }
