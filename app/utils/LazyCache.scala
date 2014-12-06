@@ -70,6 +70,14 @@ class LazyCache[T] private(ttl: FiniteDuration)(generator: => T) {
 	}
 
 	/**
+	 *  Refresh this object value
+	 */
+	def refresh(): T = {
+		clear()
+		gen()
+	}
+
+	/**
 	 * Aliases
 	 */
 	def apply(): T = value
