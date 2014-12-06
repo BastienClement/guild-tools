@@ -59,6 +59,11 @@ package object utils {
 
 	/**
 	 * Automatically promote a T into a Future[T]
-     */
+    */
 	implicit def toFuture[T](value: T): Future[T] = Future.successful(value)
+
+	/**
+	 * Automatically promote a T to an Option[T]
+    */
+	implicit def toOption[T](value: T): Option[T] = Some(value)
 }
