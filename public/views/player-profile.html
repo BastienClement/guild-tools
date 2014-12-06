@@ -167,7 +167,7 @@
 				<button ng-if="!char.main && char.active" ng-click="$.call('profile:disable', { id: char.id })">Disable</button>
 				<button ng-if="!char.active" ng-click="$.call('profile:enable', { id: char.id })">Enable</button>
 				<button ng-if="!char.active" ng-click="$.call('profile:remove', { id: char.id })">Remove</button>
-				<button ng-if="char.active" ng-click="$.call('profile:refresh', { id: char.id })">Update</button>
+				<button ng-if="char.active" ng-click="$.call('profile:refresh', { id: char.id })" ng-disabled="canUpdate(char.last_update)">Update</button>
 			</div>
 		</div>
 		<button ng-if="editable && chars.length < 15" class="box char add" ng-click="addChar()">

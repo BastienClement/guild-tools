@@ -58,6 +58,10 @@ GuildTools.controller("ProfileCtrl", function($scope, $location, $routeParams) {
 		}
 		$scope.modal('player-add-char');
 	};
+
+	$scope.canUpdate = function(time) {
+		return time >= (Date.now() - 1800000);
+	};
 });
 
 //--------------------------------------------------------------------------------------------------
