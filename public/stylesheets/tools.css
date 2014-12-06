@@ -391,8 +391,7 @@ img, i {
 
 #loading-error-infos {
 	margin-top: 20px;
-	color: #AAA;
-	opacity: 0.5;
+	color: rgb(142, 175, 206);
 }
 
 #loading-error-actions {
