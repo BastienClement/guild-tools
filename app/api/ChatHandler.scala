@@ -2,16 +2,20 @@ package api
 
 import actors.Actors.ChatService
 import actors.SocketHandler
-import play.api.libs.json.JsValue
+import play.api.libs.json.{Json, JsValue}
 
 trait ChatHandler {
 	socket: SocketHandler =>
 
 	object Chat {
 		/**
-		 * $:chat:onlines
+		 * $:chat:sync
 		 */
-		def handleOnlines(arg: JsValue): MessageResponse = ChatService.onlines
+		def handleSync(arg: JsValue): MessageResponse = {
+			Json.obj(
+				"onlines" -> ChatService.onlines,
+				"shoutbox" -> ChatService.loadShoutbox())
+		}
 
 		/**
 		 * $:chat:shoutbox:send

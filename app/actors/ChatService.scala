@@ -63,7 +63,7 @@ class ChatServiceImpl extends ChatService {
 
 	private val shoutbox_backlog = LazyCache[List[ChatMessage]](1.minute) {
 		DB.withSession { implicit s =>
-			ChatMessages.filter(_.channel.isEmpty).sortBy(_.id.desc).list
+			ChatMessages.filter(_.channel.isEmpty).sortBy(_.id.desc).take(100).list
 		}
 	}
 

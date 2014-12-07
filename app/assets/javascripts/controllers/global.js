@@ -22,6 +22,7 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	$scope.$ = $;
 	$scope.alert = alert;
 	$scope.console = console;
+	$scope.moment = moment;
 
 	$scope.timeago = function(date) {
 		return _.timeago(new Date(date));

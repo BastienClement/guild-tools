@@ -192,3 +192,24 @@ GuildTools.filter("markdown", function($sce) {
 		return $sce.trustAsHtml(res);
 	};
 });
+
+GuildTools.directive("scrollGlue", function($parse) {
+	return {
+		priority: 1,
+		restrict: 'A',
+		link: function(scope, $el, attrs){
+			var el = $el[0];
+			var activationState = true;
+
+			scope.$watch(function() {
+				console.log("wath", activationState, el);
+				if(activationState) el.scrollTop = el.scrollHeight;
+			});
+
+			$el.bind('scroll', function() {
+				console.log("scroll");
+				activationState = (el.scrollTop + el.clientHeight + 1 >= el.scrollHeight);
+			});
+		}
+	};
+});

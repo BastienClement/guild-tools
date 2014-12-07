@@ -221,6 +221,58 @@
 	#dashboard-user .rank {
 		opacity: .5;
 	}
+
+	#dashboard-shoutbox .panel {
+		margin-bottom: 0;
+		padding-top: 8px;
+		padding-bottom: 8px;
+	}
+
+	#dashboard-shoutbox .message {
+		padding: 2px 0;
+	}
+
+	#dashboard-shoutbox .message:first-child {
+		padding-top: 0;
+	}
+
+	#dashboard-shoutbox .message:last-child {
+		padding-bottom: 0;
+	}
+
+	#dashboard-shoutbox .date {
+		color: rgb(142, 175, 206);
+	}
+
+	#dashboard-shoutbox .author {
+		padding: 0 2px;
+	}
+
+	#dashboard-shoutbox .author span {
+		font-weight: 400;
+		padding: 0 1px;
+	}
+
+	#dashboard-shoutbox-composer {
+		border-top: 2px solid rgb(66, 101, 133);
+		margin: 0 -16px -16px -16px;
+		display: flex;
+		align-items: center;
+	}
+
+	#dashboard-shoutbox-composer i {
+		font-size: 16px;
+		margin-left: 8px;
+		color: rgb(142, 175, 206);
+	}
+
+	#dashboard-shoutbox-composer input {
+		flex: 1;
+		margin: 0;
+		padding: 16px 8px;
+		box-sizing: border-box;
+		border: 0;
+	}
 </style>
 
 <div id="dashboard" class="tools-main">
@@ -285,9 +337,19 @@
 
 		<div class="box parted" id="dashboard-shoutbox">
 			<h2>Shoutbox</h2>
-			<div class="panel">
+			<div class="panel" scroll-glue>
+				<div ng-repeat="msg in $.shoutbox" class="message">
+					<span class="date">{{ moment(msg.date).format("DD.MM HH:mm") }}</span>
+					<span class="author">
+						<span class="c{{ msg.user ? $.roster.mainForUser(msg.user).class : 99 }}">{{ msg.user ? $.roster.mainForUser(msg.user).name : msg.from }}</span>
+					</span>
+					<span class="message">{{ msg.text }}</span>
+				</div>
 			</div>
-			<input type="text">
+			<form id="dashboard-shoutbox-composer" ng-submit="sendShoutbox()">
+				<i class="awe-comment-empty"></i>
+				<input type="text" ng-model="forms.shoutbox" placeholder=". . .">
+			</form>
 		</div>
 	</div>
 

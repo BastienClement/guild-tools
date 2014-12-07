@@ -63,8 +63,7 @@ trait DashboardHandler {
 			Json.obj(
 				"feed" -> DashboardHandler.Feed.value,
 				"events" -> Calendar.eventsToJs(events),
-				"logs" -> DashboardHandler.LogsFeed.value,
-				"shoutbox" -> ChatService.loadShoutbox())
+				"logs" -> Json.arr())
 		}
 	}
 }

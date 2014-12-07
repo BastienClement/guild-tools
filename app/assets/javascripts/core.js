@@ -28,6 +28,7 @@ var $ = {};
 	$.online = [];
 	$.roster = { users: [], chars: [] };
 	$.rev = null;
+	$.shoutbox = [];
 
 	_(function() {
 		ready = true;
@@ -103,13 +104,16 @@ var $ = {};
 	}
 
 	$.syncOnlines = function() {
-		$.exec("chat:onlines", function(err, data) {
+		$.exec("chat:sync", function(err, data) {
 			if (err) return;
-			$.online = data;
+			$.online = data.onlines;
 			$.onlineMap = {};
 			$.online.forEach(function(player) {
 				$.onlineMap[player.id] = player;
 			});
+
+			$.shoutbox = data.shoutbox;
+			$.shoutbox.reverse();
 		});
 
 		$.exec("roster:load", function(err, data) {
@@ -254,6 +258,13 @@ var $ = {};
 
 			"chat:user:disconnect": function(user) {
 				$.online = $.online.filter(function(id) { return id !== user; });
+			},
+
+			"chat:shoutbox:msg": function(msg) {
+				$.shoutbox.push(msg);
+				if ($.shoutbox.length > 100) {
+					$.shoutbox.shift();
+				}
 			},
 
 			"roster:char:update": function(char) {

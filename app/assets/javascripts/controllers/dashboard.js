@@ -5,6 +5,10 @@ GuildTools.controller("DashboardCtrl", function($scope, $location) {
 	$scope.events = [];
 	$scope.logs = [];
 
+	$scope.forms = {
+		shoutbox: ""
+	};
+
 	var raw_feed = [];
 	$scope.feed = null;
 	$scope.main = $.roster.mainForUser($.user.id);
@@ -143,4 +147,11 @@ GuildTools.controller("DashboardCtrl", function($scope, $location) {
 	};
 
 	$scope.onlineSort = "name";
+
+	$scope.sendShoutbox = function() {
+		$scope.forms.shoutbox = $scope.forms.shoutbox.replace(/^\s+|\s+$/g, "");
+		if (!$scope.forms.shoutbox) return;
+		$.call("chat:shoutbox:send", { msg: $scope.forms.shoutbox });
+		$scope.forms.shoutbox = "";
+	};
 });
