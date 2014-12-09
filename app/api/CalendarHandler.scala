@@ -2,36 +2,29 @@ package api
 
 import java.sql.Timestamp
 import java.text.{ParseException, SimpleDateFormat}
-import scala.slick.jdbc.JdbcBackend.SessionDef
 import scala.util.Try
 import actors.Actors.CalendarService
 import actors.CalendarService.CalendarLock
 import actors.SocketHandler
+import gt.Global.ExecutionContext
 import models.mysql._
 import models.{CalendarEvents, _}
 import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json.{JsNull, JsValue, Json}
 import utils.SmartTimestamp.fromTimestamp
 import utils.{EventFilter, SmartTimestamp}
-import actors.Actors._
-import gt.Global.ExecutionContext
 
 /**
  * Shared calendar-related values
  */
-object CalendarHelper {
+object CalendarHandler {
 	val guildies_groups = Set[Int](8, 9, 11)
 
-	val guildAnswersQuery = Compiled { (event_id: Column[Int]) =>
+	val missingAnswers = Compiled { (event_id: Column[Int]) =>
 		for {
-			(u, a) <- Users leftJoin CalendarAnswers on ((u, a) => u.id === a.user && a.event === event_id)
-			if u.group inSet CalendarHelper.guildies_groups
-		} yield (u, (a.answer.?, a.date.?, a.note, a.char))
-	}
-
-	type GuildAnswer = (User, (Option[Int], Option[Timestamp], Option[String], Option[Int]))
-	def guildAnswers(event_id: Int)(implicit s: SessionDef): List[GuildAnswer] = {
-		guildAnswersQuery(event_id).list
+			u <- Users if u.group inSet guildies_groups
+			if !CalendarAnswers.filter(a => u.id === a.user && a.event === event_id).exists
+		} yield u.id
 	}
 
 	val answersQuery = Compiled { (event_id: Column[Int]) =>
@@ -39,10 +32,6 @@ object CalendarHelper {
 			a <- CalendarAnswers if a.event === event_id
 			u <- Users if u.id === a.user
 		} yield (u, a)
-	}
-
-	def eventAnswers(event_id: Int)(implicit s: SessionDef): List[(User, CalendarAnswer)] = {
-		answersQuery(event_id).list
 	}
 }
 
@@ -357,42 +346,18 @@ trait CalendarHandler {
 				return MessageFailure("OPENING_ANNOUNCE")
 			}
 
-			// Fetch answers for guild events
-			def fetchGuildAnswers: Map[String, Option[CalendarAnswer]] = {
-				CalendarHelper.guildAnswers(id).groupBy(_._1.id.toString).mapValues { list =>
-					val user = list(0)._1
-					val (a_answer, a_date, a_note, a_char) = list(0)._2
+			val answers = {
+				// Fetch registerd users
+				val event_answers = CalendarHandler.answersQuery(id).list.map({
+					case (u: User, a: CalendarAnswer) => (u.id.toString, Some(a))
+				}).toMap
 
-					if (a_answer.isDefined) {
-						val a = CalendarAnswer(
-							user = user.id,
-							event = id,
-							date = a_date.get,
-							answer = a_answer.get,
-							note = a_note,
-							char = a_char,
-							false
-						)
-						Some(a)
-					} else {
-						None
-					}
+				// Add non-register if this is a guild of optional event
+				if (event.visibility == CalendarVisibility.Guild || event.visibility == CalendarVisibility.Optional) {
+					event_answers ++ CalendarHandler.missingAnswers(id).list.map(u => (u.toString, None)).toMap
+				} else {
+					event_answers
 				}
-			}
-
-			// Fetch answers for non-guild events
-			def fetchEventAnswers: Map[String, Option[CalendarAnswer]] = {
-				CalendarHelper.eventAnswers(id).groupBy(_._1.id.toString).mapValues { list =>
-					Some(list(0)._2)
-				}
-			}
-
-			// Select the correct answer fetcher for this event
-			val answers: Map[String, Option[CalendarAnswer]] = {
-				if (event.visibility == CalendarVisibility.Guild || event.visibility == CalendarVisibility.Optional)
-					fetchGuildAnswers
-				else
-					fetchEventAnswers
 			}
 
 			// Extract own answer
