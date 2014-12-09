@@ -236,12 +236,13 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 
 	function build_roster() {
 		var mains = [];
+		var casuals = [];
 		var alts = [];
 		var roster = $scope.roster = [];
 
 		$.roster.chars.forEach(function(char) {
 			if (char.level < 100) return;
-			(char.main ? mains : alts).push(char);
+			(char.main ? ($.roster.user(char.owner).group == 12 ? casuals : mains) : alts).push(char);
 		});
 
 		function sort_group(use_ilvl) {
@@ -253,7 +254,8 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 		}
 
 		mains.sort(sort_group(false));
-		roster.push({ title: "Mains", chars: mains });
+		casuals.sort(sort_group(false));
+		roster.push({ title: "Mains", chars: mains }, { title: "Casuals", chars: casuals });
 
 		var alt_groups = [
 			{ title: "Alts 685+", ilvl: 685, chars: [] },
