@@ -214,14 +214,16 @@ var $ = {};
 			return idx_chars_by_user[user] || [];
 		};
 
+		var temp_mains = {};
+
 		$.roster.mainForUser = function(user) {
-			return idx_main_for_user[user] || {
+			return idx_main_for_user[user] || temp_mains[user] || (temp_mains[user] = {
 				name: $.roster.user(user).name,
 				"class": 99,
 				owner: Number(user),
 				role: "UNKNOW",
 				unknown: true
-			};
+			});
 		};
 	})();
 
