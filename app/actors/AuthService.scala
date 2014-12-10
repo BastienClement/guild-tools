@@ -2,12 +2,12 @@ package actors
 
 import scala.concurrent.duration._
 import scala.util.Try
-import actors.AuthenticatorHelper._
+import actors.AuthService._
 import models._
 import models.mysql._
 import utils.{LazyCollection, SmartTimestamp}
 
-object AuthenticatorHelper {
+object AuthService {
 	val allowedGroups = Set(8, 12, 9, 11)
 }
 

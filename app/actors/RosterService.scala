@@ -34,7 +34,7 @@ class RosterServiceImpl extends RosterService {
 	 */
 	val roster_users = LazyCache(1.minute) {
 		DB.withSession { implicit s =>
-			Users.filter(_.group inSet AuthenticatorHelper.allowedGroups).list.map(u => u.id -> u).toMap
+			Users.filter(_.group inSet AuthService.allowedGroups).list.map(u => u.id -> u).toMap
 		}
 	}
 
