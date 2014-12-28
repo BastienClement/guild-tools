@@ -4,7 +4,7 @@ addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.1.6")
 
 // The Play plugin
 
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.3.6")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.3.7")
 
 // web plugins
 
