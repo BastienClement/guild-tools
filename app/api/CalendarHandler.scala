@@ -524,10 +524,12 @@ trait CalendarHandler {
 			val state = (arg \ "state").as[Int]
 
 			if (!CalendarEventState.isValid(state)) return MessageFailure("BAD_STATE")
-			if (!event_editable) return MessageFailure("FORBIDDEN")
+			if (!event_editable && !user.promoted) return MessageFailure("FORBIDDEN")
+
+			val event_id = (arg \ "event").asOpt[Int] getOrElse event_current.id
 
 			DB.withTransaction { implicit s =>
-				val query = CalendarEvents.filter(_.id === event_current.id)
+				val query = CalendarEvents.filter(_.id === event_id)
 				query.map(_.state).update(state)
 				CalendarEvents.notifyUpdate(query.first.copy(state = state))
 			}

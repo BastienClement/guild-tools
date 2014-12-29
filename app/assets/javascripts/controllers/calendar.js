@@ -213,11 +213,30 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 	$scope.eventMenu = function(event, ev) {
 		var menu = [];
 
-		var hasDelete = false;
-		var hasControls = false;
-
 		if (event.owner === $.user.id || $.user.promoted) {
-			hasDelete = true;
+			if ($.user.promoted) {
+				menu.push({
+					icon: "awe-lock-open-alt", text: "Open", action: function() {
+						$.call("calendar:event:state", { event: event.id, state: 0 });
+					}, order: 6
+				});
+
+				menu.push({
+					icon: "awe-lock", text: "Lock", action: function() {
+						$.call("calendar:event:state", { event: event.id, state: 1 });
+					}, order: 7
+				});
+
+				menu.push({
+					icon: "awe-cancel", text: "Cancel", action: function() {
+						$.call("calendar:event:state", { event: event.id, state: 2 });
+					}, order: 8
+				});
+
+				if (event.state === 0) menu.push({ separator: true, order: 5 });
+				menu.push({ separator: true, order: 9 });
+			}
+
 			menu.push({
 				icon: "awe-trash", text: "Delete", action: function() {
 					if (confirm("Are you sure?"))
@@ -227,14 +246,7 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 		}
 
 		if (event.type !== 4) {
-			menu.push({
-				icon: "awe-link-ext-alt", text: "Open", action: function() {
-					$scope.open(event.id);
-				}, order: 1
-			});
-
 			if (event.state === 0) {
-				hasControls = true;
 				menu.push({
 					icon: "awe-ok", text: "Accept", action: function() {
 						$scope.accept(event.id, ev);
@@ -247,10 +259,6 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 					}, order: 4
 				});
 			}
-		}
-
-		if (hasDelete && hasControls) {
-			menu.push({ separator: true, order: 5 });
 		}
 
 		if (menu.length) {
