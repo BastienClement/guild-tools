@@ -1,4 +1,4 @@
-GuildTools.controller("DashboardCtrl", function($scope, $location) {
+GuildTools.controller("DashboardCtrl", function($scope, $sce) {
 	if ($scope.restrict()) return;
 	$scope.setNavigator("dashboard", "main");
 
@@ -153,5 +153,11 @@ GuildTools.controller("DashboardCtrl", function($scope, $location) {
 		if (!$scope.forms.shoutbox) return;
 		$.call("chat:shoutbox:send", { msg: $scope.forms.shoutbox });
 		$scope.forms.shoutbox = "";
+	};
+
+	var escaper = _("<span>");
+	$scope.formatShoutboxMessage = function(msg) {
+		msg = escaper.text(msg).html();
+		return $sce.trustAsHtml(msg.replace(/(https?:\/\/[^\s'\\<>]+)/g, "<a target='_blank' href='$1'>$1</a>"));
 	};
 });

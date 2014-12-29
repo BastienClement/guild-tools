@@ -273,6 +273,13 @@
 		box-sizing: border-box;
 		border: 0;
 	}
+
+	#dashboard-shoutbox a {
+		color: #64B4FF;
+		cursor: pointer;
+		text-decoration: none;
+		transition: color ease-out .3s;
+	}
 </style>
 
 <div id="dashboard" class="tools-main">
@@ -343,7 +350,7 @@
 					<span class="author">
 						<span class="c{{ msg.user ? $.roster.mainForUser(msg.user).class : 99 }}">{{ msg.user ? $.roster.mainForUser(msg.user).name : msg.from }}</span>
 					</span>
-					<span class="message">{{ msg.text }}</span>
+					<span class="message" ng-bind-html="formatShoutboxMessage(msg.text)"></span>
 				</div>
 			</div>
 			<form id="dashboard-shoutbox-composer" ng-submit="sendShoutbox()">
