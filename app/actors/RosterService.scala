@@ -10,7 +10,7 @@ import gt.Global.ExecutionContext
 import models._
 import models.mysql._
 import play.api.libs.json._
-import utils.LazyCache
+import utils.{LazyCollection, LazyCache}
 
 trait RosterService {
 	def users: Map[Int, User]
@@ -55,6 +55,24 @@ class RosterServiceImpl extends RosterService {
 	}
 
 	/**
+	 * Allow query of out-roster users as fallback
+	 */
+	def outroster_user = LazyCollection[Int, Option[User]](15.minutes) { id =>
+		DB.withSession { implicit s =>
+			Users.filter(_.id === id).firstOption
+		}
+	}
+
+	/**
+	 * Allow query of out-roster chars as fallback
+	 */
+	def outroster_chars = LazyCollection[Int, Set[Char]](15.minutes) { owner =>
+		DB.withSession { implicit s =>
+			Chars.filter(_.owner === owner).list.toSet
+		}
+	}
+
+	/**
 	 * Locks for currently updated chars
 	 */
 	var inflightUpdates = Set[Int]()
@@ -68,8 +86,20 @@ class RosterServiceImpl extends RosterService {
 	def compositeRoster: JsObject = roster_composite
 
 	def compositeUser(id: Int): JsObject = {
-		val chars = roster_chars.collect({ case (_, char) if char.owner == id => char }).toSet
-		Json.obj("user" -> roster_users.get(id), "chars" -> chars)
+		roster_users.get(id) map { user =>
+			// Attempt to fetch in-guild user and chars
+			val chars = roster_chars.collect({ case (_, char) if char.owner == id => char }).toSet
+			Json.obj("user" -> user, "chars" -> chars)
+		} orElse {
+			// Fallback if user is no longer in guild
+			outroster_user.get(id) map { user =>
+				val chars = outroster_chars.get(id)
+				Json.obj("user" -> user, "chars" -> chars)
+			}
+		} getOrElse {
+			// The user doesn't seem to exist at all
+			Json.obj("user" -> JsNull, "chars" -> JsNull)
+		}
 	}
 
 	def updateChar(char: Char): Unit = {
