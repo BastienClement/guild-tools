@@ -87,12 +87,12 @@ GuildTools.directive("ngTooltip", function() {
 			var width = tooltip.outerWidth();
 			var height = tooltip.outerHeight();
 
-			if (x + width > _(window).width()) {
+			if (x + width + 20 > _(window).width()) {
 				x -= width + 20;
 			}
 
-			if (y - height < 0) {
-				y += height + 20;
+			if (y + height + 20 > _(window).height()) {
+				y -= height + 20;
 			}
 
 			tooltip.css({
