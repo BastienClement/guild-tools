@@ -242,7 +242,9 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 
 		$.roster.chars.forEach(function(char) {
 			if (char.level < 100) return;
-			(char.main ? ($.roster.user(char.owner).group == 12 ? casuals : mains) : alts).push(char);
+			var owner = $.roster.user(char.owner);
+			if (owner.unknown || owner.outofroster) return;
+			(char.main ? (owner.group == 12 ? casuals : mains) : alts).push(char);
 		});
 
 		function sort_group(use_ilvl) {
