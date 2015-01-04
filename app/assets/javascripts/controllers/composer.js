@@ -260,13 +260,14 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 		roster.push({ title: "Mains", chars: mains }, { title: "Casuals", chars: casuals });
 
 		var alt_groups = [
-			{ title: "Alts 685+", ilvl: 685, chars: [] },
+			{ title: "Alts 700+", ilvl: 700, chars: [] },
+			{ title: "Alts 690+", ilvl: 690, chars: [] },
+			{ title: "Alts 680+", ilvl: 680, chars: [] },
 			{ title: "Alts 670+", ilvl: 670, chars: [] },
-			{ title: "Alts 655+", ilvl: 655, chars: [] },
+			{ title: "Alts 660+", ilvl: 660, chars: [] },
+			{ title: "Alts 650+", ilvl: 650, chars: [] },
 			{ title: "Alts 640+", ilvl: 640, chars: [] },
 			{ title: "Alts 630+", ilvl: 630, chars: [] },
-			{ title: "Alts 620+", ilvl: 620, chars: [] },
-			{ title: "Alts 610+", ilvl: 610, chars: [] },
 			{ title: "Alts crappy", ilvl: 0, chars: [] }
 		];
 
