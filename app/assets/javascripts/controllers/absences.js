@@ -9,8 +9,8 @@ GuildTools.controller("AbsencesCtrl", function($scope) {
 	function parse_dates() {
 		$scope.absences.forEach(function(abs) {
 			if (typeof abs.from == "string") {
-				abs.from = new Date(abs.from);
-				abs.to = new Date(abs.to);
+				abs.from = new Date(abs.from.replace(" ", "T"));
+				abs.to = new Date(abs.to.replace(" ", "T"));
 			}
 		});
 	}
