@@ -51,6 +51,10 @@
 		font-size: 16px;
 	}
 
+	#composer-roster h3 .count {
+		color: #A7AEB3;
+	}
+
 	#composer-lockouts {
 		flex: 1;
 		overflow: auto;
@@ -200,7 +204,7 @@
 		</div>
 		<div class="panel">
 			<div ng-repeat="group in roster">
-				<h3>{{ group.title }} ({{ group.chars.length }})</h3>
+				<h3>{{ group.title }} <span class="count">({{ group.chars.length }})</span></h3>
 				<div class="group">
 					<span ng-repeat="char in group.chars"
 						  class="char c{{ char.class }}"
