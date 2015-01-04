@@ -51,6 +51,14 @@ body {
 	user-select: none;
 }
 
+.selectable, .selectable * {
+	-webkit-touch-callout: default !important;
+	-webkit-user-select: text !important;
+	-moz-user-select: text !important;
+	-ms-user-select: text !important;
+	user-select: text !important;
+}
+
 html, body {
 	overflow: hidden;
 }

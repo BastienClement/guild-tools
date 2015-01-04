@@ -344,7 +344,7 @@
 
 		<div class="box parted" id="dashboard-shoutbox">
 			<h2>Shoutbox</h2>
-			<div class="panel" scroll-glue>
+			<div class="panel selectable" scroll-glue>
 				<div ng-repeat="msg in $.shoutbox" class="message">
 					<span class="date">{{ moment(msg.date).format("DD.MM HH:mm") }}</span>
 					<span class="author">
