@@ -94,7 +94,7 @@ class RosterServiceImpl extends RosterService {
 			// Fallback if user is no longer in guild
 			outroster_user.get(id) map { user =>
 				val chars = outroster_chars.get(id)
-				Json.obj("user" -> user, "chars" -> chars)
+				Json.obj("user" -> user, "chars" -> chars, "outofroster" -> true)
 			}
 		} getOrElse {
 			// The user doesn't seem to exist at all

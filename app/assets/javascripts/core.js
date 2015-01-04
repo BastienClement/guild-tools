@@ -154,6 +154,7 @@ var $ = {};
 				$.exec("roster:user", { id: id }, function(err, data) {
 					if (err || !data.user) return;
 					$.roster.users[data.user.id] = data.user;
+					if (data.outofroster) data.user.outofroster = true;
 					data.chars.forEach(function(char) {
 						$.roster.chars[char.id] = char;
 					});
