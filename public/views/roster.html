@@ -92,7 +92,7 @@
 			</div>
 		</div>
 		<div id="roster-body">
-			<div class="user" ng-repeat="user in $.roster.users track by $index | orderBy: ['name']" ng-if="user">
+			<div class="user" ng-repeat="user in $.roster.users track by $index | orderBy: ['name']" ng-if="user && !user.outofroster">
 				<div class="row"
 				     ng-repeat="char in $.roster.charsByUser(user.id) | orderBy: ['-main', '-active', '-ilvl']"
 					 ng-class="{ main: char.main, reroll: !char.main, inactive: !char.active }"
