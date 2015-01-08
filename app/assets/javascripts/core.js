@@ -240,7 +240,7 @@ var $ = {};
 		var queue = [];
 		var init_done = false;
 		var reason = null;
-		var enable_compression = true;
+		var enable_compression = false;
 
 		function trigger_serv_update() {
 			_("#loading-error-title").text("The Guild-Tools server has just been upgraded");
