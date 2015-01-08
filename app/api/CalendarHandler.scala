@@ -5,7 +5,7 @@ import java.text.{ParseException, SimpleDateFormat}
 import scala.util.Try
 import actors.Actors.CalendarService
 import actors.CalendarService.CalendarLock
-import actors.SocketHandler
+import actors.{AuthService, SocketHandler}
 import gt.Global.ExecutionContext
 import models.mysql._
 import models.{CalendarEvents, _}
@@ -199,7 +199,12 @@ trait CalendarHandler {
 
 			// Matching absences
 			val slacks = DB.withSession { implicit s =>
-				Slacks.filter(s => s.from >= from.toSQL || s.to <= to.toSQL).list.map(_.conceal)
+				val slacks_query = for {
+					u <- Users if u.group inSet AuthService.allowedGroups
+					s <- Slacks if (s.from >= from.toSQL || s.to <= to.toSQL) && s.user === u.id
+				} yield s
+
+				slacks_query.list.map(_.conceal)
 			}
 
 			// Listen to both calendar events and absences events
@@ -397,8 +402,12 @@ trait CalendarHandler {
 			}
 
 			// Load absents for this event
-			var slacks = Slacks.filter(s => s.from <= event.date && s.to >= event.date).list
-			if (!user.promoted) slacks = slacks.map(_.conceal)
+			val slacks_query = for {
+				u <- Users if u.group inSet AuthService.allowedGroups
+				s <- Slacks if s.from <= event.date && s.to >= event.date && s.user === u.id
+			} yield s
+
+			val slacks = if (user.promoted) slacks_query.list else slacks_query.list.map(_.conceal)
 
 			def slackFilter(slack: Slack, wrap: (Slack) => CtxEvent): Boolean = {
 				if (slack.from <= event.date && slack.to >= event.date) {
