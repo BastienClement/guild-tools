@@ -240,6 +240,7 @@ var $ = {};
 		var queue = [];
 		var init_done = false;
 		var reason = null;
+		var enable_compression = true;
 
 		function trigger_serv_update() {
 			_("#loading-error-title").text("The Guild-Tools server has just been upgraded");
@@ -336,7 +337,8 @@ var $ = {};
 		};
 
 		$.wsConnect = function(err) {
-			ws = new WebSocket(document.location.origin.replace(/^http/, "ws") + "/socket");
+			ws = new WebSocket(document.location.origin.replace(/^http/, "ws") + (enable_compression ? "/socket_z" : "/socket"));
+			if (enable_compression) ws.binaryType = "arraybuffer";
 
 			function cb(info) {
 				if (err) return err(info);
@@ -348,10 +350,19 @@ var $ = {};
 				return cb(e);
 			};
 
-			ws.onmessage = function(msg) {
+			ws.onmessage = function(frame) {
+				var data, msg;
+
+				if (enable_compression) {
+					data = pako.inflate(new Uint8Array(frame.data), { to: 'string' });
+				} else {
+					data = frame.data;
+				}
+
 				try {
-					msg = JSON.parse(msg.data);
+					msg = JSON.parse(data);
 				} catch (e) {
+					console.log(e, msg.data);
 					cb({ reason: "invalid handshake" });
 					ws.close();
 					return;
@@ -365,6 +376,8 @@ var $ = {};
 					);
 				}
 
+				$.exec("socket:compression", true );
+
 				if ($.rev && $.rev !== msg.rev) {
 					trigger_serv_update();
 				}
@@ -372,9 +385,17 @@ var $ = {};
 				$.rev = msg.rev;
 
 				ws.onclose = $.wsReconnect;
-				ws.onmessage = function(msg) {
+				ws.onmessage = function(frame) {
+					var data, msg;
+
+					if (enable_compression) {
+						data = pako.inflate(new Uint8Array(frame.data), { to: 'string' });
+					} else {
+						data = frame.data;
+					}
+
 					try {
-						msg = JSON.parse(msg.data);
+						msg = JSON.parse(data);
 					} catch (e) {
 						console.error(e);
 						bugsack_send(e);
@@ -486,7 +507,11 @@ var $ = {};
 
 		$.wsSend = function(m) {
 			if (ws) {
-				ws.send(JSON.stringify(m));
+				if (enable_compression) {
+					ws.send(pako.deflate(JSON.stringify(m)));
+				} else {
+					ws.send(JSON.stringify(m));
+				}
 			} else {
 				queue.push(m);
 			}

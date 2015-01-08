@@ -1,6 +1,6 @@
 package controllers
 
-import actors.SocketHandler
+import actors.{CompressedSocketHandler, SocketHandler}
 import akka.actor.Props
 import play.api.Play.current
 import play.api.libs.json.JsValue
@@ -15,6 +15,10 @@ object Application extends Controller {
 
 	def socket = WebSocket.acceptWithActor[JsValue, JsValue] { request => out =>
 		Props(new SocketHandler(out, request.remoteAddress))
+	}
+
+	def socket_z = WebSocket.acceptWithActor[Array[Byte], Array[Byte]] { request => out =>
+		Props(new CompressedSocketHandler(out, request.remoteAddress))
 	}
 
 	def test = Action {

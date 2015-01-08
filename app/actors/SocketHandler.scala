@@ -1,8 +1,10 @@
 package actors
 
+import java.io.ByteArrayOutputStream
+import java.util.zip.{Inflater, Deflater}
 import scala.util.{Failure, Success}
 import actors.Actors._
-import akka.actor.{Actor, ActorRef, PoisonPill, actorRef2Scala}
+import akka.actor._
 import api._
 import gt.Global
 import gt.Global.ExecutionContext
@@ -241,5 +243,62 @@ with ComposerHandler {
 	override def postStop(): Unit = {
 		Dispatcher.unregister(self)
 		ChatService.disconnect(self)
+	}
+}
+
+/**
+ * Wrap a socket handler to support compression
+ */
+class CompressedSocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor {
+	// Compress data
+	def deflate(data: Array[Byte]): Array[Byte] = {
+		val d = new Deflater()
+		d.setInput(data)
+		d.finish()
+
+		val os = new ByteArrayOutputStream()
+		val buf = new Array[Byte](1024)
+
+		while (!d.finished()) {
+			val count = d.deflate(buf)
+			os.write(buf, 0, count)
+		}
+
+		os.close()
+		d.end()
+
+		os.toByteArray
+	}
+
+	// Decompress data
+	def inflate(data: Array[Byte]): Array[Byte] = {
+		val i = new Inflater()
+		i.setInput(data)
+
+		val os = new ByteArrayOutputStream()
+		val buf = new Array[Byte](1024)
+
+		while (!i.finished()) {
+			val count = i.inflate(buf)
+			os.write(buf, 0, count)
+		}
+
+		os.close()
+		i.end()
+
+		os.toByteArray
+	}
+
+	class OutputCompressor extends Actor {
+		def receive = {
+			case output: JsValue => out ! deflate(output.toString().getBytes("UTF-8"))
+		}
+	}
+
+	val output_compressor = context.actorOf(Props(new OutputCompressor))
+	val socket_handler = context.actorOf(Props(new SocketHandler(output_compressor, remoteAddr)))
+
+	def receive = {
+		case input: Array[Byte] => socket_handler ! Json.parse(inflate(input))
 	}
 }
