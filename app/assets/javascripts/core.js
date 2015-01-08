@@ -104,6 +104,15 @@ var $ = {};
 	}
 
 	$.syncOnlines = function() {
+		$.exec("roster:load", function(err, data) {
+			if (err) return;
+			$.roster.users = [];
+			data.users.forEach(function(user) { $.roster.users[user.id] = user; });
+			$.roster.chars = [];
+			data.chars.forEach(function(char) { $.roster.chars[char.id] = char; });
+			$.roster.trigger();
+		});
+
 		$.exec("chat:sync", function(err, data) {
 			if (err) return;
 			$.online = data.onlines;
@@ -114,15 +123,6 @@ var $ = {};
 
 			$.shoutbox = data.shoutbox;
 			$.shoutbox.reverse();
-		});
-
-		$.exec("roster:load", function(err, data) {
-			if (err) return;
-			$.roster.users = [];
-			data.users.forEach(function(user) { $.roster.users[user.id] = user; });
-			$.roster.chars = [];
-			data.chars.forEach(function(char) { $.roster.chars[char.id] = char; });
-			$.roster.trigger();
 		});
 	};
 
