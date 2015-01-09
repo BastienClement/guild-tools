@@ -1262,6 +1262,8 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 			--have[buff.c + ":" + buff.r];
 			buffs[buff.b] = [buff.w, buff.i];
 		});
+
+		build_stats();
 	};
 
 	$scope.computeRaidBuffs();
@@ -1564,6 +1566,60 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 
 		return 0;
 	};
+
+	var stats = $scope.stats = {};
+
+	function build_stats() {
+		stats = $scope.stats = {};
+
+		$scope.tabs.forEach(function(tab) {
+			var tab_stats = stats[tab.id] = {
+				tank: 0,
+				heal: 0,
+				dps: 0,
+				total: 0,
+
+				tank_ilvl: 0,
+				heal_ilvl: 0,
+				dps_ilvl: 0,
+				total_ilvl: 0
+			};
+
+			for (var slotid in $scope.slots[tab.id]) {
+				var slot = $scope.slots[tab.id][slotid];
+				var ilvl = $scope.slotIlvl(slot);
+				if (!ilvl) continue;
+
+				switch (slot.role) {
+					case "TANK":
+						tab_stats.tank++;
+						tab_stats.tank_ilvl += ilvl;
+						break;
+					case "HEALING":
+						tab_stats.heal++;
+						tab_stats.heal_ilvl += ilvl;
+						break;
+					case "DPS":
+						tab_stats.dps++;
+						tab_stats.dps_ilvl += ilvl;
+						break;
+				}
+
+				tab_stats.total++;
+				tab_stats.total_ilvl += ilvl;
+			}
+
+			function compute_avg(ilvl, count) {
+				if (count < 1) return 0;
+				return Math.round(ilvl / count);
+			}
+
+			tab_stats.tank_ilvl = compute_avg(tab_stats.tank_ilvl, tab_stats.tank);
+			tab_stats.heal_ilvl = compute_avg(tab_stats.heal_ilvl, tab_stats.heal);
+			tab_stats.dps_ilvl = compute_avg(tab_stats.dps_ilvl, tab_stats.dps);
+			tab_stats.total_ilvl = compute_avg(tab_stats.total_ilvl, tab_stats.total);
+		});
+	}
 });
 
 GuildTools.controller("CalendarAddTabCtrl", function($scope) {

@@ -260,6 +260,40 @@
 		margin-right: 0;
 	}
 
+	#calendar-event-comp .stats {
+		margin-top: 12px;
+		padding: 8px;
+		background: rgba(0, 0, 0, 0.1);
+		border: 1px solid rgba(0, 0, 0, 0.05);
+		box-shadow: none;
+	}
+
+	#calendar-event-comp .stats table {
+		width: 100%;
+	}
+
+	#calendar-event-comp .stats img {
+		width: 14px;
+	}
+
+	#calendar-event-comp .stats th {
+		text-align: center;
+		vertical-align: middle;
+		font-weight: 300;
+		padding-bottom: 8px;
+	}
+
+	#calendar-event-comp .stats td {
+		text-align: center;
+		padding: 0 8px;
+	}
+
+	#calendar-event-comp .stats .rowh {
+		font-weight: 300;
+		text-align: left;
+		padding-left: 0;
+	}
+
 	#calendar-event-comp .note {
 		flex: 1;
 		display: flex;
@@ -563,6 +597,31 @@
 									</div>
 								</div>
 							</div>
+						</div>
+						<div class="box stats">
+							<table>
+								<tr>
+									<td></td>
+									<th><img ng-src="/assets/images/roles/TANK.png"></th>
+									<th><img ng-src="/assets/images/roles/HEALING.png"></th>
+									<th><img ng-src="/assets/images/roles/DPS.png"></th>
+									<th>Raid</th>
+								</tr>
+								<tr>
+									<td class="rowh">Count</td>
+									<td>{{ stats[tab_selected].tank }}</td>
+									<td>{{ stats[tab_selected].heal }}</td>
+									<td>{{ stats[tab_selected].dps }}</td>
+									<td>{{ stats[tab_selected].total }}</td>
+								</tr>
+								<tr>
+									<td class="rowh">Item level</td>
+									<td>{{ stats[tab_selected].tank_ilvl }}</td>
+									<td>{{ stats[tab_selected].heal_ilvl }}</td>
+									<td>{{ stats[tab_selected].dps_ilvl }}</td>
+									<td>{{ stats[tab_selected].total_ilvl }}</td>
+								</tr>
+							</table>
 						</div>
 					</div>
 					<div class="raidbuffs">
