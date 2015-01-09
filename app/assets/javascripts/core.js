@@ -5,7 +5,7 @@ var $ = {};
 		if (typeof e != "object") e = {};
 
 		var report = {
-			user: $.user.id || null,
+			user: ($.user && $.user.id) || null,
 			rev: $.rev || null,
 			msg: e.message,
 			stack: e.stack,
