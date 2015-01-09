@@ -1,5 +1,4 @@
 importScripts("/assets/javascripts/pako.js");
-importScripts("/assets/javascripts/string-view.js");
 
 var socket_url = null;
 var settings = {};
@@ -48,12 +47,7 @@ function ws_read(frame, cb) {
 	var data, msg;
 
 	if (settings.enable_compression) {
-		var compByte = new Uint8Array(frame.data, 0, 1);
-		if (compByte[0]) {
-			data = pako.inflate(new Uint8Array(frame.data, 1), {to: 'string'});
-		} else {
-			data = new StringView(frame.data, "UTF-8", 1).toString();
-		}
+		data = pako.inflate(new Uint8Array(frame.data), { to: 'string' });
 	} else {
 		data = frame.data;
 	}
@@ -137,22 +131,7 @@ self.onmessage = function(e) {
 			var msg = data.msg;
 			if (ws) {
 				if (settings.enable_compression) {
-					var payload = JSON.stringify(msg);
-					var comp_mode, comp_buf;
-
-					if (payload.length < 250) {
-						comp_mode = 0x00;
-						comp_buf = new StringView(payload).rawData;
-					} else {
-						comp_mode = 0x01;
-						comp_buf = pako.deflate(payload);
-					}
-
-					var buf = new Uint8Array(comp_buf.length + 1);
-					buf[0] = comp_mode;
-					buf.set(comp_buf, 1);
-
-					ws.send(buf.buffer);
+					ws.send(pako.deflate(JSON.stringify(msg)));
 				} else {
 					ws.send(JSON.stringify(msg));
 				}

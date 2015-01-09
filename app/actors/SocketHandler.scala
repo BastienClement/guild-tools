@@ -1,8 +1,7 @@
 package actors
 
 import java.io.ByteArrayOutputStream
-import java.util
-import java.util.zip.{Deflater, Inflater}
+import java.util.zip.{Inflater, Deflater}
 import scala.util.{Failure, Success}
 import actors.Actors._
 import akka.actor._
@@ -251,60 +250,43 @@ with ComposerHandler {
  * Wrap a socket handler to support compression
  */
 class CompressedSocketHandler(val out: ActorRef, val remoteAddr: String) extends Actor {
-	// Do not compress frames smaller than that
-	val compress_threshold = 250
-
 	// Compress data
 	def deflate(data: Array[Byte]): Array[Byte] = {
-		if (data.length < compress_threshold) {
-			val dummy = new Array[Byte](data.length + 1)
-			System.arraycopy(data, 0, dummy, 1, data.length)
-			dummy
-		} else {
-			val d = new Deflater()
-			d.setInput(data)
-			d.finish()
+		val d = new Deflater()
+		d.setInput(data)
+		d.finish()
 
-			val os = new ByteArrayOutputStream()
-			os.write(0x01)
+		val os = new ByteArrayOutputStream()
+		val buf = new Array[Byte](1024)
 
-			val buf = new Array[Byte](1024)
-			while (!d.finished()) {
-				val count = d.deflate(buf)
-				os.write(buf, 0, count)
-			}
-
-			os.close()
-			d.end()
-
-			os.toByteArray
+		while (!d.finished()) {
+			val count = d.deflate(buf)
+			os.write(buf, 0, count)
 		}
+
+		os.close()
+		d.end()
+
+		os.toByteArray
 	}
 
 	// Decompress data
 	def inflate(data: Array[Byte]): Array[Byte] = {
-		val comp_mode = data(0)
-		val comp_data = util.Arrays.copyOfRange(data, 1, data.length)
+		val i = new Inflater()
+		i.setInput(data)
 
-		if (comp_mode == 0x00) {
-			comp_data
-		} else {
-			val i = new Inflater()
-			i.setInput(comp_data)
+		val os = new ByteArrayOutputStream()
+		val buf = new Array[Byte](1024)
 
-			val os = new ByteArrayOutputStream()
-			val buf = new Array[Byte](1024)
-
-			while (!i.finished()) {
-				val count = i.inflate(buf)
-				os.write(buf, 0, count)
-			}
-
-			os.close()
-			i.end()
-
-			os.toByteArray
+		while (!i.finished()) {
+			val count = i.inflate(buf)
+			os.write(buf, 0, count)
 		}
+
+		os.close()
+		i.end()
+
+		os.toByteArray
 	}
 
 	class OutputCompressor extends Actor {
