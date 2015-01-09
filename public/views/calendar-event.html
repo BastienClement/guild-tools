@@ -448,9 +448,13 @@
 						<div class="char-wrapper" ng-repeat="row in groups">
 							<div ng-if="!row.void" ng-tooltip=".tooltip">
 								<div class="tooltip">
-									<div class="fsblue">{{ $.roster.user(row.user).name | capitalize }}</div>
-									<div class="light" ng-if="row.answer.date">{{ formatDate(row.answer.date) }}</div>
-									<div class="light" ng-if="!row.answer.date">Non-register</div>
+									<div class="row">
+										<span class="cell c{{ row.char.class }}">{{ row.char.name }}</span>
+										<div class="cell fillr light">{{ row.char.ilvl }} ilvl</div>
+									</div>
+									<div class="light">{{ $.roster.user(row.user).name | capitalize }}</div>
+									<div class="spaced gray" ng-if="row.answer.date">{{ formatDate(row.answer.date) }}</div>
+									<div class="spaced gray" ng-if="!row.answer.date">Non-register</div>
 									<div class="spaced" ng-if="row.answer.note">
 										{{ row.answer.note }}
 									</div>
@@ -536,12 +540,23 @@
 									<div class="char c{{ slots[tab_selected][(row+offset-1)*5+slot].class }}"
 									     ng-class="{ mine: slots[tab_selected][(row+offset-1)*5+slot].owner == $.user.id }"
 									     ng-switch-when="1"
-									     ng-contextmenu="slotMenu((row+offset-1)*5+slot, $event)">
+									     ng-contextmenu="slotMenu((row+offset-1)*5+slot, $event)"
+									     ng-tooltip=".tooltip">
+										<div class="tooltip">
+											<div class="row">
+												<span class="cell c{{ slots[tab_selected][(row+offset-1)*5+slot].class }}">{{ slots[tab_selected][(row+offset-1)*5+slot].name }}</span>
+												<div class="cell fillr light">{{ slotIlvl(slots[tab_selected][(row+offset-1)*5+slot]) }} ilvl</div>
+											</div>
+											<div class="light">{{ $.roster.user(slots[tab_selected][(row+offset-1)*5+slot].owner).name | capitalize }}</div>
+											<div class="spaced gray" ng-if="!playerIsAvailable(slots[tab_selected][(row+offset-1)*5+slot].owner)">
+												This player does not seem to be<br> available for this event
+											</div>
+										</div>
 										<img ng-src="/assets/images/roles/{{ slots[tab_selected][(row+offset-1)*5+slot].role }}.png">
 										<span class="name">
 											{{ slots[tab_selected][(row+offset-1)*5+slot].name }}
 										</span>
-										<i class="awe-attention" ng-if="!playerIsAvailable(slots[tab_selected][(row+offset-1)*5+slot].owner)" ng-tooltip="$This player does not seem to be available for this event"></i>
+										<i class="awe-attention" ng-if="!playerIsAvailable(slots[tab_selected][(row+offset-1)*5+slot].owner)"></i>
 									</div>
 									<div class="char" ng-switch-when="0">
 										<span>&nbsp;</span>

@@ -1549,6 +1549,21 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 
 		$scope.menu(menu, ev);
 	};
+
+	$scope.slotIlvl = function(slot) {
+		if (slot.real_char) return slot.real_char.ilvl;
+		var chars = $.roster.charsByUser(slot.owner);
+
+		for (var i in chars) {
+			var char = chars[i];
+			if (char.name == slot.name) {
+				slot.real_char = char;
+				return char.ilvl;
+			}
+		}
+
+		return 0;
+	};
 });
 
 GuildTools.controller("CalendarAddTabCtrl", function($scope) {

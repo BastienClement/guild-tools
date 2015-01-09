@@ -813,6 +813,31 @@ header {
 	font-weight: 300;
 }
 
+#tooltip .row {
+	display: flex;
+}
+
+#tooltip .cell:not(:first-child) {
+	margin-left: 12px;
+}
+
+#tooltip .fill {
+	flex: 1;
+}
+
+#tooltip .fillr {
+	flex: 1;
+	text-align: right;
+}
+
+#tooltip .blue {
+	color: #8eafce;
+}
+
+#tooltip .gray {
+	color: #A7AEB3;
+}
+
 .tooltip {
 	display: none;
 }
