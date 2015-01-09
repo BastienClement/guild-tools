@@ -75,7 +75,7 @@ window.Modernizr = (function( window, document, undefined ) {
       };
     }
     else {
-      hasOwnProp = function (object, property) { 
+      hasOwnProp = function (object, property) {
         return ((property in object) && is(object.constructor.prototype[property], 'undefined'));
       };
     }
@@ -178,11 +178,11 @@ window.Modernizr = (function( window, document, undefined ) {
           return testDOMProps(props, prefixed, elem);
         }
     }
-	
+
 	tests['flexbox'] = function() {
       return testPropsAll('flexWrap');
     };
-	
+
     tests['history'] = function() {
       return !!(window.history && history.pushState);
     };
@@ -201,7 +201,11 @@ window.Modernizr = (function( window, document, undefined ) {
         }
     };
 
-    for ( var feature in tests ) {
+	tests['webworkers'] = function() {
+		return !!window.Worker;
+	};
+
+	for ( var feature in tests ) {
         if ( hasOwnProp(tests, feature) ) {
                                     featureName  = feature.toLowerCase();
             Modernizr[featureName] = tests[feature]();
@@ -234,7 +238,7 @@ window.Modernizr = (function( window, document, undefined ) {
 
        }
 
-       return Modernizr; 
+       return Modernizr;
      };
 
 
