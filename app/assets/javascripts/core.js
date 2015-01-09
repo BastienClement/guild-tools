@@ -71,7 +71,6 @@ var $ = {};
 		if (error) return;
 		error = true;
 		dead = true;
-		$.wsTerminate();
 
 		ga('send', 'exception', {
 			'exDescription': title + " - " + infos,
@@ -92,7 +91,7 @@ var $ = {};
 		}
 	};
 
-	var features = ["websockets", "flexbox", "localstorage", "history", "contenteditable", "webworkers"];
+	var features = ["websockets", "flexbox", "localstorage", "history", "contenteditable"];
 	for (var i = 0; i < features.length; ++i) {
 		if (!Modernizr[features[i]]) {
 			$.error(
@@ -234,65 +233,22 @@ var $ = {};
 //
 	(function() {
 
+		var ws = null;
+		var tries = 0;
 		var calls = [];
 		var inflight = 0;
+		var queue = [];
 		var init_done = false;
 		var reason = null;
-		var connect_cb = null;
+		var enable_compression = false;
 
-		var ws_worker = new Worker("/assets/javascripts/socket.js");
-		ws_worker.postMessage({
-			$: "set",
-			settings: {
-				enable_compression: false
-			}
-		});
-
-		ws_worker.onmessage = function(e) {
-			var data = e.data;
-			switch (data.$) {
-				case "serv-update":
-					_("#loading-error-title").text("The Guild-Tools server has just been upgraded");
-					_("#loading-error-text").text("You may continue what you were doing, but some features could now be broken.\nIt is recommended that you reload the client to get the latest upgrades.");
-					_("#loading-error-infos").text("You may lose any unsaved work if you reload now");
-					_("#loading-error").css({ display: "block", opacity: 0.9 });
-					_("#loading-error-actions").css({ display: "block" });
-					break;
-
-				case "serv-rev":
-					$.rev = data.rev;
-					break;
-
-				case "error":
-					$.error.apply(data.args);
-					break;
-
-				case "connect-error":
-					if (connect_cb) connect_cb(data.err);
-					connect_cb = null;
-					break;
-
-				case "bugsack":
-					bugsack_send(data.payload);
-					break;
-
-				case "message":
-					$.wsMessage(data.msg);
-					break;
-
-				case "auth":
-					$.wsAuth();
-					break;
-
-				case "reconnect":
-					$.wsReconnect();
-					break;
-			}
-		};
-
-		ws_worker.onerror = function(err) {
-			console.err(err);
-		};
+		function trigger_serv_update() {
+			_("#loading-error-title").text("The Guild-Tools server has just been upgraded");
+			_("#loading-error-text").text("You may continue what you were doing, but some features could now be broken.\nIt is recommended that you reload the client to get the latest upgrades.");
+			_("#loading-error-infos").text("You may lose any unsaved work if you reload now");
+			_("#loading-error").css({ display: "block", opacity: 0.9 });
+			_("#loading-error-actions").css({ display: "block" });
+		}
 
 		$.getInflight = function() {
 			return inflight;
@@ -376,75 +332,144 @@ var $ = {};
 			$.exec(cmd, arg, wrapped_cb);
 		};
 
-		$.wsMessage = function(msg) {
-			var cmd = msg.$;
-			var id = msg["#"];
-			var arg = msg["&"];
-			var handler = typeof id === "number" ? calls[id] : null;
-
-			var updateTimeout = null;
-
-			function triggerUpdate() {
-				if (!GuildToolsScope) return;
-				if (updateTimeout) clearTimeout(updateTimeout);
-				updateTimeout = setTimeout(function() {
-					GuildToolsScope.safeApply();
-				}, 30);
-			}
-
-			switch (cmd) {
-				case "ack":
-				case "res":
-					if (typeof handler !== "function") return;
-					try {
-						handler.call(null, null, arg);
-						triggerUpdate();
-					} catch (e) {
-						console.error(e);
-						bugsack_send(e);
-					}
-
-					delete calls[msg.results];
-					break;
-
-				case "nok":
-				case "err":
-					if (typeof handler !== "function") return;
-					try {
-						handler.call(null, arg);
-						if (GuildToolsScope && cmd === "nok") {
-							GuildToolsScope.error(arg || "An error occurred. Please try again.");
-							triggerUpdate();
-						}
-					} catch (e) {
-						console.error(e);
-						bugsack_send(e);
-					}
-
-					delete calls[msg.results];
-					break;
-
-				case "close":
-					reason = arg;
-					break;
-
-				default:
-					var method = $.wsAPI[cmd];
-					if (!method) return;
-
-					try {
-						method.call(null, arg);
-						triggerUpdate();
-					} catch (e) {
-						console.error(e);
-						bugsack_send(e);
-					}
-			}
+		$.wsTest = function() {
+			ws.close();
 		};
 
 		$.wsConnect = function(err) {
-			connect_cb = err;
-			ws_worker.postMessage({ $: "connect" });
+			ws = new WebSocket(document.location.origin.replace(/^http/, "ws") + (enable_compression ? "/socket_z" : "/socket"));
+			if (enable_compression) ws.binaryType = "arraybuffer";
+
+			function cb(info) {
+				if (err) return err(info);
+				err = null;
+			}
+
+			ws.onclose = function(e) {
+				ws = null;
+				return cb(e);
+			};
+
+			ws.onmessage = function(frame) {
+				var data, msg;
+
+				if (enable_compression) {
+					data = pako.inflate(new Uint8Array(frame.data), { to: 'string' });
+				} else {
+					data = frame.data;
+				}
+
+				try {
+					msg = JSON.parse(data);
+				} catch (e) {
+					console.log(e, msg.data);
+					cb({ reason: "invalid handshake" });
+					ws.close();
+					return;
+				}
+
+				if (msg.service !== "GuildTools" || msg.protocol !== "GTP2" || msg.version !== "5.0") {
+					return $.error(
+						"Unable to validate game version",
+						"This may be caused by file corruption or the interference of another program.",
+						"Error #113"
+					);
+				}
+
+				$.exec("socket:compression", true );
+
+				if ($.rev && $.rev !== msg.rev) {
+					trigger_serv_update();
+				}
+
+				$.rev = msg.rev;
+
+				ws.onclose = $.wsReconnect;
+				ws.onmessage = function(frame) {
+					var data, msg;
+
+					if (enable_compression) {
+						data = pako.inflate(new Uint8Array(frame.data), { to: 'string' });
+					} else {
+						data = frame.data;
+					}
+
+					try {
+						msg = JSON.parse(data);
+					} catch (e) {
+						console.error(e);
+						bugsack_send(e);
+						ws.close();
+						return;
+					}
+
+					var cmd = msg.$;
+					var id = msg["#"];
+					var arg = msg["&"];
+					var handler = typeof id === "number" ? calls[id] : null;
+
+					var updateTimeout = null;
+
+					function triggerUpdate() {
+						if (!GuildToolsScope) return;
+						if (updateTimeout) clearTimeout(updateTimeout);
+						updateTimeout = setTimeout(function() {
+							GuildToolsScope.safeApply();
+						}, 30);
+					}
+
+					switch (cmd) {
+						case "ack":
+						case "res":
+							if (typeof handler !== "function") return;
+							try {
+								handler.call(null, null, arg);
+								triggerUpdate();
+							} catch (e) {
+								console.error(e);
+								bugsack_send(e);
+							}
+
+							delete calls[msg.results];
+							break;
+
+						case "nok":
+						case "err":
+							if (typeof handler !== "function") return;
+							try {
+								handler.call(null, arg);
+								if (GuildToolsScope && cmd === "nok") {
+									GuildToolsScope.error(arg || "An error occurred. Please try again.");
+									triggerUpdate();
+								}
+							} catch (e) {
+								console.error(e);
+								bugsack_send(e);
+							}
+
+							delete calls[msg.results];
+							break;
+
+						case "close":
+							reason = arg;
+							break;
+
+						default:
+							var method = $.wsAPI[cmd];
+							if (!method) return;
+
+							try {
+								method.call(null, arg);
+								triggerUpdate();
+							} catch (e) {
+								console.error(e);
+								bugsack_send(e);
+							}
+					}
+				};
+
+				$.wsAuth();
+			};
 		};
 
 		$.wsAuth = function(redirect) {
@@ -481,10 +506,18 @@ var $ = {};
 		};
 
 		$.wsSend = function(m) {
-			ws_worker.postMessage({ $: "send", msg: m });
+			if (ws) {
+				if (enable_compression) {
+					ws.send(pako.deflate(JSON.stringify(m)));
+				} else {
+					ws.send(JSON.stringify(m));
+				}
+			} else {
+				queue.push(m);
+			}
 		};
 
-		$.wsReconnect = function() {
+		$.wsReconnect = function(e) {
 			if (dead) return;
 
 			if (reason !== null) {
@@ -501,10 +534,19 @@ var $ = {};
 				GuildToolsScope.popupErrorText = "Reconnecting...";
 				GuildToolsScope.safeApply();
 			}
-		};
-
-		$.wsTerminate = function() {
-			ws_worker.terminate();
+			
+			ws = null;
+			setTimeout(function() {
+				$.wsConnect(function() {
+					if (tries > 5) {
+						return $.error(
+							"You have been disconnected from the server",
+							"The connection to the server could not be restored. Please refresh the page or restart the client."
+						);
+					}
+					$.wsReconnect();
+				});
+			}, (Math.pow(2, tries++) + Math.random()) * 1000);
 		};
 
 	})();
