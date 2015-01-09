@@ -497,8 +497,10 @@ var $ = {};
 				return;
 			}
 
-			GuildToolsScope.popupErrorText = "Reconnecting...";
-			GuildToolsScope.safeApply();
+			if (GuildToolsScope) {
+				GuildToolsScope.popupErrorText = "Reconnecting...";
+				GuildToolsScope.safeApply();
+			}
 		};
 
 		$.wsTerminate = function() {
