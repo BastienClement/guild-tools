@@ -240,7 +240,24 @@ var $ = {};
 		var queue = [];
 		var init_done = false;
 		var reason = null;
-		var enable_compression = false;
+		var socket_url = null;
+		var enable_compression = true;
+		var message_handler = null;
+
+		var sock_compress = new Worker("/assets/javascripts/sock_compress.js");
+
+		sock_compress.onmessage = function(msg) {
+			var data = msg.data;
+			switch (data.$) {
+				case "deflate-data":
+					if (ws) ws.send(data.buf);
+					break;
+
+				case "inflate-data":
+					ws_frame_handle(data.payload);
+					break;
+			}
+		};
 
 		function trigger_serv_update() {
 			_("#loading-error-title").text("The Guild-Tools server has just been upgraded");
@@ -332,13 +349,122 @@ var $ = {};
 			$.exec(cmd, arg, wrapped_cb);
 		};
 
-		$.wsTest = function() {
-			ws.close();
-		};
+		function ws_read(frame) {
+			if (enable_compression) {
+				sock_compress.postMessage({ $: "inflate", buf: frame.data });
+			} else {
+				ws_frame_handle(frame.data);
+			}
+		}
+
+		function ws_frame_handle(payload) {
+			if (!message_handler) return;
+
+			try {
+				message_handler(null, JSON.parse(payload));
+			} catch (e) {
+				console.error(e, msg.data);
+				message_handler({ reason: "invalid handshake" });
+				ws.close();
+			}
+		}
+
+		function ws_setup(err) {
+			var xhr = new XMLHttpRequest();
+			xhr.open("GET", "/api/socket_url", true);
+			xhr.responseType = "text";
+
+			xhr.onload = function () {
+				if (this.status == 200) {
+					socket_url = this.responseText;
+				} else {
+					socket_url = document.location.origin.replace(/^http/, "ws") + "/socket";
+				}
+
+				if (enable_compression) socket_url += "_z";
+				$.wsConnect(err);
+			};
+
+			xhr.send();
+		}
+
+		function ws_onmessage(err, msg) {
+			if (err) {
+				bugsack_send(err);
+				return;
+			}
+
+			var cmd = msg.$;
+			var id = msg["#"];
+			var arg = msg["&"];
+			var handler = typeof id === "number" ? calls[id] : null;
+
+			var updateTimeout = null;
+
+			function triggerUpdate() {
+				if (!GuildToolsScope) return;
+				if (updateTimeout) clearTimeout(updateTimeout);
+				updateTimeout = setTimeout(function() {
+					GuildToolsScope.safeApply();
+				}, 30);
+			}
+
+			switch (cmd) {
+				case "ack":
+				case "res":
+					if (typeof handler !== "function") return;
+					try {
+						handler.call(null, null, arg);
+						triggerUpdate();
+					} catch (e) {
+						console.error(e);
+						bugsack_send(e);
+					}
+
+					delete calls[msg.results];
+					break;
+
+				case "nok":
+				case "err":
+					if (typeof handler !== "function") return;
+					try {
+						handler.call(null, arg);
+						if (GuildToolsScope && cmd === "nok") {
+							GuildToolsScope.error(arg || "An error occurred. Please try again.");
+							triggerUpdate();
+						}
+					} catch (e) {
+						console.error(e);
+						bugsack_send(e);
+					}
+
+					delete calls[msg.results];
+					break;
+
+				case "close":
+					reason = arg;
+					break;
+
+				default:
+					var method = $.wsAPI[cmd];
+					if (!method) return;
+
+					try {
+						method.call(null, arg);
+						triggerUpdate();
+					} catch (e) {
+						console.error(e);
+						bugsack_send(e);
+					}
+			}
+		}
 
 		$.wsConnect = function(err) {
-			ws = new WebSocket(document.location.origin.replace(/^http/, "ws") + (enable_compression ? "/socket_z" : "/socket"));
-			if (enable_compression) ws.binaryType = "arraybuffer";
+			if (!socket_url) return ws_setup(err);
+
+			ws = new WebSocket(socket_url);
+			if (enable_compression)
+				ws.binaryType = "arraybuffer";
 
 			function cb(info) {
 				if (err) return err(info);
@@ -350,23 +476,10 @@ var $ = {};
 				return cb(e);
 			};
 
-			ws.onmessage = function(frame) {
-				var data, msg;
+			ws.onmessage = ws_read;
 
-				if (enable_compression) {
-					data = pako.inflate(new Uint8Array(frame.data), { to: 'string' });
-				} else {
-					data = frame.data;
-				}
-
-				try {
-					msg = JSON.parse(data);
-				} catch (e) {
-					console.log(e, msg.data);
-					cb({ reason: "invalid handshake" });
-					ws.close();
-					return;
-				}
+			message_handler = function(err, msg) {
+				if (err) return cb(err);
 
 				if (msg.service !== "GuildTools" || msg.protocol !== "GTP2" || msg.version !== "5.0") {
 					return $.error(
@@ -385,88 +498,7 @@ var $ = {};
 				$.rev = msg.rev;
 
 				ws.onclose = $.wsReconnect;
-				ws.onmessage = function(frame) {
-					var data, msg;
-
-					if (enable_compression) {
-						data = pako.inflate(new Uint8Array(frame.data), { to: 'string' });
-					} else {
-						data = frame.data;
-					}
-
-					try {
-						msg = JSON.parse(data);
-					} catch (e) {
-						console.error(e);
-						bugsack_send(e);
-						ws.close();
-						return;
-					}
-
-					var cmd = msg.$;
-					var id = msg["#"];
-					var arg = msg["&"];
-					var handler = typeof id === "number" ? calls[id] : null;
-
-					var updateTimeout = null;
-
-					function triggerUpdate() {
-						if (!GuildToolsScope) return;
-						if (updateTimeout) clearTimeout(updateTimeout);
-						updateTimeout = setTimeout(function() {
-							GuildToolsScope.safeApply();
-						}, 30);
-					}
-
-					switch (cmd) {
-						case "ack":
-						case "res":
-							if (typeof handler !== "function") return;
-							try {
-								handler.call(null, null, arg);
-								triggerUpdate();
-							} catch (e) {
-								console.error(e);
-								bugsack_send(e);
-							}
-
-							delete calls[msg.results];
-							break;
-
-						case "nok":
-						case "err":
-							if (typeof handler !== "function") return;
-							try {
-								handler.call(null, arg);
-								if (GuildToolsScope && cmd === "nok") {
-									GuildToolsScope.error(arg || "An error occurred. Please try again.");
-									triggerUpdate();
-								}
-							} catch (e) {
-								console.error(e);
-								bugsack_send(e);
-							}
-
-							delete calls[msg.results];
-							break;
-
-						case "close":
-							reason = arg;
-							break;
-
-						default:
-							var method = $.wsAPI[cmd];
-							if (!method) return;
-
-							try {
-								method.call(null, arg);
-								triggerUpdate();
-							} catch (e) {
-								console.error(e);
-								bugsack_send(e);
-							}
-					}
-				};
+				message_handler = ws_onmessage;
 
 				$.wsAuth();
 			};
@@ -508,7 +540,7 @@ var $ = {};
 		$.wsSend = function(m) {
 			if (ws) {
 				if (enable_compression) {
-					ws.send(pako.deflate(JSON.stringify(m)));
+					sock_compress.postMessage({ $: "deflate", payload: JSON.stringify(m) });
 				} else {
 					ws.send(JSON.stringify(m));
 				}
@@ -534,7 +566,7 @@ var $ = {};
 				GuildToolsScope.popupErrorText = "Reconnecting...";
 				GuildToolsScope.safeApply();
 			}
-			
+
 			ws = null;
 			setTimeout(function() {
 				$.wsConnect(function() {
