@@ -61,7 +61,6 @@ object Api extends Controller {
 
 	def socketURL = Cached((_: RequestHeader) => "api/socket_url", 3600) {
 		Action {
-			println("compute")
 			Ok(current.configuration.getString("socket.url") getOrElse "")
 		}
 	}
