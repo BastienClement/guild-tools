@@ -8,10 +8,11 @@ GET         /views/*file                controllers.Assets.versioned(path="/publ
 GET         /webjars/*file              controllers.WebJarAssets.at(file)
 
 GET         /socket                     controllers.Application.socket
-GET			/socket_z					controllers.Application.socket_z
+GET         /socket_z                   controllers.Application.socket_z
 
 GET         /api/gamedata               controllers.Api.gamedata
 POST        /api/bugsack                controllers.Api.bugsack
+GET         /api/socket_url             controllers.Api.socketURL
 GET         /api/*path                  controllers.Api.catchall(path)
 
 GET         /ping/dashboard/feed        controllers.Ping.dashboardFeed

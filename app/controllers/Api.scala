@@ -40,7 +40,7 @@ object Api extends Controller {
 		}
 	}
 
-	def bugsack() = Action(parse.json) { request =>
+	def bugsack = Action(parse.json) { request =>
 		val report = request.body
 
 		val user = (report \ "user").asOpt[Int] getOrElse 0
@@ -57,5 +57,12 @@ object Api extends Controller {
 		}
 
 		NoContent
+	}
+
+	def socketURL = Cached((_: RequestHeader) => "api/socket_url", 3600) {
+		Action {
+			println("compute")
+			Ok(current.configuration.getString("socket.url") getOrElse "")
+		}
 	}
 }
