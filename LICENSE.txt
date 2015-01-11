@@ -1,0 +1,69 @@
+Copyright (c) 2014-2015 Bastien Clément / From Scratch. All rights reserved.
+  <http://www.fs-guild.net/>
+  
+                        FROM SCRATCH GUILD TOOLS LICENSE
+
+#------------------------------------------------------------------------------#
+|                                                                              |
+|   Please be aware that any From Scratch-related assets such as logos, the    |
+|   web interface design, images and texts are not considered a part of the    |
+|   freely available software (the "core software") and are the exclusive      |
+|   property of From Scratch or their respective owners.                       |
+|                                                                              |
+|   These assets may not be reused or redistributed, modified or as is,        |
+|   under any circumstances and are provided only as an example.               |
+|                                                                              |
+|   Specifically, files inside the public/ folder are not part of the core     |
+|   software and must be replaced before usage of the software is allowed.     |
+|                                                                              |
+|   In the future, these assets may be removed from this repository.           |
+|                                                                              |
+|   The removal of From Scratch assets and their replacement by your own       |
+|   assets does not qualify as a modification of the software. Thus, your      |
+|   own assets are not governed by the following terms and conditions but      |
+|   the core software still is.                                                |
+|                                                                              |
+|   This software require access to the Third-Party Battle.net API provided    |
+|   by Blizzard Entertainment. Usage of the Battle.net API is governed by      |
+|   additional conditions and restrictions available at:                       |
+|     <https://dev.battle.net/policy>                                          |
+|                                                                              |
+#------------------------------------------------------------------------------#
+
+Permission to use, copy, modify, and/or distribute this software is hereby
+granted, subject to the following conditions:
+
+ *  Redistributions of this software in source code or binary form, or the
+    remotely accessible interface of this software, must retain the above
+    copyright notice, this list of terms and the following disclaimers.
+
+ *  Redistributions of the software in binary form must be accompanied with or
+    provide a way to access the source code form and that source code form
+    may only be distributed under these terms.
+
+ *  Modifications of this software are permitted, as long as these modifications
+    are also governed by these terms.
+
+ *  Any modifications made to the software must be available in source code form
+    to anyone interacting with the modified software in any way. Including but
+    not limited to redistribution of the modified software in any form and
+    remote access to or usage of the modified software and/or its interface
+    over a computer network.
+
+ *  Access to the source code form of this software and/or modifications of
+    this software must always be provided free of charge.
+
+ *  You may not offer or impose any additional terms that alters or restricts
+    the recipients rights on any form this software.
+
+ *  Neither the names of the author, From Scratch, nor the names of any of the
+    project contributors may be used to endorse or promote products derived
+    from this software without specific prior written permission.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+CONTRIBUTORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS WITH
+THE SOFTWARE.
