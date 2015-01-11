@@ -13,8 +13,9 @@ Copyright (c) 2014-2015 Bastien Clément / From Scratch. All rights reserved.
 |   These assets may not be reused or redistributed, modified or as is,        |
 |   under any circumstances and are provided only as an example.               |
 |                                                                              |
-|   Specifically, files inside the public/ folder are not part of the core     |
-|   software and must be replaced before usage of the software is allowed.     |
+|   Specifically, files inside the /public/ and /app/views/ folders are        |
+|   not part of the core software and must be replaced before usage of         |
+|   the software is allowed.                                                   |
 |                                                                              |
 |   In the future, these assets may be removed from this repository.           |
 |                                                                              |
