@@ -35,9 +35,9 @@ granted, subject to the following conditions:
 
  *  Redistributions of this software in source code or binary form, or the
     remotely accessible interface of this software, must retain the above
-    copyright notice, this list of terms and the following disclaimers.
+    copyright notice, this list of conditions and the following disclaimers.
 
- *  Redistributions of the software in binary form must be accompanied with or
+ *  Redistributions of the software in binary form must be accompanied by or
     provide a way to access the source code form and that source code form
     may only be distributed under these terms.
 
