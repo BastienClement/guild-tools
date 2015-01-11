@@ -50,9 +50,7 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 	$scope.answers = {};
 	$scope.absences = [];
 
-	function pushEvent(event) {
-		var date = event.date.split(" ")[0];
-
+	function normalizeEvent(event) {
 		event.sortTime = (event.time < 600) ? event.time + 2400 : event.time;
 		event.time = zero_pad(event.time, 3);
 
@@ -60,6 +58,13 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 			event.sortTime -= 3000;
 		}
 
+		return event;
+	}
+
+	function pushEvent(event) {
+		normalizeEvent(event);
+
+		var date = event.date.split(" ")[0];
 		if (!$scope.events[date]) {
 			$scope.events[date] = [event];
 		} else {
@@ -100,7 +105,7 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 					for (var i in $scope.events[day]) {
 						var event = $scope.events[day][i];
 						if (event.id === new_event.id) {
-							$scope.events[day][i] = new_event;
+							$scope.events[day][i] = normalizeEvent(new_event);
 							return;
 						}
 					}
