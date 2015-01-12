@@ -70,5 +70,10 @@ default-pool {
 }
 
 assets.defaultCache="no-cache"
+
 bnet.apiKey="################################"
+
 socket.url="ws://localhost:9000/socket"
+
+ping.secret="################################"
+ping.sources=["0:0:0:0:0:0:0:1", "127.0.0.1"]
