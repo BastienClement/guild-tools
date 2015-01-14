@@ -246,7 +246,6 @@
 				     ng-mouseenter="(!pickedLockout || pickedLockout == lockout.id) && (hover.group = group.id)"
 					 ng-mouseleave="hover.group = null">
 					<i class="awe-link" ng-class="{ fsblue: linked[group.id] }" ng-click="toggleLinked(group.id)"></i>
-					<img ng-src="/assets/images/raidm/{{ icons[id] }}.png">
 					<div class="comp">
 						<span ng-repeat="slot in slotsForGroup(group.id) | orderBy : ['-role', 'class', 'name']"
 						      class="char c{{ slot.char.class }} conflict-{{ conflictForSlot(slot, group) }}"
