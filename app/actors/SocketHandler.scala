@@ -218,6 +218,7 @@ with ComposerHandler {
 		case "composer:group:delete" => Composer.handleGroupDelete
 		case "composer:slot:set" => Composer.handleSlotSet
 		case "composer:slot:unset" => Composer.handleSlotUnset
+		case "composer:export:group" => Composer.handleExportGroup
 
 		case "auth:logout" => Auth.handleLogout
 		case _ => handleUnavailable

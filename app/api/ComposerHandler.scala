@@ -72,5 +72,13 @@ trait ComposerHandler {
 			ComposerService.unsetSlot(group, char)
 			MessageSuccess
 		}
+
+		def handleExportGroup = ComposerHandler { arg =>
+			val group = (arg \ "group").as[Int]
+			val events = (arg \ "events").as[List[Int]]
+			ComposerService.exportGroup(group, events) map {
+				err => MessageFailure(err)
+			} getOrElse MessageSuccess
+		}
 	}
 }

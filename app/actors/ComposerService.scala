@@ -19,8 +19,8 @@ trait ComposerService {
 	def setSlot(group: Int, char: Int, role: String): Unit
 	def unsetSlot(group: Int, char: Int): Unit
 
-	def exportLockout(lockout: Int, events: List[Int]): Unit
-	def exportGroup(group: Int, events: List[Int]): Unit
+	def exportLockout(lockout: Int, events: List[Int]): Option[String]
+	def exportGroup(group: Int, events: List[Int]): Option[String]
 }
 
 class ComposerServiceImpl extends ComposerService {
@@ -102,21 +102,38 @@ class ComposerServiceImpl extends ComposerService {
 		}
 	}
 
-	def exportLockout(lockout: Int, events: List[Int]): Unit = {
-
+	private def sortChars(a: Char, b: Char) = {
+		if (a.role != b.role) {
+			if (a.role == "TANK")
+				true
+			else if (a.role == "DPS" && b.role == "HEALING")
+				true
+			else
+				false
+		} else {
+			a.clazz < b.clazz
+		}
 	}
 
-	def exportGroup(group: Int, events: List[Int]): Unit = {
+	def exportLockout(lockout: Int, events: List[Int]): Option[String] = {
+		None
+	}
+
+	def exportGroup(group: Int, events: List[Int]): Option[String] = {
 		DB.withSession { implicit s =>
 			val slots = ComposerSlots.filter(_.group === group).list
-			if (slots.size > 30) return
+			if (slots.size > 30) {
+				Some("You cannot export a group with more than 30 players in it")
+			} else {
+				val chars = slots.map {
+					s => RosterService.char(s.char).map(_.copy(role = s.role))
+				} collect {
+					case Some(char) => char
+				} sortWith {
+					sortChars(_, _)
+				}
 
-			val chars = slots.map {
-				s => (RosterService.char(s.char), s.role)
-			} collect {
-				case (Some(char), role) => char.copy(role = role)
-			} sortWith { (a, b) =>
-				???
+				None
 			}
 		}
 	}

@@ -264,7 +264,7 @@
 					</div>
 					<div class="actions">
 						<div>
-							<button><i class="awe-export-alt"></i></button>
+							<button ng-click="$.call('composer:export:group', { group: group.id, events: [] })"><i class="awe-export-alt"></i></button>
 							<button ng-click="deleteGroup(group.id)"><i class="awe-cancel"></i></button>
 						</div>
 						<div class="spacing"></div>
