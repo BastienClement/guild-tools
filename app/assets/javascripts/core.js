@@ -233,6 +233,11 @@ var $ = {};
 //
 	(function() {
 
+		function should_enable_compression() {
+			var setting = localStorage.getItem("socket.compress");
+			return !(setting === null || setting === "0");
+		}
+
 		var ws = null;
 		var tries = 0;
 		var calls = [];
@@ -241,7 +246,7 @@ var $ = {};
 		var init_done = false;
 		var reason = null;
 		var socket_url = null;
-		var enable_compression = true;
+		var enable_compression = should_enable_compression();
 		var message_handler = null;
 
 		var sock_compress = new Worker("/assets/javascripts/sock_compress.js");
