@@ -145,6 +145,7 @@ var $ = {};
 					id: id,
 					name: "User#" + id,
 					color: "64B4FF",
+					ilvl: 0,
 					unknown: true
 				};
 			}
@@ -174,6 +175,7 @@ var $ = {};
 					id: id,
 					name: "Char#" + id,
 					"class": 99,
+					ilvl: 0,
 					unknown: true
 				};
 			}
@@ -223,6 +225,7 @@ var $ = {};
 				"class": 99,
 				owner: Number(user),
 				role: "UNKNOW",
+				ilvl: 0,
 				unknown: true
 			});
 		};
