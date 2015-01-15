@@ -83,25 +83,40 @@
 	#composer-lockouts .group {
 		margin-bottom: 12px;
 		display: flex;
-		align-items: center;
+		flex-direction: column;
+		padding: 12px;
+	}
+
+	#composer-lockouts .group .top {
+		display: flex;
+		margin-bottom: 12px;
+	}
+
+	#composer-lockouts .group .title {
+		font-size: 14px;
+		margin-left: 6px;
 	}
 
 	.picking #composer-lockouts .group.hover {
 		border-color: #426585;
 	}
 
-	#composer-lockouts .group > i {
+	#composer-lockouts .group > i, #composer-lockouts .group .top > i {
 		font-size: 15px;
 		transition: opacity ease-out .3s, color ease-out .3s;
 		opacity: .3;
 		left: -2px;
 	}
 
-	#composer-lockouts .group > i.fsblue {
+	#composer-lockouts .group .top > i {
+		font-size: 14px;
+	}
+
+	#composer-lockouts .group > i.fsblue, #composer-lockouts .group .top > i.fsblue {
 		opacity: 1;
 	}
 
-	#composer-lockouts .group > i:hover {
+	#composer-lockouts .group > i:hover, #composer-lockouts .group .top > i:hover {
 		opacity: 1;
 	}
 
@@ -121,7 +136,6 @@
 
 	#composer-lockouts .comp {
 		flex: 1;
-		margin-left: 8px;
 		display: flex;
 		flex-wrap: wrap;
 		min-height: 24px;
@@ -129,14 +143,14 @@
 
 	#composer-lockouts .actions {
 		text-align: right;
-		display: flex;
-		flex-direction: column;
 		align-self: stretch;
 		justify-content: flex-end;
+		flex: 1;
 	}
 
 	#composer-lockouts .actions button {
-		margin: 0;
+		margin-top: 0;
+		margin-bottom: 0;
 		text-align: right;
 	}
 
@@ -245,7 +259,15 @@
 				     ng-class="{ hover: hover.group == group.id }"
 				     ng-mouseenter="(!pickedLockout || pickedLockout == lockout.id) && (hover.group = group.id)"
 					 ng-mouseleave="hover.group = null">
-					<i class="awe-link" ng-class="{ fsblue: linked[group.id] }" ng-click="toggleLinked(group.id)"></i>
+					<div class="top">
+						<i class="awe-link" ng-class="{ fsblue: linked[group.id] }" ng-click="toggleLinked(group.id)"></i>
+						<div class="title">Mythic A</div>
+						<div class="actions">
+							<button ng-click="$.call('composer:export:group', { group: group.id, events: [] })"><i class="awe-export-alt"></i> Export</button>
+							<button ng-click=""><i class="awe-pencil"></i> Rename</button>
+							<button ng-click="deleteGroup(group.id)"><i class="awe-cancel"></i> Delete</button>
+						</div>
+					</div>
 					<div class="comp">
 						<span ng-repeat="slot in slotsForGroup(group.id) | orderBy : ['-role', 'class', 'name']"
 						      class="char c{{ slot.char.class }} conflict-{{ conflictForSlot(slot, group) }}"
@@ -262,12 +284,7 @@
 							</div>
 						</span>
 					</div>
-					<div class="actions">
-						<div>
-							<button ng-click="$.call('composer:export:group', { group: group.id, events: [] })"><i class="awe-export-alt"></i></button>
-							<button ng-click="deleteGroup(group.id)"><i class="awe-cancel"></i></button>
-						</div>
-						<div class="spacing"></div>
+					<div class="bottom">
 						<div class="stats">
 							<span>{{ stats[group.id].tank }}</span> /
 							<span>{{ stats[group.id].heal }}</span> /
