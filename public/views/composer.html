@@ -271,7 +271,7 @@
 						<i class="awe-link" ng-class="{ fsblue: linked[group.id] }" ng-click="toggleLinked(group.id)"></i>
 						<div class="title">{{ group.title || "Untitled" }}</div>
 						<div class="stats">
-							<span>Raid {{ stats[group.id].total }} <span style="font-weight: 300">({{ stats[group.id].total_ilvl }})</span></span>
+							<span>{{ stats[group.id].total }} <span style="font-weight: 300">({{ stats[group.id].total_ilvl }})</span></span>
 							<span><img src="/assets/images/roles/TANK.png"> {{ stats[group.id].tank }} <span style="font-weight: 300">({{ stats[group.id].tank_ilvl }})</span></span>
 							<span><img src="/assets/images/roles/HEALING.png"> {{ stats[group.id].heal }} <span style="font-weight: 300">({{ stats[group.id].heal_ilvl }})</span></span>
 							<span><img src="/assets/images/roles/DPS.png"> {{ stats[group.id].dps }} <span style="font-weight: 300">({{ stats[group.id].dps_ilvl }})</span></span>
