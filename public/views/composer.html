@@ -97,6 +97,12 @@
 		margin-left: 6px;
 	}
 
+	#composer-lockouts .group .stats {
+		margin-right: 18px;
+		text-align: right;
+		flex: 1;
+	}
+
 	.picking #composer-lockouts .group.hover {
 		border-color: #426585;
 	}
@@ -139,13 +145,15 @@
 		display: flex;
 		flex-wrap: wrap;
 		min-height: 24px;
+		max-width: 1160px;
+		margin: auto;
+		width: 100%;
 	}
 
 	#composer-lockouts .actions {
 		text-align: right;
 		align-self: stretch;
 		justify-content: flex-end;
-		flex: 1;
 	}
 
 	#composer-lockouts .actions button {
@@ -154,19 +162,19 @@
 		text-align: right;
 	}
 
-	#composer-lockouts .spacing {
-		flex: 1;
-		min-height: 12px;
-	}
-
-	#composer-lockouts .stats span {
-		margin-left: 2px;
+	#composer-lockouts .stats > span {
+		margin-right: 12px;
 		font-weight: 600;
 	}
 
+	#composer-lockouts .stats > span span {
+		margin-left: 2px;
+		color: #A7AEB3;
+	}
+
 	#composer-lockouts .stats img {
-		width: 14px;
-		height: 14px;
+		width: 13px;
+		height: 13px;
 		top: -1px;
 	}
 
@@ -262,6 +270,12 @@
 					<div class="top">
 						<i class="awe-link" ng-class="{ fsblue: linked[group.id] }" ng-click="toggleLinked(group.id)"></i>
 						<div class="title">Mythic A</div>
+						<div class="stats">
+							<span>Raid {{ stats[group.id].total }} <span style="font-weight: 300">({{ stats[group.id].total_ilvl }})</span></span>
+							<span><img src="/assets/images/roles/TANK.png"> {{ stats[group.id].tank }} <span style="font-weight: 300">({{ stats[group.id].tank_ilvl }})</span></span>
+							<span><img src="/assets/images/roles/HEALING.png"> {{ stats[group.id].heal }} <span style="font-weight: 300">({{ stats[group.id].heal_ilvl }})</span></span>
+							<span><img src="/assets/images/roles/DPS.png"> {{ stats[group.id].dps }} <span style="font-weight: 300">({{ stats[group.id].dps_ilvl }})</span></span>
+						</div>
 						<div class="actions">
 							<button ng-click="$.call('composer:export:group', { group: group.id, events: [] })"><i class="awe-export-alt"></i> Export</button>
 							<button ng-click=""><i class="awe-pencil"></i> Rename</button>
@@ -283,20 +297,6 @@
 								<div class="light">{{ $.roster.user(slot.char.owner).name }}</div>
 							</div>
 						</span>
-					</div>
-					<div class="bottom">
-						<div class="stats">
-							<span>{{ stats[group.id].tank }}</span> /
-							<span>{{ stats[group.id].heal }}</span> /
-							<span>{{ stats[group.id].dps }}</span>
-							<span>({{ stats[group.id].total }})</span>
-						</div>
-						<div style="font-weight: 300">
-							<span>{{ stats[group.id].tank_ilvl }}</span> /
-							<span>{{ stats[group.id].heal_ilvl }}</span> /
-							<span>{{ stats[group.id].dps_ilvl }}</span>
-							<span>({{ stats[group.id].total_ilvl }})</span>
-						</div>
 					</div>
 				</div>
 				<div class="group box drop" ng-click="createGroup(lockout.id)" ng-if="groupsForLockout(lockout.id).length < 8">
