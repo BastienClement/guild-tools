@@ -65,10 +65,11 @@ class ComposerServiceImpl extends ComposerService {
 
 	def createGroup(lockout: Int): Unit = {
 		// Ensure we do not create more than 8 groups per lockout
-		if (composer_groups.count(_.lockout == lockout) >= 8) return
+		val gcount = composer_groups.count(_.lockout == lockout)
+		if (gcount >= 8) return
 
 		DB.withSession { implicit s =>
-			val template = ComposerGroup(0, lockout)
+			val template = ComposerGroup(0, lockout, s"Group ${gcount + 1}")
 			val id = (ComposerGroups returning ComposerGroups.map(_.id)).insert(template)
 			val group = template.copy(id = id)
 

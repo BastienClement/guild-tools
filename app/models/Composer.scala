@@ -15,13 +15,14 @@ object ComposerLockouts extends TableQuery(new ComposerLockouts(_))
 
 // ----------------------------------------------------------------------------
 
-case class ComposerGroup(id: Int, lockout: Int)
+case class ComposerGroup(id: Int, lockout: Int, title: String)
 
 class ComposerGroups(tag: Tag) extends Table[ComposerGroup](tag, "gt_composer_groups") {
 	def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
 	def lockout = column[Int]("lockout")
+	def title = column[String]("title")
 
-	def * = (id, lockout) <> (ComposerGroup.tupled, ComposerGroup.unapply)
+	def * = (id, lockout, title) <> (ComposerGroup.tupled, ComposerGroup.unapply)
 }
 
 object ComposerGroups extends TableQuery(new ComposerGroups(_))
