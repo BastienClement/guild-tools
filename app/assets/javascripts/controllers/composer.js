@@ -341,6 +341,17 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 			build_stats();
 		},
 
+		"composer:group:update": function(group) {
+			$scope.groups.some(function(g) {
+				if (g.id == group.id) {
+					g.title = group.title;
+					return true;
+				}
+			});
+
+			build_stats();
+		},
+
 		"composer:group:delete": function(id) {
 			$scope.groups = $scope.groups.filter(function(group) {
 				return group.id != id;

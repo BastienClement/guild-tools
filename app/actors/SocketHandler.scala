@@ -215,6 +215,7 @@ with ComposerHandler {
 		case "composer:lockout:create" => Composer.handleLockoutCreate
 		case "composer:lockout:delete" => Composer.handleLockoutDelete
 		case "composer:group:create" => Composer.handleGroupCreate
+		case "composer:group:rename" => Composer.handleGroupRename
 		case "composer:group:delete" => Composer.handleGroupDelete
 		case "composer:slot:set" => Composer.handleSlotSet
 		case "composer:slot:unset" => Composer.handleSlotUnset

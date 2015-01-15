@@ -14,6 +14,7 @@ trait ComposerService {
 	def deleteLockout(id: Int): Unit
 
 	def createGroup(lockout: Int): Unit
+	def renameGroup(id: Int, title: String): Unit
 	def deleteGroup(id: Int): Unit
 
 	def setSlot(group: Int, char: Int, role: String): Unit
@@ -75,6 +76,14 @@ class ComposerServiceImpl extends ComposerService {
 
 			composer_groups := (group :: _)
 			Dispatcher !# ComposerGroupCreate(group)
+		}
+	}
+
+	def renameGroup(id: Int, title: String): Unit = {
+		DB.withSession { implicit s =>
+			val group = ComposerGroups.filter(_.id === id)
+			group.map(_.title).update(title)
+			Dispatcher !# ComposerGroupUpdate(group.first)
 		}
 	}
 
