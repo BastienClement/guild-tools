@@ -92,6 +92,7 @@ case class SlackDelete(id: Int) extends CtxEvent("absence:delete", id)
  * Composer
  */
 case class ComposerLockoutCreate(lockout: ComposerLockout) extends CtxEvent("composer:lockout:create", lockout)
+case class ComposerLockoutUpdate(lockout: ComposerLockout) extends CtxEvent("composer:lockout:update", lockout)
 case class ComposerLockoutDelete(id: Int) extends CtxEvent("composer:lockout:delete", id)
 case class ComposerGroupCreate(group: ComposerGroup) extends CtxEvent("composer:group:create", group)
 case class ComposerGroupUpdate(group: ComposerGroup) extends CtxEvent("composer:group:update", group)

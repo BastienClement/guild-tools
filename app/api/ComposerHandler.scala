@@ -24,6 +24,7 @@ trait ComposerHandler {
 
 			bindEvents {
 				case ComposerLockoutCreate(_) => true
+				case ComposerLockoutUpdate(_) => true
 				case ComposerLockoutDelete(_) => true
 				case ComposerGroupCreate(_) => true
 				case ComposerGroupUpdate(_) => true
@@ -41,6 +42,13 @@ trait ComposerHandler {
 			MessageSuccess
 		}
 
+		def handleLockoutRename = ComposerHandler { arg =>
+			val id = (arg \ "lockout").as[Int]
+			val title = (arg \ "title").as[String]
+			ComposerService.renameLockout(id, title)
+			MessageSuccess
+		}
+
 		def handleLockoutDelete = ComposerHandler { arg =>
 			val id = (arg \ "lockout").as[Int]
 			ComposerService.deleteLockout(id)
@@ -55,8 +63,8 @@ trait ComposerHandler {
 
 		def handleGroupRename = ComposerHandler { arg =>
 			val id = (arg \ "group").as[Int]
-			val name = (arg \ "name").as[String]
-			ComposerService.renameGroup(id, name)
+			val title = (arg \ "title").as[String]
+			ComposerService.renameGroup(id, title)
 			MessageSuccess
 		}
 

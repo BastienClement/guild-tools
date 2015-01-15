@@ -11,6 +11,7 @@ trait ComposerService {
 	def load: (List[ComposerLockout], List[ComposerGroup], List[ComposerSlot])
 
 	def createLockout(title: String): Unit
+	def renameLockout(id: Int, title: String): Unit
 	def deleteLockout(id: Int): Unit
 
 	def createGroup(lockout: Int): Unit
@@ -48,6 +49,14 @@ class ComposerServiceImpl extends ComposerService {
 
 		composer_lockouts := (lockout :: _)
 		Dispatcher !# ComposerLockoutCreate(lockout)
+	}
+
+	def renameLockout(id: Int, title: String): Unit = {
+		DB.withSession { implicit s =>
+			val lockout = ComposerLockouts.filter(_.id === id)
+			lockout.map(_.title).update(title)
+			Dispatcher !# ComposerLockoutUpdate(lockout.first)
+		}
 	}
 
 	def deleteLockout(id: Int): Unit = DB.withSession { implicit s =>

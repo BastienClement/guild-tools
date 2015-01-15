@@ -309,6 +309,15 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 			slots_cache = {};
 		},
 
+		"composer:lockout:update": function(lockout) {
+			$scope.lockouts.some(function(l) {
+				if (l.id == lockout.id) {
+					l.title = lockout.title;
+					return true;
+				}
+			});
+		},
+
 		"composer:lockout:delete": function(id) {
 			$scope.lockouts = $scope.lockouts.filter(function(lockout) {
 				return lockout.id != id;
@@ -348,8 +357,6 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 					return true;
 				}
 			});
-
-			build_stats();
 		},
 
 		"composer:group:delete": function(id) {
@@ -420,6 +427,28 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 		if (conflicts_owner[group.lockout] && conflicts_owner[group.lockout][slot.char.owner] && $scope.linked[group.id]) return "concurent";
 		if (conflicts[group.lockout] && conflicts[group.lockout][slot.char.id]) return "duplicate";
 		return "none";
+	};
+
+	$scope.renameLockout = function(lockout) {
+		$scope.prompt({
+			label: "Lockout name",
+			value: lockout.title,
+			action: "Rename",
+			cb: function(title) {
+				if (title) $.call("composer:lockout:rename", { lockout: lockout.id, title: title });
+			}
+		});
+	};
+
+	$scope.renameGroup = function(group) {
+		$scope.prompt({
+			label: "Group name",
+			value: group.title,
+			action: "Rename",
+			cb: function(title) {
+				if (title) $.call("composer:group:rename", { group: group.id, title: title });
+			}
+		});
 	};
 });
 
