@@ -29,3 +29,15 @@ GuildTools.controller("WhishlistCtrl", function($scope) {
 GuildTools.controller("BlueprintsCtrl", function($scope) {
 	if ($scope.restrict()) return;
 });
+
+GuildTools.controller("DialogPromptCtrl", function($scope) {
+	var ctx = $scope.ctx = $scope.modalCtx;
+
+	$scope.value = ctx.value;
+	if (!ctx.action) ctx.action = "OK";
+
+	$scope.submit = function() {
+		if (typeof ctx.cb == "function") ctx.cb($scope.value);
+		$scope.modal();
+	};
+});

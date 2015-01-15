@@ -340,4 +340,8 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	$scope.openURL = function(url) {
 		window.open(url);
 	};
+
+	$scope.prompt = function(config) {
+		$scope.modal("dialog-prompt", config, config.secure);
+	};
 });

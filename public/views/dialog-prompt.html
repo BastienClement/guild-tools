@@ -1,0 +1,30 @@
+<style>
+	#dialog-prompt form {
+		width: 300px;
+	}
+
+	#dialog-prompt input {
+		width: 100%;
+	}
+
+	#dialog-prompt button {
+		float: right;
+		margin-left: 15px;
+	}
+</style>
+
+<div id="dialog-prompt" ng-controller="DialogPromptCtrl">
+	<form class="box" ng-submit="submit()">
+		<label>
+			{{ ctx.label }}
+			<input type="text" id="dialog-prompt-value" ng-model="value" required>
+		</label>
+		<div class="overflow">
+			<button type="submit" ng-disabled="inflight">{{ ctx.action }}</button>
+			<button ng-disabled="inflight" ng-click="modal()" type="button">Cancel</button>
+		</div>
+	</form>
+	<script>
+		_("#dialog-prompt-value").focus();
+	</script>
+</div>
