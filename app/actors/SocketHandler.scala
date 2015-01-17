@@ -3,6 +3,7 @@ package actors
 import java.io.ByteArrayOutputStream
 import java.util
 import java.util.zip.{Deflater, Inflater}
+import scala.annotation.switch
 import scala.util.{Failure, Success}
 import actors.Actors._
 import akka.actor._
@@ -31,8 +32,88 @@ with ComposerHandler {
 		"version" -> "5.0",
 		"rev" -> Global.serverVersion)
 
-	// Current message handler
-	type MessageDispatcher = (String) => (JsValue) => MessageResponse
+	// Message handler type
+	type MessageDispatcher = Map[String, (JsValue) => MessageResponse]
+
+	// Dispatch unauthenticated calls
+	val unauthenticatedDispatcher: MessageDispatcher = Map(
+		"auth" -> Auth.handleAuth,
+		"auth:prepare" -> Auth.handlePrepare,
+		"auth:login" -> Auth.handleLogin
+	)
+
+	// Dispatch authenticated calls
+	val authenticatedDispatcher: MessageDispatcher = Map(
+		"events:unbind" -> handleEventUnbind,
+
+		"dashboard:load" -> Dashboard.handleLoad,
+
+		"calendar:load" -> Calendar.handleLoad,
+		"calendar:create" -> Calendar.handleCreate,
+		"calendar:answer" -> Calendar.handleAnswer,
+		"calendar:delete" -> Calendar.handleDelete,
+		"calendar:event" -> Calendar.handleEvent,
+		"calendar:event:invite" -> Calendar.handleEventInvite,
+		"calendar:event:state" -> Calendar.handleEventState,
+		"calendar:event:editdesc" -> Calendar.handleEventEditDesc,
+		"calendar:event:promote" -> Calendar.handleEventPromote(true),
+		"calendar:event:demote" -> Calendar.handleEventPromote(false),
+		"calendar:event:kick" -> Calendar.handleEventKick,
+		"calendar:comp:set" -> Calendar.handleCompSet(false),
+		"calendar:comp:reset" -> Calendar.handleCompSet(true),
+		"calendar:tab:create" -> Calendar.handleTabCreate,
+		"calendar:tab:delete" -> Calendar.handleTabDelete,
+		"calendar:tab:swap" -> Calendar.handleTabSwap,
+		"calendar:tab:rename" -> Calendar.handleTabRename,
+		"calendar:tab:wipe" -> Calendar.handleTabWipe,
+		"calendar:tab:edit" -> Calendar.handleTabEdit,
+		"calendar:tab:lock" -> Calendar.handleTabLock(true),
+		"calendar:tab:unlock" -> Calendar.handleTabLock(false),
+		"calendar:lock:status" -> Calendar.handleLockStatus,
+		"calendar:lock:acquire" -> Calendar.handleLockAcquire,
+		"calendar:lock:refresh" -> Calendar.handleLockRefresh,
+		"calendar:lock:release" -> Calendar.handleLockRelease,
+
+		"profile:load" -> Profile.handleLoad,
+		"profile:enable" -> Profile.handleEnable(true),
+		"profile:disable" -> Profile.handleEnable(false),
+		"profile:promote" -> Profile.handlePromote,
+		"profile:remove" -> Profile.handleRemove,
+		"profile:role" -> Profile.handleRole,
+		"profile:check" -> Profile.handleCheck,
+		"profile:register" -> Profile.handleRegister,
+		"profile:refresh" -> Profile.handleRefresh,
+
+		"absences:load" -> Absences.handleLoad,
+		"absences:create" -> Absences.handleCreate,
+		"absences:edit" -> Absences.handleEdit,
+		"absences:cancel" -> Absences.handleCancel,
+
+		"chat:sync" -> Chat.handleSync,
+		"chat:shoutbox:send" -> Chat.handleShoutboxSend,
+
+		"roster:load" -> Roster.handleLoad,
+		"roster:user" -> Roster.handleUser,
+		"roster:char" -> Roster.handleChar,
+
+		"composer:load" -> Composer.handleLoad,
+		"composer:lockout:create" -> Composer.handleLockoutCreate,
+		"composer:lockout:rename" -> Composer.handleLockoutRename,
+		"composer:lockout:delete" -> Composer.handleLockoutDelete,
+		"composer:group:create" -> Composer.handleGroupCreate,
+		"composer:group:rename" -> Composer.handleGroupRename,
+		"composer:group:delete" -> Composer.handleGroupDelete,
+		"composer:slot:set" -> Composer.handleSlotSet,
+		"composer:slot:unset" -> Composer.handleSlotUnset,
+		"composer:export:group" -> Composer.handleExportGroup,
+
+		"auth:logout" -> Auth.handleLogout
+	)
+
+	// Dispatch calls once socket is closed
+	val zombieDispatcher: MessageDispatcher = Map()
+
+	// Current dispatcher
 	var dispatcher: MessageDispatcher = unauthenticatedDispatcher
 
 	// Reference to the socket owner
@@ -56,7 +137,7 @@ with ComposerHandler {
 			try {
 				val cmd = (message \ "$").as[String]
 				val arg = (message \ "&")
-				val response = dispatcher(cmd)(arg)
+				val response = dispatcher.getOrElse(cmd, handleUnavailable _)(arg)
 				responseResult(id, response)
 			} catch {
 				case e: Throwable => responseError(id, e)
@@ -142,95 +223,6 @@ with ComposerHandler {
 	*/
 	def handleUnavailable(arg: JsValue): MessageResponse = {
 		MessageFailure("This feature is not available at the moment")
-	}
-
-	/**
-	 * Dispatch unauthenticated calls
-	 */
-	def unauthenticatedDispatcher: MessageDispatcher = {
-		case "auth" => Auth.handleAuth
-		case "auth:prepare" => Auth.handlePrepare
-		case "auth:login" => Auth.handleLogin
-
-		case _ => handleUnavailable
-	}
-
-	/**
-	 * Dispatch authenticated calls
-	 */
-	def authenticatedDispatcher: MessageDispatcher = {
-		case "events:unbind" => handleEventUnbind
-
-		case "dashboard:load" => Dashboard.handleLoad
-
-		case "calendar:load" => Calendar.handleLoad
-		case "calendar:create" => Calendar.handleCreate
-		case "calendar:answer" => Calendar.handleAnswer
-		case "calendar:delete" => Calendar.handleDelete
-		case "calendar:event" => Calendar.handleEvent
-		case "calendar:event:invite" => Calendar.handleEventInvite
-		case "calendar:event:state" => Calendar.handleEventState
-		case "calendar:event:editdesc" => Calendar.handleEventEditDesc
-		case "calendar:event:promote" => Calendar.handleEventPromote(true)
-		case "calendar:event:demote" => Calendar.handleEventPromote(false)
-		case "calendar:event:kick" => Calendar.handleEventKick
-		case "calendar:comp:set" => Calendar.handleCompSet(false)
-		case "calendar:comp:reset" => Calendar.handleCompSet(true)
-		case "calendar:tab:create" => Calendar.handleTabCreate
-		case "calendar:tab:delete" => Calendar.handleTabDelete
-		case "calendar:tab:swap" => Calendar.handleTabSwap
-		case "calendar:tab:rename" => Calendar.handleTabRename
-		case "calendar:tab:wipe" => Calendar.handleTabWipe
-		case "calendar:tab:edit" => Calendar.handleTabEdit
-		case "calendar:tab:lock" => Calendar.handleTabLock(true)
-		case "calendar:tab:unlock" => Calendar.handleTabLock(false)
-		case "calendar:lock:status" => Calendar.handleLockStatus
-		case "calendar:lock:acquire" => Calendar.handleLockAcquire
-		case "calendar:lock:refresh" => Calendar.handleLockRefresh
-		case "calendar:lock:release" => Calendar.handleLockRelease
-
-		case "profile:load" => Profile.handleLoad
-		case "profile:enable" => Profile.handleEnable(true)
-		case "profile:disable" => Profile.handleEnable(false)
-		case "profile:promote" => Profile.handlePromote
-		case "profile:remove" => Profile.handleRemove
-		case "profile:role" => Profile.handleRole
-		case "profile:check" => Profile.handleCheck
-		case "profile:register" => Profile.handleRegister
-		case "profile:refresh" => Profile.handleRefresh
-
-		case "absences:load" => Absences.handleLoad
-		case "absences:create" => Absences.handleCreate
-		case "absences:edit" => Absences.handleEdit
-		case "absences:cancel" => Absences.handleCancel
-
-		case "chat:sync" => Chat.handleSync
-		case "chat:shoutbox:send" => Chat.handleShoutboxSend
-
-		case "roster:load" => Roster.handleLoad
-		case "roster:user" => Roster.handleUser
-		case "roster:char" => Roster.handleChar
-
-		case "composer:load" => Composer.handleLoad
-		case "composer:lockout:create" => Composer.handleLockoutCreate
-		case "composer:lockout:rename" => Composer.handleLockoutRename
-		case "composer:lockout:delete" => Composer.handleLockoutDelete
-		case "composer:group:create" => Composer.handleGroupCreate
-		case "composer:group:rename" => Composer.handleGroupRename
-		case "composer:group:delete" => Composer.handleGroupDelete
-		case "composer:slot:set" => Composer.handleSlotSet
-		case "composer:slot:unset" => Composer.handleSlotUnset
-		case "composer:export:group" => Composer.handleExportGroup
-
-		case "auth:logout" => Auth.handleLogout
-		case _ => handleUnavailable
-	}
-
-	/**
-	 * Dispatch calls once socket is closed
-	 */
-	def zombieDispatcher: MessageDispatcher = {
-		case _ => handleUnavailable
 	}
 
 	/**
