@@ -68,6 +68,11 @@
 		transition: color ease-out .3s, opacity ease-out .3s;
 	}
 
+	#composer-lockouts h2.closed {
+		border-bottom: 0;
+		padding-bottom: 0;
+	}
+
 	#composer-lockouts h2 i.awe-eye:not(.fsblue) {
 		opacity: .3;
 	}
@@ -256,7 +261,7 @@
 					<button ng-click="renameLockout(lockout)"><i class="awe-pencil"></i> Rename</button>
 					<button ng-click="deleteLockout(lockout.id)"><i class="awe-cancel"></i> Delete</button>
 				</div>
-				<h2 ng-click="toggleHidden(lockout.id)">
+				<h2 ng-click="toggleHidden(lockout.id)" ng-class="{ closed: hidden[lockout.id] }">
 					<i class="awe-sort"></i>
 					<i class="awe-eye" ng-class="{ fsblue: focus == lockout.id }" ng-click="setFocus(lockout.id, $event)"></i>
 					{{ lockout.title }}
