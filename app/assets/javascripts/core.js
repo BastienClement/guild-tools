@@ -358,7 +358,8 @@ var $ = {};
 		};
 
 		$.dump = function(cmd, arg) {
-			$.call(cmd, arg, function(data) {
+			$.call(cmd, arg, function(err, data) {
+				if (err) return console.error(err);
 				console.log(data);
 			});
 		};
