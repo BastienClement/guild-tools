@@ -139,7 +139,7 @@ var $ = {};
 		$.roster.isCrossRealm = function(char) {
 			var server = typeof char == "string" ? char : char.server;
 			if (server) {
-				return server != "sargeras";
+				return server != "sargeras" && server != "nerzhul" && server != "garona";
 			}
 			return false;
 		};
