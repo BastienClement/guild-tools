@@ -73,6 +73,7 @@ with ComposerHandler {
 		"calendar:lock:acquire" -> Calendar.handleLockAcquire,
 		"calendar:lock:refresh" -> Calendar.handleLockRefresh,
 		"calendar:lock:release" -> Calendar.handleLockRelease,
+		"calendar:upcoming:events" -> Calendar.handleUpcomingEvents,
 
 		"profile:load" -> Profile.handleLoad,
 		"profile:enable" -> Profile.handleEnable(true),

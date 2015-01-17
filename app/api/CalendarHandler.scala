@@ -805,5 +805,16 @@ trait CalendarHandler {
 			edit_lock foreach (_.release())
 			MessageSuccess
 		}
+
+		/**
+		 * $:calendar:upcoming:events
+		 */
+		def handleUpcomingEvents(arg: JsValue): MessageResponse = {
+			val from = SmartTimestamp.today
+			val to = from + 15.days
+
+			val events = loadCalendarEvents(from, to).map(_._1)
+			Json.obj("events" -> events)
+		}
 	}
 }
