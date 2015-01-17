@@ -357,6 +357,12 @@ var $ = {};
 			$.exec(cmd, arg, wrapped_cb);
 		};
 
+		$.dump = function(cmd, arg) {
+			$.call(cmd, arg, function(data) {
+				console.log(data);
+			});
+		};
+
 		function ws_read(frame) {
 			if (enable_compression) {
 				sock_compress.postMessage({ $: "inflate", buf: frame.data });
