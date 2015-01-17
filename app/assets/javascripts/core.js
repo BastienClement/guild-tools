@@ -136,6 +136,14 @@ var $ = {};
 		var idx_chars_by_user = [];
 		var idx_main_for_user = [];
 
+		$.roster.isCrossRealm = function(char) {
+			var server = typeof char == "string" ? char : char.server;
+			if (server) {
+				return server != "sargeras";
+			}
+			return false;
+		};
+
 		$.roster.user = function(id) {
 			id = Number(id);
 			var user = $.roster.users[id];

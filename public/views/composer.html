@@ -239,12 +239,17 @@
 						  ng-class="{ picked: isCharPicked(char.id) }"
 						  ng-tooltip=".tooltip">
 						<img ng-src="/assets/images/roles/{{ char.role }}.png">
-						<span class="name">{{ char.name }}</span>
+						<span class="name">
+							{{ char.name }}<span ng-if="$.roster.isCrossRealm(char)">*</span>
+						</span>
 						<div class="tooltip">
 							<div style="display: flex">
-								<span class="c{{ char.class }}">{{ char.name }}</span>
+								<span class="c{{ char.class }}">
+									{{ char.name }}
+								</span>
 								<div class="light" style="margin-left: 12px;">{{ char.ilvl }} ilvl</div>
 							</div>
+							<div class="blue" ng-if="$.roster.isCrossRealm(char)">{{ gameData.realms[char.server].name }}</div>
 							<div class="light">{{ $.roster.user(char.owner).name }}</div>
 						</div>
 					</span>
@@ -293,12 +298,15 @@
 						      ng-mousedown="pickChar(slot.char, group.id, lockout.id)"
 						      ng-tooltip=".tooltip">
 							<img ng-src="/assets/images/roles/{{ slot.role }}.png">
-							<span class="name">{{ slot.char.name }}</span>
+							<span class="name">
+								{{ slot.char.name }}<span ng-if="$.roster.isCrossRealm(slot.char)">*</span>
+							</span>
 							<div class="tooltip">
 								<div style="display: flex">
 									<span class="c{{ slot.char.class }}">{{ slot.char.name }}</span>
 									<div class="light" style="margin-left: 12px;">{{ slot.char.ilvl }} ilvl</div>
 								</div>
+								<div class="blue" ng-if="$.roster.isCrossRealm(slot.char)">{{ gameData.realms[slot.char.server].name }}</div>
 								<div class="light">{{ $.roster.user(slot.char.owner).name }}</div>
 							</div>
 						</span>

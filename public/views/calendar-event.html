@@ -483,9 +483,12 @@
 							<div ng-if="!row.void" ng-tooltip=".tooltip">
 								<div class="tooltip">
 									<div class="row">
-										<span class="cell c{{ row.char.class }}">{{ row.char.name }}</span>
+										<span class="cell c{{ row.char.class }}">
+											{{ row.char.name }}
+										</span>
 										<div class="cell fillr light">{{ row.char.ilvl }} ilvl</div>
 									</div>
+									<div class="blue" ng-if="$.roster.isCrossRealm(row.char)">{{ gameData.realms[row.char.server].name }}</div>
 									<div class="light">{{ $.roster.user(row.user).name | capitalize }}</div>
 									<div class="spaced gray" ng-if="row.answer.date">{{ formatDate(row.answer.date) }}</div>
 									<div class="spaced gray" ng-if="!row.answer.date">Non-register</div>
@@ -502,7 +505,9 @@
 									 ng-contextmenu="answerMenu(row, $event)"
 									 ng-class="{ picked: charDimmedInRoster(row.char) }">
 									<img ng-src="/assets/images/roles/{{ row.char.role }}.png">
-									<span class="name c{{ row.char.class }}">{{ row.char.name | capitalize }}</span>
+									<span class="name c{{ row.char.class }}">
+										{{ row.char.name | capitalize }}<span ng-if="$.roster.isCrossRealm(row.char)">*</span>
+									</span>
 									<i class="promote awe-{{ getPlayerStar(row) }}"></i>
 									<i class="awe-{{ getPlayerIcon(row) }}"></i>
 								</div>
