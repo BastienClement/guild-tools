@@ -13,6 +13,7 @@ import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json.{JsNull, JsValue, Json}
 import utils.SmartTimestamp.fromTimestamp
 import utils.{EventFilter, SmartTimestamp}
+import scala.concurrent.duration._
 
 /**
  * Shared calendar-related values
@@ -224,7 +225,7 @@ trait CalendarHandler {
 			val minutes = (arg \ "min").as[Int]
 			val dates_raw = (arg \ "dates").as[List[String]]
 
-			def inRange(a: Int, b: Int, c: Int) = (a >= b && a <= c)
+			def inRange(a: Int, b: Int, c: Int) = a >= b && a <= c
 
 			if (!CalendarVisibility.isValid(visibility) || !inRange(hour, 0, 23) || !inRange(minutes, 0, 59)) {
 				return MessageFailure("INVALID_EVENT_DATA")
@@ -242,7 +243,7 @@ trait CalendarHandler {
 			val now = SmartTimestamp.now
 
 			def isValidDate(ts: SmartTimestamp): Boolean = {
-				val delta = (ts - now).time / 1000
+				val delta = (ts - now).toSeconds
 				!(delta < -86400 || delta > 5270400)
 			}
 
