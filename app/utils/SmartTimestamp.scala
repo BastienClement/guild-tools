@@ -2,8 +2,10 @@ package utils
 
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
+import java.util.concurrent.TimeUnit
 import java.util.{Calendar, Date, GregorianCalendar}
 import scala.compat.Platform
+import scala.concurrent.duration.FiniteDuration
 import scala.language.implicitConversions
 
 /**
@@ -76,8 +78,9 @@ class SmartTimestamp(val time: Long) extends Timestamp(time) {
 	/**
 	 * Date arithmetic
 	 */
-	def +(that: SmartTimestamp): SmartTimestamp = SmartTimestamp(time + that.time)
-	def -(that: SmartTimestamp): SmartTimestamp = SmartTimestamp(time - that.time)
+	def +(that: FiniteDuration): SmartTimestamp = SmartTimestamp(time + that.toMillis)
+	def -(that: FiniteDuration): SmartTimestamp = SmartTimestamp(time - that.toMillis)
+	def -(that: SmartTimestamp): FiniteDuration = FiniteDuration(time - that.time, TimeUnit.MILLISECONDS)
 
 	def between(a: SmartTimestamp, b: SmartTimestamp): Boolean = this >= a && this <= b
 
