@@ -256,8 +256,8 @@
 	<div id="composer-lockouts">
 		<div ng-repeat="lockout in lockouts | orderBy : 'id'" class="box lockout parted">
 			<div>
-				<div class="btns">
-					<button class="animated" ng-hide="hidden[lockout.id]"><i class="awe-export-alt"></i> Export all</button>
+				<div class="btns animated" ng-hide="hidden[lockout.id]">
+					<button><i class="awe-export-alt"></i> Export all</button>
 					<button ng-click="renameLockout(lockout)"><i class="awe-pencil"></i> Rename</button>
 					<button ng-click="deleteLockout(lockout.id)"><i class="awe-cancel"></i> Delete</button>
 				</div>
