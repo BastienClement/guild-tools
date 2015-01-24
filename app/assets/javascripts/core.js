@@ -137,9 +137,14 @@ var $ = {};
 		var idx_main_for_user = [];
 
 		$.roster.isCrossRealm = function(char) {
+			if (char._cross_realm) return true;
 			var server = typeof char == "string" ? char : char.server;
 			if (server) {
-				return server != "sargeras" && server != "nerzhul" && server != "garona";
+				var cross_realm = server != "sargeras" && server != "nerzhul" && server != "garona";
+				if (cross_realm && typeof char == "object") {
+					char._cross_realm = true;
+				}
+				return cross_realm;
 			}
 			return false;
 		};

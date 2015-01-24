@@ -583,8 +583,13 @@
 									     ng-tooltip=".tooltip">
 										<div class="tooltip">
 											<div class="row">
-												<span class="cell c{{ slots[tab_selected][(row+offset-1)*5+slot].class }}">{{ slots[tab_selected][(row+offset-1)*5+slot].name }}</span>
+												<span class="cell c{{ slots[tab_selected][(row+offset-1)*5+slot].class }}">
+													{{ slots[tab_selected][(row+offset-1)*5+slot].name }}<span ng-if="slotCrossRealm(slots[tab_selected][(row+offset-1)*5+slot])">*</span>
+												</span>
 												<div class="cell fillr light">{{ slotIlvl(slots[tab_selected][(row+offset-1)*5+slot]) }} ilvl</div>
+											</div>
+											<div class="blue" ng-if="slotCrossRealm(slots[tab_selected][(row+offset-1)*5+slot])">
+												{{ gameData.realms[slotServer(slots[tab_selected][(row+offset-1)*5+slot])].name }}
 											</div>
 											<div class="light">{{ $.roster.user(slots[tab_selected][(row+offset-1)*5+slot].owner).name | capitalize }}</div>
 											<div class="spaced gray" ng-if="!playerIsAvailable(slots[tab_selected][(row+offset-1)*5+slot].owner)">
@@ -593,7 +598,7 @@
 										</div>
 										<img ng-src="/assets/images/roles/{{ slots[tab_selected][(row+offset-1)*5+slot].role }}.png">
 										<span class="name">
-											{{ slots[tab_selected][(row+offset-1)*5+slot].name }}
+											{{ slots[tab_selected][(row+offset-1)*5+slot].name }}<span ng-if="slotCrossRealm(slots[tab_selected][(row+offset-1)*5+slot])">*</span>
 										</span>
 										<i class="awe-attention" ng-if="!playerIsAvailable(slots[tab_selected][(row+offset-1)*5+slot].owner)"></i>
 									</div>

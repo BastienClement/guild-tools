@@ -1557,19 +1557,34 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 		$scope.menu(menu, ev);
 	};
 
-	$scope.slotIlvl = function(slot) {
-		if (slot.real_char) return slot.real_char.ilvl;
+	function slot_real_char(slot) {
+		if (slot.real_char) return slot.real_char;
 		var chars = $.roster.charsByUser(slot.owner);
 
 		for (var i in chars) {
 			var char = chars[i];
 			if (char.name == slot.name) {
 				slot.real_char = char;
-				return char.ilvl;
+				return char;
 			}
 		}
 
-		return 0;
+		return null;
+	}
+
+	$scope.slotIlvl = function(slot) {
+		var char = slot_real_char(slot);
+		return char ? char.ilvl : 0;
+	};
+
+	$scope.slotCrossRealm = function(slot) {
+		var char = slot_real_char(slot);
+		return char ? $.roster.isCrossRealm(char) : false;
+	};
+
+	$scope.slotServer = function(slot) {
+		var char = slot_real_char(slot);
+		return char ? char.server : "Unknown";
 	};
 
 	var stats = $scope.stats = {};
