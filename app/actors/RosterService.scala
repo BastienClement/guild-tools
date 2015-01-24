@@ -73,6 +73,15 @@ class RosterServiceImpl extends RosterService {
 	}
 
 	/**
+	 * Allow query of a specific out-roster char
+	 */
+	def outroster_char = LazyCollection[Int, Option[Char]](15.minutes) { id =>
+		DB.withSession { implicit s =>
+			Chars.filter(_.id === id).firstOption
+		}
+	}
+
+	/**
 	 * Locks for currently updated chars
 	 */
 	var inflightUpdates = Set[Int]()
@@ -80,8 +89,8 @@ class RosterServiceImpl extends RosterService {
 	def users: Map[Int, User] = roster_users
 	def chars: Map[Int, Char] = roster_chars
 
-	def user(id: Int): Option[User] = roster_users.get(id)
-	def char(id: Int): Option[Char] = roster_chars.get(id)
+	def user(id: Int): Option[User] = roster_users.get(id) orElse outroster_user(id)
+	def char(id: Int): Option[Char] = roster_chars.get(id) orElse outroster_char(id)
 
 	def compositeRoster: JsObject = roster_composite
 
