@@ -238,6 +238,7 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 		var mains = [];
 		var casuals = [];
 		var alts = [];
+		slots_cache = [];
 		var roster = $scope.roster = [];
 
 		$.roster.chars.forEach(function(char) {
