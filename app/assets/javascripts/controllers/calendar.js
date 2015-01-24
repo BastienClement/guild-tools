@@ -852,8 +852,9 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	}
 
 	$scope.formatDate = function(d) {
+		console.log(d);
 		var date = new Date(d.replace(" ", "T"));
-		/*date = new Date(date.getTime() + date.getTimezoneOffset() * 60000);*/
+		date = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
 
 		var day = zero_pad(date.getDate(), 2) + "/" + zero_pad(date.getMonth() + 1, 2) + "/" + date.getFullYear();
 		var hour = zero_pad(date.getHours(), 2) + ":" + zero_pad(date.getMinutes(), 2);
