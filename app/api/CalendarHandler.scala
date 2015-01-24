@@ -358,7 +358,7 @@ trait CalendarHandler {
 					case (u: User, a: CalendarAnswer) => (u.id.toString, Some(a))
 				}).toMap
 
-				// Add non-register if this is a guild of optional event
+				// Add non-register if this is a guild or optional event
 				if (event.visibility == CalendarVisibility.Guild || event.visibility == CalendarVisibility.Optional) {
 					event_answers ++ CalendarHandler.missingAnswers(id).list.map(u => (u.toString, None)).toMap
 				} else {

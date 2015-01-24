@@ -8,7 +8,7 @@ import models.mysql._
 import utils.{LazyCollection, SmartTimestamp}
 
 object AuthService {
-	val allowedGroups = Set(8, 12, 9, 11)
+	val allowedGroups = Set(8, 12, 9, 11, 10)
 }
 
 trait AuthService {

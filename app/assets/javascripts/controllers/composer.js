@@ -237,6 +237,7 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 	function build_roster() {
 		var mains = [];
 		var casuals = [];
+		var guests = [];
 		var alts = [];
 		slots_cache = [];
 		var roster = $scope.roster = [];
@@ -245,7 +246,7 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 			if (char.level < 100) return;
 			var owner = $.roster.user(char.owner);
 			if (owner.unknown || owner.outofroster) return;
-			(char.main ? (owner.group == 12 ? casuals : mains) : alts).push(char);
+			(char.main ? (owner.group == 12 ? casuals : (owner.group == 10 ? guests : mains)) : alts).push(char);
 		});
 
 		function sort_group(use_ilvl) {
@@ -258,7 +259,8 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 
 		mains.sort(sort_group(false));
 		casuals.sort(sort_group(false));
-		roster.push({ title: "Mains", chars: mains }, { title: "Casuals", chars: casuals });
+		guests.sort(sort_group(false));
+		roster.push({ title: "Mains", chars: mains }, { title: "Casuals", chars: casuals }/*, { title: "Guests", chars: guests }*/);
 
 		var alt_groups = [
 			{ title: "Alts 700+", ilvl: 700, chars: [] },
