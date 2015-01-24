@@ -72,11 +72,6 @@ var $ = {};
 		error = true;
 		dead = true;
 
-		ga('send', 'exception', {
-			'exDescription': title + " - " + infos,
-			'exFatal': true
-		});
-
 		if (ready) {
 			_("#loading-error-title").text(title);
 			_("#loading-error-text").text(text);
@@ -540,8 +535,6 @@ var $ = {};
 				if ($.user) {
 					$.user.ready = res.ready;
 					$.syncOnlines();
-					ga('set', 'userId', $.user.id);
-					ga('send', 'event', 'session', 'continue', $.anonSessId());
 				}
 
 				if (!init_done) {

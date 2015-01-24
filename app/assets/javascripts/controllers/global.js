@@ -189,7 +189,6 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 
 	$scope.modal = function(view, ctx, secure) {
 		if (view) {
-			ga('send', 'event', 'modal', 'display', view);
 			$scope.modalCtx = ctx;
 			$scope.modalView = "/views/" + view + ".html";
 			$scope.modalSecure = !!secure;
