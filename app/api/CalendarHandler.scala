@@ -184,6 +184,31 @@ trait CalendarHandler {
 					Json.obj("id" -> e.id, "event" -> e, "answer" -> (a.map(Json.toJson(_)).getOrElse(JsNull): JsValue), "promoted" -> p)
 			}
 		}
+
+		/**
+		 * Check the rights of the user for a specific event
+		 */
+		def checkEventRights(id: Int): (Boolean, Boolean) = {
+			// Promoted user can access everything
+			if (user.promoted) return (true, true)
+
+			DB.withSession { implicit s =>
+				// Fetch the event
+				val event = CalendarEvents.filter(_.id === id).first
+
+				// Only promoted users have rights on announces
+				if (event.isAnnounce) return (true, user.promoted)
+
+				// Fetch the answer for this event
+				val answer = CalendarAnswers.filter(a => a.event === id && a.user === user.id).firstOption
+
+				// Not invited in a restricted event
+				if (event.isRestricted && answer.isEmpty) return (false, false)
+
+				// Check event specific promotion
+				val promoted = answer map { _.promote } getOrElse { false }
+
+				(true, promoted)
 			}
 		}
 
