@@ -9,7 +9,7 @@ import play.api.Play.current
 import play.api.libs.concurrent.Akka
 
 object Actors {
-	private def initActor[I <: AnyRef, A <: I](n: String, timeout: FiniteDuration = 5.seconds)(implicit ct: ClassTag[A]): I = {
+	private def initActor[I <: AnyRef, A <: I](n: String, timeout: FiniteDuration = 15.seconds)(implicit ct: ClassTag[A]): I = {
 		TypedActor(Akka.system).typedActorOf(TypedProps[A].withTimeout(timeout), name = n)
 	}
 
@@ -17,7 +17,7 @@ object Actors {
 	Akka.system.eventStream.subscribe(DeadLetterLogger, classOf[DeadLetter])
 
 	val AuthService = initActor[AuthService, AuthServiceImpl]("AuthService")
-	val BattleNet = initActor[BattleNet, BattleNetImpl]("BattleNet", 15.seconds)
+	val BattleNet = initActor[BattleNet, BattleNetImpl]("BattleNet")
 	val CalendarService = initActor[CalendarService, CalendarServiceImpl]("CalendarService")
 	val ChatService = initActor[ChatService, ChatServiceImpl]("ChatService")
 	val ComposerService = initActor[ComposerService, ComposerServiceImpl]("ComposerService")
