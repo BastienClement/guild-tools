@@ -75,6 +75,7 @@ with ComposerHandler {
 		"calendar:lock:refresh" -> Calendar.handleLockRefresh,
 		"calendar:lock:release" -> Calendar.handleLockRelease,
 		"calendar:load:events" -> Calendar.handleLoadEvents,
+		"calendar:import:tabs" -> Calendar.handleImportTabs,
 
 		"profile:load" -> Profile.handleLoad,
 		"profile:enable" -> Profile.handleEnable(true),

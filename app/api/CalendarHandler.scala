@@ -2,6 +2,7 @@ package api
 
 import java.sql.Timestamp
 import java.text.{ParseException, SimpleDateFormat}
+import scala.concurrent.{Await, Future}
 import scala.util.Try
 import actors.Actors.CalendarService
 import actors.CalendarServiceShr.CalendarLock
@@ -833,6 +834,75 @@ trait CalendarHandler {
 				case (event, _, _) if user.promoted => event
 				case (event, _, Some(promote)) if promote => event
 			}
+		}
+
+		/**
+		 * $:calendar:import:tabs
+		 */
+		def handleImportTabs(arg: JsValue): MessageResponse = {
+			val event = (arg \ "source").as[Int]
+			val tab_ids = (arg \ "tabs").as[Set[Int]]
+			val mode = (arg \ "mode").as[Int]
+
+			val (can_read, can_write) = checkEventRights(event)
+			if (!can_write) return MessageFailure("You need to have edit rights on a event to import tabs from it.")
+
+			if (!event_editable) return MessageFailure("FORBIDDEN")
+
+			Future {
+				DB.withSession { implicit s =>
+					val target_tabs = CalendarTabs.filter(t => t.event === event_current.id).list
+					val source_tabs = CalendarTabs.filter(t => t.event === event && t.id.inSet(tab_ids)).sortBy(_.order).list
+
+					def copyInTab(source: CalendarTab, target: CalendarTab): Unit = {
+						val updated = target.copy(note = source.note, locked = source.locked)
+
+						CalendarTabs.filter(_.id === target.id).update(updated)
+						CalendarTabs.notifyUpdate(updated)
+
+						val slots = CalendarSlots.filter(_.tab === source.id).list map {
+							_.copy(tab = target.id)
+						}
+
+						CalendarService.setSlots(slots)
+					}
+
+					def createTab(title: String): Future[CalendarTab] = CalendarService.createTab(event_current.id, title)
+
+					def copyInNewTab(source: CalendarTab): Future[Unit] = {
+						val tab = createTab(source.title)
+						for (t <- tab) yield copyInTab(source, t)
+					}
+
+					mode match {
+						// Merge
+						case 0 =>
+							val done = for (source_tab <- source_tabs) yield {
+								val target_tab = target_tabs.find(_.title == source_tab.title).map(Future.successful(_)) getOrElse createTab(source_tab.title)
+								for (t <- target_tab) yield {
+									CalendarService.wipeTab(t.id)
+									copyInTab(source_tab, t)
+								}
+							}
+							Await.ready(Future.sequence(done), 15.seconds)
+
+						// Replace
+						case 1 =>
+							for (tab <- target_tabs) CalendarService.deleteTab(tab.id)
+							val done = for (source_tab <- source_tabs) yield copyInNewTab(source_tab)
+							Await.ready(Future.sequence(done), 15.seconds)
+
+						// Append
+						case 2 =>
+							val done = for (source_tab <- source_tabs) yield copyInNewTab(source_tab)
+							Await.ready(Future.sequence(done), 15.seconds)
+					}
+
+					CalendarService.optimizeEvent(event_current.id)
+				}
+			}
+
+			MessageSuccess
 		}
 	}
 }
