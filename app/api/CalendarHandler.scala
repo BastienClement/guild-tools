@@ -194,7 +194,12 @@ trait CalendarHandler {
 
 			DB.withSession { implicit s =>
 				// Fetch the event
-				val event = CalendarEvents.filter(_.id === id).first
+				val event_opt = CalendarEvents.filter(_.id === id).firstOption
+
+				val event = event_opt match {
+					case Some(ev) => ev
+					case None => return (false, false)
+				}
 
 				// Only promoted users have rights on announces
 				if (event.isAnnounce) return (true, user.promoted)
