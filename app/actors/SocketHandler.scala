@@ -106,7 +106,7 @@ with ComposerHandler {
 		"composer:group:delete" -> Composer.handleGroupDelete,
 		"composer:slot:set" -> Composer.handleSlotSet,
 		"composer:slot:unset" -> Composer.handleSlotUnset,
-		"composer:export:group" -> Composer.handleExportGroup,
+		"composer:export" -> Composer.handleExport,
 
 		"auth:logout" -> Auth.handleLogout
 	)

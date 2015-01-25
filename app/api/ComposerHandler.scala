@@ -1,8 +1,10 @@
 package api
 
+import java.lang.Exception
 import actors.Actors._
 import actors.SocketHandler
 import play.api.libs.json.{JsValue, Json}
+import gt.Global.ExecutionContext
 
 trait ComposerHandler {
 	socket: SocketHandler =>
@@ -89,12 +91,16 @@ trait ComposerHandler {
 			MessageSuccess
 		}
 
-		def handleExportGroup = ComposerHandler { arg =>
-			val group = (arg \ "group").as[Int]
-			val events = (arg \ "events").as[List[Int]]
-			ComposerService.exportGroup(group, events) map {
-				err => MessageFailure(err)
-			} getOrElse MessageSuccess
+		def handleExport = ComposerHandler { arg =>
+			val groups = (arg \ "groups").as[List[Int]]
+			val events = (arg \ "events").as[Set[Int]]
+			val mode = (arg \ "mode").as[Int]
+			val locked = (arg \ "locked").as[Boolean]
+			ComposerService.exportGroups(groups, events, mode, locked) map {
+				_ => MessageSuccess
+			} recover {
+				case err: Exception => MessageFailure(err.getMessage)
+			}
 		}
 	}
 }

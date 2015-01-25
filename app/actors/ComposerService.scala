@@ -1,11 +1,13 @@
 package actors
 
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import actors.Actors._
 import api._
 import models._
 import models.mysql._
 import utils.LazyCache
+import gt.Global.ExecutionContext
 
 trait ComposerService {
 	def load: (List[ComposerLockout], List[ComposerGroup], List[ComposerSlot])
@@ -21,8 +23,7 @@ trait ComposerService {
 	def setSlot(group: Int, char: Int, role: String): Unit
 	def unsetSlot(group: Int, char: Int): Unit
 
-	def exportLockout(lockout: Int, events: List[Int]): Option[String]
-	def exportGroup(group: Int, events: List[Int]): Option[String]
+	def exportGroups(groups: List[Int], events: Set[Int], mode: Int, locked: Boolean): Future[Unit]
 }
 
 class ComposerServiceImpl extends ComposerService {
@@ -134,17 +135,19 @@ class ComposerServiceImpl extends ComposerService {
 		}
 	}
 
-	def exportLockout(lockout: Int, events: List[Int]): Option[String] = {
-		None
-	}
+	def exportGroups(groups: List[Int], events: Set[Int], mode: Int, locked: Boolean): Future[Unit] = Future {
+		DB.withTransaction { implicit t =>
+			val groups_and_slots = for (group <- groups) yield {
+				// Fetch every slots for this group
+				val slots_data = ComposerSlots.filter(_.group === group).list
 
-	def exportGroup(group: Int, events: List[Int]): Option[String] = {
-		DB.withSession { implicit s =>
-			val slots = ComposerSlots.filter(_.group === group).list
-			if (slots.size > 30) {
-				Some("You cannot export a group with more than 30 players in it")
-			} else {
-				val chars = slots.map {
+				// Ensure we do not try to export a group of more than 30 players
+				if (slots_data.size > 30) {
+					throw new Exception("You cannot export a group with more than 30 players in it")
+				}
+
+				// Fetch and sort char informations
+				val slots_chars = slots_data.map {
 					s => RosterService.char(s.char).map(_.copy(role = s.role))
 				} collect {
 					case Some(char) => char
@@ -152,7 +155,63 @@ class ComposerServiceImpl extends ComposerService {
 					sortChars(_, _)
 				}
 
-				None
+				// Fetch group meta-informations
+				val group_data = ComposerGroups.filter(_.id === group).first
+
+				(group_data, slots_chars)
+			}
+
+			val event_tabs = CalendarTabs.filter(_.event inSet events).list.groupBy(_.event)
+
+			for ((event, tabs) <- event_tabs) {
+				def insertInTab(tab: CalendarTab, chars: List[Char]) = {
+					// Ensure tab is in the correct locking state before inserting
+					if (tab.locked != locked) {
+						CalendarService.setTabHidden(tab.id, locked)
+					}
+
+					val slots = for ((char, idx) <- chars.zipWithIndex) yield CalendarSlot(tab.id, idx + 1, char.owner, char.name, char.clazz, char.role)
+					CalendarService.setSlots(slots)
+				}
+
+				def createTab(title: String): Future[CalendarTab] = {
+					try {
+						CalendarService.createTab(event, title)
+					} catch {
+						case _: Throwable =>
+							t.rollback()
+							throw new Exception("Unable to create an event tab")
+					}
+				}
+
+				def insertInNewTab(title: String, chars: List[Char]): Unit = {
+					createTab(title) map { tab =>
+						insertInTab(tab, chars)
+					}
+				}
+
+				mode match {
+					// Merge
+					case 0 =>
+						for ((group, chars) <- groups_and_slots) {
+							val tab = tabs.find(_.title == group.title).map(Future.successful(_)) getOrElse createTab(group.title)
+							tab map { t =>
+								CalendarService.wipeTab(t.id)
+								insertInTab(t, chars)
+							}
+						}
+
+					// Replace
+					case 1 =>
+						for (tab <- tabs) CalendarService.deleteTab(tab.id)
+						for ((group, chars) <- groups_and_slots) insertInNewTab(group.title, chars)
+
+					// Append
+					case 2 =>
+						for ((group, chars) <- groups_and_slots) insertInNewTab(group.title, chars)
+				}
+
+				CalendarService.optimizeEvent(event)
 			}
 		}
 	}

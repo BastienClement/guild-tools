@@ -453,6 +453,16 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 			}
 		});
 	};
+
+	$scope.exportLockout = function(lockout, group_id) {
+		var groups = $scope.groupsForLockout(lockout.id);
+		groups.forEach(function(group) {
+			var slots = $scope.slotsForGroup(group.id);
+			group.available = slots.length <= 30;
+			group.selected = group.available && (!group_id || group.id == group_id);
+		});
+		$scope.modal("composer-export", { lockout: lockout, groups: groups });
+	};
 });
 
 GuildTools.controller("ComposerNewCtrl", function($scope) {
@@ -472,12 +482,47 @@ GuildTools.controller("ComposerNewCtrl", function($scope) {
 GuildTools.controller("ComposerExportCtrl", function($scope) {
 	$scope.inflight = false;
 
-	//$scope.title = "";
+	$scope.ctx = $scope.modalCtx;
+
+	function compute_event_time(event) {
+		var date = moment(event.date);
+		event.datestr = date.format("DD.MM");
+
+		var time = event.time;
+		if (time < 600) date.add(1, "d");
+
+		date.hours(Math.floor(time / 100));
+		date.minutes(time % 100);
+
+		event.timestr = date.format("HH:mm");
+		event.timeval = date.unix();
+	}
+
+	$scope.opts = {
+		creation: 0,
+		locked: 0
+	};
+
+	$scope.upcoming = [];
+	$.call("calendar:upcoming:events", function(err, events) {
+		if (events) {
+			$scope.upcoming = events.filter(function(e) { return e.type != 4; });
+			$scope.upcoming.forEach(compute_event_time);
+			$scope.upcoming.sort(function(a, b) {
+				return a.timeval > b.timeval;
+			});
+		} else {
+			$.modal();
+			$scope.error("No export target found.");
+		}
+	});
 
 	$scope.execute = function() {
 		$scope.inflight = true;
-		//$.call("composer:export", { title: $scope.title }, function() {
+		var groups = $scope.ctx.groups.filter(function(g) { return g.selected; }).map(function(g) { return g.id; });
+		var targets = $scope.upcoming.filter(function(e) { return e.selected; }).map(function(e) { return e.id; });
+		$.call("composer:export", { groups: groups, events: targets, mode: Number($scope.opts.creation), locked: !!$scope.opts.locked }, function() {
 			$scope.modal();
-		//});
+		});
 	};
 });

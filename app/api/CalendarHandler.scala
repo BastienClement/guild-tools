@@ -4,7 +4,7 @@ import java.sql.Timestamp
 import java.text.{ParseException, SimpleDateFormat}
 import scala.util.Try
 import actors.Actors.CalendarService
-import actors.CalendarService.CalendarLock
+import actors.CalendarServiceShr.CalendarLock
 import actors.{AuthService, SocketHandler}
 import gt.Global.ExecutionContext
 import models.mysql._
@@ -613,14 +613,9 @@ trait CalendarHandler {
 			val tab = (arg \ "tab").as[Int]
 			val slot = (arg \ "slot").as[Int]
 
-			if (slot < 0 || slot > 30) return MessageFailure("BAD_SLOT")
-
 			ensureTabEditable(tab) {
 				if (reset) {
-					DB.withSession { implicit s =>
-						CalendarSlots.filter(s => s.tab === tab && s.slot === slot).delete
-						CalendarSlots.notifyDelete(tab, slot)
-					}
+					CalendarService.resetSlot(tab, slot)
 				} else {
 					val owner = (arg \ "char" \ "owner").as[Int]
 					val name = (arg \ "char" \ "name").as[String]
@@ -628,12 +623,7 @@ trait CalendarHandler {
 					val role = (arg \ "char" \ "role").as[String]
 
 					val template = CalendarSlot(tab, slot, owner, name, clazz, role)
-
-					DB.withSession { implicit s =>
-						CalendarSlots.filter(s => s.tab === tab && s.owner === owner).delete
-						CalendarSlots.insertOrUpdate(template)
-						CalendarSlots.notifyUpdate(template)
-					}
+					CalendarService.setSlot(template)
 				}
 
 				MessageSuccess
@@ -645,13 +635,8 @@ trait CalendarHandler {
 		 */
 		def handleTabCreate(arg: JsValue): MessageResponse = {
 			val title = (arg \ "title").as[String]
-
 			if (!event_editable) return MessageFailure("FORBIDDEN")
-
-			CalendarService.createTab(event_current.id, title) map { tab =>
-				CalendarTabs.notifyCreate(tab)
-				MessageSuccess
-			}
+			CalendarService.createTab(event_current.id, title) map { _ => MessageSuccess }
 		}
 
 		/**
@@ -660,12 +645,7 @@ trait CalendarHandler {
 		def handleTabDelete(arg: JsValue): MessageResponse = {
 			val tab_id = (arg \ "id").as[Int]
 			ensureTabEditable(tab_id) {
-				DB.withSession { implicit s =>
-					if (CalendarTabs.filter(t => t.id === tab_id && !t.undeletable).delete > 0) {
-						CalendarTabs.notifyDelete(tab_id)
-					}
-				}
-
+				CalendarService.deleteTab(tab_id)
 				MessageSuccess
 			}
 		}
@@ -719,12 +699,7 @@ trait CalendarHandler {
 		def handleTabWipe(arg: JsValue): MessageResponse = {
 			val tab_id = (arg \ "id").as[Int]
 			ensureTabEditable(tab_id) {
-				DB.withSession { implicit s =>
-					if (CalendarSlots.filter(_.tab === tab_id).delete > 0) {
-						CalendarTabs.notifyWipe(tab_id)
-					}
-				}
-
+				CalendarService.wipeTab(tab_id)
 				MessageSuccess
 			}
 		}
@@ -754,13 +729,7 @@ trait CalendarHandler {
 		def handleTabLock(lock: Boolean)(arg: JsValue): MessageResponse = {
 			val tab_id = (arg \ "id").as[Int]
 			ensureTabEditable(tab_id) {
-				DB.withSession { implicit s =>
-					val tab_query = CalendarTabs.filter(_.id === tab_id)
-					if (tab_query.map(_.locked).update(lock) > 0) {
-						CalendarTabs.notifyUpdate(tab_query.first)
-					}
-				}
-
+				CalendarService.setTabHidden(tab_id, lock)
 				MessageSuccess
 			}
 		}
@@ -813,8 +782,7 @@ trait CalendarHandler {
 			val from = SmartTimestamp.today
 			val to = from + 15.days
 
-			val events = loadCalendarEvents(from, to).map(_._1)
-			Json.obj("events" -> events)
+			loadCalendarEvents(from, to).map(_._1)
 		}
 	}
 }

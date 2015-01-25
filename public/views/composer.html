@@ -262,7 +262,7 @@
 		<div ng-repeat="lockout in lockouts | orderBy : 'id'" class="box lockout parted">
 			<div>
 				<div class="btns animated" ng-hide="hidden[lockout.id]">
-					<button><i class="awe-export-alt"></i> Export all</button>
+					<button ng-click="exportLockout(lockout)"><i class="awe-export-alt"></i> Export all</button>
 					<button ng-click="renameLockout(lockout)"><i class="awe-pencil"></i> Rename</button>
 					<button ng-click="deleteLockout(lockout.id)"><i class="awe-cancel"></i> Delete</button>
 				</div>
@@ -287,7 +287,7 @@
 							<span><img src="/assets/images/roles/DPS.png"> {{ stats[group.id].dps }} <span style="font-weight: 300">({{ stats[group.id].dps_ilvl }})</span></span>
 						</div>
 						<div class="actions">
-							<button ng-click="$.call('composer:export:group', { group: group.id, events: [] })"><i class="awe-export-alt"></i> Export</button>
+							<button ng-click="exportLockout(lockout, group.id)"><i class="awe-export-alt"></i> Export</button>
 							<button ng-click="renameGroup(group)"><i class="awe-pencil"></i> Rename</button>
 							<button ng-click="deleteGroup(group.id)"><i class="awe-cancel"></i> Delete</button>
 						</div>
