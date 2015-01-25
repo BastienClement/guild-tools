@@ -75,6 +75,7 @@
 
 	#composer-export .event-time {
 		font-weight: 300;
+		color: #A7AEB3;
 	}
 
 	#composer-export .opts {
@@ -108,7 +109,7 @@
 						<span class="event-infos">
 							{{ event.title }}<br>
 							<span class="event-time">
-								{{ event.datestr }} {{ event.timestr }}
+								{{ event.datestr }} {{ event.timestr }} - {{ $.roster.user(event.owner).name }}
 							</span>
 						</span>
 						<input type="checkbox" ng-model="event.selected">
