@@ -478,7 +478,6 @@ GuildTools.controller("ComposerNewCtrl", function($scope) {
 	};
 });
 
-
 GuildTools.controller("ComposerExportCtrl", function($scope) {
 	$scope.inflight = false;
 
