@@ -504,7 +504,7 @@ GuildTools.controller("ComposerExportCtrl", function($scope) {
 	};
 
 	$scope.upcoming = [];
-	$.call("calendar:upcoming:events", function(err, events) {
+	$.call("calendar:load:events", { extended: false}, function(err, events) {
 		if (events) {
 			$scope.upcoming = events.filter(function(e) { return e.type != 4; });
 			$scope.upcoming.forEach(compute_event_time);

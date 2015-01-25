@@ -776,12 +776,13 @@ trait CalendarHandler {
 		}
 
 		/**
-		 * $:calendar:upcoming:events
+		 * $:calendar:load:events
 		 */
-		def handleUpcomingEvents(arg: JsValue): MessageResponse = {
-			val from = SmartTimestamp.today
+		def handleLoadEvents(arg: JsValue): MessageResponse = {
+			val previous = (arg \ "extended").as[Option[Boolean]] getOrElse false
+			val today = SmartTimestamp.today
+			val from = if (previous) today - 15.day else today
 			val to = from + 15.days
-
 			loadCalendarEvents(from, to).map(_._1)
 		}
 	}
