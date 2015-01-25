@@ -170,32 +170,21 @@ class ComposerServiceImpl extends ComposerService {
 						CalendarService.setTabHidden(tab.id, locked)
 					}
 
-					val slots = for ((char, idx) <- chars.zipWithIndex) yield CalendarSlot(tab.id, idx + 1, char.owner, char.name, char.clazz, char.role)
+					val slots = for ((char, idx) <- chars.zipWithIndex)
+						yield CalendarSlot(tab.id, idx + 1, char.owner, char.name, char.clazz, char.role)
+
 					CalendarService.setSlots(slots)
 				}
 
-				def createTab(title: String): Future[CalendarTab] = {
-					try {
-						CalendarService.createTab(event, title)
-					} catch {
-						case _: Throwable =>
-							t.rollback()
-							throw new Exception("Unable to create an event tab")
-					}
-				}
-
-				def insertInNewTab(title: String, chars: List[Char]): Unit = {
-					createTab(title) map { tab =>
-						insertInTab(tab, chars)
-					}
-				}
+				def createTab(title: String): Future[CalendarTab] = CalendarService.createTab(event, title)
+				def insertInNewTab(title: String, chars: List[Char]): Unit = for (tab <- createTab(title)) insertInTab(tab, chars)
 
 				mode match {
 					// Merge
 					case 0 =>
 						for ((group, chars) <- groups_and_slots) {
 							val tab = tabs.find(_.title == group.title).map(Future.successful(_)) getOrElse createTab(group.title)
-							tab map { t =>
+							for (t <- tab) {
 								CalendarService.wipeTab(t.id)
 								insertInTab(t, chars)
 							}
