@@ -852,7 +852,6 @@ GuildTools.controller("CalendarEventCtrl", function($scope, $location, $routePar
 	}
 
 	$scope.formatDate = function(d) {
-		console.log(d);
 		var date = new Date(d.replace(" ", "T"));
 		date = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
 
@@ -1707,6 +1706,75 @@ GuildTools.controller("CalendarEditNoteCtrl", function($scope) {
 	$scope.save = function() {
 		$scope.inflight = true;
 		$.call("calendar:tab:edit", { id: tab_id, note: $scope.note.replace(/^\s+|\s+$/, "") || null }, function() {
+			$scope.modal();
+		});
+	};
+});
+
+GuildTools.controller("CalendarImportTabCtrl", function($scope) {
+	$scope.inflight = false;
+
+	var event_id = $scope.modalCtx;
+
+	function compute_event_time(event) {
+		var date = moment(event.date);
+		event.datestr = date.format("DD.MM");
+
+		var time = event.time;
+		if (time < 600) date.add(1, "d");
+
+		date.hours(Math.floor(time / 100));
+		date.minutes(time % 100);
+
+		event.timestr = date.format("HH:mm");
+		event.timeval = date.unix();
+	}
+
+	$scope.opts = {
+		creation: 0,
+		source: null
+	};
+
+	$scope.events = [];
+	$.call("calendar:load:events", { extended: true }, function(err, events) {
+		if (events) {
+			$scope.events = events.filter(function(e) { return e.type != 4 && e.id != event_id; });
+			$scope.events.forEach(compute_event_time);
+			$scope.events.sort(function(a, b) {
+				return a.timeval > b.timeval;
+			});
+		} else {
+			$.modal();
+			$scope.error("No import source available.");
+		}
+	});
+
+	$scope.tabs = [];
+	$scope.tabs_err = false;
+	$scope.$watch("opts.source", function(ev_id) {
+		if (!ev_id) return;
+
+		$scope.tabs = [];
+		$scope.tabs_err = false;
+
+		$.call("calendar:tab:list", { event: Number(ev_id) }, function(err, tabs) {
+			if (err) {
+				$scope.tabs_err = true;
+				return;
+			}
+
+			$scope.tabs = tabs;
+			$scope.tabs.forEach(function(tab) {
+				tab.selected = true;
+			});
+		});
+	});
+
+	$scope.execute = function() {
+		$scope.inflight = true;
+		var source = Number($scope.opts.source);
+		var tabs = $scope.tabs.filter(function(t) { return t.selected; }).map(function(t) { return t.id; });
+		$.call("calendar:import:tabs", { source: source, tabs: tabs, mode: Number($scope.opts.creation) }, function() {
 			$scope.modal();
 		});
 	};

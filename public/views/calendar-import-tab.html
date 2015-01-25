@@ -1,0 +1,150 @@
+<style>
+	#calendar-import-tab {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex: 1;
+	}
+
+	#calendar-import-tab form {
+		width: 600px;
+	}
+
+	#calendar-import-tab .selector {
+		display: flex;
+	}
+
+	#calendar-import-tab .selector .left, #calendar-import-tab .selector .right {
+		flex: 1;
+		border: 1px solid #395066;
+		padding: 8px;
+		background: rgba(17, 17, 17, 0.1);
+		box-shadow: inset 0 0 3px 1px rgba(17, 17, 17, 0.1);
+		height: 300px;
+		overflow: auto;
+		position: relative;
+	}
+
+	#calendar-import-tab .selector .left > div:not(:first-child), #calendar-import-tab .selector .right > div:not(:first-child) {
+		margin-top: 8px;
+	}
+
+	#calendar-import-tab .selector .right {
+		text-align: right;
+	}
+
+	#calendar-import-tab .selector .right input[type=checkbox] {
+		float: right;
+		margin-right: 0;
+		margin-left: 15px;
+	}
+
+	#calendar-import-tab .selector label {
+		display: flex;
+		align-items: center;
+	}
+
+	#calendar-import-tab .selector label > span {
+		flex: 1;
+	}
+
+	#calendar-import-tab .loading {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+	}
+
+	#calendar-import-tab .selector .middle {
+		font-size: 36px;
+		padding: 12px;
+	}
+
+	#calendar-import-tab input[type=checkbox] {
+		float: none;
+	}
+
+	#calendar-import-tab button {
+		float: right;
+		margin-left: 15px;
+	}
+
+	#calendar-import-tab .event-time {
+		font-weight: 300;
+		color: #A7AEB3;
+	}
+
+	#calendar-import-tab .opts {
+		float: left;
+		margin: 0 15px 0 0;
+		font-weight: 400;
+	}
+</style>
+
+<div id="calendar-import-tab" ng-controller="CalendarImportTabCtrl">
+	<form class="box" ng-submit="execute()">
+		<h2>Import calendar tabs</h2>
+		<div class="selector">
+			<div class="left">
+				<div ng-repeat="event in events">
+					<label>
+						<input type="radio" ng-model="opts.source" value="{{ event.id }}">
+						<span class="event-infos">
+							{{ event.title }}<br>
+							<span class="event-time">
+								{{ event.datestr }} {{ event.timestr }} - {{ $.roster.user(event.owner).name }}
+							</span>
+						</span>
+					</label>
+				</div>
+				<div class="loading" ng-if="!events.length">
+					Loading ...
+				</div>
+			</div>
+			<div class="middle"><i class="awe-right-dir"></i></div>
+			<div class="right">
+				<div ng-repeat="tab in tabs">
+					<label>
+						<span class="tab-infos">
+							{{ tab.title }}
+						</span>
+						<input type="checkbox" ng-model="tab.selected">
+					</label>
+				</div>
+				<div class="loading" ng-if="!opts.source">
+					Please select a source event<br>
+					on the left ...
+				</div>
+				<div class="loading" ng-if="opts.source && !tabs.length && !tabs_err">
+					Loading ...
+				</div>
+				<div class="loading" ng-if="opts.source && !tabs.length && tabs_err">
+					You cannot import from this event!<br>
+					Edit rights on the event are required<br>
+					to import tabs.
+				</div>
+			</div>
+		</div>
+		<div class="overflow">
+			<label class="empty no-collapse">Tabs import mode</label>
+			<label class="opts" ng-tooltip="$Replace existing tabs with the same name">
+				<input type="radio" ng-model="opts.creation" value="0"> Replace same
+			</label>
+			<label class="opts" ng-tooltip="$Replace every existing tabs">
+				<input type="radio" ng-model="opts.creation" value="1"> Replace all
+			</label>
+			<label class="opts" ng-tooltip="$Don't replace any existing tab">
+				<input type="radio" ng-model="opts.creation" value="2"> Don't replace
+			</label>
+		</div>
+		<div class="overflow">
+			<button type="submit" ng-disabled="inflight">Import</button>
+			<button ng-disabled="inflight" ng-click="modal()" type="button">Cancel</button>
+		</div>
+	</form>
+</div>
