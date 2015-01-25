@@ -43,7 +43,7 @@ trait CalendarHandler {
 	socket: SocketHandler =>
 
 	object Calendar {
-		type EventsAndAnswers = List[(CalendarEvent, Option[Int])]
+		type EventsAndAnswers = List[(CalendarEvent, Option[Int], Option[Boolean])]
 
 		/**
 		 * Event context
@@ -84,7 +84,7 @@ trait CalendarHandler {
 				val events = for {
 					(e, a) <- CalendarEvents leftJoin CalendarAnswers on ((e, a) => a.event === e.id && a.user === user.id)
 					if (e.date >= from && e.date <= to) && (e.visibility =!= CalendarVisibility.Restricted || a.answer.?.isDefined)
-				} yield (e, a.answer.?)
+				} yield (e, a.answer.?, a.promote.?)
 				events.list
 			}
 		}
@@ -180,8 +180,10 @@ trait CalendarHandler {
 		 */
 		def eventsToJs(ea: EventsAndAnswers): JsValueWrapper = {
 			ea map {
-				case (e, a) =>
-					Json.obj("id" -> e.id, "event" -> e, "answer" -> (a.map(Json.toJson(_)).getOrElse(JsNull): JsValue))
+				case (e, a, p) =>
+					Json.obj("id" -> e.id, "event" -> e, "answer" -> (a.map(Json.toJson(_)).getOrElse(JsNull): JsValue), "promoted" -> p)
+			}
+		}
 			}
 		}
 
