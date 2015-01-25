@@ -767,6 +767,18 @@ trait CalendarHandler {
 		}
 
 		/**
+		 * $:calendar:tab:list
+		 */
+		def handleTabList(arg: JsValue): MessageResponse = {
+			val event = (arg \ "event").as[Int]
+			val (can_read, can_write) = checkEventRights(event)
+			if (!can_write) return MessageFailure("You need to have edit rights on a event to import tabs from it.")
+			DB.withSession { implicit s =>
+				CalendarTabs.filter(_.event === event).sortBy(_.order.asc).map(_.title).list
+			}
+		}
+
+		/**
 		 * $:calendar:lock:status
 		 */
 		def handleLockStatus(arg: JsValue): MessageResponse = {

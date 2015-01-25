@@ -69,6 +69,7 @@ with ComposerHandler {
 		"calendar:tab:edit" -> Calendar.handleTabEdit,
 		"calendar:tab:lock" -> Calendar.handleTabLock(true),
 		"calendar:tab:unlock" -> Calendar.handleTabLock(false),
+		"calendar:tab:list" -> Calendar.handleTabList,
 		"calendar:lock:status" -> Calendar.handleLockStatus,
 		"calendar:lock:acquire" -> Calendar.handleLockAcquire,
 		"calendar:lock:refresh" -> Calendar.handleLockRefresh,
