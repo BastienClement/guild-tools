@@ -246,7 +246,7 @@ var $ = {};
 
 		function should_enable_compression() {
 			var setting = localStorage.getItem("socket.compress");
-			return !(setting === null || setting === "0");
+			return setting !== "0";
 		}
 
 		var ws = null;
