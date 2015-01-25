@@ -8,6 +8,10 @@ case class CalendarSlot(tab: Int, slot: Int, owner: Int, name: String, `class`: 
 	if (!Chars.validateRole(role)) {
 		throw new Exception("Invalid role value")
 	}
+
+	if (slot < 1 || slot > 30) {
+		throw new Exception("Invalid slot ID")
+	}
 }
 
 /**
