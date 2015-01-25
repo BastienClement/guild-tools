@@ -812,10 +812,15 @@ trait CalendarHandler {
 		 */
 		def handleLoadEvents(arg: JsValue): MessageResponse = {
 			val previous = (arg \ "extended").as[Option[Boolean]] getOrElse false
+
 			val today = SmartTimestamp.today
 			val from = if (previous) today - 15.day else today
-			val to = from + 15.days
-			loadCalendarEvents(from, to).map(_._1)
+			val to = today + 15.days
+
+			loadCalendarEvents(from, to) collect {
+				case (event, _, _) if user.promoted => event
+				case (event, _, Some(promote)) if promote => event
+			}
 		}
 	}
 }
