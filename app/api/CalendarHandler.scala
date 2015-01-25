@@ -774,7 +774,7 @@ trait CalendarHandler {
 			val (can_read, can_write) = checkEventRights(event)
 			if (!can_write) return MessageFailure("You need to have edit rights on a event to import tabs from it.")
 			DB.withSession { implicit s =>
-				CalendarTabs.filter(_.event === event).sortBy(_.order.asc).map(_.title).list
+				CalendarTabs.filter(_.event === event).sortBy(_.order.asc).list
 			}
 		}
 
