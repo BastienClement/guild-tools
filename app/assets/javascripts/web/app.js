@@ -1,4 +1,4 @@
-var $$ = null;
+$$ = null;
 
 _(function() {
 	if (window.navigator.standalone) {

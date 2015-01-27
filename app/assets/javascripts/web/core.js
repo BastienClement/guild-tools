@@ -1,4 +1,5 @@
-var $ = {};
+$ = {};
+
 (function() {
 	// Error catcher
 	function bugsack_send(e) {
@@ -260,7 +261,7 @@ var $ = {};
 		var enable_compression = should_enable_compression();
 		var message_handler = null;
 
-		var sock_compress = new Worker("/assets/javascripts/sock_compress.js");
+		var sock_compress = new Worker("/assets/javascripts/web/sock_compress.js");
 
 		sock_compress.onmessage = function(msg) {
 			var data = msg.data;

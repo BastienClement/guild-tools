@@ -1,5 +1,3 @@
-var GuildToolsScope, GuildToolsLocation;
-
 GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 	GuildToolsScope = $scope;
 	GuildToolsLocation = $location;

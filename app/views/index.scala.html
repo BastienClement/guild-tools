@@ -75,19 +75,16 @@
 	<script src='@routes.Assets.versioned("/public", "javascripts/elastic.js")'></script>
 	<script src='@routes.Assets.versioned("/public", "javascripts/pako.js")'></script>
 
-	<script src='@routes.Assets.versioned("/public", "javascripts/core.js")'></script>
-	<script src='@routes.Assets.versioned("/public", "javascripts/app.js")'></script>
-	<script src='@routes.Assets.versioned("/public", "javascripts/tools.js")'></script>
-	<script src='@routes.Assets.versioned("/public", "javascripts/controllers/global.js")'></script>
-	<script src='@routes.Assets.versioned("/public", "javascripts/controllers/title_bar.js")'></script>
-	<script src='@routes.Assets.versioned("/public", "javascripts/controllers/dashboard.js")'></script>
-	<script src='@routes.Assets.versioned("/public", "javascripts/controllers/login.js")'></script>
-	<script src='@routes.Assets.versioned("/public", "javascripts/controllers/profile.js")'></script>
-	<script src='@routes.Assets.versioned("/public", "javascripts/controllers/calendar.js")'></script>
-	<script src='@routes.Assets.versioned("/public", "javascripts/controllers/absences.js")'></script>
-	<script src='@routes.Assets.versioned("/public", "javascripts/controllers/composer.js")'></script>
-	<script src='@routes.Assets.versioned("/public", "javascripts/controllers/roster.js")'></script>
-	<script src='@routes.Assets.versioned("/public", "javascripts/controllers/misc.js")'></script>
+	<script>
+		var gt = null;
+		var $ = null;
+		var $$ = null;
+		var GuildTools = null;
+		var GuildToolsScope = null;
+		var GuildToolsLocation = null;
+	</script>
+	<script src='@routes.Assets.versioned("/public", "guildtools.js")'></script>
+	<script>gt.loadWeb();</script>
 
 	<link data-href='@routes.Assets.versioned("/public", "stylesheets/awe.css")' rel="stylesheet">
 	<link data-href='@routes.Assets.versioned("/public", "stylesheets/tools.css")' rel="stylesheet">

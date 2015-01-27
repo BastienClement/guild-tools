@@ -1,7 +1,6 @@
-var GuildTools = angular.module("GuildTools", ["ngRoute", "ngAnimate", "angularMoment"]);
-var GuildToolsScope = null;
-var GuildToolsLocation = null;
-
+GuildTools = angular.module("GuildTools", ["ngRoute", "ngAnimate", "angularMoment"]);
+GuildToolsScope = null;
+GuildToolsLocation = null;
 
 //Routing
 
