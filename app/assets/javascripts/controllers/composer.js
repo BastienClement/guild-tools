@@ -275,7 +275,7 @@ GuildTools.controller("ComposerCtrl", function($scope) {
 		];
 
 		alts.forEach(function(char) {
-			if (!char.active) return;
+			if (!char.active || $.roster.user(char.owner).group == 10) return;
 			alt_groups.find(function(group) {
 				return char.ilvl >= group.ilvl;
 			}).chars.push(char);
