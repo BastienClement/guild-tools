@@ -20,7 +20,7 @@ import scala.concurrent.duration._
  * Shared calendar-related values
  */
 object CalendarHandler {
-	val guildies_groups = Set[Int](8, 9, 11)
+	val guildies_groups = Set[Int](8, 9, 11, 12)
 
 	val missingAnswers = Compiled { (event_id: Column[Int]) =>
 		for {
