@@ -74,6 +74,7 @@
 	<script src='@routes.Assets.versioned("/public", "javascripts/phpbb_hash.js")'></script>
 	<script src='@routes.Assets.versioned("/public", "javascripts/elastic.js")'></script>
 	<script src='@routes.Assets.versioned("/public", "javascripts/pako.js")'></script>
+	<script src='@routes.Assets.versioned("/public", "javascripts/web/utils.js")'></script>
 
 	<script>
 		var gt = null;
@@ -178,9 +179,9 @@
 				<img src="/assets/images/icons/calendar.png">
 			</li>
 
-			<!--<li ng-click="breadcrumb.reset('/_')">
-				<img src="/assets/images/icons/whishlist.png">
-			</li>-->
+			<li ng-click="goto('/social')" ng-class="{ active: navigator_current == 'social' }">
+				<img src="/assets/images/icons/social.png">
+			</li>
 
 			<li ng-click="goto('/roster')" ng-class="{ active: navigator_current == 'roster' }">
 				<img src="/assets/images/icons/roster.png">
