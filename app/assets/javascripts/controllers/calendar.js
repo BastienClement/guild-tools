@@ -279,7 +279,7 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 	$scope.typeLabel = function(t) {
 		switch (t) {
 			case 1:
-				return "Guild event";
+				return "Roster event";
 			case 2:
 				return "Public event";
 			case 3:
@@ -287,7 +287,7 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 			case 4:
 				return "Announce";
 			case 5:
-				return "Optional event";
+				return "Guild event";
 		}
 	};
 

@@ -232,7 +232,8 @@ GuildTools.controller("GlobalCtrl", function($scope, $location, $http) {
 		"8": "Apply",
 		"12": "Casual",
 		"9": "Member",
-		"11": "Officer"
+		"11": "Officer",
+		"13": "Veteran"
 	};
 
 	$scope.popupErrorText = null;

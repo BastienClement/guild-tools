@@ -20,14 +20,8 @@ import scala.concurrent.duration._
  * Shared calendar-related values
  */
 object CalendarHandler {
-	val guildies_groups = Set[Int](8, 9, 11, 12)
-
-	val missingAnswers = Compiled { (event_id: Column[Int]) =>
-		for {
-			u <- Users if u.group inSet guildies_groups
-			if !CalendarAnswers.filter(a => u.id === a.user && a.event === event_id).exists
-		} yield u.id
-	}
+	val guildies_groups = Set[Int](8, 9, 11)
+	val extended_groups = Set[Int](8, 9, 10, 11, 12, 13)
 
 	val answersQuery = Compiled { (event_id: Column[Int]) =>
 		for {
@@ -393,7 +387,16 @@ trait CalendarHandler {
 
 				// Add non-register if this is a guild or optional event
 				if (event.visibility == CalendarVisibility.Guild || event.visibility == CalendarVisibility.Optional) {
-					event_answers ++ CalendarHandler.missingAnswers(id).list.map(u => (u.toString, None)).toMap
+					val groups_set =
+						if (event.visibility == CalendarVisibility.Optional) CalendarHandler.extended_groups
+						else CalendarHandler.guildies_groups
+
+					val missing = for {
+						u <- Users if u.group inSet groups_set
+						if !CalendarAnswers.filter(a => u.id === a.user && a.event === id).exists
+					} yield u.id
+
+					event_answers ++ missing.list.map(u => (u.toString, None)).toMap
 				} else {
 					event_answers
 				}
