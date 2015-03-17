@@ -6,11 +6,11 @@ import api.{CalendarEventCreate, CalendarEventDelete, CalendarEventUpdate}
 import models.mysql._
 
 object CalendarVisibility {
-	val Guild = 1
+	val Roster = 1
 	val Public = 2
 	val Restricted = 3
 	val Announce = 4
-	val Optional = 5
+	val Guild = 5
 	def isValid(v: Int) = v > 0 && v < 6
 }
 

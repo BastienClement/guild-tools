@@ -263,7 +263,7 @@ trait CalendarHandler {
 				if (visibility == CalendarVisibility.Announce) return MessageFailure("Creating announces on multiple days is not allowed.")
 			}
 
-			if (visibility != CalendarVisibility.Restricted && visibility != CalendarVisibility.Optional && !user.promoted)
+			if (visibility != CalendarVisibility.Restricted && visibility != CalendarVisibility.Guild && !user.promoted)
 				return MessageFailure("Members can only create optional or restricted events.")
 
 			val format = new SimpleDateFormat("yyyy-MM-dd")
@@ -386,9 +386,9 @@ trait CalendarHandler {
 				}).toMap
 
 				// Add non-register if this is a guild or optional event
-				if (event.visibility == CalendarVisibility.Guild || event.visibility == CalendarVisibility.Optional) {
+				if (event.visibility == CalendarVisibility.Roster || event.visibility == CalendarVisibility.Guild) {
 					val groups_set =
-						if (event.visibility == CalendarVisibility.Optional) CalendarHandler.extended_groups
+						if (event.visibility == CalendarVisibility.Guild) CalendarHandler.extended_groups
 						else CalendarHandler.guildies_groups
 
 					val missing = for {
