@@ -235,10 +235,21 @@ trait CalendarHandler {
 				slacks_query.list.map(_.conceal)
 			}
 
+			val declines = DB.withSession { implicit s =>
+				val declines_query = for {
+					e <- CalendarEvents if (e.date <= to.toSQL && e.date >= from.toSQL) &&
+						(e.visibility === CalendarVisibility.Roster || e.visibility === CalendarVisibility.Guild)
+					a <- CalendarAnswers if a.answer === 2 && a.event === e.id
+					u <- Users if u.id === a.user && (u.group inSet CalendarHandler.guildies_groups)
+				} yield (u.id, e.date)
+
+				declines_query.list.map({ case (a, b) => Json.obj("user" -> a, "date" -> b.toString) })
+			}
+
 			// Listen to both calendar events and absences events
 			socket.bindEvents(filter)
 
-			Json.obj("events" -> eventsToJs(events), "absences" -> slacks)
+			Json.obj("events" -> eventsToJs(events), "absences" -> slacks, "declines" -> declines)
 		}
 
 		/**

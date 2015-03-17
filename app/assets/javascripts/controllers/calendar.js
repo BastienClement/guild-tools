@@ -49,6 +49,7 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 	$scope.events = {};
 	$scope.answers = {};
 	$scope.absences = [];
+	$scope.declines = {};
 
 	function normalizeEvent(event) {
 		event.sortTime = (event.time < 600) ? event.time + 2400 : event.time;
@@ -93,7 +94,15 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 					pushEvent(entry.event);
 					$scope.answers[entry.id] = entry.answer;
 				});
+
 				$scope.absences = data.absences;
+
+				$scope.declines = {};
+				data.declines.forEach(function(decline) {
+					var date = decline.date.split(" ")[0];
+					if (!$scope.declines[date]) $scope.declines[date] = [];
+					$scope.declines[date].push(decline.user);
+				});
 			},
 
 			"calendar:event:create": function(event) {
@@ -318,6 +327,7 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 	};
 
 	var absents_cache = {};
+	var decline_cache = {};
 
 	$scope.hasAbsentsOn = function(day) {
 		var date = new Date(day);
@@ -333,16 +343,30 @@ GuildTools.controller("CalendarCtrl", function($scope) {
 			}
 		});
 
-		cache_entry = cache_entry.map(function(abs) {
+		absents_cache[day] = cache_entry.map(function(abs) {
 			return $.roster.mainForUser(abs.user);
 		});
 
-		absents_cache[day] = cache_entry;
-		return cache_entry.length > 0;
+		if ($scope.declines[day]) {
+			decline_cache[day] = $scope.declines[day].filter(function(user) {
+				if (absent_ids[user]) return false;
+				return absent_ids[user] = true;
+			}).map(function(user) {
+				return $.roster.mainForUser(user);
+			});
+		} else {
+			decline_cache[day] = [];
+		}
+
+		return (absents_cache[day].length + decline_cache[day].length) > 0;
 	};
 
 	$scope.absentsForDay = function(day) {
 		return absents_cache[day];
+	};
+
+	$scope.declinesForDay = function(day) {
+		return decline_cache[day];
 	};
 });
 

@@ -271,12 +271,23 @@
 								<span>
 									{{ data.day }}
 									<i class="awe-flash" ng-tooltip=".tooltip" ng-if="hasAbsentsOn(data.id)">
-										{{ absentsForDay(data.id).length }}
+										{{ absentsForDay(data.id).length + declinesForDay(data.id).length }}
 										<div class="tooltip">
-											<div class="light">Absent players this day</div>
-											<div class="spaced">
-												<div class="c{{ abs.class }}" ng-repeat="abs in absentsForDay(data.id) | orderBy : ['class', 'name']">
-													{{ abs.name }}
+											<div ng-if="absentsForDay(data.id).length > 0">
+												<div class="light">Absent players this day</div>
+												<div>
+													<div class="c{{ abs.class }}" ng-repeat="abs in absentsForDay(data.id) | orderBy : ['class', 'name']">
+														{{ abs.name }}
+													</div>
+												</div>
+											</div>
+
+											<div ng-if="declinesForDay(data.id).length > 0">
+												<div class="light" ng-class="{ spaced: absentsForDay(data.id).length > 0 }">Declines this day</div>
+												<div>
+													<div class="c{{ abs.class }}" ng-repeat="abs in declinesForDay(data.id) | orderBy : ['class', 'name']">
+														{{ abs.name }}
+													</div>
 												</div>
 											</div>
 										</div>
