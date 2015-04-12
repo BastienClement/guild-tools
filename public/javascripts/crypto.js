@@ -43,4 +43,4 @@ CryptoJS.lib.WordArray.toByteArray = function() {
 		raw.push(parseInt(buf, 16));
 	}
 	return raw;
-}
+};

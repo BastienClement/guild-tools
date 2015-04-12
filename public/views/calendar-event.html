@@ -569,7 +569,7 @@
 				<div class="bottom">
 					<div class="inner">
 						<div class="row" ng-repeat="row in [1,3,5]">
-							<div class="group" ng-repeat="offset in [0,1]">
+							<div class="group" ng-repeat="skip in [0,1]">
 								<div class="label">Group {{ row + offset }}</div>
 								<div ng-repeat="slot in [1,2,3,4,5]" ng-switch="charVisibleInComp(slots[tab_selected][(row+offset-1)*5+slot])"
 										ng-class="{ hover: pickerTarget == (row+offset-1)*5+slot }"

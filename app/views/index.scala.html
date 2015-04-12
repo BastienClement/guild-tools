@@ -15,6 +15,9 @@
 	<title>GuildTools</title>
 
 	<script>
+		function _pace_gt_get() { return 100; }
+		function _pace_bn_get() { return 100; }
+
 		var paceOptions = {
 			elements: {
 				selectors: [
@@ -76,37 +79,15 @@
 	<script src='@routes.Assets.versioned("/public", "javascripts/pako.js")'></script>
 	<script src='@routes.Assets.versioned("/public", "javascripts/web/utils.js")'></script>
 
-	<script>
-		var gt = null;
-		var $ = null;
-		var $$ = null;
-		var GuildTools = null;
-		var GuildToolsScope = null;
-		var GuildToolsLocation = null;
-	</script>
-	<script src='@routes.Assets.versioned("/public", "guildtools.js")'></script>
-	<script>gt.loadWeb();</script>
-
 	<link data-href='@routes.Assets.versioned("/public", "stylesheets/awe.css")' rel="stylesheet">
 	<link data-href='@routes.Assets.versioned("/public", "stylesheets/tools.css")' rel="stylesheet">
 	<link data-href='@routes.Assets.versioned("/public", "stylesheets/app.css")' rel="stylesheet">
 	<link data-href='@routes.Assets.versioned("/public", "stylesheets/pace.css")' rel="stylesheet">
 	<script src='@routes.WebJarAssets.at(WebJarAssets.locate("prefixfree.min.js"))'></script>
 
-	<script>
-		$.init();
-		Pace.once("hide", function() {
-			$.load();
-
-			Pace.on("start", function() {
-				_("#app-menu-icon").css("opacity", 0.3);
-			});
-
-			Pace.on("hide", function() {
-				_("#app-menu-icon").css("opacity", 1);
-			});
-		});
-	</script>
+	<script
+		data-main='@routes.Assets.versioned("/public", "tools/boot.js")'
+		src='@routes.Assets.versioned("/public", "javascripts/require.js")'></script>
 </head>
 <body class="loading live" ng-controller="GlobalCtrl" ng-class="{ 'modal-visible': modalView, 'authenticated': $.user }">
 	<div id="loading-cover"></div>
