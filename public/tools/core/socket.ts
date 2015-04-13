@@ -323,6 +323,7 @@ class Socket extends EventEmitter {
 		const id = this.allocateChannelID();
 		if (id < 0) {
 			this.encoder.sendOpenFailure(sender_channel, 2, "Unnable to allocate channel ID");
+			return;
 		}
 
 		const channel = new Channel(this, ChannelState.Initialize, id, sender_channel, channel_type, window_size, frame);
