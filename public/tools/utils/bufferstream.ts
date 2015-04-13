@@ -1,3 +1,8 @@
+import encoding = require("encoding");
+
+const encoder = new encoding.TextEncoder("utf-8");
+const decoder = new encoding.TextDecoder("utf-8");
+
 class BufferStream {
 	// Internal buffer
 	private buf: ArrayBuffer;
@@ -44,15 +49,20 @@ class BufferStream {
 	readFloat32(le?: boolean) { return this.data.getFloat32(this.skip(4), le); }
 	readFloat64(le?: boolean) { return this.data.getFloat64(this.skip(8), le); }
 
-	// Peek data
-	peekUint8() { return this.data.getUint8(this._offset); }
-	peekInt8() { return this.data.getInt8(this._offset); }
-	peekUint16(le?: boolean) { return this.data.getUint16(this._offset, le); }
-	peekInt16(le?: boolean) { return this.data.getInt16(this._offset, le); }
-	peekUint32(le?: boolean) { return this.data.getUint32(this._offset, le); }
-	peekInt32(le?: boolean) { return this.data.getInt32(this._offset, le); }
-	peekFloat32(le?: boolean) { return this.data.getFloat32(this._offset, le); }
-	peekFloat64(le?: boolean) { return this.data.getFloat64(this._offset, le); }
+	readString(length: number) { return decoder.decode(new Uint8Array(this.buf, this.skip(length), length)); }
+	readString8() { return this.readString(this.readUint8()); }
+	readString16() { return this.readString(this.readUint16()); }
+	readString32() { return this.readString(this.readUint32()); }
+
+	readBuffer(length: number = -1) {
+		if (length < 0) length = this.buf.byteLength - this._offset;
+		if (length == 0) return null;
+
+		const buffer = new ArrayBuffer(length);
+		new Uint8Array(buffer).set(new Uint8Array(this.buf, this.skip(length), length));
+
+		return buffer;
+	}
 
 	// Write data
 	writeUint8(value: number) { return this.data.setUint8(value, this.skip(1)); }
@@ -63,6 +73,47 @@ class BufferStream {
 	writeInt32(value: number, le?: boolean) { return this.data.setInt32(this.skip(4), value, le); }
 	writeFloat32(value: number, le?: boolean) { return this.data.setFloat32(this.skip(4), value, le); }
 	writeFloat64(value: number, le?: boolean) { return this.data.setFloat64(this.skip(8), value, le); }
+
+	writeString(str: string) {
+		const data = encoder.encode(str);
+		const length = data.byteLength;
+		new Uint8Array(this.buf, this.skip(length), length).set(data);
+	}
+
+	private writeStringW(width: number, str: string) {
+		const data = encoder.encode(str);
+		const length = data.byteLength;
+
+		function valid() {
+			switch (width) {
+				case 32: return length <= 0xFFFFFFFF;
+				case 16: return length <= 0xFFFF;
+				case  8: return length <= 0xFF;
+				default: return false;
+			}
+		}
+
+		if (!valid()) {
+			throw new Error(`Invalid length width for string of ${length} byte(s)`);
+		}
+
+		switch (width) {
+			case 32: this.writeUint32(length); break;
+			case 16: this.writeUint16(length); break;
+			case  1: this.writeUint8(length); break;
+		}
+
+		new Uint8Array(this.buf, this.skip(length), length).set(data);
+	}
+
+	writeString8(str: string) { return this.writeStringW(8, str); }
+	writeString16(str: string) { return this.writeStringW(16, str); }
+	writeString32(str: string) { return this.writeStringW(32, str); }
+
+	writeBuffer(buffer: ArrayBuffer) {
+		const length = buffer.byteLength;
+		new Uint8Array(this.buf, this.skip(length), length).set(new Uint8Array(buffer));
+	}
 
 	// Extract buffer
 	buffer() {

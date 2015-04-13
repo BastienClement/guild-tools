@@ -1,5 +1,4 @@
-/// <reference path="./defs/encoding.d.ts" />
-/// <reference path="./defs/pako.d.ts" />
+/// <reference path="../defs/pako.d.ts" />
 
 import EventEmitter = require("utils/eventemitter");
 import BufferStream = require("utils/bufferstream");
@@ -13,7 +12,7 @@ const enum FrameType {
 	HELLO = 0xA0,
 	RESUME = 0xA1,
 	ACK = 0xAA,
-	BYE = 0x00,
+	BYE = 0xAB,
 
 	// Ping mechanism
 	PING = 0xB1,
@@ -25,6 +24,7 @@ const enum FrameType {
 	OPEN_FAILURE = 0xC2,
 	WINDOW_ADJUST = 0xCA,
 	CLOSE = 0xCC,
+	UNKNOW = 0xCD,
 	EOF = 0xCE,
 
 	// Data trasmission
@@ -79,11 +79,14 @@ class Socket extends EventEmitter {
 	private id_low = 0;
 
 	// The underlying websocket and connection state
-	private ws: WebSocket;
+	// Note: public because this needs to be accessible by Channel and Encoder objects
+	public ws: WebSocket;
+	public encoder: SocketEncoder = new SocketEncoder(this);
 	private state: SocketState = SocketState.Uninitialized;
 
 	// Available channels
 	private channels = new Map<number, Channel>();
+	private next_channel = 0;
 
 	// Last received frame sequence number
 	private in_seq = 0;
@@ -95,6 +98,9 @@ class Socket extends EventEmitter {
 
 	// Reconnect attempts counter
 	private retry_count = 0;
+
+	// Channel open handlers
+	private open_handlers = new Map<string, (c: Channel) => void>();
 
 	/**
 	 * @param url    The remote server to connect to
@@ -129,7 +135,7 @@ class Socket extends EventEmitter {
 	 * Generate the correct handshake frame given the current state
 	 */
 	private handshake() {
-		var frame: BufferStream;
+		let frame: BufferStream;
 
 		switch (this.state) {
 			case SocketState.Uninitialized: // Create a new socket
@@ -196,6 +202,14 @@ class Socket extends EventEmitter {
 	}
 
 	/**
+	 * Put the socket back in ready state
+	 */
+	private ready() {
+		this.state = SocketState.Ready;
+		this.emit("ready");
+	}
+
+	/**
 	 * Receive a new frame
 	 */
 	private receive(buf: ArrayBuffer) {
@@ -207,6 +221,26 @@ class Socket extends EventEmitter {
 			case FrameType.RESUME: return this.receiveResume(frame);
 			case FrameType.ACK: return this.receiveAck(frame);
 			case FrameType.BYE: return this.receiveBye(frame);
+
+			case FrameType.PING: return this.receivePing();
+			case FrameType.HEARTBEAT: return this.receiveHeartbeat();
+
+			case FrameType.OPEN: return this.receiveOpen(frame);
+			case FrameType.OPEN_SUCCESS: return this.receiveOpenSuccess(frame);
+			case FrameType.OPEN_FAILURE: return this.receiveOpenFailure(frame);
+			case FrameType.WINDOW_ADJUST: return this.receiveWindowAdjust(frame);
+			case FrameType.CLOSE: return this.receiveClose(frame);
+			case FrameType.UNKNOW: return this.receiveUnknow(frame);
+			case FrameType.EOF: return this.receiveEOF(frame);
+
+			case FrameType.DATA: return this.receiveData(frame);
+			case FrameType.DATA_EXT: return this.receiveDataExt(frame);
+
+			case FrameType.REQUEST: return this.receiveRequest(frame);
+			case FrameType.SUCCESS: return this.receiveSuccess(frame);
+			case FrameType.FAILURE: return this.receiveFailure(frame);
+
+			default: return this.protocolError();
 		}
 	}
 
@@ -262,34 +296,256 @@ class Socket extends EventEmitter {
 	/**
 	 * byte    PING
 	 */
-	private receivePing(frame: BufferStream) {
-		throw new Error("Unimplemented");
+	private receivePing() {
+		// Reply with HEARTBEAT
+		this.encoder.sendHeartbeat();
 	}
 
 	/**
 	 * byte    HEARTBEAT
 	 */
-	private receiveHeartbeat(frame: BufferStream) {
-		throw new Error("Unimplemented");
+	private receiveHeartbeat() {
+		// Remote peer is alive, yeah!
 	}
 
 	/**
-	 * byte    Open
+	 * byte    OPEN
 	 * string  channel_type
-	 * uint16  remote_id
+	 * uint16  sender_channel
 	 * uint32  window_size
-	 * ...
+	 * ...     user_data
 	 */
 	private receiveOpen(frame: BufferStream) {
+		const channel_type = frame.readString8();
+		const sender_channel = frame.readUint16();
+		const window_size = frame.readUint32();
+
+		const id = this.allocateChannelID();
+		if (id < 0) {
+			this.encoder.sendOpenFailure(sender_channel, 2, "Unnable to allocate channel ID");
+		}
+
+		const channel = new Channel(this, ChannelState.Initialize, id, sender_channel, channel_type, window_size, frame);
+		this.channels.set(id, channel);
+
+		if (this.open_handlers.has(channel_type)) {
+			this.emit("channel-open-managed", channel);
+			try {
+				this.open_handlers.get(channel_type)(channel);
+			} catch (e) {
+				console.error("Channel creation failed", e);
+				if (channel.state == ChannelState.Initialize) {
+					channel.reject(1, `Channel initialization impossible`);
+				} else {
+					channel.close();
+				}
+			}
+		} else {
+			this.emit("channel-open", channel);
+		}
+	}
+
+	/**
+	 * byte    OPEN_SUCCESS
+	 * uint16  recipient_channel
+	 * uint16  sender_channel
+	 * uint32  window_size
+	 * ...     user_data
+	 */
+	private receiveOpenSuccess(frame: BufferStream) {
+		const recipient_channel = frame.readUint16();
+		const sender_channel = frame.readUint16();
+		const window_size = frame.readUint32();
+
+		if (!this.channels.has(recipient_channel)) {
+			return this.encoder.sendUnknow(recipient_channel);
+		}
+
+		const channel = this.channels.get(recipient_channel);
+
 		throw new Error("Unimplemented");
 	}
 
 	/**
-	 * Put the socket back in ready state
+	 * byte    OPEN_FAILURE
+	 * uint16  recipient_channel
+	 * uint16  sender_channel
+	 * int16   code
+	 * string  message
+	 * ...     user_data
 	 */
-	private ready() {
-		this.state = SocketState.Ready;
-		this.emit("ready");
+	private receiveOpenFailure(frame: BufferStream) {
+		const recipient_channel = frame.readUint16();
+		const sender_channel = frame.readUint16();
+		const code = frame.readInt16();
+		const message = frame.readString16();
+
+		if (!this.channels.has(recipient_channel)) {
+			return this.encoder.sendUnknow(recipient_channel);
+		}
+
+		const channel = this.channels.get(recipient_channel);
+
+		throw new Error("Unimplemented");
+	}
+
+	/**
+	 * byte    WINDOW_ADJUST
+	 * uint16  recipient_channel
+	 * uint32  bytes
+	 */
+	private receiveWindowAdjust(frame: BufferStream) {
+		const recipient_channel = frame.readUint16();
+		const bytes = frame.readUint16();
+
+		if (!this.channels.has(recipient_channel)) {
+			return this.encoder.sendUnknow(recipient_channel);
+		}
+
+		const channel = this.channels.get(recipient_channel);
+
+		throw new Error("Unimplemented");
+	}
+
+	/**
+	 * byte    CLOSE
+	 * uint16  recipient_channel
+	 */
+	private receiveClose(frame: BufferStream) {
+		const recipient_channel = frame.readUint16();
+
+		if (!this.channels.has(recipient_channel)) {
+			return this.encoder.sendUnknow(recipient_channel);
+		}
+
+		const channel = this.channels.get(recipient_channel);
+
+		throw new Error("Unimplemented");
+	}
+
+	/**
+	 * byte    UNKNOW
+	 * uint16  recipient_channel
+	 */
+	private receiveUnknow(frame: BufferStream) {
+		const recipient_channel = frame.readUint16();
+
+		if (!this.channels.has(recipient_channel)) {
+			return this.encoder.sendUnknow(recipient_channel);
+		}
+
+		const channel = this.channels.get(recipient_channel);
+
+		throw new Error("Unimplemented");
+	}
+
+	/**
+	 * byte    EOF
+	 * uint16  recipient_channel
+	 */
+	private receiveEOF(frame: BufferStream) {
+		const recipient_channel = frame.readUint16();
+
+		if (!this.channels.has(recipient_channel)) {
+			return this.encoder.sendUnknow(recipient_channel);
+		}
+
+		const channel = this.channels.get(recipient_channel);
+
+		throw new Error("Unimplemented");
+	}
+
+	/**
+	 * byte    DATA
+	 * uint16  recipient_channel
+	 * ...     data
+	 */
+	private receiveData(frame: BufferStream) {
+		const recipient_channel = frame.readUint16();
+
+		if (!this.channels.has(recipient_channel)) {
+			return this.encoder.sendUnknow(recipient_channel);
+		}
+
+		const channel = this.channels.get(recipient_channel);
+
+		throw new Error("Unimplemented");
+	}
+
+	/**
+	 * byte    DATA_EXT
+	 * uint16  recipient_channel
+	 * uint16  data_type
+	 * ...     data
+	 */
+	private receiveDataExt(frame: BufferStream) {
+		const recipient_channel = frame.readUint16();
+		const data_type = frame.readUint16();
+
+		if (!this.channels.has(recipient_channel)) {
+			return this.encoder.sendUnknow(recipient_channel);
+		}
+
+		const channel = this.channels.get(recipient_channel);
+
+		throw new Error("Unimplemented");
+	}
+
+	/**
+	 * byte    REQUEST
+	 * uint16  recipient_channel
+	 * string  request
+	 * ...     payload
+	 */
+	private receiveRequest(frame: BufferStream) {
+		const recipient_channel = frame.readUint16();
+		const request = frame.readString16();
+
+		if (!this.channels.has(recipient_channel)) {
+			return this.encoder.sendUnknow(recipient_channel);
+		}
+
+		const channel = this.channels.get(recipient_channel);
+
+		throw new Error("Unimplemented");
+	}
+
+	/**
+	 * byte    SUCCESS
+	 * uint16  recipient_channel
+	 * ...     payload
+	 */
+	private receiveSuccess(frame: BufferStream) {
+		const recipient_channel = frame.readUint16();
+
+		if (!this.channels.has(recipient_channel)) {
+			return this.encoder.sendUnknow(recipient_channel);
+		}
+
+		const channel = this.channels.get(recipient_channel);
+
+		throw new Error("Unimplemented");
+	}
+
+	/**
+	 * byte    FAILURE
+	 * uint16  recipient_channel
+	 * int16   code
+	 * string  message
+	 * ...     payload
+	 */
+	private receiveFailure(frame: BufferStream) {
+		const recipient_channel = frame.readUint16();
+		const code = frame.readInt16();
+		const message = frame.readString16();
+
+		if (!this.channels.has(recipient_channel)) {
+			return this.encoder.sendUnknow(recipient_channel);
+		}
+
+		const channel = this.channels.get(recipient_channel);
+
+		throw new Error("Unimplemented");
 	}
 
 	/**
@@ -312,18 +568,63 @@ class Socket extends EventEmitter {
 		throw new Error("Protocol error");
 	}
 
-	send(buf: ArrayBuffer, channel: Channel) {
-		const frame = new DataView(buf);
-		var flags = frame.getUint16(3);
-
-		const seq_id = this.out_seq = (this.out_seq + 1) & 0xFFFF;
-		frame.setUint16(1, seq_id);
-
-		if (seq_id == 0) {
-			flags |= FrameFlags.SequenceWrap;
+	/**
+	 * Allocate a new number for a channel
+	 */
+	private allocateChannelID() {
+		// This implementation only allocate half of the channel ID space
+		if (this.channels.size >= 32768) {
+			return -1;
 		}
 
-		frame.setUint16(3, flags);
+		// Current ID
+		const id = this.next_channel;
+
+		// Search the next one
+		do {
+			this.next_channel = (this.next_channel + 1) & 0xFFFF;
+		} while (this.channels.has(this.next_channel));
+
+		return id;
+	}
+}
+
+/**
+ * Output encoder helper
+ */
+class SocketEncoder {
+	constructor(private sock: Socket) {}
+
+	/**
+	 * Heartbeat message
+	 */
+	sendHeartbeat() {
+		const frame = new BufferStream(1);
+		frame.writeUint8(FrameType.HEARTBEAT);
+		this.sock.ws.send(frame.buffer());
+	}
+
+	/**
+	 * Failure to open a channel
+	 */
+	sendOpenFailure(channel: number, code: number, reason: string, data: ArrayBuffer = null) {
+		const frame = new BufferStream(7 + reason.length * 2 + data.byteLength);
+		frame.writeUint8(FrameType.OPEN_FAILURE);
+		frame.writeUint16(channel);
+		frame.writeInt16(code);
+		frame.writeString16(reason);
+		if (data) frame.writeBuffer(data);
+		this.sock.ws.send(frame.compact());
+	}
+
+	/**
+	 * Unknown channel
+	 */
+	sendUnknow(channel: number) {
+		const frame = new BufferStream(2);
+		frame.writeUint8(FrameType.UNKNOW);
+		frame.writeUint16(channel);
+		this.sock.ws.send(frame.buffer());
 	}
 }
 
@@ -331,22 +632,25 @@ class Socket extends EventEmitter {
 
 const enum ChannelMode { Stream, Discrete }
 
-interface ChannelConfig {
-
-}
+const enum ChannelState { Pending, Initialize, Open, Closed }
 
 class Channel extends EventEmitter {
-	constructor(private sock: Socket, config: ChannelConfig = {}) {
-		super();
+	public state: ChannelState = ChannelState.Pending;
+
+	constructor(
+		public socket: Socket,
+		public state: ChannelState,
+		public id: number,
+		public remoteId: number,
+		public channel_type: string,
+		public window: number,
+		public open_data: BufferStream) {
 	}
 
-	send(buf: ArrayBuffer) {
-		this.sock.send(buf);
-	}
+	accept() {}
+	reject(code: number, reason: string) {}
 
-	receive(frame: DataView) {
-		const frame_type = frame.getUint8(2);
-	}
+	close() {}
 }
 
 
