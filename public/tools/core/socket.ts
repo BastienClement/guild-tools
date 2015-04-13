@@ -645,7 +645,7 @@ class Channel extends EventEmitter {
 		public remoteId: number,
 		public channel_type: string,
 		public window: number,
-		public open_data: BufferStream) {
+		public open_frame: BufferStream) {
 	}
 
 	accept() {}
