@@ -1,72 +1,80 @@
 class Queue<T> {
-	private data: T[];
-	private capacity: number;
-	private start: number;
-	private items: number;
+	// The data store array
+	private queue: T[] = [];
 
-	constructor(capacity: number) {
-		this.data = new Array<T>(capacity);
-		this.capacity = capacity;
-		this.start = 0;
-		this.items = 0;
-	}
+	// The number of free slots in front of actual data
+	private offset: number = 0;
 
+	/**
+	 * Return the amount of item inside the queue
+	 */
 	length() {
-		return this.items;
+		return this.queue.length - this.offset;
 	}
 
-	available() {
-		return this.capacity - this.items;
-	}
-
-	full() {
-		return this.items == this.capacity;
-	}
-
+	/**
+	 * Check if the queue is empty
+	 */
 	empty() {
-		return this.items == 0;
+		return this.queue.length == 0;
 	}
 
+	/**
+	 * Empty the queue
+	 */
 	clear() {
-		this.items = 0;
-		for (let i = 0; i < this.capacity; ++i) {
-			this.data[i] = null;
-		}
+		this.queue.length = 0;
 	}
 
+	/**
+	 * Add a new item at the end of the queue
+	 */
 	enqueue(item: T) {
-		if (this.full()) {
-			throw new Error("Cannot enqueue() in a full queue");
+		this.queue.push(item);
+	}
+
+	/**
+	 * Return the first element of the queue whithout removing it
+	 */
+	peek(): T {
+		if (this.empty()) return null;
+		return this.queue[this.offset];
+	}
+
+	/**
+	 * Return and remove the first element of the queue and free memory if necessary
+	 */
+	dequeue(): T {
+		if (this.empty()) return null;
+
+		// Grab the item and free the array cell
+		const item = this.queue[this.offset];
+		this.queue[this.offset] = null;
+
+		// Half of the queue is empty, remove the free space
+		if (++this.offset * 2 >= this.queue.length) {
+			this.queue = this.queue.slice(this.offset);
+			this.offset = 0;
 		}
 
-		this.data[(this.start + (this.items++)) % this.capacity] = item;
-	}
-
-	peek(): T {
-		if (this.items == 0) return null;
-		else return this.data[this.start];
-	}
-
-	dequeue(): T {
-		if (this.items == 0) return null;
-		const item = this.data[this.start];
-		this.data[this.start] = null;
-		this.items -= 1;
-		this.start = (this.start + 1) % this.capacity;
 		return item;
 	}
 
-	foreach(fn: (item: T) => void) {
-		for (let i = 0; i < this.items; i++) {
-			const idx = (this.start + i) % this.capacity;
-			fn(this.data[idx]);
-		}
-		return this;
+	/**
+	 * Replace the first item of the queue
+	 */
+	update(item: T) {
+		if (this.empty()) return;
+		this.queue[this.offset] = item;
 	}
 
-	dequeueWhile(predicate: (item: T) => boolean) {
-		while (predicate(this.peek())) {
-			this.dequeue();
+	/**
+	 * Execute a function over all the items in the queue
+	 */
+	foreach(fn: (item: T) => void) {
+		const length = this.queue.length;
+		for (let i = this.offset; i < length; i++) {
+			fn(this.queue[i]);
 		}
 		return this;
 	}

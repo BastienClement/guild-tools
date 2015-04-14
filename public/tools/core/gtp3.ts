@@ -24,15 +24,14 @@ const enum FrameType {
 	OPEN_FAILURE = 0xC2,
 	WINDOW_ADJUST = 0xCA,
 	CLOSE = 0xCC,
-	UNKNOW = 0xCD,
+	UNKNOWN = 0xCD,
 	EOF = 0xCE,
 
-	// Data trasmission
-	DATA = 0xD0,
-	DATA_EXT = 0xD1,
+	// Stream data
+	DATA = 0xDA,
 
-	// RPC
-	REQUEST = 0xE0,
+	// Datagrams
+	MESSAGE = 0xE0,
 	SUCCESS = 0xE1,
 	FAILURE = 0xE2
 }
@@ -60,8 +59,21 @@ const enum SocketState {
 /**
  * A tagged ArrayBuffer with a sequence id
  */
-interface SequencedFrame extends ArrayBuffer {
-	seq_id: number;
+interface SequencedFrame {
+	frame: ArrayBuffer;
+	seq: number;
+}
+
+/**
+ * A request to open a channel from the server
+ */
+interface ChannelRequest {
+	channel_type: string;
+	open_frame: BufferStream;
+	channel: Channel;
+
+	accept(window?: number, data?: ArrayBuffer): void;
+	reject(code?: number, reason?: string): void;
 }
 
 /**
@@ -85,14 +97,16 @@ export class Socket extends EventEmitter {
 	private id_low = 0;
 
 	// The underlying websocket and connection state
-	// Note: public because this needs to be accessible by Channel and Encoder objects
-	public ws: WebSocket;
-	public encoder: SocketEncoder = new SocketEncoder(this);
+	private ws: WebSocket;
 	private state: SocketState = SocketState.Uninitialized;
+
+	// The socket encoder used to generate messages buffers
+	// Public visibility is required for it to be accessible by Channel instances
+	public encoder: SocketEncoder = new SocketEncoder(this);
 
 	// Available channels
 	private channels: Map<number, Channel> = new Map<number, Channel>();
-	private next_channel = 0;
+	private next_channel = 1;
 
 	// Last received frame sequence number
 	private in_seq = 0;
@@ -101,7 +115,7 @@ export class Socket extends EventEmitter {
 	// Output queue and sequence numbers
 	private out_seq = 0;
 	private out_ack = 0;
-	private out_buffer: Queue<SequencedFrame> = new Queue<SequencedFrame>(256);
+	private out_buffer: Queue<SequencedFrame> = new Queue<SequencedFrame>();
 
 	// Reconnect attempts counter
 	private retry_count = 0;
@@ -136,15 +150,22 @@ export class Socket extends EventEmitter {
 			this.reconnect();
 		};
 
+		// Handle message processing
 		ws.onmessage = (ev) => {
 			try {
 				this.receive(ev.data);
 			} catch (e) {
+				// The DuplicatedFrame is thrown by the ack() method and is used to
+				// interrupt message processing if the sequence number indicate that
+				// the frame was already handled once. We just ignore it here.
 				if (e === DuplicatedFrame) return;
+
+				// Other exceptions should be propagated as ususal
 				throw e;
 			}
 		};
 
+		// Client initiate the handshake
 		ws.onopen = () => {
 			this.handshake();
 		};
@@ -158,27 +179,21 @@ export class Socket extends EventEmitter {
 
 		switch (this.state) {
 			case SocketState.Uninitialized: // Create a new socket
-			{
 				frame = new BufferStream(5);
 				frame.writeUint8(FrameType.HELLO);
 				frame.writeUint32(Protocol.GTP3);
 				break;
-			}
 
 			case SocketState.Reconnecting: // Resume an already open socket
-			{
 				frame = new BufferStream(11);
 				frame.writeUint8(FrameType.RESUME);
 				frame.writeUint32(this.id_high);
 				frame.writeUint32(this.id_low);
 				frame.writeUint16(this.in_seq);
 				break;
-			}
 
 			default: // Handshake cannot be called from this state
-			{
 				throw new Error(`Cannot generate handshake from state '${this.state}'`);
-			}
 		}
 
 		this.state = SocketState.Open;
@@ -206,6 +221,7 @@ export class Socket extends EventEmitter {
 			return;
 		}
 
+		// Exponential backoff timer between reconnects
 		const backoff_time = Math.pow(2, this.retry_count++) * 500;
 		setTimeout(() => this.connect(), backoff_time);
 	}
@@ -214,18 +230,15 @@ export class Socket extends EventEmitter {
 	 * Close the socket and send the BYE message
 	 */
 	close(code: number = 0, reason: string = "") {
-		if (this.state != SocketState.Closed) {
-			this.encoder.sendBye(code, reason);
-		}
-		this.closed(code, reason);
-	}
-
-	/**
-	 * Put the socked in closed state
-	 */
-	private closed(code: number = 0, reason: string = "") {
-		this.emit("closed");
+		// Ensure the socket is not closed more than once
+		if (this.state == SocketState.Closed) return;
 		this.state = SocketState.Closed;
+
+		// Emit events and messages
+		this.emit("closed");
+		this.encoder.sendBye(code, reason);
+
+		// Actually close the WebSocket
 		this.ws.close(code, reason);
 		this.ws = null;
 	}
@@ -239,7 +252,7 @@ export class Socket extends EventEmitter {
 	}
 
 	/**
-	 * Send a PING message and compute RTT
+	 * Send a PING message and compute RTT latency
 	 */
 	ping() {
 		this.ping_time = Date.now();
@@ -248,13 +261,16 @@ export class Socket extends EventEmitter {
 
 	/**
 	 * Send acknowledgment to remote
+	 * This function also ensure that we do not receive a frame multiple times
+	 * and reduce network bandwidth usage for acknowledgments by only sending one
+	 * every `ack_interval` messages.
 	 */
 	private ack(frame: BufferStream) {
 		// Read sequence number from frame
 		const seq = frame.readUint16();
 
 		// Ensure the frame was not already received
-		if (seq < this.in_seq && seq != 0) {
+		if (seq <= this.in_seq && (seq != 0 || this.in_seq == 0)) {
 			throw DuplicatedFrame;
 		}
 
@@ -274,8 +290,17 @@ export class Socket extends EventEmitter {
 	private processAck(seq: number) {
 		// Dequeue while the frame sequence id is less or equal to the acknowledged one
 		// Also dequeue if the frame is simply greater than the last acknowledgment, this handle
-		// the wrap-around cases
-		this.out_buffer.dequeueWhile(f => f.seq_id <= seq || f.seq_id > this.out_ack);
+		// the wrap-around case
+		while (!this.out_buffer.empty()) {
+			const f = this.out_buffer.peek();
+			if (f.seq <= seq || f.seq > this.out_ack) {
+				this.out_buffer.dequeue();
+			} else {
+				break;
+			}
+		}
+
+		// Save the sequence number as the last one received
 		this.out_ack = seq;
 	}
 
@@ -289,34 +314,41 @@ export class Socket extends EventEmitter {
 		switch (frame_type) {
 			case FrameType.HELLO:
 				return this.receiveHello(frame);
+
 			case FrameType.RESUME:
 				return this.receiveResume(frame);
+
 			case FrameType.ACK:
 				return this.receiveAck(frame);
+
 			case FrameType.BYE:
 				return this.receiveBye(frame);
 
 			case FrameType.PING:
 				return this.receivePing();
+
 			case FrameType.HEARTBEAT:
 				return this.receiveHeartbeat(frame);
 
 			case FrameType.OPEN:
 				return this.receiveOpen(frame);
+
 			case FrameType.OPEN_SUCCESS:
 				return this.receiveOpenSuccess(frame);
+
 			case FrameType.OPEN_FAILURE:
 				return this.receiveOpenFailure(frame);
+
 			case FrameType.CLOSE:
 				return this.receiveClose(frame);
-			case FrameType.UNKNOW:
-				return this.receiveUnknow(frame);
+
+			case FrameType.UNKNOWN:
+				return this.receiveUnknown(frame);
 
 			case FrameType.WINDOW_ADJUST:
 			case FrameType.EOF:
 			case FrameType.DATA:
-			case FrameType.DATA_EXT:
-			case FrameType.REQUEST:
+			case FrameType.MESSAGE:
 			case FrameType.SUCCESS:
 			case FrameType.FAILURE:
 				return this.receiveChannelFrame(frame_type, frame);
@@ -393,7 +425,7 @@ export class Socket extends EventEmitter {
 	 * byte    HEARTBEAT
 	 * bool    ping_reply
 	 */
-	private receiveHeartbeat(frame) {
+	private receiveHeartbeat(frame: BufferStream) {
 		const ping_reply = frame.readBoolean();
 		if (ping_reply) {
 			this.latency = Date.now() - this.ping_time;
@@ -407,6 +439,7 @@ export class Socket extends EventEmitter {
 	 * str8    channel_type
 	 * uint16  sender_channel
 	 * uint32  window_size
+	 * uint16  parent_channel
 	 * ...     user_data
 	 */
 	private receiveOpen(frame: BufferStream) {
@@ -414,21 +447,25 @@ export class Socket extends EventEmitter {
 		const channel_type = frame.readString8();
 		const sender_channel = frame.readUint16();
 		const window_size = frame.readUint32();
+		const parent_channel = frame.readUint16();
 
 		let request_replied = false;
 
 		const request: ChannelRequest = {
 			channel_type: channel_type,
 			open_frame: frame,
+			channel: null,
 
-			accept: (local_window: number, data: ArrayBuffer = null) => {
+			accept: (local_window: number = 1048576, data: ArrayBuffer = null) => {
 				if (request_replied) return;
 
+				// Allocate a local Channel ID for this channel
 				const id = this.allocateChannelID();
 				if (id < 0) {
 					throw new Error("Unnable to allocate channel ID");
 				}
 
+				// Create the channel object
 				const channel = new Channel(this, {
 					channel_type: channel_type,
 					local_id: id,
@@ -441,6 +478,9 @@ export class Socket extends EventEmitter {
 				request_replied = true;
 				this.channels.set(id, channel);
 				this.encoder.sendOpenSuccess(channel, data);
+
+				// Store the channel in the request object
+				request.channel = channel;
 			},
 
 			reject: (code: number, reason: string, data: ArrayBuffer = null) => {
@@ -559,14 +599,16 @@ export class Socket extends EventEmitter {
 	}
 
 	/**
-	 * byte    UNKNOW
+	 * byte    UNKNOWN
 	 * uint16  sender_channel
 	 */
-	private receiveUnknow(frame: BufferStream) {
+	private receiveUnknown(frame: BufferStream) {
 		const sender_channel = frame.readUint16();
+
+		// Close any channel matching the UNKNOWN message
 		this.channels.forEach(channel => {
 			if (channel.remote_id == sender_channel) {
-				channel._closed();
+				channel.close();
 			}
 		});
 	}
@@ -600,7 +642,7 @@ export class Socket extends EventEmitter {
 	private allocateChannelID() {
 		// This implementation only allocate half of the channel ID space
 		if (this.channels.size >= 32768) {
-			return -1;
+			return 0;
 		}
 
 		// Current ID
@@ -609,33 +651,28 @@ export class Socket extends EventEmitter {
 		// Search the next one
 		do {
 			this.next_channel = (this.next_channel + 1) & 0xFFFF;
-		} while (this.channels.has(this.next_channel));
+		} while (this.channels.has(this.next_channel) || this.next_channel == 0);
 
 		return id;
 	}
 
 	/**
-	 * Emit a sequenced frame
+	 * Send a complete frame
 	 */
-	_send_seq(frame: ArrayBuffer) {
-		this.out_seq = (this.out_seq + 1) & 0xFFFF;
+	_send(frame: ArrayBuffer, seq?: boolean) {
+		// Add the sequence number to the frame if requested
+		if (seq) {
+			// Compute the next sequence number
+			this.out_seq = (this.out_seq + 1) & 0xFFFF;
 
-		// Tag the frame
-		const sframe = <SequencedFrame> frame;
-		sframe.seq_id = (new Uint16Array(frame, 1, 1))[0] = this.out_seq;
-		this.out_buffer.enqueue(sframe);
+			// Tag the frame
+			(new Uint16Array(frame, 1, 1))[0] = this.out_seq;
 
-		// Send the frame if socket is ready
-		if (this.state == SocketState.Ready) {
-			this._send(frame);
+			// Push the frame in the output buffer for later replay
+			this.out_buffer.enqueue({ frame: frame, seq: this.out_seq });
 		}
-	}
 
-	/**
-	 * Emit an unsequenced frame without buffering
-	 */
-	_send(frame: ArrayBuffer) {
-		if (this.ws) {
+		if (this.state == SocketState.Ready) {
 			this.ws.send(frame);
 		}
 	}
@@ -661,10 +698,11 @@ class SocketEncoder {
 
 	/**
 	 * byte    BYE
-	 * uint16  last_received_id
+	 * int16   code
+	 * str16   message
 	 */
 	sendBye(code: number, message: string) {
-		const frame = new BufferStream(3 + message.length * 2);
+		const frame = new BufferStream(5 + message.length * 2);
 		frame.writeUint8(FrameType.BYE);
 		frame.writeInt16(code);
 		frame.writeString16(message);
@@ -700,14 +738,14 @@ class SocketEncoder {
 	 * ...     user_data
 	 */
 	sendOpenSuccess(channel: Channel, data: ArrayBuffer) {
-		const frame = new BufferStream(9 + data.byteLength);
+		const frame = new BufferStream(11 + data.byteLength);
 		frame.writeUint8(FrameType.OPEN_SUCCESS);
 		frame.skip(2);
 		frame.writeUint16(channel.remote_id);
 		frame.writeUint16(channel.local_id);
 		frame.writeUint32(channel.in_window);
 		if (data) frame.writeBuffer(data);
-		this.sock.ws.send(frame.buffer());
+		this.sock._send(frame.buffer(), true);
 	}
 
 	/**
@@ -719,14 +757,14 @@ class SocketEncoder {
 	 * ...     user_data
 	 */
 	sendOpenFailure(channel: number, code: number, reason: string, data: ArrayBuffer) {
-		const frame = new BufferStream(7 + reason.length * 2 + data.byteLength);
+		const frame = new BufferStream(9 + reason.length * 2 + data.byteLength);
 		frame.writeUint8(FrameType.OPEN_FAILURE);
 		frame.skip(2);
 		frame.writeUint16(channel);
 		frame.writeInt16(code);
 		frame.writeString16(reason);
 		if (data) frame.writeBuffer(data);
-		this.sock.ws.send(frame.compact());
+		this.sock._send(frame.compact(), true);
 	}
 
 	/**
@@ -735,11 +773,11 @@ class SocketEncoder {
 	 * uint16  recipient_channel
 	 */
 	sendClose(channel: number) {
-		const frame = new BufferStream(3);
+		const frame = new BufferStream(5);
 		frame.writeUint8(FrameType.CLOSE);
 		frame.skip(2);
 		frame.writeUint16(channel);
-		this.sock.ws.send(frame.buffer());
+		this.sock._send(frame.buffer(), true);
 	}
 
 	/**
@@ -748,24 +786,24 @@ class SocketEncoder {
 	 */
 	sendUnknow(channel: number) {
 		const frame = new BufferStream(3);
-		frame.writeUint8(FrameType.UNKNOW);
+		frame.writeUint8(FrameType.UNKNOWN);
 		frame.writeUint16(channel);
-		this.sock.ws.send(frame.buffer());
+		this.sock._send(frame.buffer());
 	}
 }
 
-/************** CHANNEL ******************************************************/
-
-interface ChannelRequest {
-	channel_type: string;
-	open_frame: BufferStream;
-
-	accept(window: number, data?: ArrayBuffer): void;
-	reject(code: number, reason: string): void;
+/**
+ * Channel states
+ */
+const enum ChannelState {
+	Pending, // Channel is currently pending acceptation from the server
+	Open,    // Channel is open and usable
+	Closed   // Channel is closed and cannot be used anymore
 }
 
-const enum ChannelState { Pending, Open, Closed }
-
+/**
+ * Channel configuration object
+ */
 interface ChannelConfig {
 	channel_type: string;
 	local_id: number;
@@ -775,10 +813,17 @@ interface ChannelConfig {
 	initial_state: ChannelState;
 }
 
-interface ChannelFrame extends ArrayBuffer {
+/**
+ * A fully formed channel frame with a payload data count
+ */
+interface ChannelFrame {
+	frame: ArrayBuffer;
 	payload: number;
 }
 
+/**
+ * Channel implementation
+ */
 export class Channel extends EventEmitter {
 	// Channel configuration
 	public channel_type: string;
@@ -788,8 +833,21 @@ export class Channel extends EventEmitter {
 	public in_window: number;
 	public state: ChannelState;
 
+	// Input buffer
+	private in_buffer: Queue<ArrayBuffer> = new Queue<ArrayBuffer>();
+	private in_bytes: number = 0;
+
 	// Output buffer
-	private out_buffer: Queue<ChannelFrame> = new Queue<ChannelFrame>(64);
+	// Used for concatenate writes together
+	private out_buffer: Queue<ArrayBuffer> = new Queue<ArrayBuffer>();
+	private out_bytes: number = 0;
+
+	// Output frames queue
+	// Used for flow control
+	private out_queue: Queue<ChannelFrame> = new Queue<ChannelFrame>();
+
+	// Keep track of the CLOSE message sending
+	private close_sent: boolean = false;
 
 	constructor(public socket: Socket, conf: ChannelConfig) {
 		super();
@@ -801,67 +859,110 @@ export class Channel extends EventEmitter {
 		this.state = conf.initial_state;
 	}
 
+	/**
+	 * Return the number of bytes available to read without delay
+	 */
+	available() {
+		return this.in_bytes;
+	}
+
+	/**
+	 * Attempt to read at most bytes from the channel, return null if buffers are empty
+	 */
+	read(bytes: number = this.in_bytes) {
+		const queue = this.in_buffer;
+
+		// The input queue is empty, nothing to read from
+		if (queue.empty() || bytes <= 0) return null;
+
+		// Buffers to concatenate for this read
+		const buffers: Uint8Array[] = [];
+
+		// Bytes from selected buffers
+		let read_bytes = 0;
+
+		// Select buffers fitting the requested data space
+		while (!queue.empty()) {
+			const buf = queue.peek();
+			const length = buf.byteLength;
+
+			if (read_bytes + length <= bytes) {
+				// Enough space to read the whole buffer
+				buffers.push(new Uint8Array(buf));
+				queue.dequeue();
+				read_bytes += length;
+			} else {
+				// We need to cut the buffer in two
+				const used_bytes = bytes - read_bytes;
+
+				// Extract the first part of the buffer and use it
+				buffers.push(new Uint8Array(buf, 0, used_bytes));
+
+				// Update the queue with what is left to read
+				const left = new Uint8Array(length - used_bytes);
+				left.set(new Uint8Array(buf, used_bytes));
+				queue.update(left.buffer);
+
+				read_bytes += used_bytes;
+			}
+		}
+
+		// Concatenate the buffers
+		const target = new Uint8Array(read_bytes);
+		let offset = 0;
+
+		buffers.forEach(buf => {
+			target.set(buf, offset);
+			offset += buf.length;
+		});
+
+		return target.buffer;
+	}
+
+	/**
+	 * Write a buffer of data on the channel
+	 */
+	write(buf: ArrayBuffer) {
+		this.out_buffer.enqueue(buf);
+
+		// If this is the only item in the output buffer, auto flush data
+		if (this.out_buffer.length() == 1) {
+			this.flush();
+		}
+	}
+
+	/**
+	 * Attempt to flush output buffer and send data to the remote peer
+	 */
 	flush() {
 		while (!this.out_buffer.empty()) {
-			const length = this.out_buffer.peek().payload;
+			const length = this.out_queue.peek().payload;
 
 			if (length > this.out_window) {
 				// Not enough window space to send the frame
 				break;
 			}
 
-			const buf = this.out_buffer.dequeue();
+			const buf = this.out_queue.dequeue();
 			this.out_window -= length;
 		}
 	}
 
+	/**
+	 * Close the channel and attempt to flush output buffer
+	 */
 	close() {
+		// Ensure we don't close the channel multiple times
+		if (this.state == ChannelState.Closed) return;
 		this.state = ChannelState.Closed;
+
+		// Attempt to flush the output buffer before closing
 		this.flush();
-		this.out_buffer.clear();
+		this.out_queue.clear();
+
+		// Send close message to remote and local listeners
 		this.socket.encoder.sendClose(this.remote_id);
-	}
-
-	_closed() {
 		this.emit("closed");
-	}
-
-	send(data: ArrayBuffer, extended_type: number = -1, dgram?: boolean) {
-		if (this.out_queue.full()) {
-			throw new Error("Output buffer for channel is full");
-		}
-
-		const len = data.byteLength;
-		const extended: boolean = extended_type >= 0;
-
-		if (len > Protocol.PayloadLimit) {
-			throw new Error(`Message payload size is too large: ${len} (Payload limit at ${Protocol.PayloadLimit})`);
-		}
-
-		let frame;
-		if (extended) {
-			frame = new BufferStream(len + 6);
-			frame.writeUint8(FrameType.DATA_EXT);
-			frame.writeUint16(this.remote_id);
-			frame.writeUint16(extended_type);
-		} else {
-			frame = new BufferStream(len + 4);
-			frame.writeUint8(FrameType.DATA);
-			frame.writeUint16(this.remote_id);
-		}
-
-		frame.writeBuffer(data);
-
-		// Enqueue the frame
-		this.out_buffer.enqueue(frame);
-		this.buffered_bytes += frame.byteLength;
-
-		// Auto flushing
-		if (this.mode == ChannelMode.Datagram ||
-			this.out_buffer.full() ||
-			this.buffered_bytes >= this.stream_flush_bytes) {
-			this.flush();
-		}
 	}
 
 	_receive(frame_type: number, frame: BufferStream) {
@@ -872,6 +973,8 @@ export class Channel extends EventEmitter {
 	 * byte    DATA
 	 * uint16  seqence_number
 	 * uint16  recipient_channel
+	 *         ---
+	 * uint8   frame_flags
 	 * ...     data
 	 */
 	private receiveData(frame: BufferStream) {
