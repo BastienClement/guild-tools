@@ -64,6 +64,8 @@ class BufferStream {
 		return buffer;
 	}
 
+	readBoolean() { return this.readUint8() != 0; }
+
 	// Write data
 	writeUint8(value: number) { return this.data.setUint8(value, this.skip(1)); }
 	writeInt8(value: number) { return this.data.setInt8(value, this.skip(1)); }
@@ -114,6 +116,8 @@ class BufferStream {
 		const length = buffer.byteLength;
 		new Uint8Array(this.buf, this.skip(length), length).set(new Uint8Array(buffer));
 	}
+
+	writeBoolean(value: boolean) { this.writeUint8(value ? 1 : 0); }
 
 	// Extract buffer
 	buffer() {

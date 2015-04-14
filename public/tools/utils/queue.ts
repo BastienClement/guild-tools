@@ -19,12 +19,23 @@ class Queue<T> {
 		return this.capacity - this.items;
 	}
 
-	isFull() {
+	full() {
 		return this.items == this.capacity;
 	}
 
+	empty() {
+		return this.items == 0;
+	}
+
+	clear() {
+		this.items = 0;
+		for (let i = 0; i < this.capacity; ++i) {
+			this.data[i] = null;
+		}
+	}
+
 	enqueue(item: T) {
-		if (this.isFull()) {
+		if (this.full()) {
 			throw new Error("Cannot enqueue() in a full queue");
 		}
 
@@ -39,6 +50,7 @@ class Queue<T> {
 	dequeue(): T {
 		if (this.items == 0) return null;
 		const item = this.data[this.start];
+		this.data[this.start] = null;
 		this.items -= 1;
 		this.start = (this.start + 1) % this.capacity;
 		return item;
