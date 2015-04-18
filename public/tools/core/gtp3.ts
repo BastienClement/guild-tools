@@ -1,4 +1,5 @@
 /// <reference path="../defs/pako.d.ts" />
+/// <reference path="../defs/encoding.d.ts" />
 
 import Pako = require("pako");
 
@@ -6,6 +7,9 @@ import EventEmitter = require("utils/eventemitter");
 import BufferStream = require("utils/bufferstream");
 import Queue = require("utils/queue");
 import Deferred = require("utils/deferred");
+
+const encoder = new TextEncoder("utf-8");
+const decoder = new TextDecoder("utf-8");
 
 /**
  * Types of frames
@@ -27,16 +31,14 @@ const enum FrameType {
 	OPEN_FAILURE = 0xC2,
 	WINDOW_ADJUST = 0xCA,
 	CLOSE = 0xCC,
-	UNKNOWN = 0xCD,
+	RESET = 0xCD,
 	EOF = 0xCE,
 
-	// Stream data
-	DATA = 0xDA,
-
 	// Datagrams
-	MESSAGE = 0xE0,
-	SUCCESS = 0xE1,
-	FAILURE = 0xE2
+	MESSAGE = 0xD0,
+	REQUEST = 0xD1,
+	SUCCESS = 0xD2,
+	FAILURE = 0xD3
 }
 
 /**
@@ -71,10 +73,6 @@ interface SequencedFrame {
  * A request to open a channel from the server
  */
 interface ChannelRequest {
-	channel_type: string;
-	open_frame: BufferStream;
-	channel: Channel;
-
 	accept(data?: ArrayBuffer): void;
 	reject(code?: number, reason?: string): void;
 }
@@ -102,10 +100,6 @@ export class Socket extends EventEmitter {
 	// The underlying websocket and connection state
 	private ws: WebSocket;
 	private state: SocketState = SocketState.Uninitialized;
-
-	// The socket encoder used to generate messages buffers
-	// Public visibility is required for it to be accessible by Channel instances
-	public encoder: SocketEncoder = new SocketEncoder(this);
 
 	// Available channels
 	private channels: Map<number, Channel> = new Map<number, Channel>();
@@ -239,7 +233,7 @@ export class Socket extends EventEmitter {
 
 		// Emit events and messages
 		this.emit("closed");
-		this.encoder.sendBye(code, reason);
+		this.sendBye(code, reason);
 
 		// Actually close the WebSocket
 		this.ws.close(code, reason);
@@ -259,7 +253,15 @@ export class Socket extends EventEmitter {
 	 */
 	ping() {
 		this.ping_time = Date.now();
-		this.encoder.sendPing();
+		this.sendPing();
+	}
+
+	openChannel(channel_type: string, token: string = "") {
+
+	}
+
+	openStream() {
+
 	}
 
 	/**
@@ -282,7 +284,7 @@ export class Socket extends EventEmitter {
 
 		// Only send an actual ACK if multiple of ack_interval
 		if (seq % this.ack_interval == 0) {
-			this.encoder.sendAck(seq);
+			this.sendAck(seq);
 		}
 	}
 
@@ -321,11 +323,11 @@ export class Socket extends EventEmitter {
 			case FrameType.RESUME:
 				return this.receiveResume(frame);
 
-			case FrameType.ACK:
-				return this.receiveAck(frame);
-
 			case FrameType.BYE:
 				return this.receiveBye(frame);
+
+			case FrameType.ACK:
+				return this.receiveAck(frame);
 
 			case FrameType.PING:
 				return this.receivePing();
@@ -336,24 +338,16 @@ export class Socket extends EventEmitter {
 			case FrameType.OPEN:
 				return this.receiveOpen(frame);
 
+			case FrameType.RESET:
+				return this.receiveReset(frame);
+
 			case FrameType.OPEN_SUCCESS:
-				return this.receiveOpenSuccess(frame);
-
 			case FrameType.OPEN_FAILURE:
-				return this.receiveOpenFailure(frame);
-
-			case FrameType.CLOSE:
-				return this.receiveClose(frame);
-
-			case FrameType.UNKNOWN:
-				return this.receiveUnknown(frame);
-
-			case FrameType.WINDOW_ADJUST:
-			case FrameType.EOF:
-			case FrameType.DATA:
 			case FrameType.MESSAGE:
+			case FrameType.REQUEST:
 			case FrameType.SUCCESS:
 			case FrameType.FAILURE:
+			case FrameType.CLOSE:
 				return this.receiveChannelFrame(frame_type, frame);
 
 			default:
@@ -421,7 +415,7 @@ export class Socket extends EventEmitter {
 	 */
 	private receivePing() {
 		// Reply with HEARTBEAT
-		this.encoder.sendHeartbeat(true);
+		this.sendHeartbeat(true);
 	}
 
 	/**
@@ -441,55 +435,43 @@ export class Socket extends EventEmitter {
 	 * uint16  seqence_number
 	 * str8    channel_type
 	 * uint16  sender_channel
-	 * uint32  window_size
 	 * uint16  parent_channel
-	 * ...     user_data
+	 * str16   token
 	 */
 	private receiveOpen(frame: BufferStream) {
 		this.ack(frame);
 		const channel_type = frame.readString8();
 		const sender_channel = frame.readUint16();
-		const window_size = frame.readUint32();
 		const parent_channel = frame.readUint16();
+		const token = frame.readString16();
 
 		let request_replied = false;
 
 		const request: ChannelRequest = {
-			channel_type: channel_type,
-			open_frame: frame,
-			channel: null,
-
-			accept: (data: ArrayBuffer = null) => {
-				if (request_replied) return;
+			accept: () => {
+				if (request_replied) throw new Error();
 
 				// Allocate a local Channel ID for this channel
 				const id = this.allocateChannelID();
 				if (id < 0) {
+					request.reject(1, "Unable to allocate channel ID");
 					throw new Error("Unnable to allocate channel ID");
 				}
 
 				// Create the channel object
-				const channel = new Channel(this, {
-					channel_type: channel_type,
-					local_id: id,
-					remote_id: sender_channel,
-					in_window: 1048576, // 1 MB
-					out_window: window_size,
-					initial_state: ChannelState.Open
-				});
+				const channel = new Channel(this, channel_type, id, sender_channel, ChannelState.Open);
 
 				request_replied = true;
 				this.channels.set(id, channel);
-				this.encoder.sendOpenSuccess(channel, data);
+				this.sendOpenSuccess(channel);
 
-				// Store the channel in the request object
-				request.channel = channel;
+				return channel;
 			},
 
-			reject: (code: number, reason: string, data: ArrayBuffer = null) => {
+			reject: (code: number, reason: string) => {
 				if (request_replied) return;
 				request_replied = true;
-				this.encoder.sendOpenFailure(sender_channel, code, reason, data);
+				this.sendOpenFailure(sender_channel, code, reason);
 			}
 		};
 
@@ -497,100 +479,24 @@ export class Socket extends EventEmitter {
 			this.emit("channel-open-managed", request);
 			try {
 				this.open_handlers.get(channel_type)(request);
-				if (!request_replied) {
-					throw new Error("Open handler did not replied to the request");
-				}
+				if (!request_replied) throw null;
 			} catch (e) {
 				console.error("Channel creation failed", e);
 				request.reject(1, "Channel initialization impossible");
 			}
 		} else {
-			this.emit("channel-open", request);
+			this.emit("channel-open", channel_type, request);
 		}
 	}
 
 	/**
-	 * byte    OPEN_SUCCESS
-	 * uint16  seqence_number
-	 * uint16  recipient_channel
-	 * uint16  sender_channel
-	 * uint32  window_size
-	 * ...     user_data
-	 */
-	private receiveOpenSuccess(frame: BufferStream) {
-		const recipient_channel = frame.readUint16();
-		const sender_channel = frame.readUint16();
-		const window_size = frame.readUint32();
-		const user_data = frame.readBuffer();
-
-		if (!this.channels.has(recipient_channel)) {
-			return this.encoder.sendUnknow(recipient_channel);
-		}
-
-		const channel = this.channels.get(recipient_channel);
-		if (channel.state != ChannelState.Pending) return;
-
-		channel.remote_id = sender_channel;
-		channel.out_window = window_size;
-		channel.state = ChannelState.Open;
-		channel.emit("open-success", user_data);
-	}
-
-	/**
-	 * byte    OPEN_FAILURE
-	 * uint16  seqence_number
-	 * uint16  recipient_channel
-	 * int16   code
-	 * str16   message
-	 * ...     user_data
-	 */
-	private receiveOpenFailure(frame: BufferStream) {
-		const recipient_channel = frame.readUint16();
-		const code = frame.readInt16();
-		const message = frame.readString16();
-		const user_data = frame.readBuffer();
-
-		if (!this.channels.has(recipient_channel)) {
-			return this.encoder.sendUnknow(recipient_channel);
-		}
-
-		const channel = this.channels.get(recipient_channel);
-		if (channel.state != ChannelState.Pending) return;
-
-		channel.state = ChannelState.Closed;
-		this.channels.delete(recipient_channel);
-		channel.emit("open-failure", code, message, user_data);
-	}
-
-	/**
-	 * byte    CLOSE
-	 * uint16  seqence_number
-	 * uint16  recipient_channel
-	 */
-	private receiveClose(frame: BufferStream) {
-		const recipient_channel = frame.readUint16();
-
-		if (!this.channels.has(recipient_channel)) {
-			return this.encoder.sendUnknow(recipient_channel);
-		}
-
-		const channel = this.channels.get(recipient_channel);
-
-		// Channel is already closed
-		if (channel.state == ChannelState.Closed) return;
-
-		// Flush channel and close
-		channel.close();
-	}
-
-	/**
-	 * byte    UNKNOWN
+	 * byte    RESET
 	 * uint16  sender_channel
 	 */
-	private receiveUnknown(frame: BufferStream) {
+	private receiveReset(frame: BufferStream) {
 		const sender_channel = frame.readUint16();
 
-		// Close any channel matching the UNKNOWN message
+		// Close any channel matching the RESET message
 		this.channels.forEach(channel => {
 			if (channel.remote_id == sender_channel) {
 				channel.close();
@@ -606,7 +512,7 @@ export class Socket extends EventEmitter {
 		const recipient_channel = frame.readUint16();
 
 		if (!this.channels.has(recipient_channel)) {
-			return this.encoder.sendUnknow(recipient_channel);
+			return this.sendReset(recipient_channel);
 		}
 
 		const channel = this.channels.get(recipient_channel);
@@ -642,6 +548,97 @@ export class Socket extends EventEmitter {
 	}
 
 	/**
+	 * byte    ACK
+	 * uint16  last_received_id
+	 */
+	private sendAck(seq: number) {
+		const frame = new BufferStream(3);
+		frame.writeUint8(FrameType.ACK);
+		frame.writeUint16(seq);
+		this._send(frame.buffer());
+	}
+
+	/**
+	 * byte    BYE
+	 * int16   code
+	 * str16   message
+	 */
+	private sendBye(code: number, message: string) {
+		const frame = new BufferStream(5 + message.length * 2);
+		frame.writeUint8(FrameType.BYE);
+		frame.writeInt16(code);
+		frame.writeString16(message);
+		this._send(frame.compact());
+	}
+
+	/**
+	 * byte    PING
+	 */
+	private sendPing() {
+		const frame = new BufferStream(1);
+		frame.writeUint8(FrameType.PING);
+		this._send(frame.buffer());
+	}
+
+	/**
+	 * byte    HEARTBEAT
+	 * byte    ping_reply
+	 */
+	private sendHeartbeat(ping_reply?: boolean) {
+		const frame = new BufferStream(2);
+		frame.writeUint8(FrameType.HEARTBEAT);
+		frame.writeBoolean(ping_reply);
+		this._send(frame.buffer());
+	}
+
+	/**
+	 * byte    OPEN_SUCCESS
+	 * uint16  sequence_id
+	 * uint16  recipient_channel
+	 * uint16  sender_channel
+	 */
+	private sendOpenSuccess(channel: Channel) {
+		const frame = new BufferStream(11);
+		frame.writeUint8(FrameType.OPEN_SUCCESS);
+		frame.skip(2);
+		frame.writeUint16(channel.remote_id);
+		frame.writeUint16(channel.local_id);
+		this._send(frame.buffer(), true);
+	}
+
+	/**
+	 * byte    OPEN_FAILURE
+	 * uint16  sequence_id
+	 * uint16  recipient_channel
+	 * int16   code
+	 * str16   message
+	 */
+	private sendOpenFailure(channel: number, code: number, reason: string) {
+		const reason_buffer = encoder.encode(reason).buffer;
+		const frame = new BufferStream(9 + reason_buffer.byteLength);
+
+		frame.writeUint8(FrameType.OPEN_FAILURE);
+		frame.skip(2);
+		frame.writeUint16(channel);
+		frame.writeInt16(code);
+		frame.writeUint16(reason_buffer.byteLength);
+		frame.writeBuffer(reason_buffer);
+
+		this._send(frame.compact(), true);
+	}
+
+	/**
+	 * byte    RESET
+	 * uint16  sender_channel
+	 */
+	private sendReset(channel: number) {
+		const frame = new BufferStream(3);
+		frame.writeUint8(FrameType.RESET);
+		frame.writeUint16(channel);
+		this._send(frame.buffer());
+	}
+
+	/**
 	 * Send a complete frame
 	 */
 	_send(frame: ArrayBuffer, seq?: boolean) {
@@ -654,141 +651,12 @@ export class Socket extends EventEmitter {
 			(new Uint16Array(frame, 1, 1))[0] = this.out_seq;
 
 			// Push the frame in the output buffer for later replay
-			this.out_buffer.enqueue({ frame: frame, seq: this.out_seq });
+			this.out_buffer.enqueue({frame: frame, seq: this.out_seq});
 		}
 
 		if (this.state == SocketState.Ready) {
 			this.ws.send(frame);
 		}
-	}
-}
-
-/**
- * Output encoder helper
- */
-class SocketEncoder {
-	constructor(private sock: Socket) {
-	}
-
-	/**
-	 * byte    ACK
-	 * uint16  last_received_id
-	 */
-	sendAck(seq: number) {
-		const frame = new BufferStream(3);
-		frame.writeUint8(FrameType.ACK);
-		frame.writeUint16(seq);
-		this.sock._send(frame.buffer());
-	}
-
-	/**
-	 * byte    BYE
-	 * int16   code
-	 * str16   message
-	 */
-	sendBye(code: number, message: string) {
-		const frame = new BufferStream(5 + message.length * 2);
-		frame.writeUint8(FrameType.BYE);
-		frame.writeInt16(code);
-		frame.writeString16(message);
-		this.sock._send(frame.compact());
-	}
-
-	/**
-	 * byte    PING
-	 */
-	sendPing() {
-		const frame = new BufferStream(1);
-		frame.writeUint8(FrameType.PING);
-		this.sock._send(frame.buffer());
-	}
-
-	/**
-	 * byte    HEARTBEAT
-	 * byte    ping_reply
-	 */
-	sendHeartbeat(ping_reply?: boolean) {
-		const frame = new BufferStream(2);
-		frame.writeUint8(FrameType.HEARTBEAT);
-		frame.writeBoolean(ping_reply);
-		this.sock._send(frame.buffer());
-	}
-
-	/**
-	 * byte    OPEN_SUCCESS
-	 * uint16  sequence_id
-	 * uint16  recipient_channel
-	 * uint16  sender_channel
-	 * uint32  window_size
-	 * ...     user_data
-	 */
-	sendOpenSuccess(channel: Channel, data: ArrayBuffer) {
-		const frame = new BufferStream(11 + data.byteLength);
-		frame.writeUint8(FrameType.OPEN_SUCCESS);
-		frame.skip(2);
-		frame.writeUint16(channel.remote_id);
-		frame.writeUint16(channel.local_id);
-		frame.writeUint32(channel.in_window_initial);
-		if (data) frame.writeBuffer(data);
-		this.sock._send(frame.buffer(), true);
-	}
-
-	/**
-	 * byte    OPEN_FAILURE
-	 * uint16  sequence_id
-	 * uint16  recipient_channel
-	 * int16   code
-	 * str16   message
-	 * ...     user_data
-	 */
-	sendOpenFailure(channel: number, code: number, reason: string, data: ArrayBuffer) {
-		const frame = new BufferStream(9 + reason.length * 2 + data.byteLength);
-		frame.writeUint8(FrameType.OPEN_FAILURE);
-		frame.skip(2);
-		frame.writeUint16(channel);
-		frame.writeInt16(code);
-		frame.writeString16(reason);
-		if (data) frame.writeBuffer(data);
-		this.sock._send(frame.compact(), true);
-	}
-
-	/**
-	 * byte    CLOSE
-	 * uint16  sequence_id
-	 * uint16  recipient_channel
-	 */
-	sendClose(channel: number) {
-		const frame = new BufferStream(5);
-		frame.writeUint8(FrameType.CLOSE);
-		frame.skip(2);
-		frame.writeUint16(channel);
-		this.sock._send(frame.buffer(), true);
-	}
-
-	/**
-	 * byte    UNKNOW
-	 * uint16  sender_channel
-	 */
-	sendUnknow(channel: number) {
-		const frame = new BufferStream(3);
-		frame.writeUint8(FrameType.UNKNOWN);
-		frame.writeUint16(channel);
-		this.sock._send(frame.buffer());
-	}
-
-	/**
-	 * byte    WINDOW_ADJUST
-	 * uint16  seqence_number
-	 * uint16  recipient_channel
-	 * uint32  bytes
-	 */
-	sendWindowAdjust(channel: number, bytes: number) {
-		const frame = new BufferStream(3);
-		frame.writeUint8(FrameType.WINDOW_ADJUST);
-		frame.skip(2);
-		frame.writeUint16(channel);
-		frame.writeUint32(bytes);
-		this.sock._send(frame.buffer(), true);
 	}
 }
 
@@ -801,26 +669,6 @@ const enum ChannelState {
 	Closed   // Channel is closed and cannot be used anymore
 }
 
-/**
- * Channel configuration object
- */
-interface ChannelConfig {
-	channel_type: string;
-	local_id: number;
-	remote_id?: number;
-	in_window: number;
-	out_window: number;
-	initial_state: ChannelState;
-}
-
-/**
- * A fully formed channel frame with a payload data count
- */
-interface ChannelFrame {
-	frame: ArrayBuffer;
-	payload: number;
-}
-
 const enum FrameFlags {
 	COMPRESS = 0x01,
 	UTF8DATA = 0x02,
@@ -831,156 +679,68 @@ const enum FrameFlags {
  * Channel implementation
  */
 export class Channel extends EventEmitter {
-	// Channel configuration
-	public channel_type: string;
-	public local_id: number;
-	public remote_id: number;
-	public out_window: number;
-	public in_window_initial: number;
-	public state: ChannelState;
+	// The id of the next outgoing request
+	private _next_rid = 0;
 
-	// Input buffer
-	private in_buffer: Queue<ArrayBuffer> = new Queue<ArrayBuffer>();
+	private get next_requestid() {
+		const id = this._next_rid;
+		this._next_rid = (this._next_rid + 1) & 0xFF;
+		return id;
+	}
 
-	// Number of bytes available for reading in buffers
-	private in_bytes: number = 0;
-
-	// Amount of bytes left in our input window
-	private in_window: number = 0;
-
-	// Output buffer
-	// Used for concatenate writes together
-	private out_buffer: Queue<ArrayBuffer> = new Queue<ArrayBuffer>();
-
-	// Output frames queue
-	// Used for flow control
-	private out_queue: Queue<ChannelFrame> = new Queue<ChannelFrame>();
-
-	// Number of payload bytes not yet sent
-	private out_bytes: number = 0;
-
-	constructor(public socket: Socket, conf: ChannelConfig) {
+	/**
+	 * @param socket          The underlying socket object
+	 * @param channel_type    Type of the channel
+	 * @param local_id        Local ID of this channel
+	 * @param remote_id       Remote ID for this channel
+	 * @param state           Current channel state
+	 */
+	constructor(public socket: Socket,
+	            public channel_type: string,
+	            public local_id: number,
+	            public remote_id: number,
+	            public state: ChannelState) {
 		super();
-		this.channel_type = conf.channel_type;
-		this.local_id = conf.local_id;
-		this.remote_id = conf.remote_id;
-		this.out_window = conf.out_window;
-		this.in_window_initial = conf.in_window;
-		this.in_window = this.in_window_initial;
-		this.state = conf.initial_state;
 	}
 
 	/**
-	 * Return the number of bytes available to read without delay
+	 * Generate the next request id
+	 * @returns {number}
 	 */
-	available() {
-		return this.in_bytes;
-	}
-
-	/**
-	 * Attempt to read at most bytes from the channel, return null if buffers are empty
-	 */
-	read(bytes: number = this.in_bytes) {
-		const queue = this.in_buffer;
-
-		// The input queue is empty, nothing to read from
-		if (queue.empty() || bytes <= 0) return null;
-
-		// Buffers to concatenate for this read
-		const buffers: Uint8Array[] = [];
-
-		// Bytes from selected buffers
-		let read_bytes = 0;
-
-		// Select buffers fitting the requested data space
-		while (!queue.empty()) {
-			const buf = queue.peek();
-			const length = buf.byteLength;
-
-			if (read_bytes + length <= bytes) {
-				// Enough space to read the whole buffer
-				buffers.push(new Uint8Array(buf));
-				queue.dequeue();
-				read_bytes += length;
-			} else {
-				// We need to cut the buffer in two
-				const used_bytes = bytes - read_bytes;
-
-				// Extract the first part of the buffer and use it
-				buffers.push(new Uint8Array(buf, 0, used_bytes));
-
-				// Update the queue with what is left to read
-				const left = new Uint8Array(length - used_bytes);
-				left.set(new Uint8Array(buf, used_bytes));
-				queue.update(left.buffer);
-
-				read_bytes += used_bytes;
-			}
-		}
-
-		// Concatenate the buffers
-		const target = new Uint8Array(read_bytes);
-		let offset = 0;
-
-		buffers.forEach(buf => {
-			target.set(buf, offset);
-			offset += buf.length;
-		});
-
-		// Update available bytes and window
-		this.in_bytes -= read_bytes;
-		this.in_window -= read_bytes;
-
-		// Check if extending the input window is required
-		if (this.in_window < this.in_window_initial * 0.5) {
-			this.in_window += this.in_window_initial;
-			this.socket.encoder.sendWindowAdjust(this.remote_id, this.in_window_initial);
-		}
-
-		return target.buffer;
-	}
-
-	/**
-	 * Write a buffer of data on the channel
-	 */
-	write(buf: ArrayBuffer, buffered?: boolean) {
-		// Simply enqueue the buffer for now
-		this.out_buffer.enqueue(buf);
-
-		// Auto flush the output buffer if not asked to keep it
-		if (!buffered) {
-			this.flush();
-		}
-
-		return this.out_bytes > 65535;
-	}
-
-	signal(signal: string, data: ArrayBuffer);
-	signal(signal: string, data: Object);
-	signal(signal: string, data: string);
-	signal(signal: string, data: any) {
-
-	}
-
-	request(request: string) {
+	private nextRequestId() {
 
 	}
 
 	/**
-	 * Attempt to flush output buffer and send data to the remote peer
+	 * Send a message without waiting for reply
 	 */
-	flush() {
-		while (!this.out_buffer.empty()) {
-			const length = this.out_queue.peek().payload;
+	send(message: string, data: any = null, flags: number = 0, request: boolean = false) {
+		let payload: ArrayBuffer;
 
-			if (length > this.out_window) {
-				// Not enough window space to send the frame
-				break;
-			}
-
-			const buf = this.out_queue.dequeue();
-			this.out_window -= length;
+		if (data === null) {
+			// No data provided
+			payload = null;
+		} else if (data && (data.buffer || data) instanceof ArrayBuffer) {
+			// Raw buffer
+			payload = data.buffer || data;
+		} else if (typeof data === "string") {
+			// String
+			payload = encoder.encode(data);
+			flags |= FrameFlags.UTF8DATA;
+		} else {
+			// Any other type will simply be JSON encoded
+			payload = encoder.encode(JSON.stringify(data));
+			flags |= FrameFlags.JSONDATA;
 		}
+
+		this.sendMessage(message, payload, flags, request ? this.nextRequestId() : false);
+	}
+
+	/**
+	 * Send a request a wait for a reply
+	 */
+	request(request: string, data: any = null, flags: number = 0) {
+		this.send(request, data, flags, true);
 	}
 
 	/**
@@ -991,12 +751,8 @@ export class Channel extends EventEmitter {
 		if (this.state == ChannelState.Closed) return;
 		this.state = ChannelState.Closed;
 
-		// Attempt to flush the output buffer before closing
-		this.flush();
-		this.out_queue.clear();
-
 		// Send close message to remote and local listeners
-		this.socket.encoder.sendClose(this.remote_id);
+		this.sendClose();
 		this.emit("closed");
 	}
 
@@ -1005,83 +761,88 @@ export class Channel extends EventEmitter {
 	 */
 	_receive(frame_type: number, frame: BufferStream) {
 		switch (frame_type) {
-			case FrameType.WINDOW_ADJUST:
-				return this.receiveWindowAdjust(frame);
+			case FrameType.OPEN_SUCCESS:
+				return this.receiveOpenSuccess(frame);
 
-			case FrameType.EOF:
-				return this.receiveEOF();
-
-			case FrameType.DATA:
-				return this.receiveData(frame);
+			case FrameType.OPEN_FAILURE:
+				return this.receiveOpenFailure(frame);
 
 			case FrameType.MESSAGE:
-				return this.receiveMessage(frame);
+				return this.receiveMessage(frame, false);
+
+			case FrameType.REQUEST:
+				return this.receiveMessage(frame, true);
 
 			case FrameType.SUCCESS:
 				return this.receiveSuccess(frame);
 
 			case FrameType.FAILURE:
 				return this.receiveFailure(frame);
+
+			case FrameType.CLOSE:
+				return this.close();
 		}
 	}
 
 	/**
-	 * byte    WINDOW_ADJUST
+	 * byte    OPEN_SUCCESS
 	 * uint16  seqence_number
 	 * uint16  recipient_channel
 	 *         ---
-	 * uint32  bytes
+	 * uint16  sender_channel
 	 */
-	private receiveWindowAdjust(frame: BufferStream) {
-		this.out_window += frame.readUint32();
-		this.flush();
+	private receiveOpenSuccess(frame: BufferStream) {
+		if (this.state != ChannelState.Pending) return;
+		this.remote_id = frame.readUint16();
+		this.state = ChannelState.Open;
+		this.emit("open");
 	}
 
 	/**
-	 * byte    EOF
+	 * byte    OPEN_FAILURE
 	 * uint16  seqence_number
 	 * uint16  recipient_channel
 	 *         ---
+	 * int16   code
+	 * str16   message
 	 */
-	private receiveEOF() {
-		this.emit("end");
+	private receiveOpenFailure(frame: BufferStream) {
+		if (this.state != ChannelState.Pending) return;
+		const code = frame.readUint16();
+		const message = frame.readString16();
+		this.state = ChannelState.Closed;
 	}
 
 	/**
-	 * byte    DATA
+	 * byte    MESSAGE | REQUEST
 	 * uint16  seqence_number
 	 * uint16  recipient_channel
 	 *         ---
-	 * uint8   frame_flags
-	 * ...     data
-	 */
-	private receiveData(frame: BufferStream) {
-		const flags = frame.readUint8();
-		let data = frame.readBuffer();
-
-		if (flags & FrameFlags.COMPRESS) {
-			data = Pako.inflate(data);
-		}
-
-		this.in_bytes += data.byteLength;
-		this.in_buffer.enqueue(data);
-
-		this.emit("data", this.in_bytes);
-	}
-
-	/**
-	 * byte    MESSAGE
-	 * uint16  seqence_number
-	 * uint16  recipient_channel
-	 *         ---
-	 * str8    request
-	 * byte    want_reply
+	 * str8    message | request
+	 * uint8   [request_id]
+	 * uint8   flags
 	 * ...     payload
 	 */
-	private receiveMessage(frame: BufferStream) {
-		const request = frame.readString8();
-		const want_reply = frame.readBoolean();
-		const payload = frame.readBuffer();
+	private receiveMessage(frame: BufferStream, request: boolean) {
+		const message = frame.readString8();
+		const request_id = request ? frame.readUint8() : 0;
+		const flags = frame.readUint8();
+		let payload: any = frame.readBuffer();
+
+		// Inflate compressed frames
+		if (flags & FrameFlags.COMPRESS) {
+			payload = Pako.inflate(payload);
+		}
+
+		// Decode UTF-8 data
+		if (flags & FrameFlags.UTF8DATA) {
+			payload = decoder.decode(payload);
+		}
+
+		// Decode JSON data
+		if (flags & FrameFlags.JSONDATA) {
+			payload = JSON.parse(payload);
+		}
 	}
 
 	/**
@@ -1107,5 +868,47 @@ export class Channel extends EventEmitter {
 	private receiveFailure(frame: BufferStream) {
 		const code = frame.readInt16();
 		const message = frame.readString16();
+	}
+
+	/**
+	 * byte    MESSAGE | REQUEST
+	 * uint16  seqence_number
+	 * uint16  recipient_channel
+	 *         ---
+	 * str8    message | request
+	 * uint8   [request_id]
+	 * uint8   flags
+	 * ...     payload
+	 */
+	private sendMessage(message: string, payload: ArrayBuffer, flags: number, request: number | boolean) {
+		const header_length = request === false ? 8 : 7;
+		const message_buf = encoder.encode(message);
+		const message_length = message_buf.length;
+		const payload_length = payload ? payload.byteLength : 0;
+
+		const frame = new BufferStream(header_length + message_length + payload_length);
+
+		frame.writeUint8(request ? FrameType.REQUEST : FrameType.MESSAGE);
+		frame.skip(2);
+		frame.writeUint16(this.remote_id);
+		frame.writeString8(message);
+		if (request !== false) frame.writeUint8(<number>request);
+		frame.writeUint8(flags);
+		if (payload) frame.writeBuffer(payload);
+
+		this.socket._send(frame.buffer(), true);
+	}
+
+	/**
+	 * byte    CLOSE
+	 * uint16  sequence_id
+	 * uint16  recipient_channel
+	 */
+	private sendClose() {
+		const frame = new BufferStream(5);
+		frame.writeUint8(FrameType.CLOSE);
+		frame.skip(2);
+		frame.writeUint16(this.remote_id);
+		this.socket._send(frame.buffer(), true);
 	}
 }
