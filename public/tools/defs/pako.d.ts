@@ -1,4 +1,4 @@
-declare var pako: {
-	deflate(buf: ArrayBuffer): ArrayBuffer;
-	inflate(buf: ArrayBuffer): ArrayBuffer;
-};
+declare module "pako" {
+	export function deflate(buf: ArrayBuffer): ArrayBuffer;
+	export function inflate(buf: ArrayBuffer): ArrayBuffer;
+}

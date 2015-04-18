@@ -1,8 +1,11 @@
 /// <reference path="../defs/pako.d.ts" />
 
+import Pako = require("pako");
+
 import EventEmitter = require("utils/eventemitter");
 import BufferStream = require("utils/bufferstream");
 import Queue = require("utils/queue");
+import Deferred = require("utils/deferred");
 
 /**
  * Types of frames
@@ -72,7 +75,7 @@ interface ChannelRequest {
 	open_frame: BufferStream;
 	channel: Channel;
 
-	accept(window?: number, data?: ArrayBuffer): void;
+	accept(data?: ArrayBuffer): void;
 	reject(code?: number, reason?: string): void;
 }
 
@@ -456,7 +459,7 @@ export class Socket extends EventEmitter {
 			open_frame: frame,
 			channel: null,
 
-			accept: (local_window: number = 1048576, data: ArrayBuffer = null) => {
+			accept: (data: ArrayBuffer = null) => {
 				if (request_replied) return;
 
 				// Allocate a local Channel ID for this channel
@@ -557,24 +560,6 @@ export class Socket extends EventEmitter {
 		channel.state = ChannelState.Closed;
 		this.channels.delete(recipient_channel);
 		channel.emit("open-failure", code, message, user_data);
-	}
-
-	/**
-	 * byte    WINDOW_ADJUST
-	 * uint16  seqence_number
-	 * uint16  recipient_channel
-	 * uint32  bytes
-	 */
-	private receiveWindowAdjust(frame: BufferStream) {
-		const recipient_channel = frame.readUint16();
-		const bytes = frame.readUint16();
-
-		if (!this.channels.has(recipient_channel)) {
-			return this.encoder.sendUnknow(recipient_channel);
-		}
-
-		const channel = this.channels.get(recipient_channel);
-		channel.out_window += bytes;
 	}
 
 	/**
@@ -743,7 +728,7 @@ class SocketEncoder {
 		frame.skip(2);
 		frame.writeUint16(channel.remote_id);
 		frame.writeUint16(channel.local_id);
-		frame.writeUint32(channel.in_window);
+		frame.writeUint32(channel.in_window_initial);
 		if (data) frame.writeBuffer(data);
 		this.sock._send(frame.buffer(), true);
 	}
@@ -790,6 +775,21 @@ class SocketEncoder {
 		frame.writeUint16(channel);
 		this.sock._send(frame.buffer());
 	}
+
+	/**
+	 * byte    WINDOW_ADJUST
+	 * uint16  seqence_number
+	 * uint16  recipient_channel
+	 * uint32  bytes
+	 */
+	sendWindowAdjust(channel: number, bytes: number) {
+		const frame = new BufferStream(3);
+		frame.writeUint8(FrameType.WINDOW_ADJUST);
+		frame.skip(2);
+		frame.writeUint16(channel);
+		frame.writeUint32(bytes);
+		this.sock._send(frame.buffer(), true);
+	}
 }
 
 /**
@@ -821,6 +821,12 @@ interface ChannelFrame {
 	payload: number;
 }
 
+const enum FrameFlags {
+	COMPRESS = 0x01,
+	UTF8DATA = 0x02,
+	JSONDATA = 0x06, // Includes UTF8DATA
+}
+
 /**
  * Channel implementation
  */
@@ -830,24 +836,28 @@ export class Channel extends EventEmitter {
 	public local_id: number;
 	public remote_id: number;
 	public out_window: number;
-	public in_window: number;
+	public in_window_initial: number;
 	public state: ChannelState;
 
 	// Input buffer
 	private in_buffer: Queue<ArrayBuffer> = new Queue<ArrayBuffer>();
+
+	// Number of bytes available for reading in buffers
 	private in_bytes: number = 0;
+
+	// Amount of bytes left in our input window
+	private in_window: number = 0;
 
 	// Output buffer
 	// Used for concatenate writes together
 	private out_buffer: Queue<ArrayBuffer> = new Queue<ArrayBuffer>();
-	private out_bytes: number = 0;
 
 	// Output frames queue
 	// Used for flow control
 	private out_queue: Queue<ChannelFrame> = new Queue<ChannelFrame>();
 
-	// Keep track of the CLOSE message sending
-	private close_sent: boolean = false;
+	// Number of payload bytes not yet sent
+	private out_bytes: number = 0;
 
 	constructor(public socket: Socket, conf: ChannelConfig) {
 		super();
@@ -855,7 +865,8 @@ export class Channel extends EventEmitter {
 		this.local_id = conf.local_id;
 		this.remote_id = conf.remote_id;
 		this.out_window = conf.out_window;
-		this.in_window = conf.in_window;
+		this.in_window_initial = conf.in_window;
+		this.in_window = this.in_window_initial;
 		this.state = conf.initial_state;
 	}
 
@@ -916,19 +927,43 @@ export class Channel extends EventEmitter {
 			offset += buf.length;
 		});
 
+		// Update available bytes and window
+		this.in_bytes -= read_bytes;
+		this.in_window -= read_bytes;
+
+		// Check if extending the input window is required
+		if (this.in_window < this.in_window_initial * 0.5) {
+			this.in_window += this.in_window_initial;
+			this.socket.encoder.sendWindowAdjust(this.remote_id, this.in_window_initial);
+		}
+
 		return target.buffer;
 	}
 
 	/**
 	 * Write a buffer of data on the channel
 	 */
-	write(buf: ArrayBuffer) {
+	write(buf: ArrayBuffer, buffered?: boolean) {
+		// Simply enqueue the buffer for now
 		this.out_buffer.enqueue(buf);
 
-		// If this is the only item in the output buffer, auto flush data
-		if (this.out_buffer.length() == 1) {
+		// Auto flush the output buffer if not asked to keep it
+		if (!buffered) {
 			this.flush();
 		}
+
+		return this.out_bytes > 65535;
+	}
+
+	signal(signal: string, data: ArrayBuffer);
+	signal(signal: string, data: Object);
+	signal(signal: string, data: string);
+	signal(signal: string, data: any) {
+
+	}
+
+	request(request: string) {
+
 	}
 
 	/**
@@ -965,8 +1000,51 @@ export class Channel extends EventEmitter {
 		this.emit("closed");
 	}
 
+	/**
+	 * Receive a channel specific frame
+	 */
 	_receive(frame_type: number, frame: BufferStream) {
+		switch (frame_type) {
+			case FrameType.WINDOW_ADJUST:
+				return this.receiveWindowAdjust(frame);
 
+			case FrameType.EOF:
+				return this.receiveEOF();
+
+			case FrameType.DATA:
+				return this.receiveData(frame);
+
+			case FrameType.MESSAGE:
+				return this.receiveMessage(frame);
+
+			case FrameType.SUCCESS:
+				return this.receiveSuccess(frame);
+
+			case FrameType.FAILURE:
+				return this.receiveFailure(frame);
+		}
+	}
+
+	/**
+	 * byte    WINDOW_ADJUST
+	 * uint16  seqence_number
+	 * uint16  recipient_channel
+	 *         ---
+	 * uint32  bytes
+	 */
+	private receiveWindowAdjust(frame: BufferStream) {
+		this.out_window += frame.readUint32();
+		this.flush();
+	}
+
+	/**
+	 * byte    EOF
+	 * uint16  seqence_number
+	 * uint16  recipient_channel
+	 *         ---
+	 */
+	private receiveEOF() {
+		this.emit("end");
 	}
 
 	/**
@@ -978,95 +1056,56 @@ export class Channel extends EventEmitter {
 	 * ...     data
 	 */
 	private receiveData(frame: BufferStream) {
-		const recipient_channel = frame.readUint16();
+		const flags = frame.readUint8();
+		let data = frame.readBuffer();
 
-		if (!this.channels.has(recipient_channel)) {
-			return this.encoder.sendUnknow(recipient_channel);
+		if (flags & FrameFlags.COMPRESS) {
+			data = Pako.inflate(data);
 		}
 
-		const channel = this.channels.get(recipient_channel);
+		this.in_bytes += data.byteLength;
+		this.in_buffer.enqueue(data);
 
-		throw new Error("Unimplemented");
+		this.emit("data", this.in_bytes);
 	}
 
 	/**
-	 * byte    DATA_EXT
+	 * byte    MESSAGE
 	 * uint16  seqence_number
 	 * uint16  recipient_channel
-	 * uint16  data_type
-	 * ...     data
-	 */
-	private receiveDataExt(frame: BufferStream) {
-		const recipient_channel = frame.readUint16();
-		const data_type = frame.readUint16();
-
-		if (!this.channels.has(recipient_channel)) {
-			return this.encoder.sendUnknow(recipient_channel);
-		}
-
-		const channel = this.channels.get(recipient_channel);
-
-		throw new Error("Unimplemented");
-	}
-
-	/**
-	 * byte    REQUEST
-	 * uint16  seqence_number
-	 * uint16  recipient_channel
+	 *         ---
 	 * str8    request
 	 * byte    want_reply
 	 * ...     payload
 	 */
-	private receiveRequest(frame: BufferStream) {
-		const recipient_channel = frame.readUint16();
+	private receiveMessage(frame: BufferStream) {
 		const request = frame.readString8();
-
-		if (!this.channels.has(recipient_channel)) {
-			return this.encoder.sendUnknow(recipient_channel);
-		}
-
-		const channel = this.channels.get(recipient_channel);
-
-		throw new Error("Unimplemented");
+		const want_reply = frame.readBoolean();
+		const payload = frame.readBuffer();
 	}
 
 	/**
 	 * byte    SUCCESS
 	 * uint16  seqence_number
 	 * uint16  recipient_channel
+	 *         ---
 	 * ...     payload
 	 */
 	private receiveSuccess(frame: BufferStream) {
-		const recipient_channel = frame.readUint16();
 
-		if (!this.channels.has(recipient_channel)) {
-			return this.encoder.sendUnknow(recipient_channel);
-		}
-
-		const channel = this.channels.get(recipient_channel);
-
-		throw new Error("Unimplemented");
 	}
 
 	/**
 	 * byte    FAILURE
 	 * uint16  seqence_number
 	 * uint16  recipient_channel
+	 *         ---
 	 * int16   code
 	 * str16   message
 	 * ...     payload
 	 */
 	private receiveFailure(frame: BufferStream) {
-		const recipient_channel = frame.readUint16();
 		const code = frame.readInt16();
 		const message = frame.readString16();
-
-		if (!this.channels.has(recipient_channel)) {
-			return this.encoder.sendUnknow(recipient_channel);
-		}
-
-		const channel = this.channels.get(recipient_channel);
-
-		throw new Error("Unimplemented");
 	}
 }
