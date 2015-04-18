@@ -912,3 +912,7 @@ export class Channel extends EventEmitter {
 		this.socket._send(frame.buffer(), true);
 	}
 }
+
+export class Stream extends EventEmitter {
+
+}

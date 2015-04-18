@@ -1,22 +1,35 @@
-class EventEmitter {
-	private listeners = new Map<string, Function[]>();
+interface TaggedFunction extends Function {
+	_once: boolean;
+}
 
-	on<T extends Function>(event: string, cb: T) {
+class EventEmitter {
+	private listeners: Map<string, Set<TaggedFunction>> = new Map<string, Set<TaggedFunction>>();
+
+	on(event: string, cb: Function) {
 		if (!this.listeners.has(event)) {
-			this.listeners.set(event, []);
+			this.listeners.set(event, new Set<TaggedFunction>());
 		}
 
-		this.listeners.get(event).push(cb);
+		this.listeners.get(event).add(<TaggedFunction> cb);
+	}
+
+	once(event: string, cb: Function) {
+		(<TaggedFunction> cb)._once = true;
+		return this.on(event, cb);
 	}
 
 	off(event: string, cb: Function) {
 		if (!this.listeners.has(event)) return;
-		this.listeners.set(event, this.listeners.get(event).filter(f => f != cb));
+		this.listeners.get(event).delete(<TaggedFunction> cb);
 	}
 
-	emit(event: string, ...args: any[]) {
+	protected emit(event: string, ...args: any[]) {
 		if (!this.listeners.has(event)) return;
-		this.listeners.get(event).forEach((cb: Function) => cb.apply(null, args));
+		const cb_set = this.listeners.get(event);
+		cb_set.forEach(cb => {
+			cb.apply(null, args);
+			if (cb._once) cb_set.delete(cb);
+		});
 	}
 }
 
