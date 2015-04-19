@@ -8,10 +8,10 @@ interface TextDecoder {
 	decode(buffer?: ArrayBufferView, options?: { stream: boolean }): string;
 }
 
-var TextEncoder: {
+declare var TextEncoder: {
 	new(encoding: string): TextEncoder;
 };
 
-var TextDecoder: {
+declare var TextDecoder: {
 	new(encoding: string): TextDecoder;
 };

@@ -1,4 +1,4 @@
-/// <reference path="../defs/es6-promise.d.ts">
+/// <reference path="../defs/es6-promise.d.ts" />
 
 class Deferred<T> {
 	public promise: Promise<T>;

@@ -1,7 +1,6 @@
-import encoding = require("encoding");
+// <reference path="../defs/encoding.d.ts" />
 
-const encoder = new encoding.TextEncoder("utf-8");
-const decoder = new encoding.TextDecoder("utf-8");
+const decoder = new TextDecoder("utf-8");
 
 class BufferStream {
 	// Internal buffer
@@ -75,42 +74,6 @@ class BufferStream {
 	writeInt32(value: number, le?: boolean) { return this.data.setInt32(this.skip(4), value, le); }
 	writeFloat32(value: number, le?: boolean) { return this.data.setFloat32(this.skip(4), value, le); }
 	writeFloat64(value: number, le?: boolean) { return this.data.setFloat64(this.skip(8), value, le); }
-
-	writeString(str: string) {
-		const data = encoder.encode(str);
-		const length = data.byteLength;
-		new Uint8Array(this.buf, this.skip(length), length).set(data);
-	}
-
-	private writeStringW(width: number, str: string) {
-		const data = encoder.encode(str);
-		const length = data.byteLength;
-
-		function valid() {
-			switch (width) {
-				case 32: return length <= 0xFFFFFFFF;
-				case 16: return length <= 0xFFFF;
-				case  8: return length <= 0xFF;
-				default: return false;
-			}
-		}
-
-		if (!valid()) {
-			throw new Error(`Invalid length width for string of ${length} byte(s)`);
-		}
-
-		switch (width) {
-			case 32: this.writeUint32(length); break;
-			case 16: this.writeUint16(length); break;
-			case  1: this.writeUint8(length); break;
-		}
-
-		new Uint8Array(this.buf, this.skip(length), length).set(data);
-	}
-
-	writeString8(str: string) { return this.writeStringW(8, str); }
-	writeString16(str: string) { return this.writeStringW(16, str); }
-	writeString32(str: string) { return this.writeStringW(32, str); }
 
 	writeBuffer(buffer: ArrayBuffer) {
 		const length = buffer.byteLength;
