@@ -261,7 +261,7 @@ export class Socket extends EventEmitter {
 	/**
 	 * Open a new channel on this socket
 	 */
-	openChannel(channel_type: string, token: string = ""): Promise<Channel> {
+	openChannel(channel_type: string, token: string = "", parent: number = -1): Promise<Channel> {
 		const id = this.allocateChannelID();
 		const deferred = new Deferred<Channel>();
 		this.channels_pending.set(id, deferred);
@@ -544,7 +544,10 @@ export class Socket extends EventEmitter {
 		const deferred = this.channels_pending.get(recipient_channel);
 		this.channels_pending.delete(recipient_channel);
 
-		deferred.reject(new Error(`${message} [${code}]`));
+		const error: any = new Error(message);
+		error.code = code;
+
+		deferred.reject(error);
 	}
 
 	/**
@@ -630,6 +633,29 @@ export class Socket extends EventEmitter {
 		frame.writeUint16(message_buf.byteLength);
 		frame.writeBuffer(message_buf);
 		this._send(frame.compact());
+	}
+
+	/**
+	 * byte    OPEN
+	 * uint16  seqence_number
+	 * str8    channel_type
+	 * uint16  sender_channel
+	 * uint16  parent_channel
+	 * str16   token
+	 */
+	private sendOpen(channel_type: string, id: number, parent: number, token: string) {
+		const type_buffer = encoder.encode(channel_type).buffer;
+		const token_buffer = encoder.encode(token).buffer;
+		const frame = new BufferStream(10);
+		frame.writeUint8(FrameType.OPEN_SUCCESS);
+		frame.skip(2);
+		frame.writeUint8(type_buffer.byteLength);
+		frame.writeBuffer(type_buffer);
+		frame.writeUint16(id);
+		frame.writeUint16(parent);
+		frame.writeUint16(token_buffer.byteLength);
+		frame.writeBuffer(token_buffer);
+		this._send(frame.buffer(), true);
 	}
 
 	/**
@@ -889,7 +915,10 @@ export class Channel extends EventEmitter {
 
 		const deferred = this.requests.get(request_id);
 
-		deferred.reject(new Error(`${message} [${code}]`));
+		const error: any = new Error(message);
+		error.code = code;
+
+		deferred.reject(error);
 	}
 
 	/**
