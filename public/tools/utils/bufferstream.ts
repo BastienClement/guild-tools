@@ -1,5 +1,3 @@
-// <reference path="../defs/encoding.d.ts" />
-
 const decoder = new TextDecoder("utf-8");
 
 class BufferStream {
@@ -57,10 +55,10 @@ class BufferStream {
 		if (length < 0) length = this.buf.byteLength - this._offset;
 		if (length == 0) return null;
 
-		const buffer = new ArrayBuffer(length);
-		new Uint8Array(buffer).set(new Uint8Array(this.buf, this.skip(length), length));
+		const begin = this.skip(length);
+		const end = begin + length;
 
-		return buffer;
+		return this.buf.slice(begin, end);
 	}
 
 	readBoolean() { return this.readUint8() != 0; }
@@ -99,4 +97,4 @@ class BufferStream {
 	}
 }
 
-export = BufferStream
+export default BufferStream;

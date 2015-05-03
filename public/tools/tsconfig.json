@@ -1,11 +1,19 @@
 {
   "compilerOptions": {
-    "module": "amd",
     "noImplicitAny": true,
     "removeComments": false,
     "preserveConstEnums": true,
     "outDir": "../modules",
     "sourceMap": true,
-    "target": "ES5"
-  }
+    "emitDecoratorMetadata": true,
+    "target": "ES6"
+  },
+  "files": [
+    "defs/encoding.d.ts",
+    "defs/jquery.d.ts",
+    "defs/pace.d.ts",
+    "defs/pako.d.ts",
+    "core/core.ts",
+    "web/init.ts"
+  ]
 }

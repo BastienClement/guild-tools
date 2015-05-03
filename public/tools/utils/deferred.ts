@@ -1,8 +1,6 @@
-/// <reference path="../defs/es6-promise.d.ts" />
-
 class Deferred<T> {
 	public promise: Promise<T>;
-	public resolve: (value?: T | Thenable<T>) => void;
+	public resolve: (value?: T | Promise<T>) => void;
 	public reject: (error?: any) => void;
 
 	constructor() {
@@ -13,4 +11,4 @@ class Deferred<T> {
 	}
 }
 
-export = Deferred;
+export default Deferred;

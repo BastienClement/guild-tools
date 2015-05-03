@@ -80,4 +80,4 @@ class Queue<T> {
 	}
 }
 
-export = Queue
+export default Queue;

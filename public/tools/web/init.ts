@@ -1,7 +1,4 @@
-/// <reference path="../defs/jquery.d.ts" />
-/// <reference path="../defs/pace.d.ts" />
-
-import Bnet = require("bnet");
+import Bnet from "core/bnet";
 
 function load() {
 
@@ -21,4 +18,4 @@ function init() {
 	});
 }
 
-export = init;
+export default init;

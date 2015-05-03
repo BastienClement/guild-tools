@@ -1,12 +1,10 @@
-/// <reference path="../defs/pako.d.ts" />
-/// <reference path="../defs/encoding.d.ts" />
+import { deflate, inflate } from "pako";
 
-import Pako = require("pako");
-
-import EventEmitter = require("utils/eventemitter");
-import BufferStream = require("utils/bufferstream");
-import Queue = require("utils/queue");
-import Deferred = require("utils/deferred");
+import EventEmitter from "utils/eventemitter";
+import BufferStream from "utils/bufferstream";
+import Queue from "utils/queue";
+import Deferred from "utils/deferred";
+import NumberPool from "utils/numberpool";
 
 const encoder = new TextEncoder("utf-8");
 const decoder = new TextDecoder("utf-8");
@@ -49,7 +47,10 @@ const enum Protocol {
 	PacketLimit = 65535,
 	AckInterval = 8,
 	BufferSoftLimit = 32,
-	BufferHardLimit = 64
+	BufferHardLimit = 64,
+	OpenTimeout = 5000,
+	ChannelsLimit = 65535,
+	InflightRequests = 250
 }
 
 /**
@@ -100,24 +101,24 @@ export class Socket extends EventEmitter {
 	private id_low = 0;
 
 	// The underlying websocket and connection state
-	private ws: WebSocket;
+	private ws: WebSocket = null;
 	private state: SocketState = SocketState.Uninitialized;
 
 	// Available channels
 	private channels: Map<number, Channel> = new Map<number, Channel>();
 	private channels_pending: Map<number, Deferred<Channel>> = new Map<number, Deferred<Channel>>();
-	private next_channel = 0;
+	private channelid_pool: NumberPool = new NumberPool(Protocol.ChannelsLimit);
 
 	// Last received frame sequence number
-	private in_seq = 0;
+	private in_seq: number = 0;
 
 	// Output queue and sequence numbers
-	private out_seq = 0;
-	private out_ack = 0;
+	private out_seq: number = 0;
+	private out_ack: number = 0;
 	private out_buffer: Queue<SequencedFrame> = new Queue<SequencedFrame>();
 
 	// Reconnect attempts counter
-	private retry_count = 0;
+	private retry_count: number = 0;
 
 	// Last ping time
 	private ping_time: number = 0;
@@ -127,7 +128,7 @@ export class Socket extends EventEmitter {
 	private open_handlers: Map<string, ChannelOpenHandler> = new Map<string, ChannelOpenHandler>();
 
 	/**
-	 * @param url    The remote server to connect to
+	 * @param url The remote server to connect to
 	 */
 	constructor(private url: string) {
 		super();
@@ -136,7 +137,7 @@ export class Socket extends EventEmitter {
 	/**
 	 * Connect to the server
 	 */
-	connect() {
+	connect(): void {
 		if (this.ws || this.state == SocketState.Closed) {
 			throw new Error("Cannot connect() on an already open or closed socket");
 		}
@@ -145,6 +146,7 @@ export class Socket extends EventEmitter {
 		var ws = this.ws = new WebSocket(this.url, "GTP3/WS");
 		ws.binaryType = "arraybuffer";
 
+		// Reconnect on error or socket closed
 		ws.onerror = ws.onclose = () => {
 			this.reconnect();
 		};
@@ -173,7 +175,7 @@ export class Socket extends EventEmitter {
 	/**
 	 * Generate the correct handshake frame given the current state
 	 */
-	private handshake() {
+	private handshake(): void {
 		let frame: BufferStream;
 
 		switch (this.state) {
@@ -205,7 +207,7 @@ export class Socket extends EventEmitter {
 	/**
 	 * Handle reconnection logic
 	 */
-	private reconnect() {
+	private reconnect(): void {
 		// Transition from Ready to Reconnecting
 		if (this.state == SocketState.Ready) {
 			this.state = SocketState.Reconnecting;
@@ -228,7 +230,7 @@ export class Socket extends EventEmitter {
 	/**
 	 * Close the socket and send the BYE message
 	 */
-	close(code: number = 0, reason: string = "") {
+	close(code: number = 0, reason: string = ""): void {
 		// Ensure the socket is not closed more than once
 		if (this.state == SocketState.Closed) return;
 		this.state = SocketState.Closed;
@@ -245,7 +247,7 @@ export class Socket extends EventEmitter {
 	/**
 	 * Put the socket back in ready state
 	 */
-	private ready() {
+	private ready(): void {
 		this.state = SocketState.Ready;
 		this.emit("ready");
 	}
@@ -253,7 +255,7 @@ export class Socket extends EventEmitter {
 	/**
 	 * Send a PING message and compute RTT latency
 	 */
-	ping() {
+	ping(): void {
 		this.ping_time = Date.now();
 		this.sendControl(FrameType.PING);
 	}
@@ -261,13 +263,19 @@ export class Socket extends EventEmitter {
 	/**
 	 * Open a new channel on this socket
 	 */
-	openChannel(channel_type: string, token: string = "", parent: number = -1): Promise<Channel> {
-		const id = this.allocateChannelID();
+	openChannel(channel_type: string, token: string = "", parent: number = 0): Promise<Channel> {
+		const id = this.channelid_pool.allocate();
 		const deferred = new Deferred<Channel>();
 		this.channels_pending.set(id, deferred);
 
 		// Timeout for server to send OPEN_SUCCESS or OPEN_FAILURE
-		setTimeout(() => deferred.reject(new Error("Timeout")), 5000);
+		setTimeout(() => deferred.reject(new Error("Timeout")), Protocol.OpenTimeout);
+
+		// Send the open message to the server
+		this.sendOpen(channel_type, id, parent, token);
+
+		// Release channel ID if open fail
+		deferred.promise.then(null, () => this.channelid_pool.release(id));
 
 		return deferred.promise;
 	}
@@ -276,7 +284,7 @@ export class Socket extends EventEmitter {
 	 * Open a new byte stream on this socket
 	 */
 	openStream(stream_type: string, token: string = ""): Promise<Stream> {
-		return this.openChannel(stream_type, token).then((channel) =>  new Stream(channel));
+		return this.openChannel(stream_type, token).then((channel) => new Stream(channel));
 	}
 
 	/**
@@ -285,7 +293,7 @@ export class Socket extends EventEmitter {
 	 * and reduce network usage for acknowledgments by only sending one
 	 * every AckInterval messages.
 	 */
-	private ack(frame: BufferStream) {
+	private ack(frame: BufferStream): void {
 		// Read sequence number from frame
 		const seq = frame.readUint16();
 
@@ -307,7 +315,7 @@ export class Socket extends EventEmitter {
 	 * Handle received acknowledgment processing
 	 * @param seq The sequence number being acknowledged
 	 */
-	private processAck(seq: number) {
+	private processAck(seq: number): void {
 		// Dequeue while the frame sequence id is less or equal to the acknowledged one
 		// Also dequeue if the frame is simply greater than the last acknowledgment, this handle
 		// the wrap-around case
@@ -327,7 +335,7 @@ export class Socket extends EventEmitter {
 	/**
 	 * Receive a new frame
 	 */
-	private receive(buf: ArrayBuffer) {
+	private receive(buf: ArrayBuffer): void {
 		const frame: BufferStream = new BufferStream(buf);
 		const frame_type: FrameType = frame.readUint8();
 
@@ -392,7 +400,7 @@ export class Socket extends EventEmitter {
 	 * uint32  socket_id_hi
 	 * uint32  socket_id_lo
 	 */
-	private receiveHello(frame: BufferStream) {
+	private receiveHello(frame: BufferStream): void {
 		const magic_number = frame.readUint32();
 
 		if (this.state != SocketState.Open || magic_number != Protocol.GTP3)
@@ -408,7 +416,7 @@ export class Socket extends EventEmitter {
 	 * byte    RESUME
 	 * uint16  last_received_id
 	 */
-	private receiveResume(frame: BufferStream) {
+	private receiveResume(frame: BufferStream): void {
 		const seq_last = frame.readUint16();
 
 		// Treat the resume message as an acknowledgment
@@ -425,7 +433,7 @@ export class Socket extends EventEmitter {
 	 * byte    ACK
 	 * uint16  last_received_id
 	 */
-	private receiveAck(frame: BufferStream) {
+	private receiveAck(frame: BufferStream): void {
 		const last_received = frame.readUint16();
 		this.processAck(last_received);
 	}
@@ -435,7 +443,7 @@ export class Socket extends EventEmitter {
 	 * int16   code
 	 * str16   message
 	 */
-	private receiveBye(frame: BufferStream) {
+	private receiveBye(frame: BufferStream): void {
 		const code = frame.readInt16();
 		const message = frame.readString16();
 		this.close(code, message);
@@ -449,7 +457,7 @@ export class Socket extends EventEmitter {
 	 * uint16  parent_channel
 	 * str16   token
 	 */
-	private receiveOpen(frame: BufferStream) {
+	private receiveOpen(frame: BufferStream): void {
 		this.ack(frame);
 		const channel_type = frame.readString8();
 		const sender_channel = frame.readUint16();
@@ -465,7 +473,7 @@ export class Socket extends EventEmitter {
 				// Allocate a local Channel ID for this channel
 				let id: number;
 				try {
-					id = this.allocateChannelID();
+					id = this.channelid_pool.allocate();
 				} catch (e) {
 					request.reject(1, "Unable to allocate channel ID");
 					throw e;
@@ -477,6 +485,9 @@ export class Socket extends EventEmitter {
 				request_replied = true;
 				this.channels.set(id, channel);
 				this.sendOpenSuccess(channel);
+
+				// Release the channel ID on close
+				channel.on("closed", () => this.channelid_pool.release(id));
 
 				return channel;
 			},
@@ -508,7 +519,7 @@ export class Socket extends EventEmitter {
 	 * uint16  recipient_channel
 	 * uint16  sender_channel
 	 */
-	private receiveOpenSuccess(frame: BufferStream) {
+	private receiveOpenSuccess(frame: BufferStream): void {
 		this.ack(frame);
 		const recipient_channel = frame.readUint16();
 		const sender_channel = frame.readUint16();
@@ -531,7 +542,7 @@ export class Socket extends EventEmitter {
 	 * int16   code
 	 * str16   message
 	 */
-	private receiveOpenFailure(frame: BufferStream) {
+	private receiveOpenFailure(frame: BufferStream): void {
 		this.ack(frame);
 		const recipient_channel = frame.readUint16();
 		const code = frame.readUint16();
@@ -554,7 +565,7 @@ export class Socket extends EventEmitter {
 	 * byte    RESET
 	 * uint16  sender_channel
 	 */
-	private receiveReset(frame: BufferStream) {
+	private receiveReset(frame: BufferStream): void {
 		const sender_channel = frame.readUint16();
 
 		// Close any channel matching the RESET message
@@ -568,7 +579,7 @@ export class Socket extends EventEmitter {
 	/**
 	 * Generic channel frame handler
 	 */
-	private receiveChannelFrame(frame_type: number, frame: BufferStream) {
+	private receiveChannelFrame(frame_type: number, frame: BufferStream): void {
 		this.ack(frame);
 		const recipient_channel = frame.readUint16();
 
@@ -583,37 +594,16 @@ export class Socket extends EventEmitter {
 	/**
 	 * Handle force closing the socket due to protocol error
 	 */
-	private protocolError() {
+	private protocolError(): void {
 		this.close();
 		throw new Error("Protocol error");
-	}
-
-	/**
-	 * Allocate a new number for a channel
-	 */
-	private allocateChannelID() {
-		// This implementation only allocate half of the channel ID space
-		if (this.channels.size + this.channels_pending.size >= 32768) {
-			throw new Error("Unnable to allocate channel ID");
-		}
-
-		// Current ID
-		const id = this.next_channel;
-
-		// Search the next one
-		// TODO: fixeme
-		do {
-			this.next_channel = (this.next_channel + 1) & 0xFFFF;
-		} while (this.channels.has(this.next_channel) || this.channels_pending.has(this.next_channel) || this.next_channel == 0);
-
-		return id;
 	}
 
 	/**
 	 * byte    ACK
 	 * uint16  last_received_id
 	 */
-	private sendAck(seq: number) {
+	private sendAck(seq: number): void {
 		const frame = new BufferStream(3);
 		frame.writeUint8(FrameType.ACK);
 		frame.writeUint16(seq);
@@ -625,7 +615,7 @@ export class Socket extends EventEmitter {
 	 * int16   code
 	 * str16   message
 	 */
-	private sendBye(code: number, message: string) {
+	private sendBye(code: number, message: string): void {
 		const message_buf = encoder.encode(message).buffer;
 		const frame = new BufferStream(5 + message_buf.byteLength);
 		frame.writeUint8(FrameType.BYE);
@@ -643,7 +633,7 @@ export class Socket extends EventEmitter {
 	 * uint16  parent_channel
 	 * str16   token
 	 */
-	private sendOpen(channel_type: string, id: number, parent: number, token: string) {
+	private sendOpen(channel_type: string, id: number, parent: number, token: string): void {
 		const type_buffer = encoder.encode(channel_type).buffer;
 		const token_buffer = encoder.encode(token).buffer;
 		const frame = new BufferStream(10);
@@ -664,7 +654,7 @@ export class Socket extends EventEmitter {
 	 * uint16  recipient_channel
 	 * uint16  sender_channel
 	 */
-	private sendOpenSuccess(channel: Channel) {
+	private sendOpenSuccess(channel: Channel): void {
 		const frame = new BufferStream(11);
 		frame.writeUint8(FrameType.OPEN_SUCCESS);
 		frame.skip(2);
@@ -680,7 +670,7 @@ export class Socket extends EventEmitter {
 	 * int16   code
 	 * str16   message
 	 */
-	private sendOpenFailure(channel: number, code: number, reason: string) {
+	private sendOpenFailure(channel: number, code: number, reason: string): void {
 		const reason_buffer = encoder.encode(reason).buffer;
 		const frame = new BufferStream(9 + reason_buffer.byteLength);
 
@@ -698,7 +688,7 @@ export class Socket extends EventEmitter {
 	 * byte    RESET
 	 * uint16  sender_channel
 	 */
-	private sendReset(channel: number) {
+	private sendReset(channel: number): void {
 		const frame = new BufferStream(3);
 		frame.writeUint8(FrameType.RESET);
 		frame.writeUint16(channel);
@@ -708,14 +698,14 @@ export class Socket extends EventEmitter {
 	/**
 	 * Helper function for all simple frames
 	 */
-	private sendControl(frame_type: number) {
+	private sendControl(frame_type: number): void {
 		this._send(new Uint8Array([frame_type]).buffer);
 	}
 
 	/**
 	 * Send a complete frame
 	 */
-	_send(frame: ArrayBuffer, seq: boolean = false) {
+	_send(frame: ArrayBuffer, seq: boolean = false): void {
 		// Ensure a maximum frame size
 		if (frame.byteLength > Protocol.PacketLimit) {
 			throw new Error("Frame size limit exceeded");
@@ -745,6 +735,24 @@ export class Socket extends EventEmitter {
 			this.ws.send(frame);
 		}
 	}
+
+	/**
+	 * Register a new channel open handler
+	 */
+	registerOpenHandler(channel_type: string, handler: ChannelOpenHandler): void {
+		if (this.open_handlers.has(channel_type)) {
+			throw new Error(`An open handler is already registered for channel type ${channel_type}`);
+		}
+
+		this.open_handlers.set(channel_type, handler);
+	}
+
+	/**
+	 * Unregister an open handler previously registered
+	 */
+	unregisterOpenHandler(channel_type: string): void {
+		this.open_handlers.delete(channel_type);
+	}
 }
 
 /**
@@ -770,10 +778,13 @@ export class Channel extends EventEmitter {
 	public state: ChannelState = ChannelState.Open;
 
 	// The id of the next outgoing request
-	private _next_rid = 0;
+	private requestid_pool: NumberPool = new NumberPool(Protocol.InflightRequests);
 
 	// Pending requests
 	private requests: Map<number, Deferred<any>> = new Map<number, Deferred<any>>();
+
+	// Default message flags
+	private default_flags: number = 0;
 
 	/**
 	 * @param socket       The underlying socket object
@@ -787,37 +798,17 @@ export class Channel extends EventEmitter {
 	}
 
 	/**
-	 * Generate the next request ID
-	 */
-	private next_request_id() {
-		// Save the current request ID
-		const id = this._next_rid;
-
-		// Ensure we have room to allocate a new ID
-		if (this.requests.size > 250) {
-			throw new Error("Cannot have more than 250 inflight request at the same time for a specific channel");
-		}
-
-		// Search the next free ID
-		do {
-			this._next_rid = (this._next_rid + 1) & 0xFF;
-		} while (this.requests.has(this._next_rid));
-
-		return id;
-	}
-
-	/**
 	 * Send a message without expecting a reply
 	 */
-	send(message: string, data: any = null, flags: number = 0) {
+	send(message: string, data: any = null, flags: number = this.default_flags): void {
 		this.sendMessage(message, data, flags, false);
 	}
 
 	/**
 	 * Send a request and expect a reply
 	 */
-	request<T>(request: string, data: any = null, flags: number = 0): Promise<T> {
-		const id = this.next_request_id();
+	request<T>(request: string, data: any = null, flags: number = this.default_flags): Promise<T> {
+		const id = this.requestid_pool.allocate();
 		this.sendMessage(request, data, flags, id);
 
 		const deferred = new Deferred<T>();
@@ -829,7 +820,7 @@ export class Channel extends EventEmitter {
 	/**
 	 * Close the channel and attempt to flush output buffer
 	 */
-	close() {
+	close(): void {
 		// Ensure we don't close the channel multiple times
 		if (this.state == ChannelState.Closed) return;
 		this.state = ChannelState.Closed;
@@ -842,7 +833,7 @@ export class Channel extends EventEmitter {
 	/**
 	 * Receive a channel specific frame
 	 */
-	_receive(frame_type: number, frame: BufferStream) {
+	_receive(frame_type: number, frame: BufferStream): void {
 		switch (frame_type) {
 			case FrameType.MESSAGE:
 				return this.receiveMessage(frame, false);
@@ -871,7 +862,7 @@ export class Channel extends EventEmitter {
 	 * uint8   flags
 	 * ...     payload
 	 */
-	private receiveMessage(frame: BufferStream, request: boolean) {
+	private receiveMessage(frame: BufferStream, request: boolean): void {
 		const message = frame.readString8();
 		const request_id = request ? frame.readUint8() : 0;
 		const payload = this.decodePayload<any>(frame);
@@ -886,7 +877,7 @@ export class Channel extends EventEmitter {
 	 * uint8   flags
 	 * ...     payload
 	 */
-	private receiveSuccess(frame: BufferStream) {
+	private receiveSuccess(frame: BufferStream): void {
 		const request_id = frame.readUint8();
 		if (!this.requests.has(request_id)) return;
 
@@ -906,7 +897,7 @@ export class Channel extends EventEmitter {
 	 * str16   message
 	 * ...     payload
 	 */
-	private receiveFailure(frame: BufferStream) {
+	private receiveFailure(frame: BufferStream): void {
 		const request_id = frame.readUint8();
 		if (!this.requests.has(request_id)) return;
 
@@ -930,7 +921,7 @@ export class Channel extends EventEmitter {
 	 * uint8   flags
 	 * ...     payload
 	 */
-	private sendMessage(message: string, data: any, flags: number, request: number | boolean) {
+	private sendMessage(message: string, data: any, flags: number, request: number | boolean): void {
 		const is_request = request !== false;
 		const header_length = is_request ? 8 : 7;
 		const message_buf = encoder.encode(message).buffer;
@@ -954,7 +945,7 @@ export class Channel extends EventEmitter {
 	 * uint16  sequence_id
 	 * uint16  recipient_channel
 	 */
-	private sendClose() {
+	private sendClose(): void {
 		const frame = new BufferStream(5);
 		frame.writeUint8(FrameType.CLOSE);
 		frame.skip(2);
@@ -976,7 +967,7 @@ export class Channel extends EventEmitter {
 
 		// Inflate compressed payload
 		if (flags & PayloadFlags.COMPRESS) {
-			payload = Pako.inflate(payload);
+			payload = inflate(payload);
 		}
 
 		// Decode UTF-8 data
@@ -995,7 +986,7 @@ export class Channel extends EventEmitter {
 	/**
 	 * Encode payload data and flags
 	 */
-	private encodePayload(data: any, flags: number = 0) {
+	private encodePayload(data: any, flags: number = 0): ArrayBuffer {
 		if (data && (data.buffer || data) instanceof ArrayBuffer) {
 			// Raw buffer
 			data = data.buffer || data;
@@ -1003,7 +994,7 @@ export class Channel extends EventEmitter {
 			// String
 			data = encoder.encode(data).buffer;
 			flags |= PayloadFlags.UTF8DATA;
-		} else if(data !== null && data !== void 0) {
+		} else if (data !== null && data !== void 0) {
 			// Any other type will simply be JSON-encoded
 			data = encoder.encode(JSON.stringify(data)).buffer;
 			flags |= PayloadFlags.JSONDATA;
@@ -1014,7 +1005,7 @@ export class Channel extends EventEmitter {
 			return new Uint8Array([PayloadFlags.IGNORE]).buffer;
 		} else if (flags & PayloadFlags.COMPRESS) {
 			// Deflate payload
-			data = Pako.deflate(data);
+			data = deflate(data);
 		}
 
 		const payload = new BufferStream(1 + data.byteLength);
@@ -1023,8 +1014,18 @@ export class Channel extends EventEmitter {
 
 		return payload.buffer();
 	}
+
+	/**
+	 * Tranform a message-based channel to a data-stream channel
+	 */
+	toStream(): Stream {
+		return new Stream(this);
+	}
 }
 
+/**
+ * Data stream over message channel implementation
+ */
 export class Stream extends EventEmitter {
 	constructor(private channel: Channel) {
 		super();
