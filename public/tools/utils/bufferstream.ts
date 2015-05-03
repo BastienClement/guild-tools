@@ -64,8 +64,8 @@ class BufferStream {
 	readBoolean() { return this.readUint8() != 0; }
 
 	// Write data
-	writeUint8(value: number) { return this.data.setUint8(value, this.skip(1)); }
-	writeInt8(value: number) { return this.data.setInt8(value, this.skip(1)); }
+	writeUint8(value: number) { return this.data.setUint8(this.skip(1), value); }
+	writeInt8(value: number) { return this.data.setInt8(this.skip(1), value); }
 	writeUint16(value: number, le?: boolean) { return this.data.setUint16(this.skip(2), value, le); }
 	writeInt16(value: number, le?: boolean) { return this.data.setInt16(this.skip(2), value, le); }
 	writeUint32(value: number, le?: boolean) { return this.data.setUint32(this.skip(4), value, le); }

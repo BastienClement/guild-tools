@@ -143,7 +143,7 @@ export class Socket extends EventEmitter {
 		}
 
 		// Create the websocket
-		var ws = this.ws = new WebSocket(this.url, "GTP3/WS");
+		var ws = this.ws = new WebSocket(this.url, "GTP3-WS");
 		ws.binaryType = "arraybuffer";
 
 		// Reconnect on error or socket closed

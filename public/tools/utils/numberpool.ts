@@ -9,13 +9,13 @@ class NumberPool {
 	}
 
 	canAllocate(): boolean {
-		return this.released.length || this.max < this.limit;
+		return this.released.length > 0 || this.max < this.limit;
 	}
 
 	allocate(): number {
 		let n: number;
 
-		if (this.released.length) {
+		if (this.released.length > 0) {
 			n = this.released.pop();
 		} else if (this.max < this.limit) {
 			n = ++this.max;

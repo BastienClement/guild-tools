@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<meta charset="UTF-8">
-	<title></title>
-	<script>var gt = null;</script>
-	<script src='@routes.Assets.versioned("/public", "guildtools.js")'></script>
-	<script>gt.loadClient();</script>
-</head>
-<body>
-
-</body>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<script src='@routes.Assets.versioned("/public", "javascripts/require.js")'></script>
+		<script src='@routes.Assets.versioned("/public", "tools/config.js")'></script>
+		<script>require(["client/main"],function(main){main();});</script>
+	</head>
+	<body>
+		<h1>Test</h1>
+	</body>
 </html>
