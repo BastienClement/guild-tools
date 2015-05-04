@@ -14,29 +14,29 @@ const decoder = new TextDecoder("utf-8");
  */
 const enum FrameType {
 	// Connection control
-	HELLO = 0xA0,
-	RESUME = 0xA1,
-	ACK = 0xA2,
-	BYE = 0xA3,
+	HELLO = 0x10,
+	RESUME = 0x11,
+	ACK = 0x12,
+	BYE = 0x13,
 
 	// Connection messages
-	IGNORE = 0xB0,
-	PING = 0xB1,
-	PONG = 0xB2,
-	ACK_REQ = 0xB3,
+	IGNORE = 0x20,
+	PING = 0x21,
+	PONG = 0x22,
+	ACK_REQ = 0x23,
 
 	// Channel control
-	OPEN = 0xC0,
-	OPEN_SUCCESS = 0xC1,
-	OPEN_FAILURE = 0xC2,
-	CLOSE = 0xC3,
-	RESET = 0xC4,
+	OPEN = 0x30,
+	OPEN_SUCCESS = 0x31,
+	OPEN_FAILURE = 0x32,
+	CLOSE = 0x33,
+	RESET = 0x34,
 
 	// Channel messages
-	MESSAGE = 0xD0,
-	REQUEST = 0xD1,
-	SUCCESS = 0xD2,
-	FAILURE = 0xD3
+	MESSAGE = 0x40,
+	REQUEST = 0x41,
+	SUCCESS = 0x42,
+	FAILURE = 0x43
 }
 
 /**
