@@ -1,6 +1,6 @@
 package controllers
 
-import actors.{CompressedSocketHandler, SocketHandler}
+import actors.{GTP3Socket, CompressedSocketHandler, SocketHandler}
 import akka.actor.Props
 import play.api.Play.current
 import play.api.libs.json.JsValue
@@ -23,6 +23,10 @@ object Application extends Controller {
 
 	def socket_z = WebSocket.acceptWithActor[Array[Byte], Array[Byte]] { request => out =>
 		Props(new CompressedSocketHandler(out, request.remoteAddress))
+	}
+
+	def gtp3 = WebSocket.acceptWithActor[Array[Byte], Array[Byte]] { request => out =>
+		Props(new GTP3Socket(out, request))
 	}
 
 	def test = Action {
