@@ -208,6 +208,11 @@ export class Socket extends EventEmitter {
 	 * Handle reconnection logic
 	 */
 	private reconnect(): void {
+		// Check if socket is already closed
+		if (this.state === SocketState.Closed) {
+			return;
+		}
+
 		// Transition from Ready to Reconnecting
 		if (this.state == SocketState.Ready) {
 			this.state = SocketState.Reconnecting;
@@ -230,7 +235,7 @@ export class Socket extends EventEmitter {
 	/**
 	 * Close the socket and send the BYE message
 	 */
-	close(code: number = 0, reason: string = ""): void {
+	close(code: number = 3000, reason: string = ""): void {
 		// Ensure the socket is not closed more than once
 		if (this.state == SocketState.Closed) return;
 		this.state = SocketState.Closed;

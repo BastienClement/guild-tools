@@ -1,4 +1,5 @@
 import { Socket } from "core/gtp3";
+import EventEmitter from "utils/eventemitter";
 
 function main() {
 	/*Pace.once("hide", function() {
@@ -16,6 +17,7 @@ function main() {
 	console.log("Hello world");
 
 	var sock = new Socket("ws://localhost:9000/gtp3");
+	sock._eventemitter_debug = true;
 	sock.connect();
 }
 
