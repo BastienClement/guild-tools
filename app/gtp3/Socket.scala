@@ -1,46 +1,13 @@
-package actors
+package gtp3
 
-import java.io.{ByteArrayOutputStream, DataOutputStream, DataInputStream, ByteArrayInputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 
-import akka.actor.{PoisonPill, Actor, ActorRef}
+import akka.actor.{Actor, ActorRef, PoisonPill}
+import gtp3.Opcodes._
 import play.api.mvc.RequestHeader
 
 import scala.annotation.switch
 import scala.util.Random
-
-import GTP3._
-
-private object GTP3 {
-	final val PROTOCOL_MAGIC = 0x47545033
-
-	// Connection control
-	final val HELLO = 0x10
-	final val RESUME = 0x11
-	final val ACK = 0x12
-	final val BYE = 0x13
-
-	// Connection messages
-	final val IGNORE = 0x20
-	final val PING = 0x21
-	final val PONG = 0x22
-	final val ACK_REQ = 0x23
-
-	// Channel control
-	final val OPEN = 0x30
-	final val OPEN_SUCCESS = 0x31
-	final val OPEN_FAILURE = 0x32
-	final val CLOSE = 0x33
-	final val RESET = 0x34
-
-	// Channel messages
-	final val MESSAGE = 0x40
-	final val REQUEST = 0x41
-	final val SUCCESS = 0x42
-	final val FAILURE = 0x43
-
-	private val rand = new Random()
-	def nextSocketID = rand.nextLong()
-}
 
 object GTP3Frame {
 	def apply(buffer: Array[Byte]) = new GTP3ReadableFrame(buffer)
@@ -73,9 +40,7 @@ class GTP3WritableFrame(val opcode: Byte) extends GTP3Frame {
 	}
 }
 
-object ProtocolError extends Throwable
-
-class GTP3Socket(val output: ActorRef, val request: RequestHeader) extends Actor {
+class Socket(val id: Long) {
 	def receive = {
 		case input: Array[Byte] =>
 			try {
@@ -114,14 +79,14 @@ class GTP3Socket(val output: ActorRef, val request: RequestHeader) extends Actor
 
 	def hello(frame: GTP3ReadableFrame) = {
 		val magic_number = frame.nextInt
-		if (magic_number != PROTOCOL_MAGIC)
+		if (magic_number != GTP3.PROTOCOL_MAGIC)
 			throw ProtocolError
 
 		val id = GTP3.nextSocketID
 		println(id)
 
 		val out = GTP3Frame(HELLO)
-		out.write(PROTOCOL_MAGIC)
+		out.write(GTP3.PROTOCOL_MAGIC)
 		out.write(id)
 
 		output ! out.buffer

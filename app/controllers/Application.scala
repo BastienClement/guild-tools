@@ -1,7 +1,8 @@
 package controllers
 
-import actors.{GTP3Socket, CompressedSocketHandler, SocketHandler}
+import actors.{CompressedSocketHandler, SocketHandler}
 import akka.actor.Props
+import gtp3.GTP3Socket
 import play.api.Play.current
 import play.api.libs.json.JsValue
 import play.api.mvc.{Action, Controller, WebSocket}
