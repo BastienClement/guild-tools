@@ -2,7 +2,7 @@ package gtp3
 
 import java.nio._
 
-abstract class DataParser {
+abstract class DataParser[T] {
 	var then: Option[DataParser] = None
 
 	def ~(dp: DataParser): DataParser = {
