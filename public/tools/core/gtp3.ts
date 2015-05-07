@@ -404,6 +404,7 @@ export class Socket extends EventEmitter {
 	 * uint32  magic_number
 	 * uint32  socket_id_hi
 	 * uint32  socket_id_lo
+	 * bool    reset
 	 */
 	private receiveHello(frame: BufferStream): void {
 		const magic_number = frame.readUint32();
@@ -414,6 +415,9 @@ export class Socket extends EventEmitter {
 		this.id_high = frame.readUint32();
 		this.id_low = frame.readUint32();
 
+		const reset = frame.readBoolean();
+		if (reset) this.reset();
+
 		this.ready();
 	}
 
@@ -422,6 +426,9 @@ export class Socket extends EventEmitter {
 	 * uint16  last_received_id
 	 */
 	private receiveResume(frame: BufferStream): void {
+		if (this.state != SocketState.Open)
+			return this.protocolError();
+
 		const seq_last = frame.readUint16();
 
 		// Treat the resume message as an acknowledgment
@@ -758,6 +765,26 @@ export class Socket extends EventEmitter {
 	unregisterOpenHandler(channel_type: string): void {
 		this.open_handlers.delete(channel_type);
 	}
+
+	/**
+	 * Reconnected to the server, but unable to restore context
+	 */
+	private reset() {
+		// Send reset on channels
+		this.channels.forEach(c => c._reset());
+
+		// Clear own state
+		this.channels.clear();
+		this.channels_pending.clear();
+		this.channelid_pool.clear();
+		this.in_seq = 0;
+		this.out_seq = 0;
+		this.out_ack = 0;
+		this.out_buffer.clear();
+
+		// Emit reset event
+		this.emit("resync");
+	}
 }
 
 /**
@@ -1025,6 +1052,15 @@ export class Channel extends EventEmitter {
 	 */
 	toStream(): Stream {
 		return new Stream(this);
+	}
+
+	/**
+	 * Called by the Socket when Reset occur
+	 */
+	_reset(): void {
+		this.emit("reset");
+		this.emit("closed");
+		this.state = ChannelState.Closed;
 	}
 }
 

@@ -33,6 +33,12 @@ class NumberPool {
 			this.released.push(n);
 		}
 	}
+
+	clear(): void {
+		this.max = 0;
+		this.allocated.clear();
+		this.released.length = 0;
+	}
 }
 
 export default NumberPool;
