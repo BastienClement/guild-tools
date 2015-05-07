@@ -1,30 +1,26 @@
-interface TaggedFunction extends Function {
-	_once: boolean;
-}
-
 class EventEmitter {
 	// Flag controlling output of debug informations
 	public _eventemitter_debug: boolean = false;
 
 	// Registered event handlers
-	private listeners: Map<string, Set<TaggedFunction>> = new Map<string, Set<TaggedFunction>>();
+	private listeners: Map<string, Set<Function>> = new Map<string, Set<Function>>();
 
 	/**
 	 * Register an event handler to be called when the event is dispatched
 	 */
 	on(event: string, cb: Function): void {
 		if (!this.listeners.has(event)) {
-			this.listeners.set(event, new Set<TaggedFunction>());
+			this.listeners.set(event, new Set<Function>());
 		}
 
-		this.listeners.get(event).add(<TaggedFunction> cb);
+		this.listeners.get(event).add(cb);
 	}
 
 	/**
 	 * Same as on() but the event handler is called only once
 	 */
 	once(event: string, cb: Function): void {
-		(<TaggedFunction> cb)._once = true;
+		(<any>cb).__ee_once = true;
 		this.on(event, cb);
 	}
 
@@ -40,7 +36,7 @@ class EventEmitter {
 
 		if (cb) {
 			// Remove a specifc handler
-			this.listeners.get(event).delete(<TaggedFunction> cb);
+			this.listeners.get(event).delete(cb);
 		} else {
 			// Remove all handlers
 			this.listeners.delete(event);
@@ -70,7 +66,7 @@ class EventEmitter {
 			cb.apply(null, args);
 
 			// Delete 'once'-handlers
-			if (cb._once) {
+			if ((<any>cb).__ee_once) {
 				cb_set.delete(cb);
 			}
 		});
