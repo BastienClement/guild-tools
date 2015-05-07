@@ -4,8 +4,9 @@ object Opcodes {
 	// Connection control
 	final val HELLO = 0x10
 	final val RESUME = 0x11
-	final val ACK = 0x12
-	final val BYE = 0x13
+	final val RESYNC = 0x12
+	final val ACK = 0x13
+	final val BYE = 0x14
 
 	// Connection messages
 	final val IGNORE = 0x20
