@@ -19,7 +19,9 @@ libraryDependencies ++= Seq(
 	"org.webjars" % "es6-shim" % "0.20.2",
 	"org.webjars" % "showdown" % "0.3.1",
 	"org.webjars" % "momentjs" % "2.9.0",
-	"org.webjars" % "angular-moment" % "0.9.0"
+	"org.webjars" % "angular-moment" % "0.9.0",
+	"org.scodec" %% "scodec-core" % "1.7.0",
+	"org.scodec" %% "scodec-bits" % "1.0.5"
 )
 
 //pipelineStages := Seq(uglify, digest, gzip)
