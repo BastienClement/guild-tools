@@ -33,7 +33,7 @@ export const enum FrameType {
 	OPEN = 0x30,
 	OPEN_SUCCESS = 0x31,
 	OPEN_FAILURE = 0x32,
-	DESTROY = 0x34,
+	DESTROY = 0x33,
 
 	// Channel messages
 	MESSAGE = 0x40,
