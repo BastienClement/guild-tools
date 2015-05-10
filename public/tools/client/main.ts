@@ -2,6 +2,8 @@ import { Socket } from "gtp3/socket";
 import { EventEmitter } from "utils/eventemitter";
 import { HelloFrame, HandshakeFrame, Frame } from "gtp3/frames";
 
+declare var sock: any;
+
 function main() {
 	/*Pace.once("hide", function() {
 	 load();
@@ -17,7 +19,7 @@ function main() {
 
 	console.log("Hello world");
 
-	var sock = new Socket("ws://localhost:9000/gtp3");
+	sock = new Socket("ws://localhost:9000/gtp3");
 	sock._eventemitter_debug = true;
 	sock.connect();
 }

@@ -212,7 +212,7 @@ export class HelloFrame extends Frame {
 @frame(FrameType.HANDSHAKE)
 export class HandshakeFrame extends Frame {
 	@uint32  magic: number;
-	@str     version: number;
+	@str     version: string;
 	@uint64  sockid: UInt64;
 }
 

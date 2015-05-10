@@ -7,28 +7,25 @@ import scodec.Attempt.Successful
 import scodec.DecodeResult
 import scodec.bits.BitVector
 
-case class OutProxy(sock: Socket) {
-	def !(message: BitVector) = {
-		if (sock.isOpen) sock.actor.out ! message.toByteArray
-	}
-}
-
 class Socket(val id: Long, var actor: SocketActor) {
 	// Socket state
 	private var open = true
-	def isOpen = open
 
 	// Safe proxy to actor.out
 	object out {
-		def !(message: BitVector) = {
-			if (isOpen) actor.out ! message.toByteArray
+		def !(frame: Frame) = {
+			if (open) actor.out ! Frame.encode(frame).toByteArray
 		}
 	}
 
-	out ! Frame.encode(HandshakeFrame(GTP3Magic, Global.serverVersion, id))
+	out ! HandshakeFrame(GTP3Magic, Global.serverVersion, id)
 
-	def receive(buffer: Array[Byte]) = {
-		println(Frame.decode(buffer))
+	def receive(buffer: Array[Byte]) = Frame.decode(buffer) match {
+		case CommandFrame(c) => command(c)
+	}
+
+	def command(code: Int) = code match {
+		case CommandCode.PING => out ! CommandFrame(CommandCode.PONG)
 	}
 
 	def rebind(a: SocketActor, last_seq: Int) = {
