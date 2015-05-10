@@ -27,7 +27,7 @@ object Application extends Controller {
 	}
 
 	def gtp3 = WebSocket.acceptWithActor[Array[Byte], Array[Byte]] { request => out =>
-		Props(new SocketActor(out, request))
+		Props(new SocketActor(out, request.remoteAddress))
 	}
 
 	def test = Action {

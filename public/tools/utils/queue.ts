@@ -1,4 +1,4 @@
-class Queue<T> {
+export class Queue<T> {
 	// The data store array
 	private queue: T[] = [];
 
@@ -79,5 +79,3 @@ class Queue<T> {
 		return this;
 	}
 }
-
-export default Queue;

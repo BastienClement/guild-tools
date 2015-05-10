@@ -31,4 +31,9 @@ class Timeout(d: FiniteDuration)(body: => Unit) {
 		cancel()
 		start()
 	}
+
+	def trigger(): Unit = {
+		cancel()
+		body
+	}
 }

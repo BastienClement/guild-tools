@@ -1,17 +1,18 @@
-import { Socket } from "core/gtp3";
-import EventEmitter from "utils/eventemitter";
+import { Socket } from "gtp3/socket";
+import { EventEmitter } from "utils/eventemitter";
+import { HelloFrame, HandshakeFrame, Frame } from "gtp3/frames";
 
 function main() {
 	/*Pace.once("hide", function() {
-		load();
+	 load();
 
-		Pace.on("start", function() {
-			$("#app-menu-icon").css("opacity", 0.3);
-		});
+	 Pace.on("start", function() {
+	 $("#app-menu-icon").css("opacity", 0.3);
+	 });
 
-		Pace.on("hide", function() {
-			$("#app-menu-icon").css("opacity", 1);
-		});
+	 Pace.on("hide", function() {
+	 $("#app-menu-icon").css("opacity", 1);
+	 });
 	});*/
 
 	console.log("Hello world");

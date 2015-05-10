@@ -1,3 +1,4 @@
+
 interface TextEncoder {
 	encoding: string;
 	encode(buffer: string, options?: { stream: boolean }): Uint8Array;
@@ -15,3 +16,4 @@ declare var TextEncoder: {
 declare var TextDecoder: {
 	new(encoding: string): TextDecoder;
 };
+

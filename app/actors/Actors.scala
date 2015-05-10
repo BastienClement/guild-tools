@@ -23,6 +23,7 @@ object Actors {
 	val ComposerService = initActor[ComposerService, ComposerServiceImpl]("ComposerService")
 	val Dispatcher = initActor[Dispatcher, DispatcherImpl]("Dispatcher")
 	val RosterService = initActor[RosterService, RosterServiceImpl]("RosterService")
+	val SocketManager = initActor[SocketManager, SocketManagerImpl]("SocketManager")
 
 	object Implicits {
 		implicit def FutureBoxing[T](v: T): Future[T] = Future.successful(v)

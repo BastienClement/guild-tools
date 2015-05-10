@@ -1,7 +1,7 @@
-import Queue from "queue";
+import { Queue } from "utils/queue";
 
-class NumberPool {
-	private max: number = 0;
+export class NumberPool {
+	private max: number = 1;
 	private allocated: Set<number> = new Set<number>();
 	private released: Array<number> = [];
 
@@ -35,10 +35,8 @@ class NumberPool {
 	}
 
 	clear(): void {
-		this.max = 0;
+		this.max = 1;
 		this.allocated.clear();
 		this.released.length = 0;
 	}
 }
-
-export default NumberPool;

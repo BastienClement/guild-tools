@@ -1,4 +1,4 @@
-class EventEmitter {
+export class EventEmitter {
 	// Flag controlling output of debug informations
 	public _eventemitter_debug: boolean = false;
 
@@ -72,5 +72,3 @@ class EventEmitter {
 		});
 	}
 }
-
-export default EventEmitter;
