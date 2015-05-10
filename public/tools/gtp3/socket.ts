@@ -204,9 +204,9 @@ export class Socket extends EventEmitter {
 	/**
 	 * Put the socket back in ready state
 	 */
-	private ready(): void {
+	private ready(version: string = null): void {
 		this.state = SocketState.Ready;
-		this.emit("ready");
+		this.emit("ready", version);
 	}
 
 	/**
@@ -322,7 +322,7 @@ export class Socket extends EventEmitter {
 		if (this.id !== UInt64.Zero) this.reset();
 		this.id = frame.sockid;
 
-		this.ready();
+		this.ready(frame.version);
 	}
 
 	private receiveSync(frame: SyncFrame): void {

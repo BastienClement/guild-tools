@@ -19,7 +19,7 @@ class SocketActor(val out: ActorRef, val remote: String) extends Actor {
 	var socket: Socket = null
 
 	// Instantly kill socket if too many are being created from one IP address
-	if (SocketManager.accept(this)) {
+	if (!SocketManager.accept(this)) {
 		self ! PoisonPill
 	}
 
@@ -29,7 +29,7 @@ class SocketActor(val out: ActorRef, val remote: String) extends Actor {
 	def receive = {
 		case buffer: Array[Byte] => {
 			// Parse the handshake frame
-			val status = Frame.decode(buffer).fold(_ => BindingFailed, _.value match {
+			val status = Frame.decode(buffer) match {
 				// Create a new socket for this client
 				case HelloFrame(magic, version) =>
 					if (magic == GTP3Magic) SocketManager.allocate(this)
@@ -40,21 +40,22 @@ class SocketActor(val out: ActorRef, val remote: String) extends Actor {
 
 				// Bad stuff
 				case _ => BindingFailed
-			})
+			}
 
 			// Timeout to prevent a bug in SocketManager to keep the socket open
 			val kill = Timeout(15.seconds) {
 				self ! PoisonPill
 			}
 
-			context.become(pending)
+			val ctx = context
+			ctx.become(pending)
 			kill.start()
 
 			status onComplete {
 				case Success(s) =>
 					kill.cancel()
 					socket = s
-					context.become(bound)
+					ctx.become(bound)
 
 				case Failure(_) =>
 					kill.trigger()

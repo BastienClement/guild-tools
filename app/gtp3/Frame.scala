@@ -25,6 +25,12 @@ sealed trait PayloadFrame {
 	val payload: ByteVector
 }
 
+case class BadFrame() extends Frame
+object BadFrame {
+	implicit val discriminator = Discriminator[Frame, BadFrame, Int](0xFF)
+	implicit val codec = fail(Err.General("", Nil)).as[BadFrame]
+}
+
 case class HelloFrame(magic: Int, version: String) extends Frame
 object HelloFrame {
 	implicit val discriminator = Discriminator[Frame, HelloFrame, Int](FrameType.HELLO)
@@ -135,5 +141,6 @@ object CloseFrame {
 object Frame {
 	implicit val discriminated = Discriminated[Frame, Int](uint8)
 	val codec = Codec.coproduct[Frame].auto.asInstanceOf[Codec[Frame]]
-	def decode(buffer: Array[Byte]) = codec.decode(BitVector(buffer))
+	def decode(buffer: Array[Byte]) = codec.decode(BitVector(buffer)).fold(_ => BadFrame(), res => res.value)
+	def encode(frame: Frame) = codec.encode(frame).require
 }

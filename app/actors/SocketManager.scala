@@ -73,6 +73,13 @@ class SocketManagerImpl extends SocketManager {
 	 * Rebind a socket to the given actor and return this socket
 	 */
 	def rebind(actor: SocketActor, id: Long, seq: Int): Future[Socket] = {
-		???
+		sockets.get(id) match {
+			case Some(socket) =>
+				socket.rebind(actor, seq)
+				socket
+
+			case None =>
+				allocate(actor)
+		}
 	}
 }
