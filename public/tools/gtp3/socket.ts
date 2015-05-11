@@ -37,6 +37,7 @@ interface SequencedFrame {
 export interface ChannelRequest {
 	channel_type: string;
 	token: string;
+	channel?: Channel;
 	accept(data?: ArrayBuffer): void;
 	reject(code?: number, reason?: string): void;
 	replied(): boolean;
@@ -402,6 +403,9 @@ export class Socket extends EventEmitter {
 			// The open token
 			token: frame.token,
 
+			// The channel, once the request is accepted
+			channel: null,
+
 			// Accept the open request
 			accept: () => {
 				if (request_replied) throw new Error();
@@ -425,7 +429,7 @@ export class Socket extends EventEmitter {
 				// Release the channel ID on close
 				channel.on("closed", () => this.channelid_pool.release(id));
 
-				return channel;
+				return request.channel = channel;
 			},
 
 			// Reject the open request
@@ -440,7 +444,7 @@ export class Socket extends EventEmitter {
 			}
 		};
 
-		if (frame.parent_channel) {
+		if (frame.parent_channel != 0) {
 			const channel = this.channels.get(frame.parent_channel);
 			if (!channel) {
 				console.error("Undefined parent channel");
