@@ -4,7 +4,7 @@ import { EventEmitter } from "utils/eventemitter";
 import { Deferred } from "utils/deferred";
 import { NumberPool } from "gtp3/numberpool";
 import { FrameType, Protocol, CommandCode } from "gtp3/protocol";
-import { Socket } from "gtp3/socket";
+import { Socket, ChannelRequest, ChannelOpenDelegate } from "gtp3/socket";
 import { Stream } from "gtp3/stream";
 import { UTF8Encoder, UTF8Decoder } from "gtp3/codecs";
 import { Frame, MessageFrame, RequestFrame, SuccessFrame, FailureFrame, CloseFrame } from "gtp3/frames";
@@ -36,7 +36,7 @@ interface PayloadFrame {
  * An object used to handle messages and requests
  */
 interface ChannelDelegate {
-	[key: string]: Function;
+	(key: string): (payload: any) => any;
 }
 
 /**
@@ -58,7 +58,10 @@ export class Channel extends EventEmitter {
 	private requests: Map<number, Deferred<any>> = new Map<number, Deferred<any>>();
 
 	// The object used to handle channel messages and requests
-	private delegate: ChannelDelegate = null;
+	private message_delegate: ChannelDelegate = null;
+
+	// The object used to handle channel messages and requests
+	private open_delegate: ChannelOpenDelegate = null;
 
 	// Default message flags
 	private default_flags: number = 0;
@@ -78,7 +81,7 @@ export class Channel extends EventEmitter {
 	 * Register this channel's delegate
 	 */
 	registerDelegate(delegate: ChannelDelegate) {
-		this.delegate = delegate;
+		this.message_delegate = delegate;
 	}
 
 	/**
@@ -111,6 +114,20 @@ export class Channel extends EventEmitter {
 		const deferred = new Deferred<T>();
 		this.requests.set(id, deferred);
 		return deferred.promise;
+	}
+
+	/**
+	 * Open a new sub-channel
+	 */
+	openChannel(channel_type: string, token: string = ""): Promise<Channel> {
+		return this.socket.openChannel(channel_type, token, this.remote_id);
+	}
+
+	/**
+	 * Open a new byte stream on a sub-channel
+	 */
+	openStream(stream_type: string, token: string = ""): Promise<Stream> {
+		return this.socket.openStream(stream_type, token, this.remote_id);
 	}
 
 	/**
@@ -150,7 +167,7 @@ export class Channel extends EventEmitter {
 
 	private receiveMessage(frame: MessageFrame | RequestFrame, request: boolean): void {
 		// Fetch message handler
-		const handler = this.delegate && this.delegate[frame.message];
+		const handler = this.message_delegate && this.message_delegate(frame.message);
 		const req_id = (frame instanceof RequestFrame) ? frame.request : 0;
 		if (!handler) {
 			if (request) {
@@ -162,8 +179,9 @@ export class Channel extends EventEmitter {
 
 		const payload = this.decodePayload(frame);
 		try {
-			const results = handler(payload);
-			if (typeof results.then == "function") {
+			let results = handler(payload);
+			if (results === undefined) results = null;
+			if (results && typeof results.then == "function") {
 				(<PromiseLike<any>> results).then(
 					res => this.sendSuccess(req_id, res),
 					err => this.sendFailure(req_id, err.message)
@@ -285,5 +303,22 @@ export class Channel extends EventEmitter {
 		this.emit("reset");
 		this.emit("closed");
 		this.state = ChannelState.Closed;
+	}
+
+	/**
+	 * Sub-channel open request emitter
+	 */
+	_openRequest(request: ChannelRequest): void {
+		if (this.open_delegate) {
+			try {
+				this.open_delegate(request);
+				if (!request.replied()) throw null;
+			} catch (e) {
+				console.error("Channel creation failed", e);
+				request.reject(1, "Channel initialization impossible");
+			}
+		} else {
+			this.emit("channel-open", request);
+		}
 	}
 }

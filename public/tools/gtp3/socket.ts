@@ -34,16 +34,19 @@ interface SequencedFrame {
 /**
  * A request to open a channel from the server
  */
-interface ChannelRequest {
+export interface ChannelRequest {
+	channel_type: string;
+	token: string;
 	accept(data?: ArrayBuffer): void;
 	reject(code?: number, reason?: string): void;
+	replied(): boolean;
 }
 
 /**
  * A function to call for a specific channel type open request
  */
-interface ChannelOpenHandler {
-	(request: ChannelRequest, token: string): void;
+export interface ChannelOpenDelegate {
+	(request: ChannelRequest): void;
 }
 
 /**
@@ -83,7 +86,7 @@ export class Socket extends EventEmitter {
 	public latency: number = 0;
 
 	// Channel open handlers
-	private open_handlers: Map<string, ChannelOpenHandler> = new Map<string, ChannelOpenHandler>();
+	private open_delegate: ChannelOpenDelegate = null;
 
 	/**
 	 * @param url The remote server to connect to
@@ -240,8 +243,8 @@ export class Socket extends EventEmitter {
 	/**
 	 * Open a new byte stream on this socket
 	 */
-	openStream(stream_type: string, token: string = ""): Promise<Stream> {
-		return this.openChannel(stream_type, token).then((channel) => new Stream(channel));
+	openStream(stream_type: string, token: string = "", parent: number = 0): Promise<Stream> {
+		return this.openChannel(stream_type, token, parent).then(channel => new Stream(channel));
 	}
 
 	/**
@@ -266,7 +269,7 @@ export class Socket extends EventEmitter {
 	}
 
 	/**
-	 * Receive a new frame
+	 * Receive a new frame, dispatch
 	 */
 	private receive(buf: ArrayBuffer): void {
 		const frame: any = Frame.decode(buf);
@@ -315,6 +318,9 @@ export class Socket extends EventEmitter {
 		}
 	}
 
+	/**
+	 * Handshake message, socket is ready
+	 */
 	private receiveHandshake(frame: HandshakeFrame): void {
 		if (this.state != SocketState.Open || frame.magic != Protocol.GTP3)
 			return this.protocolError();
@@ -325,6 +331,9 @@ export class Socket extends EventEmitter {
 		this.ready(frame.version);
 	}
 
+	/**
+	 * Resync the socket with the server
+	 */
 	private receiveSync(frame: SyncFrame): void {
 		if (this.state != SocketState.Open)
 			return this.protocolError();
@@ -340,6 +349,9 @@ export class Socket extends EventEmitter {
 		this.ready();
 	}
 
+	/**
+	 * Received a ACK from the server, clean outgoing queue
+	 */
 	private receiveAck(frame: AckFrame): void {
 		const seq = frame.last_seq;
 		// Dequeue while the frame sequence id is less or equal to the acknowledged one
@@ -358,6 +370,9 @@ export class Socket extends EventEmitter {
 		this.out_ack = seq;
 	}
 
+	/**
+	 * Protocol command
+	 */
 	private receiveCommand(frame: CommandFrame): void {
 		switch (frame.command) {
 			case CommandCode.PING:
@@ -373,10 +388,21 @@ export class Socket extends EventEmitter {
 		}
 	}
 
+	/**
+	 * Channel open request
+	 */
 	private receiveOpen(frame: OpenFrame): void {
 		const sender_channel = frame.sender_channel;
 		let request_replied = false;
+
 		const request: ChannelRequest = {
+			// The requested channel type
+			channel_type: frame.channel_type,
+
+			// The open token
+			token: frame.token,
+
+			// Accept the open request
 			accept: () => {
 				if (request_replied) throw new Error();
 
@@ -402,27 +428,41 @@ export class Socket extends EventEmitter {
 				return channel;
 			},
 
+			// Reject the open request
 			reject: (code: number, reason: string) => {
 				if (request_replied) return;
 				request_replied = true;
 				this._send(Frame.encode(OpenFailureFrame, 0, sender_channel, code, reason), true);
+			},
+
+			replied: () => {
+				return request_replied;
 			}
 		};
 
-		if (this.open_handlers.has(frame.channel_type)) {
-			this.emit("channel-open-managed", request);
+		if (frame.parent_channel) {
+			const channel = this.channels.get(frame.parent_channel);
+			if (!channel) {
+				console.error("Undefined parent channel");
+				request.reject(2, "Undefined parent channel");
+			}
+			channel._openRequest(request);
+		} else if (this.open_delegate) {
 			try {
-				this.open_handlers.get(frame.channel_type)(request, frame.token);
+				this.open_delegate(request);
 				if (!request_replied) throw null;
 			} catch (e) {
 				console.error("Channel creation failed", e);
 				request.reject(1, "Channel initialization impossible");
 			}
 		} else {
-			this.emit("channel-open", frame.channel_type, request);
+			this.emit("channel-open", request);
 		}
 	}
 
+	/**
+	 * Channel successfully open
+	 */
 	private receiveOpenSuccess(frame: OpenSuccessFrame): void {
 		const channel_id = frame.recipient_channel;
 
@@ -434,6 +474,9 @@ export class Socket extends EventEmitter {
 		deferred.resolve(channel);
 	}
 
+	/**
+	 * Failure to open a channel
+	 */
 	private receiveOpenFailure(frame: OpenFailureFrame): void {
 		const channel_id = frame.recipient_channel;
 
@@ -446,6 +489,9 @@ export class Socket extends EventEmitter {
 		deferred.reject(error);
 	}
 
+	/**
+	 * Destroy a server-side undefined channel
+	 */
 	private receiveDestroy(frame: DestroyFrame): void {
 		// Close any channel matching the DESTROY message
 		this.channels.forEach(channel => {
@@ -514,19 +560,8 @@ export class Socket extends EventEmitter {
 	/**
 	 * Register a new channel open handler
 	 */
-	registerOpenHandler(channel_type: string, handler: ChannelOpenHandler): void {
-		if (this.open_handlers.has(channel_type)) {
-			throw new Error(`An open handler is already registered for channel type ${channel_type}`);
-		}
-
-		this.open_handlers.set(channel_type, handler);
-	}
-
-	/**
-	 * Unregister an open handler previously registered
-	 */
-	unregisterOpenHandler(channel_type: string): void {
-		this.open_handlers.delete(channel_type);
+	registerOpenDelegate(delegate: ChannelOpenDelegate): void {
+		this.open_delegate = delegate;
 	}
 
 	/**
