@@ -82,6 +82,9 @@ export class Socket extends EventEmitter {
 	// Reconnect attempts counter
 	private retry_count: number = 0;
 
+	// Limit the number of REQUEST_ACK commands
+	private request_ack_cooldown: number = 0;
+
 	// Last ping time
 	private ping_time: number = 0;
 	public latency: number = 0;
@@ -540,10 +543,16 @@ export class Socket extends EventEmitter {
 		if (seq) {
 			// Check the size of the output buffer
 			const out_buffer_len = this.out_buffer.length();
-			if (out_buffer_len > Protocol.BufferHardLimit) {
+			if (out_buffer_len >= Protocol.BufferHardLimit) {
 				throw new Error("Output buffer is full");
-			} else if (out_buffer_len > Protocol.BufferSoftLimit) {
-				this.sendCommand(CommandCode.REQUEST_ACK);
+			} else if (out_buffer_len >= Protocol.BufferSoftLimit) {
+				if (this.request_ack_cooldown <= 0) {
+					this.sendCommand(CommandCode.REQUEST_ACK);
+					this.request_ack_cooldown = Protocol.RequestAckCooldown;
+					this.channels.forEach(chan => chan._pause(out_buffer_len));
+				} else {
+					--this.request_ack_cooldown;
+				}
 			}
 
 			// Compute the next sequence number

@@ -321,4 +321,11 @@ export class Channel extends EventEmitter {
 			this.emit("channel-open", request);
 		}
 	}
+
+	/**
+	 * Emit the Pause event when buffer grow
+	 */
+	_pause(buffer_size: number): void {
+		this.emit("pause", buffer_size);
+	}
 }
