@@ -358,6 +358,7 @@ export class Socket extends EventEmitter {
 	 */
 	private receiveAck(frame: AckFrame): void {
 		const seq = frame.last_seq;
+
 		// Dequeue while the frame sequence id is less or equal to the acknowledged one
 		// Also dequeue if the frame is simply greater than the last acknowledgment, this handle
 		// the wrap-around case
@@ -546,12 +547,10 @@ export class Socket extends EventEmitter {
 			if (out_buffer_len >= Protocol.BufferHardLimit) {
 				throw new Error("Output buffer is full");
 			} else if (out_buffer_len >= Protocol.BufferSoftLimit) {
-				if (this.request_ack_cooldown <= 0) {
+				if (--this.request_ack_cooldown <= 0) {
 					this.sendCommand(CommandCode.REQUEST_ACK);
 					this.request_ack_cooldown = Protocol.RequestAckCooldown;
 					this.channels.forEach(chan => chan._pause(out_buffer_len));
-				} else {
-					--this.request_ack_cooldown;
 				}
 			}
 

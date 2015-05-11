@@ -10,10 +10,13 @@ private object g {
 	val buf = variableSizeBytes(uint16, bytes)
 }
 
-sealed trait Frame
+sealed trait Frame {
+	def ifSequenced(thunk: (SequencedFrame) => Unit) = {}
+}
 
-sealed trait SequencedFrame {
-	val seq: Int
+sealed trait SequencedFrame extends Frame{
+	var seq: Int
+	override def ifSequenced(thunk: (SequencedFrame) => Unit) = thunk(this)
 }
 
 sealed trait ChannelFrame extends SequencedFrame {
@@ -79,20 +82,20 @@ object CommandFrame {
 	implicit val codec = uint16.as[CommandFrame]
 }
 
-case class OpenFrame(seq: Int, sender_channel: Int,
+case class OpenFrame(var seq: Int, sender_channel: Int,
 		channel_type: String, token: String, parent_channel: Int) extends Frame with SequencedFrame
 object OpenFrame {
 	implicit val discriminator = Discriminator[Frame, OpenFrame, Int](FrameType.OPEN)
 	implicit val codec = (uint16 :: uint16 :: g.str :: g.str :: uint16).as[OpenFrame]
 }
 
-case class OpenSuccessFrame(seq: Int, recipient_channel: Int, sender_channel: Int) extends Frame with SequencedFrame
+case class OpenSuccessFrame(var seq: Int, recipient_channel: Int, sender_channel: Int) extends Frame with SequencedFrame
 object OpenSuccessFrame {
 	implicit val discriminator = Discriminator[Frame, OpenSuccessFrame, Int](FrameType.OPEN_SUCCESS)
 	implicit val codec = (uint16 :: uint16 :: uint16).as[OpenSuccessFrame]
 }
 
-case class OpenFailureFrame(seq: Int, recipient_channel: Int, code: Int, message: String) extends Frame with SequencedFrame
+case class OpenFailureFrame(var seq: Int, recipient_channel: Int, code: Int, message: String) extends Frame with SequencedFrame
 object OpenFailureFrame {
 	implicit val discriminator = Discriminator[Frame, OpenFailureFrame, Int](FrameType.OPEN_FAILURE)
 	implicit val codec = (uint16 :: uint16 :: uint16 :: g.str).as[OpenFailureFrame]
@@ -104,35 +107,35 @@ object DestroyFrame {
 	implicit val codec = uint16.as[DestroyFrame]
 }
 
-case class MessageFrame(seq: Int, channel: Int,
+case class MessageFrame(var seq: Int, channel: Int,
 		message: String, flags: Int, payload: ByteVector) extends Frame with ChannelFrame with PayloadFrame
 object MessageFrame {
 	implicit val discriminator = Discriminator[Frame, MessageFrame, Int](FrameType.MESSAGE)
 	implicit val codec = (uint16 :: uint16 :: g.str :: uint16 :: g.buf).as[MessageFrame]
 }
 
-case class RequestFrame(seq: Int, channel: Int,
+case class RequestFrame(var seq: Int, channel: Int,
 		request: String, id: Int, flags: Int, payload: ByteVector) extends Frame with ChannelFrame with PayloadFrame
 object RequestFrame {
 	implicit val discriminator = Discriminator[Frame, RequestFrame, Int](FrameType.REQUEST)
 	implicit val codec = (uint16 :: uint16 :: g.str :: uint16 :: uint16 :: g.buf).as[RequestFrame]
 }
 
-case class SuccessFrame(seq: Int, channel: Int,
+case class SuccessFrame(var seq: Int, channel: Int,
 		request: Int, flags: Int, payload: ByteVector) extends Frame with ChannelFrame with PayloadFrame
 object SuccessFrame {
 	implicit val discriminator = Discriminator[Frame, SuccessFrame, Int](FrameType.SUCCESS)
 	implicit val codec = (uint16 :: uint16 :: uint16 :: uint16 :: g.buf).as[SuccessFrame]
 }
 
-case class FailureFrame(seq: Int, channel: Int,
+case class FailureFrame(var seq: Int, channel: Int,
 		request: Int, code: Int, message: String) extends Frame with ChannelFrame
 object FailureFrame {
 	implicit val discriminator = Discriminator[Frame, FailureFrame, Int](FrameType.FAILURE)
 	implicit val codec = (uint16 :: uint16 :: uint16 :: uint16 :: g.str).as[FailureFrame]
 }
 
-case class CloseFrame(seq: Int, channel: Int, code: Int, message: String) extends Frame with ChannelFrame
+case class CloseFrame(var seq: Int, channel: Int, code: Int, message: String) extends Frame with ChannelFrame
 object CloseFrame {
 	implicit val discriminator = Discriminator[Frame, CloseFrame, Int](FrameType.CLOSE)
 	implicit val codec = (uint16 :: uint16 :: uint16 :: g.str).as[CloseFrame]
