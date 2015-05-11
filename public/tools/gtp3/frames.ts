@@ -170,6 +170,7 @@ function codec(codec: Codec<any>) {
 	};
 }
 
+// Short versions
 const bool = codec(Codecs.bool);
 const uint8 = codec(Codecs.uint8);
 const uint16 = codec(Codecs.uint16);
@@ -184,8 +185,20 @@ const buf = codec(Codecs.buffer);
  * Also define the Frame#sequenced property on the object
  */
 function seq(target: Frame, key: string) {
-	if (key != "seq") throw new Error("@seq property must be called 'seq'");
+	// Ensure the @seq property is named 'seq'
+	if (key != "seq") {
+		throw new Error("@seq property must be called 'seq'");
+	}
+
+	// Apply the sub-codec
 	uint16(target, key);
+
+	// Ensure that the seq field is the first one defined
+	if (target.__codecs.length != 1) {
+		throw new Error("@seq property must be the first one defined");
+	}
+
+	// Tag the frame as sequenced
 	target.sequenced = true;
 }
 
@@ -194,8 +207,20 @@ function seq(target: Frame, key: string) {
  * Also define the Frame#channel_frame property on the object
  */
 function channel(target: Frame, key: string) {
-	if (key != "channel") throw new Error("@channel property must be called 'channel'");
+	// Ensure the @channel property is named 'channel'
+	if (key != "channel") {
+		throw new Error("@channel property must be called 'channel'");
+	}
+
+	// Apply the sub-codec
 	uint16(target, key);
+
+	// Ensure that the @channel field is defined right after @seq
+	if (target.__codecs.length != 2 || target.__codecs[0].key != "seq") {
+		throw new Error("@channel property must be defined right after @seq");
+	}
+
+	// Tag the frame as a channel frame
 	target.channel_frame = true;
 }
 
