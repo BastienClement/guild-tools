@@ -6,20 +6,22 @@ import scala.collection.mutable
 import scala.concurrent.Future
 import actors.Actors.Implicits._
 import gtp3.{Socket, SocketActor}
+import utils.Timeout
+import scala.concurrent.duration._
 
 trait SocketManager {
 	def accept(actor: SocketActor): Boolean
 	def disconnected(actor: SocketActor): Unit
-
 	def allocate(actor: SocketActor): Future[Socket]
 	def rebind(actor: SocketActor, id: Long, seq: Int): Future[Socket]
-
-	def close(socket: Socket): Unit
 }
 
 class SocketManagerImpl extends SocketManager {
 	// Open sockets
 	private val sockets = mutable.Map[Long, Socket]()
+
+	// Close timeouts
+	private val timeouts = mutable.Map[Long, Timeout]()
 
 	// Counter of open socket for each origin
 	private val remote_count = mutable.Map[String, Int]()
@@ -60,6 +62,14 @@ class SocketManagerImpl extends SocketManager {
 			if (count == 1) remote_count.remove(remote)
 			else remote_count(remote) = count - 1
 		}
+
+		val socket = actor.socket
+		if (socket == null) return
+
+		val timeout = Timeout(2.minutes) { close(socket) }
+		timeouts += (socket.id -> timeout)
+
+		timeout.start()
 	}
 
 	/**
@@ -68,6 +78,7 @@ class SocketManagerImpl extends SocketManager {
 	def allocate(actor: SocketActor): Future[Socket] = {
 		val id = nextSocketID
 		val socket = new Socket(id, actor)
+		sockets += (id -> socket)
 		socket
 	}
 
@@ -78,6 +89,10 @@ class SocketManagerImpl extends SocketManager {
 		sockets.get(id) match {
 			case Some(socket) if !socket.isDead =>
 				socket.rebind(actor, seq)
+				for (timeout <- timeouts.get(socket.id)) {
+					timeout.cancel()
+					timeouts.remove(socket.id)
+				}
 				socket
 
 			case _ =>
@@ -88,5 +103,9 @@ class SocketManagerImpl extends SocketManager {
 	/**
 	 * Unregister the socket if left detached for too long
 	 */
-	def close(socket: Socket): Unit = sockets.remove(socket.id)
+	def close(socket: Socket): Unit = {
+		sockets.remove(socket.id)
+		timeouts.remove(socket.id)
+		socket.closed()
+	}
 }

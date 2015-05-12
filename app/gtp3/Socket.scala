@@ -43,12 +43,6 @@ class Socket(val id: Long, var actor: SocketActor) {
 	// Limit the number of emitter REQUEST_ACK commands
 	private var request_ack_cooldown = 0
 
-	// Timeout to destroy the socket if left
-	private val detachTimeout = Timeout(2.minutes) {
-		dead = true
-		SocketManager.close(this)
-	}
-
 	/**
 	 * Overloaded output helper
 	 */
@@ -104,7 +98,7 @@ class Socket(val id: Long, var actor: SocketActor) {
 			case RequestAckFrame() => out ! AckFrame(in_seq)
 
 			case f: ByeFrame => receiveBye(f)
-			case _: IgnoreFrame => /* ignore */
+			case f: IgnoreFrame => /* ignore */
 
 			case f: OpenFrame => receiveOpen(f)
 			case f: OpenSuccessFrame => receiveOpenSuccess(f)
@@ -170,7 +164,7 @@ class Socket(val id: Long, var actor: SocketActor) {
 	private def receiveOpen(frame: OpenFrame) = {
 		val request = new ChannelRequest(frame.channel_type, frame.token) {
 			def accept(): Channel = {
-				if (replied) ???
+				if (replied) throw new Exception()
 
 				val id = channelid_pool.next
 				val channel = new Channel(Socket.this, id, frame.sender_channel)
@@ -183,8 +177,7 @@ class Socket(val id: Long, var actor: SocketActor) {
 			}
 
 			def reject(code: Int, message: String): Unit = {
-				if (replied) ???
-
+				if (replied) return
 				_replied = true
 				out ! OpenFailureFrame(0, frame.sender_channel, code, message)
 			}
@@ -202,13 +195,18 @@ class Socket(val id: Long, var actor: SocketActor) {
 		}
 	}
 
+	private[gtp3] def channelClosed(channel: Channel) = {
+		val id = channel.id
+		channels.remove(id)
+		channelid_pool.release(id)
+	}
+
 	/**
 	 * Rebind a detached socket
 	 */
 	def rebind(a: SocketActor, last_seq: Int) = {
 		attached = true
 		actor = a
-		detachTimeout.cancel()
 		out ! SyncFrame(in_seq)
 	}
 
@@ -218,6 +216,9 @@ class Socket(val id: Long, var actor: SocketActor) {
 	def detach() = {
 		attached = false
 		actor = null
-		detachTimeout.start()
+	}
+
+	def closed() = {
+
 	}
 }
