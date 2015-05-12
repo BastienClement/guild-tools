@@ -266,10 +266,14 @@ export class ByeFrame extends Frame {
 @frame(FrameType.IGNORE)
 export class IgnoreFrame extends Frame {}
 
-@frame(FrameType.COMMAND)
-export class CommandFrame extends Frame {
-	@uint16  command: number;
-}
+@frame(FrameType.PING)
+export class PingFrame extends Frame {}
+
+@frame(FrameType.PONG)
+export class PongFrame extends Frame {}
+
+@frame(FrameType.REQUEST_ACK)
+export class RequestAckFrame extends Frame {}
 
 @frame(FrameType.OPEN)
 export class OpenFrame extends Frame {

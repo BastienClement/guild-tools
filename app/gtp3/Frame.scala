@@ -1,6 +1,6 @@
 package gtp3
 
-import scodec.{Codec, _}
+import scodec._
 import scodec.bits.{BitVector, ByteVector}
 import scodec.codecs._
 
@@ -76,10 +76,19 @@ object IgnoreFrame {
 	implicit val codec = bytes.as[IgnoreFrame]
 }
 
-case class CommandFrame(op: Int) extends Frame
-object CommandFrame {
-	implicit val discriminator = Discriminator[Frame, CommandFrame, Int](FrameType.COMMAND)
-	implicit val codec = uint16.as[CommandFrame]
+case class PingFrame() extends Frame
+object PingFrame {
+	implicit val discriminator = Discriminator[Frame, PingFrame, Int](FrameType.PING)
+}
+
+case class PongFrame() extends Frame
+object PongFrame {
+	implicit val discriminator = Discriminator[Frame, PongFrame, Int](FrameType.PONG)
+}
+
+case class RequestAckFrame() extends Frame
+object RequestAckFrame {
+	implicit val discriminator = Discriminator[Frame, RequestAckFrame, Int](FrameType.REQUEST_ACK)
 }
 
 case class OpenFrame(var seq: Int, sender_channel: Int,

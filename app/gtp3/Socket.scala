@@ -65,7 +65,7 @@ class Socket(val id: Long, var actor: SocketActor) {
 					throw new Exception("Output buffer is full")
 				} else if (buf_len > 16) {
 					if (request_ack_cooldown <= 0) {
-						this ! CommandFrame(CommandCode.REQUEST_ACK)
+						this ! RequestAckFrame()
 						request_ack_cooldown = 3
 					} else {
 						request_ack_cooldown -= 1
@@ -98,7 +98,10 @@ class Socket(val id: Long, var actor: SocketActor) {
 		// Dispatch
 		frame match {
 			case AckFrame(last_seq) => ack(last_seq)
-			case CommandFrame(c) => command(c)
+
+			case PingFrame() => out ! PongFrame()
+			case PongFrame() =>
+			case RequestAckFrame() => out ! AckFrame(in_seq)
 
 			case f: ByeFrame => receiveBye(f)
 			case _: IgnoreFrame => /* ignore */
@@ -160,13 +163,6 @@ class Socket(val id: Long, var actor: SocketActor) {
 		out_ack = seq
 	}
 
-	/**
-	 * Execute commands
-    */
-	private def command(code: Int) = code match {
-		case CommandCode.PING => out ! CommandFrame(CommandCode.PONG)
-	}
-
 	private def receiveBye(frame: ByeFrame) = {
 
 	}
@@ -177,7 +173,7 @@ class Socket(val id: Long, var actor: SocketActor) {
 				if (replied) ???
 
 				val id = channelid_pool.next
-				val channel = new Channel(this[Socket], id, frame.sender_channel)
+				val channel = new Channel(Socket.this, id, frame.sender_channel)
 
 				_replied = true
 				channels += (id -> channel)
@@ -188,7 +184,7 @@ class Socket(val id: Long, var actor: SocketActor) {
 
 			def reject(code: Int, message: String): Unit = {
 				if (replied) ???
-				
+
 				_replied = true
 				out ! OpenFailureFrame(0, frame.sender_channel, code, message)
 			}

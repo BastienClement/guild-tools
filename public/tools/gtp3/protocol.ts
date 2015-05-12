@@ -28,27 +28,20 @@ export const enum FrameType {
 
 	// Connection messages
 	IGNORE = 0x20,
-	COMMAND = 0x21,
+	PING = 0x21,
+	PONG = 0x22,
+	REQUEST_ACK = 0x23,
 
 	// Channel control
-	OPEN = 0x30,
-	OPEN_SUCCESS = 0x31,
-	OPEN_FAILURE = 0x32,
-	RESET = 0x33,
+	OPEN = 0x60,
+	OPEN_SUCCESS = 0x61,
+	OPEN_FAILURE = 0x62,
+	RESET = 0x63,
 
 	// Channel messages
-	MESSAGE = 0x40,
-	REQUEST = 0x41,
-	SUCCESS = 0x42,
-	FAILURE = 0x43,
-	CLOSE = 0x44
-}
-
-/**
- * Command codes
- */
-export const enum CommandCode {
-	PING = 0x01,
-	PONG = 0x02,
-	REQUEST_ACK = 0x03
+	MESSAGE = 0x70,
+	REQUEST = 0x71,
+	SUCCESS = 0x72,
+	FAILURE = 0x73,
+	CLOSE = 0x74
 }

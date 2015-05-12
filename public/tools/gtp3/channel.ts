@@ -3,7 +3,7 @@ import { deflate, inflate } from "pako";
 import { EventEmitter } from "utils/eventemitter";
 import { Deferred } from "utils/deferred";
 import { NumberPool } from "gtp3/numberpool";
-import { FrameType, Protocol, CommandCode } from "gtp3/protocol";
+import { FrameType, Protocol } from "gtp3/protocol";
 import { Socket, ChannelRequest, ChannelOpenDelegate } from "gtp3/socket";
 import { Stream } from "gtp3/stream";
 import { UTF8Encoder, UTF8Decoder } from "gtp3/codecs";

@@ -6,11 +6,11 @@ import { Channel } from "gtp3/channel";
 import { Stream } from "gtp3/stream";
 import { NumberPool } from "gtp3/numberpool";
 import { UInt64 } from "gtp3/bufferstream";
-import { FrameType, Protocol, CommandCode } from "gtp3/protocol";
+import { FrameType, Protocol } from "gtp3/protocol";
 import { UTF8Encoder, UTF8Decoder } from "gtp3/codecs";
 
-import { Frame, HelloFrame, ResumeFrame, HandshakeFrame, SyncFrame, AckFrame, ByeFrame, CommandFrame,
-	OpenFrame, OpenSuccessFrame, OpenFailureFrame, ResetFrame } from "gtp3/frames";
+import { Frame, HelloFrame, ResumeFrame, HandshakeFrame, SyncFrame, AckFrame, ByeFrame, PingFrame, PongFrame,
+	RequestAckFrame, OpenFrame, OpenSuccessFrame, OpenFailureFrame, ResetFrame } from "gtp3/frames";
 
 /**
  * States of the socket
@@ -221,7 +221,7 @@ export class Socket extends EventEmitter {
 	 */
 	ping(): void {
 		this.ping_time = performance.now();
-		this.sendCommand(CommandCode.PING);
+		this._send(Frame.encode(PingFrame));
 	}
 
 	/**
@@ -302,8 +302,15 @@ export class Socket extends EventEmitter {
 			case FrameType.IGNORE:
 				return;
 
-			case FrameType.COMMAND:
-				return this.receiveCommand(frame);
+			case FrameType.PING:
+				return this._send(Frame.encode(PingFrame));
+
+			case FrameType.PONG:
+				this.latency = performance.now() - this.ping_time;
+				return this.emit("latency", this.latency);
+
+			case FrameType.REQUEST_ACK:
+				return this._send(Frame.encode(AckFrame, this.in_seq));
 
 			case FrameType.OPEN:
 				return this.receiveOpen(frame);
@@ -373,24 +380,6 @@ export class Socket extends EventEmitter {
 
 		// Save the sequence number as the last one received
 		this.out_ack = seq;
-	}
-
-	/**
-	 * Protocol command
-	 */
-	private receiveCommand(frame: CommandFrame): void {
-		switch (frame.command) {
-			case CommandCode.PING:
-				return this.sendCommand(CommandCode.PONG);
-
-			case CommandCode.PONG:
-				this.latency = performance.now() - this.ping_time;
-				this.emit("latency", this.latency);
-				return;
-
-			case CommandCode.REQUEST_ACK:
-				return this._send(Frame.encode(AckFrame, this.in_seq));
-		}
 	}
 
 	/**
@@ -525,13 +514,6 @@ export class Socket extends EventEmitter {
 	}
 
 	/**
-	 * Helper function for all simple frames
-	 */
-	private sendCommand(command: number): void {
-		this._send(Frame.encode(CommandFrame, command));
-	}
-
-	/**
 	 * Send a complete frame
 	 */
 	_send(frame: ArrayBuffer, seq: boolean = false): void {
@@ -548,7 +530,7 @@ export class Socket extends EventEmitter {
 				throw new Error("Output buffer is full");
 			} else if (out_buffer_len >= Protocol.BufferSoftLimit) {
 				if (--this.request_ack_cooldown <= 0) {
-					this.sendCommand(CommandCode.REQUEST_ACK);
+					this._send(Frame.encode(RequestAckFrame));
 					this.request_ack_cooldown = Protocol.RequestAckCooldown;
 					this.channels.forEach(chan => chan._pause(out_buffer_len));
 				}
