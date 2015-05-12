@@ -101,10 +101,10 @@ object OpenFailureFrame {
 	implicit val codec = (uint16 :: uint16 :: uint16 :: g.str).as[OpenFailureFrame]
 }
 
-case class DestroyFrame(sender_channel: Int) extends Frame
-object DestroyFrame {
-	implicit val discriminator = Discriminator[Frame, DestroyFrame, Int](FrameType.DESTROY)
-	implicit val codec = uint16.as[DestroyFrame]
+case class ResetFrame(sender_channel: Int) extends Frame
+object ResetFrame {
+	implicit val discriminator = Discriminator[Frame, ResetFrame, Int](FrameType.RESET)
+	implicit val codec = uint16.as[ResetFrame]
 }
 
 case class MessageFrame(var seq: Int, channel: Int,

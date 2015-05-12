@@ -9,10 +9,12 @@ import gtp3.{Socket, SocketActor}
 
 trait SocketManager {
 	def accept(actor: SocketActor): Boolean
-	def closed(actor: SocketActor): Unit
+	def disconnected(actor: SocketActor): Unit
 
 	def allocate(actor: SocketActor): Future[Socket]
 	def rebind(actor: SocketActor, id: Long, seq: Int): Future[Socket]
+
+	def close(socket: Socket): Unit
 }
 
 class SocketManagerImpl extends SocketManager {
@@ -52,7 +54,7 @@ class SocketManagerImpl extends SocketManager {
 	/**
 	 * Decrement the socket counter for this origin
 	 */
-	def closed(actor: SocketActor): Unit = {
+	def disconnected(actor: SocketActor): Unit = {
 		val remote = actor.remote
 		for (count <- remote_count.get(remote)) {
 			if (count == 1) remote_count.remove(remote)
@@ -74,12 +76,17 @@ class SocketManagerImpl extends SocketManager {
 	 */
 	def rebind(actor: SocketActor, id: Long, seq: Int): Future[Socket] = {
 		sockets.get(id) match {
-			case Some(socket) =>
+			case Some(socket) if !socket.isDead =>
 				socket.rebind(actor, seq)
 				socket
 
-			case None =>
+			case _ =>
 				allocate(actor)
 		}
 	}
+
+	/**
+	 * Unregister the socket if left detached for too long
+	 */
+	def close(socket: Socket): Unit = sockets.remove(socket.id)
 }

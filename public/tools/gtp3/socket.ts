@@ -10,7 +10,7 @@ import { FrameType, Protocol, CommandCode } from "gtp3/protocol";
 import { UTF8Encoder, UTF8Decoder } from "gtp3/codecs";
 
 import { Frame, HelloFrame, ResumeFrame, HandshakeFrame, SyncFrame, AckFrame, ByeFrame, CommandFrame,
-	OpenFrame, OpenSuccessFrame, OpenFailureFrame, DestroyFrame } from "gtp3/frames";
+	OpenFrame, OpenSuccessFrame, OpenFailureFrame, ResetFrame } from "gtp3/frames";
 
 /**
  * States of the socket
@@ -220,7 +220,7 @@ export class Socket extends EventEmitter {
 	 * Send a PING message and compute RTT latency
 	 */
 	ping(): void {
-		this.ping_time = Date.now();
+		this.ping_time = performance.now();
 		this.sendCommand(CommandCode.PING);
 	}
 
@@ -314,8 +314,8 @@ export class Socket extends EventEmitter {
 			case FrameType.OPEN_FAILURE:
 				return this.receiveOpenFailure(frame);
 
-			case FrameType.DESTROY:
-				return this.receiveDestroy(frame);
+			case FrameType.RESET:
+				return this.receiveReset(frame);
 
 			default:
 				this.protocolError();
@@ -384,7 +384,7 @@ export class Socket extends EventEmitter {
 				return this.sendCommand(CommandCode.PONG);
 
 			case CommandCode.PONG:
-				this.latency = Date.now() - this.ping_time;
+				this.latency = performance.now() - this.ping_time;
 				this.emit("latency", this.latency);
 				return;
 
@@ -475,7 +475,7 @@ export class Socket extends EventEmitter {
 		const channel_id = frame.recipient_channel;
 
 		const deferred = this.channels_pending.get(channel_id);
-		if (!deferred) return this._send(Frame.encode(DestroyFrame, channel_id));
+		if (!deferred) return this._send(Frame.encode(ResetFrame, channel_id));
 		this.channels_pending.delete(channel_id);
 
 		const channel = new Channel(this, channel_id, frame.sender_channel);
@@ -489,7 +489,7 @@ export class Socket extends EventEmitter {
 		const channel_id = frame.recipient_channel;
 
 		const deferred = this.channels_pending.get(channel_id);
-		if (!deferred) return this._send(Frame.encode(DestroyFrame, channel_id));
+		if (!deferred) return this._send(Frame.encode(ResetFrame, channel_id));
 		this.channels_pending.delete(channel_id);
 
 		const error: any = new Error(frame.message);
@@ -500,10 +500,10 @@ export class Socket extends EventEmitter {
 	/**
 	 * Destroy a server-side undefined channel
 	 */
-	private receiveDestroy(frame: DestroyFrame): void {
+	private receiveReset(frame: ResetFrame): void {
 		// Close any channel matching the DESTROY message
 		this.channels.forEach(channel => {
-			if (channel.remote_id == frame.sender_channel) channel.close(-1, "Socket destroyed");
+			if (channel.remote_id == frame.sender_channel) channel._reset();
 		});
 	}
 
@@ -512,7 +512,7 @@ export class Socket extends EventEmitter {
 	 */
 	private receiveChannelFrame(frame: Frame): void {
 		const channel = this.channels.get(frame.channel);
-		if (!channel) return this._send(Frame.encode(DestroyFrame, frame.channel));
+		if (!channel) return this._send(Frame.encode(ResetFrame, frame.channel));
 		channel._receive(frame);
 	}
 
@@ -593,6 +593,6 @@ export class Socket extends EventEmitter {
 		this.out_buffer.clear();
 
 		// Emit reset event
-		this.emit("resync");
+		this.emit("reset");
 	}
 }

@@ -83,6 +83,6 @@ class SocketActor(val out: ActorRef, val remote: String) extends Actor {
 	 */
 	override def postStop(): Unit = {
 		if (socket != null) socket.detach()
-		SocketManager.closed(this)
+		SocketManager.disconnected(this)
 	}
 }

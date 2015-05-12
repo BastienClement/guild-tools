@@ -1,11 +1,11 @@
 import { Queue } from "utils/queue";
 
 export class NumberPool {
-	private max: number = 1;
+	private max: number = 0;
 	private allocated: Set<number> = new Set<number>();
 	private released: Array<number> = [];
 
-	constructor(private limit: number = 65535) {
+	constructor(private limit: number = 0xFFFF) {
 	}
 
 	canAllocate(): boolean {

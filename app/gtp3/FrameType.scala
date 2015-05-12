@@ -17,7 +17,7 @@ object FrameType {
 	final val OPEN = 0x30
 	final val OPEN_SUCCESS = 0x31
 	final val OPEN_FAILURE = 0x32
-	final val DESTROY = 0x33
+	final val RESET = 0x33
 
 	// Channel messages
 	final val MESSAGE = 0x40

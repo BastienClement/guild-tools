@@ -295,8 +295,8 @@ export class OpenFailureFrame extends Frame {
 	@str     message: string;
 }
 
-@frame(FrameType.DESTROY)
-export class DestroyFrame extends Frame {
+@frame(FrameType.RESET)
+export class ResetFrame extends Frame {
 	@uint16  sender_channel: number;
 }
 

@@ -1,13 +1,18 @@
 package gtp3
 
+import utils.Timeout
+
 import scala.annotation.tailrec
 import scala.collection.mutable
+import scala.concurrent.Future
 import scala.util.Success
 import akka.actor.{ActorPath, ActorRef}
 import gt.Global
 import scodec.Attempt.Successful
 import scodec.DecodeResult
+import scala.concurrent.duration._
 import scodec.bits.BitVector
+import actors.Actors._
 
 class DuplicatedFrame extends Exception
 
@@ -17,6 +22,10 @@ class Socket(val id: Long, var actor: SocketActor) {
 
 	// Socket state
 	private var attached = true
+	def isAttached = attached
+
+	private var dead = false
+	def isDead = dead
 
 	// Incoming sequence id
 	private var in_seq = 0
@@ -26,8 +35,19 @@ class Socket(val id: Long, var actor: SocketActor) {
 	private var out_ack = 0
 	private val out_buffer = mutable.Queue[SequencedFrame]()
 
+	// Channels
+	private val channels = mutable.Map[Int, Channel]()
+	private val channels_pending = mutable.Map[Int, Future[Channel]]()
+	private val channelid_pool = new NumberPool()
+
 	// Limit the number of emitter REQUEST_ACK commands
 	private var request_ack_cooldown = 0
+
+	// Timeout to destroy the socket if left
+	private val detachTimeout = Timeout(2.minutes) {
+		dead = true
+		SocketManager.close(this)
+	}
 
 	/**
 	 * Overloaded output helper
@@ -79,6 +99,17 @@ class Socket(val id: Long, var actor: SocketActor) {
 		frame match {
 			case AckFrame(last_seq) => ack(last_seq)
 			case CommandFrame(c) => command(c)
+
+			case f: ByeFrame => receiveBye(f)
+			case _: IgnoreFrame => /* ignore */
+
+			case f: OpenFrame => receiveOpen(f)
+			case f: OpenSuccessFrame => receiveOpenSuccess(f)
+			case f: OpenFailureFrame => receiveOpenFailure(f)
+			case f: ResetFrame => receiveReset(f)
+
+			case f: ChannelFrame => receiveChannelFrame(f)
+
 			case _ => println("Unknown frame", frame)
 		}
 	} catch {
@@ -88,7 +119,7 @@ class Socket(val id: Long, var actor: SocketActor) {
 	/**
 	 * Handle sequenced frames acknowledgments
 	 */
-	def handleSequenced(frame: SequencedFrame) = {
+	private def handleSequenced(frame: SequencedFrame) = {
 		// The seuqence number for this frame
 		val seq = frame.seq
 
@@ -109,7 +140,7 @@ class Socket(val id: Long, var actor: SocketActor) {
 	/**
 	 * Handle received acknowledgments
 	 */
-	def ack(seq: Int) = {
+	private def ack(seq: Int) = {
 		// Dequeue while the frame sequence id is less or equal to the acknowledged one
 		// Also dequeue if the frame is simply greater than the last acknowledgment, this handle
 		// the wrap-around case
@@ -132,8 +163,47 @@ class Socket(val id: Long, var actor: SocketActor) {
 	/**
 	 * Execute commands
     */
-	def command(code: Int) = code match {
+	private def command(code: Int) = code match {
 		case CommandCode.PING => out ! CommandFrame(CommandCode.PONG)
+	}
+
+	private def receiveBye(frame: ByeFrame) = {
+
+	}
+
+	private def receiveOpen(frame: OpenFrame) = {
+		val request = new ChannelRequest(frame.channel_type, frame.token) {
+			def accept(): Channel = {
+				if (replied) ???
+
+				val id = channelid_pool.next
+				val channel = new Channel(this[Socket], id, frame.sender_channel)
+
+				_replied = true
+				channels += (id -> channel)
+				out ! OpenSuccessFrame(0, frame.sender_channel, id)
+
+				channel
+			}
+
+			def reject(code: Int, message: String): Unit = {
+				if (replied) ???
+				
+				_replied = true
+				out ! OpenFailureFrame(0, frame.sender_channel, code, message)
+			}
+		}
+	}
+
+	private def receiveOpenSuccess(frame: OpenSuccessFrame) = {}
+	private def receiveOpenFailure(frame: OpenFailureFrame) = {}
+	private def receiveReset(frame: ResetFrame) = {}
+
+	private def receiveChannelFrame(frame: ChannelFrame) = {
+		channels.get(frame.channel) match {
+			case Some(channel) => channel.receive(frame)
+			case None => out ! ResetFrame(frame.channel)
+		}
 	}
 
 	/**
@@ -142,6 +212,7 @@ class Socket(val id: Long, var actor: SocketActor) {
 	def rebind(a: SocketActor, last_seq: Int) = {
 		attached = true
 		actor = a
+		detachTimeout.cancel()
 		out ! SyncFrame(in_seq)
 	}
 
@@ -151,5 +222,6 @@ class Socket(val id: Long, var actor: SocketActor) {
 	def detach() = {
 		attached = false
 		actor = null
+		detachTimeout.start()
 	}
 }
