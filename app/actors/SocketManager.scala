@@ -66,7 +66,7 @@ class SocketManagerImpl extends SocketManager {
 		val socket = actor.socket
 		if (socket == null) return
 
-		val timeout = Timeout(2.minutes) { close(socket) }
+		val timeout = Timeout(15.seconds) { if (!socket.isAttached) close(socket) }
 		timeouts += (socket.id -> timeout)
 
 		timeout.start()
@@ -87,7 +87,7 @@ class SocketManagerImpl extends SocketManager {
 	 */
 	def rebind(actor: SocketActor, id: Long, seq: Int): Future[Socket] = {
 		sockets.get(id) match {
-			case Some(socket) if !socket.isDead =>
+			case Some(socket) =>
 				socket.rebind(actor, seq)
 				for (timeout <- timeouts.get(socket.id)) {
 					timeout.cancel()

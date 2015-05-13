@@ -4,7 +4,7 @@ import { EventEmitter } from "utils/eventemitter";
 import { Deferred } from "utils/deferred";
 import { NumberPool } from "gtp3/numberpool";
 import { FrameType, Protocol } from "gtp3/protocol";
-import { Socket, ChannelRequest, ChannelOpenDelegate } from "gtp3/socket";
+import { Socket, ChannelRequest, ChannelDelegate } from "gtp3/socket";
 import { Stream } from "gtp3/stream";
 import { UTF8Encoder, UTF8Decoder } from "gtp3/codecs";
 import { Frame, MessageFrame, RequestFrame, SuccessFrame, FailureFrame, CloseFrame } from "gtp3/frames";
@@ -33,13 +33,6 @@ interface PayloadFrame {
 }
 
 /**
- * An object used to handle messages and requests
- */
-interface ChannelDelegate {
-	(key: string): (payload: any) => any;
-}
-
-/**
  * A shared zero-byte array buffer
  */
 const EmptyBuffer = new ArrayBuffer(0);
@@ -47,7 +40,7 @@ const EmptyBuffer = new ArrayBuffer(0);
 /**
  * Channel implementation
  */
-export class Channel extends EventEmitter {
+export class Channel {
 	// Current channel state
 	public state: ChannelState = ChannelState.Open;
 
@@ -57,31 +50,14 @@ export class Channel extends EventEmitter {
 	// Pending requests
 	private requests: Map<number, Deferred<any>> = new Map<number, Deferred<any>>();
 
-	// The object used to handle channel messages and requests
-	private message_delegate: ChannelDelegate = null;
-
-	// The object used to handle channel messages and requests
-	private open_delegate: ChannelOpenDelegate = null;
-
 	// Default message flags
 	private default_flags: number = 0;
 
-	/**
-	 * @param socket       The underlying socket object
-	 * @param local_id     Local ID of this channel
-	 * @param remote_id    Remote ID for this channel
-	 */
 	constructor(public socket: Socket,
 	            public local_id: number,
-	            public remote_id: number) {
-		super();
-	}
-
-	/**
-	 * Register this channel's delegate
-	 */
-	registerDelegate(delegate: ChannelDelegate) {
-		this.message_delegate = delegate;
+	            public remote_id: number,
+	            private delegate: ChannelDelegate) {
+		delegate.channel = this;
 	}
 
 	/**
@@ -119,16 +95,16 @@ export class Channel extends EventEmitter {
 	/**
 	 * Open a new sub-channel
 	 */
-	openChannel(channel_type: string, token: string = ""): Promise<Channel> {
-		return this.socket.openChannel(channel_type, token, this.remote_id);
+	openChannel(channel_type: string, delegate: ChannelDelegate, token: string = ""): Promise<Channel> {
+		return this.socket.openChannel(channel_type, delegate, token, this.remote_id);
 	}
 
 	/**
 	 * Open a new byte stream on a sub-channel
 	 */
-	openStream(stream_type: string, token: string = ""): Promise<Stream> {
+	/*openStream(stream_type: string, token: string = ""): Promise<Stream> {
 		return this.socket.openStream(stream_type, token, this.remote_id);
-	}
+	}*/
 
 	/**
 	 * Close the channel and attempt to flush output buffer
@@ -140,7 +116,9 @@ export class Channel extends EventEmitter {
 
 		// Send close message to remote and local listeners
 		this.socket._send(Frame.encode(CloseFrame, 0, code, reason), true);
-		this.emit("closed");
+		this.delegate.closed(code, reason);
+
+		this.socket._channelClosed(this);
 	}
 
 	/**
@@ -149,10 +127,8 @@ export class Channel extends EventEmitter {
 	_receive(frame: any): void {
 		switch (frame.frame_type) {
 			case FrameType.MESSAGE:
-				return this.receiveMessage(frame, false);
-
 			case FrameType.REQUEST:
-				return this.receiveMessage(frame, true);
+				return this.receiveMessage(frame);
 
 			case FrameType.SUCCESS:
 				return this.receiveSuccess(frame);
@@ -165,32 +141,27 @@ export class Channel extends EventEmitter {
 		}
 	}
 
-	private receiveMessage(frame: MessageFrame | RequestFrame, request: boolean): void {
-		// Fetch message handler
-		const handler = this.message_delegate && this.message_delegate(frame.message);
+	private receiveMessage(frame: MessageFrame | RequestFrame): void {
 		const req_id = (frame instanceof RequestFrame) ? frame.request : 0;
-		if (!handler) {
-			if (request) {
-				// If it's a request, send a failure frame
-				this.sendFailure(req_id, "Undefined request handler");
-			}
-			return;
-		}
-
 		const payload = this.decodePayload(frame);
-		try {
-			let results = handler(payload);
-			if (results === undefined) results = null;
-			if (results && typeof results.then == "function") {
-				(<PromiseLike<any>> results).then(
-					res => this.sendSuccess(req_id, res),
-					err => this.sendFailure(req_id, err.message)
-				);
-			} else {
-				this.sendSuccess(req_id, results);
+
+		if (frame instanceof RequestFrame) {
+			try {
+				let results = this.delegate.request(frame.message, payload);
+				if (results === undefined) results = null;
+				if (results && typeof results.then == "function") {
+					(<PromiseLike<any>> results).then(
+							res => this.sendSuccess(req_id, res),
+							err => this.sendFailure(req_id, err.message)
+					);
+				} else {
+					this.sendSuccess(req_id, results);
+				}
+			} catch (e) {
+				this.sendFailure(req_id, e.message);
 			}
-		} catch (e) {
-			this.sendFailure(req_id, e.message);
+		} else {
+			this.delegate.message(frame.message, payload);
 		}
 	}
 
@@ -300,8 +271,8 @@ export class Channel extends EventEmitter {
 	 * Called by the Socket when Reset occur
 	 */
 	_reset(): void {
-		this.emit("reset");
-		this.emit("closed");
+		this.delegate.reset();
+		this.delegate.closed(0, "Channel reset");
 		this.state = ChannelState.Closed;
 	}
 
@@ -309,16 +280,11 @@ export class Channel extends EventEmitter {
 	 * Sub-channel open request emitter
 	 */
 	_openRequest(request: ChannelRequest): void {
-		if (this.open_delegate) {
-			try {
-				this.open_delegate(request);
-				if (!request.replied()) throw null;
-			} catch (e) {
-				console.error("Channel creation failed", e);
-				request.reject(1, "Channel initialization impossible");
-			}
-		} else {
-			this.emit("channel-open", request);
+		try {
+			this.delegate.openChannel(request);
+		} catch (e) {
+			console.error(e);
+			request.reject(1, "Channel initialization impossible");
 		}
 	}
 
@@ -326,6 +292,6 @@ export class Channel extends EventEmitter {
 	 * Emit the Pause event when buffer grow
 	 */
 	_pause(buffer_size: number): void {
-		this.emit("pause", buffer_size);
+		this.delegate.pause(buffer_size);
 	}
 }

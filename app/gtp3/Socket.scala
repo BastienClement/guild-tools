@@ -17,15 +17,9 @@ import actors.Actors._
 class DuplicatedFrame extends Exception
 
 class Socket(val id: Long, var actor: SocketActor) {
-	// Send the Handshake frame to the client
-	out ! HandshakeFrame(GTP3Magic, Global.serverVersion, id)
-
 	// Socket state
 	private var attached = true
 	def isAttached = attached
-
-	private var dead = false
-	def isDead = dead
 
 	// Incoming sequence id
 	private var in_seq = 0
@@ -79,12 +73,18 @@ class Socket(val id: Long, var actor: SocketActor) {
 		}
 	}
 
+	// Send the Handshake frame to the client
+	out ! HandshakeFrame(GTP3Magic, Global.serverVersion, id)
+	println("socket open", id)
+
 	/**
 	 * Receive a frame
 	 */
 	def receive(buffer: Array[Byte]) = try {
 		// Decode the frame buffer
 		val frame = Frame.decode(buffer)
+
+		println(frame)
 
 		// Handle sequenced frame acks
 		frame.ifSequenced(handleSequenced)
@@ -182,6 +182,8 @@ class Socket(val id: Long, var actor: SocketActor) {
 				out ! OpenFailureFrame(0, frame.sender_channel, code, message)
 			}
 		}
+
+		println("received open", request)
 	}
 
 	private def receiveOpenSuccess(frame: OpenSuccessFrame) = {}
@@ -219,6 +221,6 @@ class Socket(val id: Long, var actor: SocketActor) {
 	}
 
 	def closed() = {
-
+		println("socket closed", id)
 	}
 }

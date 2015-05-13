@@ -48,14 +48,13 @@ class SocketActor(val out: ActorRef, val remote: String) extends Actor {
 			}
 
 			val ctx = context
-			ctx.become(pending)
+			ctx.become(bound)
 			kill.start()
 
 			status onComplete {
 				case Success(s) =>
 					kill.cancel()
 					socket = s
-					ctx.become(bound)
 
 				case Failure(_) =>
 					kill.trigger()
@@ -64,18 +63,11 @@ class SocketActor(val out: ActorRef, val remote: String) extends Actor {
 	}
 
 	/**
-	 * The actor is placed in this state while waiting for SocketManager
-	 * to create or rebind a socket
-	 */
-	def pending: Receive = {
-		case _ => /* discard */
-	}
-
-	/**
 	 * Simply forward messages to the Socket object
 	 */
 	def bound: Receive = {
-		case buffer: Array[Byte] => socket.receive(buffer)
+		case buffer: Array[Byte] =>
+			if (socket != null) socket.receive(buffer)
 	}
 
 	/**

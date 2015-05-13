@@ -1,4 +1,3 @@
-import { EventEmitter } from "utils/eventemitter";
 import { Queue } from "utils/queue";
 import { Deferred } from "utils/deferred";
 
@@ -38,16 +37,35 @@ export interface ChannelRequest {
 	channel_type: string;
 	token: string;
 	channel?: Channel;
-	accept(data?: ArrayBuffer): void;
+	accept(delegate: ChannelDelegate): void;
 	reject(code?: number, reason?: string): void;
 	replied(): boolean;
 }
 
 /**
- * A function to call for a specific channel type open request
+ * The socket delegate
  */
-export interface ChannelOpenDelegate {
-	(request: ChannelRequest): void;
+export interface SocketDelegate {
+	socket?: Socket;
+	connected(version: string): void;
+	reconnecting(): void;
+	disconnected(code: number, reason: string): void;
+	reset(): void;
+	updateLatency(latency: number): void;
+	openChannel(request: ChannelRequest): void;
+}
+
+/**
+ * The channel delegate
+ */
+export interface ChannelDelegate {
+	channel?: Channel;
+	closed(code: number, reason: string): void;
+	reset(): void;
+	openChannel?(request: ChannelRequest): void;
+	pause(buffer_size: number): void;
+	message(message: string, payload: any): void;
+	request(request: string, payload: any): any;
 }
 
 /**
@@ -58,7 +76,7 @@ const DuplicatedFrame = new Error("Duplicated Frame");
 /**
  * A GTP3 socket with many many featurez
  */
-export class Socket extends EventEmitter {
+export class Socket {
 	// The two parts of the 64 bits socket-id
 	private id: UInt64 = UInt64.Zero;
 
@@ -68,7 +86,7 @@ export class Socket extends EventEmitter {
 
 	// Available channels
 	private channels: Map<number, Channel> = new Map<number, Channel>();
-	private channels_pending: Map<number, Deferred<Channel>> = new Map<number, Deferred<Channel>>();
+	private channels_pending: Map<number, Deferred<number>> = new Map<number, Deferred<number>>();
 	private channelid_pool: NumberPool = new NumberPool(Protocol.ChannelsLimit);
 
 	// Last received frame sequence number
@@ -89,14 +107,11 @@ export class Socket extends EventEmitter {
 	private ping_time: number = 0;
 	public latency: number = 0;
 
-	// Channel open handlers
-	private open_delegate: ChannelOpenDelegate = null;
-
 	/**
-	 * @param url The remote server to connect to
+	 * Constructor
 	 */
-	constructor(private url: string) {
-		super();
+	constructor(private url: string, private delegate: SocketDelegate) {
+		delegate.socket = this;
 	}
 
 	/**
@@ -112,7 +127,7 @@ export class Socket extends EventEmitter {
 		ws.binaryType = "arraybuffer";
 
 		// Reconnect on error or socket closed
-		ws.onerror = ws.onclose = () => {
+		ws.onerror = () => {
 			this.reconnect();
 		};
 
@@ -158,7 +173,6 @@ export class Socket extends EventEmitter {
 
 		this.state = SocketState.Open;
 		this.retry_count = 0;
-		this.emit("open");
 
 		this.ws.send(frame);
 	}
@@ -175,18 +189,17 @@ export class Socket extends EventEmitter {
 		// Transition from Ready to Reconnecting
 		if (this.state == SocketState.Ready) {
 			this.state = SocketState.Reconnecting;
-			this.ws = null;
-			this.emit("reconnecting");
+			this.delegate.reconnecting();
 		}
 
 		// Check retry count and current state
 		if (this.state != SocketState.Reconnecting || this.retry_count > 5) {
-			this.emit("disconnected");
 			this.close();
 			return;
 		}
 
 		// Exponential backoff timer between reconnects
+		this.ws = null;
 		const backoff_time = Math.pow(2, this.retry_count++) * 500;
 		setTimeout(() => this.connect(), backoff_time);
 	}
@@ -200,11 +213,11 @@ export class Socket extends EventEmitter {
 		this.state = SocketState.Closed;
 
 		// Emit events and messages
-		this.emit("closed");
+		this.delegate.disconnected(code, reason);
 		this._send(Frame.encode(ByeFrame, code, reason));
 
 		// Actually close the WebSocket
-		this.ws.close(code, reason);
+		this.ws.close();
 		this.ws = null;
 	}
 
@@ -213,7 +226,7 @@ export class Socket extends EventEmitter {
 	 */
 	private ready(version: string = null): void {
 		this.state = SocketState.Ready;
-		this.emit("ready", version);
+		this.delegate.connected(version);
 	}
 
 	/**
@@ -227,9 +240,9 @@ export class Socket extends EventEmitter {
 	/**
 	 * Open a new channel on this socket
 	 */
-	openChannel(channel_type: string, token: string = "", parent: number = 0): Promise<Channel> {
+	openChannel(channel_type: string, delegate: ChannelDelegate, token: string = "", parent: number = 0): Promise<Channel> {
 		const id = this.channelid_pool.allocate();
-		const deferred = new Deferred<Channel>();
+		const deferred = new Deferred<number>();
 		this.channels_pending.set(id, deferred);
 
 		// Timeout for server to send OPEN_SUCCESS or OPEN_FAILURE
@@ -239,17 +252,21 @@ export class Socket extends EventEmitter {
 		this._send(Frame.encode(OpenFrame, 0, id, channel_type, token, parent), true);
 
 		// Release channel ID if open fail
-		deferred.promise.then(null, () => this.channelid_pool.release(id));
+		const promise = deferred.promise.then(remote_id => new Channel(this, id, remote_id, delegate));
+		promise.then(null, (err: Error) => {
+			console.error(err);
+			this.channelid_pool.release(id);
+		});
 
-		return deferred.promise;
+		return promise;
 	}
 
 	/**
 	 * Open a new byte stream on this socket
 	 */
-	openStream(stream_type: string, token: string = "", parent: number = 0): Promise<Stream> {
-		return this.openChannel(stream_type, token, parent).then(channel => new Stream(channel));
-	}
+	/*openStream(stream_type: string, token: string = "", parent: number = 0): Promise<Stream> {
+		return this.openChannel(stream_type, null, token, parent).then(channel => new Stream(channel));
+	}*/
 
 	/**
 	 * Send acknowledgment to remote
@@ -307,7 +324,8 @@ export class Socket extends EventEmitter {
 
 			case FrameType.PONG:
 				this.latency = performance.now() - this.ping_time;
-				return this.emit("latency", this.latency);
+				this.delegate.updateLatency(this.latency);
+				return;
 
 			case FrameType.REQUEST_ACK:
 				return this._send(Frame.encode(AckFrame, this.in_seq));
@@ -400,7 +418,7 @@ export class Socket extends EventEmitter {
 			channel: null,
 
 			// Accept the open request
-			accept: () => {
+			accept: (delegate: ChannelDelegate) => {
 				if (request_replied) throw new Error();
 
 				// Allocate a local Channel ID for this channel
@@ -413,14 +431,11 @@ export class Socket extends EventEmitter {
 				}
 
 				// Create the channel object
-				const channel = new Channel(this, id, sender_channel);
+				const channel = new Channel(this, id, sender_channel, delegate);
 
 				request_replied = true;
 				this.channels.set(id, channel);
 				this._send(Frame.encode(OpenSuccessFrame, 0, sender_channel, channel), true);
-
-				// Release the channel ID on close
-				channel.on("closed", () => this.channelid_pool.release(id));
 
 				return request.channel = channel;
 			},
@@ -444,16 +459,13 @@ export class Socket extends EventEmitter {
 				request.reject(2, "Undefined parent channel");
 			}
 			channel._openRequest(request);
-		} else if (this.open_delegate) {
+		} else {
 			try {
-				this.open_delegate(request);
-				if (!request_replied) throw null;
+				this.delegate.openChannel(request);
 			} catch (e) {
-				console.error("Channel creation failed", e);
+				console.error(e);
 				request.reject(1, "Channel initialization impossible");
 			}
-		} else {
-			this.emit("channel-open", request);
 		}
 	}
 
@@ -467,8 +479,7 @@ export class Socket extends EventEmitter {
 		if (!deferred) return this._send(Frame.encode(ResetFrame, channel_id));
 		this.channels_pending.delete(channel_id);
 
-		const channel = new Channel(this, channel_id, frame.sender_channel);
-		deferred.resolve(channel);
+		deferred.resolve(frame.sender_channel);
 	}
 
 	/**
@@ -532,7 +543,9 @@ export class Socket extends EventEmitter {
 				if (--this.request_ack_cooldown <= 0) {
 					this._send(Frame.encode(RequestAckFrame));
 					this.request_ack_cooldown = Protocol.RequestAckCooldown;
-					this.channels.forEach(chan => chan._pause(out_buffer_len));
+					if (out_buffer_len >= Protocol.BufferPauseLimit) {
+						this.channels.forEach(chan => chan._pause(out_buffer_len));
+					}
 				}
 			}
 
@@ -540,7 +553,9 @@ export class Socket extends EventEmitter {
 			this.out_seq = (this.out_seq + 1) & 0xFFFF;
 
 			// Tag the frame
-			(new Uint16Array(frame, 1, 1))[0] = this.out_seq;
+			const bytes = new Uint8Array(frame, 1, 2);
+			bytes[0] = this.out_seq >> 8 & 0xFF;
+			bytes[1] = this.out_seq & 0xFF;
 
 			// Push the frame in the output buffer for later replay
 			this.out_buffer.enqueue({frame: frame, seq: this.out_seq});
@@ -552,10 +567,12 @@ export class Socket extends EventEmitter {
 	}
 
 	/**
-	 * Register a new channel open handler
+	 * Called by channels when closed
 	 */
-	registerOpenDelegate(delegate: ChannelOpenDelegate): void {
-		this.open_delegate = delegate;
+	_channelClosed(channel: Channel) {
+		const id = channel.local_id;
+		this.channels.delete(id);
+		this.channelid_pool.release(id);
 	}
 
 	/**
@@ -575,6 +592,6 @@ export class Socket extends EventEmitter {
 		this.out_buffer.clear();
 
 		// Emit reset event
-		this.emit("reset");
+		this.delegate.reset();
 	}
 }

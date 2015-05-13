@@ -6,6 +6,7 @@ export const enum Protocol {
 	FrameLimit = 65535,
 	AckInterval = 8,
 	BufferSoftLimit = 16,
+	BufferPauseLimit = 64,
 	BufferHardLimit = 128,
 	RequestAckCooldown = 4,
 	OpenTimeout = 5000,
