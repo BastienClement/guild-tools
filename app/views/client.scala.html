@@ -1,13 +1,19 @@
 <!DOCTYPE html>
-<html>
-	<head>
-		<meta charset="UTF-8">
-		<title></title>
-		<script src='@routes.Assets.versioned("/public", "javascripts/require.js")'></script>
-		<script src='@routes.Assets.versioned("/public", "tools/config.js")'></script>
-		<script>require(["client/main"],function(main){main();});</script>
-	</head>
-	<body>
-		<h1>Test</h1>
-	</body>
-</html>
+<meta charset="UTF-8">
+<title>Guild Tools</title>
+<style>body{background-color:#2e3740}.cloak{opacity:0;}</style>
+<script data-async="true" data-env="production" src='@routes.Assets.versioned("/public", "javascripts/less.js")'></script>
+<script src='@routes.Assets.versioned("/public", "javascripts/require.js")'></script>
+<script src='@routes.Assets.versioned("/public", "tools/config.js")'></script>
+<script src='@routes.Assets.versioned("/public", "javascripts/webcomponents-lite.js")'></script>
+<script>Polymer={dom:"shadow"};</script>
+<link rel="import" href='@routes.Assets.versioned("/public", "imports/polymer.html")'>
+<script>require(["client/main"],function(main){main();});</script>
+<div id="loader" class="cloak">
+	<div class="steps">
+		<div id="load-less" class="step current"><img src="/assets/loading/club.png"><span>Initializing</span></div>
+		<div id="load-polymer" class="step"><img src="/assets/loading/diamond.png"><span>Loading</span></div>
+		<div id="load-socket" class="step"><img src="/assets/loading/heart.png"><span>Connecting</span></div>
+		<div id="load-auth" class="step"><img src="/assets/loading/spade.png"><span>Authenticating</span></div>
+	</div>
+</div>

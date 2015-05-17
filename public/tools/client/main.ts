@@ -1,41 +1,158 @@
-import { Socket, SocketDelegate } from "gtp3/socket";
-import { EventEmitter } from "utils/eventemitter";
-import { HelloFrame, HandshakeFrame, Frame } from "gtp3/frames";
+import { GtLoader } from "elements/gt-loader";
+import { Queue } from "utils/queue";
+import { Deferred } from "utils/deferred";
+import { XHRText } from "utils/xhr";
+import { Server } from "client/server";
 
-declare var sock: any;
+let load_queue = new Queue<[string, () => void]>();
+let loaded_files = new Set<string>();
 
-class Delegate {
-	static socket: Socket = null;
+/**
+ * Polymer loader
+ */
+PolymerLoader = {
+	register(selector: string, bundle: string, target: Function) {
+		// Transpose instance variable on prototype
+		target.call(target.prototype);
+		target.prototype.is = selector;
 
-	static connected() {
-		console.log("connected");
-		Delegate.socket.openChannel("$GUILDTOOLS", null);
+		// The polymer constructor function
+		let PolymerConstructor: any = null;
+
+		// The placeholder during element loading
+		const PolymerPlaceholder: any = function () {
+			if (!PolymerConstructor) throw new Error("Polymer element is not yet ready");
+			return PolymerConstructor.apply(Object.create(PolymerConstructor.prototype), arguments);
+		};
+
+		load_queue.enqueue([bundle || selector, () => {
+			PolymerConstructor = Polymer(target.prototype);
+		}]);
+		return <any> PolymerPlaceholder;
+	},
+
+	/**
+	 * Start the loading process
+	 */
+	start(): Promise<void> {
+		const deferred = new Deferred<void>();
+
+		// Async template loading loop
+		function next() {
+			// Everything has been loaded
+			if (load_queue.empty()) {
+				load_queue = null;
+				loaded_files = null;
+				deferred.resolve();
+				return;
+			}
+
+			// Get next element
+			let [file, callback] = load_queue.dequeue();
+
+			// Load callback
+			const load = () => {
+				callback();
+				next();
+			};
+
+			// Load the file if not already loaded
+			if (loaded_files.has(file)) {
+				load();
+			} else {
+				const link = document.createElement("link");
+				link.rel = "import";
+				link.href = `/assets/imports/${file}.html`;
+				link.onload = load;
+				document.head.appendChild(link);
+			}
+		}
+
+		const files = [
+			"gt-loader",
+			"gt-progress"
+		].map(e => `elements/${e}`);
+
+		require(files, next);
+		return deferred.promise;
 	}
+};
 
-	static disconnected() { console.log("disconnected", arguments); }
-	static reconnecting() { console.log("reconnecting", arguments); }
-	static reset() { console.log("reset", arguments); }
-	static updateLatency() { console.log("updateLatency", arguments); }
-	static openChannel() { console.log("openChannel", arguments); }
+/**
+ * Load the source of one .less file
+ */
+function loadLess(file: string): Promise<string> {
+	return XHRText(`/assets/less/${file}.less`);
 }
 
+/**
+ * Inject compiled CSS code into the document
+ */
+function injectCSS(code: string) {
+	const style = document.createElement("style");
+	style.type = "text/css";
+	style.appendChild(document.createTextNode(code));
+	document.head.appendChild(style);
+}
+
+/**
+ * Mark the begining of a pipeline step
+ */
+let steps = new Map<string, Promise<void>>();
+function beginStep(step: string) {
+	steps.set(step, Deferred.delay(250));
+	const el = <HTMLDivElement> document.querySelector(`#load-${step}`);
+	el.classList.add("current");
+}
+
+/**
+ * Mark the end of a pipeline step
+ */
+function endStep(step: string) {
+	return steps.get(step).then(() => {
+		const el = <HTMLDivElement> document.querySelector(`#load-${step}`);
+		el.classList.remove("current");
+		el.classList.add("done");
+	});
+}
+
+/**
+ * Load and initialize Guild Tools
+ */
 function main() {
-	/*Pace.once("hide", function() {
-	 load();
+	Deferred.pipeline(loadLess("loading"), [
+		// Loading initialization
+		(c) => less.render(c),
+		(r) => injectCSS(r.css),
 
-	 Pace.on("start", function() {
-	 $("#app-menu-icon").css("opacity", 0.3);
-	 });
+		() => Deferred.parallel([
+			// Less
+			Deferred.pipeline(beginStep("less"), [
+				() => loadLess("guildtools"),
+				(c) => less.render(c),
+				(r) => injectCSS(r.css),
+				() => endStep("less")
+			]),
 
-	 Pace.on("hide", function() {
-	 $("#app-menu-icon").css("opacity", 1);
-	 });
-	});*/
+			// Polymer
+			Deferred.pipeline(beginStep("polymer"), [
+				() => PolymerLoader.start(),
+				() => endStep("polymer")
+			]),
 
-	console.log("Hello world");
+			// Socket
+			Deferred.pipeline(beginStep("socket"), [
+				() => Server.connect(),
+				() => endStep("socket")
+			])
+		]),
 
-	sock = new Socket("ws://localhost:9000/gtp3", Delegate);
-	sock.connect();
+		// Auth
+		() => Deferred.pipeline(beginStep("auth"), [
+			() => Deferred.delay(5000),
+			() => endStep("auth")
+		])
+	]);
 }
 
 export = main;

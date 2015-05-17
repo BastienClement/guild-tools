@@ -123,11 +123,14 @@ export class Socket {
 		}
 
 		// Create the websocket
-		var ws = this.ws = new WebSocket(this.url, "GTP3-WS");
+		let ws = this.ws = new WebSocket(this.url, "GTP3-WS");
 		ws.binaryType = "arraybuffer";
 
 		// Reconnect on error or socket closed
-		ws.onerror = () => {
+		let closed_once = false;
+		ws.onerror = ws.onclose = () => {
+			if (closed_once) return;
+			closed_once = true;
 			this.reconnect();
 		};
 

@@ -1,5 +1,3 @@
-import { Queue } from "utils/queue";
-
 export class NumberPool {
 	private max: number = 0;
 	private allocated: Set<number> = new Set<number>();

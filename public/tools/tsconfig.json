@@ -10,11 +10,8 @@
     "target": "ES5"
   },
   "files": [
-    "defs/es6.d.ts",
-    "defs/encoding.d.ts",
-    "defs/jquery.d.ts",
-    "defs/pace.d.ts",
-    "defs/pako.d.ts",
+    "defs/defs.d.ts",
+    "elements/polymer-loader.ts",
     "client/main.ts"
   ]
 }

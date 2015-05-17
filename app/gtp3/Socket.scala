@@ -84,8 +84,6 @@ class Socket(val id: Long, var actor: SocketActor) {
 		// Decode the frame buffer
 		val frame = Frame.decode(buffer)
 
-		println(frame)
-
 		// Handle sequenced frame acks
 		frame.ifSequenced(handleSequenced)
 
@@ -183,7 +181,7 @@ class Socket(val id: Long, var actor: SocketActor) {
 			}
 		}
 
-		println("received open", request)
+		println(frame.channel_type)
 	}
 
 	private def receiveOpenSuccess(frame: OpenSuccessFrame) = {}
