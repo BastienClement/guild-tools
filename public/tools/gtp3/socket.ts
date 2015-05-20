@@ -46,7 +46,6 @@ export interface ChannelRequest {
  * The socket delegate
  */
 export interface SocketDelegate {
-	socket?: Socket;
 	connected(version: string): void;
 	reconnecting(): void;
 	disconnected(code: number, reason: string): void;
@@ -111,7 +110,6 @@ export class Socket {
 	 * Constructor
 	 */
 	constructor(private url: string, private delegate: SocketDelegate) {
-		delegate.socket = this;
 	}
 
 	/**
@@ -256,10 +254,7 @@ export class Socket {
 
 		// Release channel ID if open fail
 		const promise = deferred.promise.then(remote_id => new Channel(this, id, remote_id, delegate));
-		promise.then(null, (err: Error) => {
-			console.error(err);
-			this.channelid_pool.release(id);
-		});
+		promise.then(null, () => this.channelid_pool.release(id));
 
 		return promise;
 	}

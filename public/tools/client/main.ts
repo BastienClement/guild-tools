@@ -116,6 +116,14 @@ function endStep(step: string) {
 	});
 }
 
+function error(title: string, message: string, infos: string = "") {
+	const error_frame = <HTMLDivElement> document.querySelector("#error");
+	error_frame.querySelector(".title").textContent = title;
+	error_frame.querySelector(".text").textContent = message;
+	error_frame.querySelector(".infos").textContent = infos;
+	error_frame.style.display = "block";
+}
+
 /**
  * Load and initialize Guild Tools
  */
@@ -125,34 +133,36 @@ function main() {
 		(c) => less.render(c),
 		(r) => injectCSS(r.css),
 
-		() => Deferred.parallel([
-			// Less
-			Deferred.pipeline(beginStep("less"), [
-				() => loadLess("guildtools"),
-				(c) => less.render(c),
-				(r) => injectCSS(r.css),
-				() => endStep("less")
-			]),
+		// Less
+		() => Deferred.pipeline(beginStep("less"), [
+			() => loadLess("guildtools"),
+			(c) => less.render(c),
+			(r) => injectCSS(r.css),
+			() => endStep("less")
+		]),
 
-			// Polymer
-			Deferred.pipeline(beginStep("polymer"), [
-				() => PolymerLoader.start(),
-				() => endStep("polymer")
-			]),
+		// Polymer
+		() => Deferred.pipeline(beginStep("polymer"), [
+			() => PolymerLoader.start(),
+			() => endStep("polymer")
+		]),
 
-			// Socket
-			Deferred.pipeline(beginStep("socket"), [
-				() => Server.connect(),
-				() => endStep("socket")
-			])
+		// Socket
+		() => Deferred.pipeline(beginStep("socket"), [
+			() => Server.connect(),
+			() => endStep("socket")
 		]),
 
 		// Auth
 		() => Deferred.pipeline(beginStep("auth"), [
-			() => Deferred.delay(5000),
+			() => Server.socket.openChannel("$GuildTools", null),
 			() => endStep("auth")
 		])
-	]);
+	]).then(() => {
+
+	}, (e) => {
+		error("An error occured while loading GuildTools", e.message);
+	});
 }
 
 export = main;
