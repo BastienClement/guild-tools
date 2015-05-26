@@ -4,7 +4,7 @@ import { EventEmitter } from "utils/eventemitter";
 import { Deferred } from "utils/deferred";
 import { NumberPool } from "gtp3/numberpool";
 import { FrameType, Protocol } from "gtp3/protocol";
-import { Socket, ChannelRequest, ChannelDelegate } from "gtp3/socket";
+import { Socket, ChannelRequest } from "gtp3/socket";
 import { Stream } from "gtp3/stream";
 import { UTF8Encoder, UTF8Decoder } from "gtp3/codecs";
 import { Frame, MessageFrame, RequestFrame, SuccessFrame, FailureFrame, CloseFrame } from "gtp3/frames";
@@ -40,7 +40,7 @@ const EmptyBuffer = new ArrayBuffer(0);
 /**
  * Channel implementation
  */
-export class Channel {
+export class Channel extends EventEmitter {
 	// Current channel state
 	public state: ChannelState = ChannelState.Open;
 
@@ -55,9 +55,9 @@ export class Channel {
 
 	constructor(public socket: Socket,
 	            public local_id: number,
-	            public remote_id: number,
-	            private delegate: ChannelDelegate) {
-		delegate.channel = this;
+	            public remote_id: number)
+	{
+		super();
 	}
 
 	/**
@@ -95,8 +95,8 @@ export class Channel {
 	/**
 	 * Open a new sub-channel
 	 */
-	openChannel(channel_type: string, delegate: ChannelDelegate, token: string = ""): Promise<Channel> {
-		return this.socket.openChannel(channel_type, delegate, token, this.remote_id);
+	openChannel(channel_type: string, token: string = ""): Promise<Channel> {
+		return this.socket.openChannel(channel_type, token, this.remote_id);
 	}
 
 	/**
@@ -116,7 +116,7 @@ export class Channel {
 
 		// Send close message to remote and local listeners
 		this.socket._send(Frame.encode(CloseFrame, 0, code, reason), true);
-		this.delegate.closed(code, reason);
+		this.emit("closed", code, reason);
 
 		this.socket._channelClosed(this);
 	}
@@ -146,22 +146,21 @@ export class Channel {
 		const payload = this.decodePayload(frame);
 
 		if (frame instanceof RequestFrame) {
-			try {
-				let results = this.delegate.request(frame.message, payload);
-				if (results === undefined) results = null;
-				if (results && typeof results.then == "function") {
-					(<PromiseLike<any>> results).then(
-							res => this.sendSuccess(req_id, res),
-							err => this.sendFailure(req_id, err.message)
-					);
-				} else {
-					this.sendSuccess(req_id, results);
-				}
-			} catch (e) {
-				this.sendFailure(req_id, e.message);
+			const results: any[] = this.emit("request", frame.message, payload);
+			if (results.length > 1) throw new Error("`request` listeners cannot return more than one value");
+			const result = results[0] !== undefined ? results[0] : null;
+
+			// Check if we've got a promise object
+			if (result && typeof result.then == "function") {
+				(<PromiseLike<any>> result).then(
+					res => this.sendSuccess(req_id, res),
+					err => this.sendFailure(req_id, err.message)
+				);
+			} else {
+				this.sendSuccess(req_id, result);
 			}
 		} else {
-			this.delegate.message(frame.message, payload);
+			this.emit("message", frame.message, payload);
 		}
 	}
 
@@ -271,8 +270,8 @@ export class Channel {
 	 * Called by the Socket when Reset occur
 	 */
 	_reset(): void {
-		this.delegate.reset();
-		this.delegate.closed(0, "Channel reset");
+		this.emit("reset");
+		this.emit("closed", 0, "Channel reset");
 		this.state = ChannelState.Closed;
 	}
 
@@ -281,7 +280,7 @@ export class Channel {
 	 */
 	_openRequest(request: ChannelRequest): void {
 		try {
-			this.delegate.openChannel(request);
+			this.emit("channel-request", request);
 		} catch (e) {
 			console.error(e);
 			request.reject(1, "Channel initialization impossible");
@@ -292,6 +291,6 @@ export class Channel {
 	 * Emit the Pause event when buffer grow
 	 */
 	_pause(buffer_size: number): void {
-		this.delegate.pause(buffer_size);
+		this.emit("pause", buffer_size);
 	}
 }

@@ -1,5 +1,6 @@
 import { Queue } from "utils/queue";
 import { Deferred } from "utils/deferred";
+import { EventEmitter } from "utils/eventemitter";
 
 import { Channel } from "gtp3/channel";
 import { Stream } from "gtp3/stream";
@@ -37,7 +38,7 @@ export interface ChannelRequest {
 	channel_type: string;
 	token: string;
 	channel?: Channel;
-	accept(delegate: ChannelDelegate): void;
+	accept(): Channel;
 	reject(code?: number, reason?: string): void;
 	replied(): boolean;
 }
@@ -55,19 +56,6 @@ export interface SocketDelegate {
 }
 
 /**
- * The channel delegate
- */
-export interface ChannelDelegate {
-	channel?: Channel;
-	closed(code: number, reason: string): void;
-	reset(): void;
-	openChannel?(request: ChannelRequest): void;
-	pause(buffer_size: number): void;
-	message(message: string, payload: any): void;
-	request(request: string, payload: any): any;
-}
-
-/**
  * Exception object for interrupting duplicated frame processing
  */
 const DuplicatedFrame = new Error("Duplicated Frame");
@@ -75,7 +63,7 @@ const DuplicatedFrame = new Error("Duplicated Frame");
 /**
  * A GTP3 socket with many many featurez
  */
-export class Socket {
+export class Socket extends EventEmitter {
 	// The two parts of the 64 bits socket-id
 	private id: UInt64 = UInt64.Zero;
 
@@ -109,7 +97,8 @@ export class Socket {
 	/**
 	 * Constructor
 	 */
-	constructor(private url: string, private delegate: SocketDelegate) {
+	constructor(private url: string) {
+		super();
 	}
 
 	/**
@@ -190,7 +179,7 @@ export class Socket {
 		// Transition from Ready to Reconnecting
 		if (this.state == SocketState.Ready) {
 			this.state = SocketState.Reconnecting;
-			this.delegate.reconnecting();
+			this.emit("reconnecting");
 		}
 
 		// Check retry count and current state
@@ -214,7 +203,7 @@ export class Socket {
 		this.state = SocketState.Closed;
 
 		// Emit events and messages
-		this.delegate.disconnected(code, reason);
+		this.emit("disconnected", code, reason);
 		this._send(Frame.encode(ByeFrame, code, reason));
 
 		// Actually close the WebSocket
@@ -227,7 +216,7 @@ export class Socket {
 	 */
 	private ready(version: string = null): void {
 		this.state = SocketState.Ready;
-		this.delegate.connected(version);
+		this.emit("connected", version);
 	}
 
 	/**
@@ -241,7 +230,7 @@ export class Socket {
 	/**
 	 * Open a new channel on this socket
 	 */
-	openChannel(channel_type: string, delegate: ChannelDelegate, token: string = "", parent: number = 0): Promise<Channel> {
+	openChannel(channel_type: string, token: string = "", parent: number = 0): Promise<Channel> {
 		const id = this.channelid_pool.allocate();
 		const deferred = new Deferred<number>();
 		this.channels_pending.set(id, deferred);
@@ -253,7 +242,7 @@ export class Socket {
 		this._send(Frame.encode(OpenFrame, 0, id, channel_type, token, parent), true);
 
 		// Release channel ID if open fail
-		const promise = deferred.promise.then(remote_id => new Channel(this, id, remote_id, delegate));
+		const promise = deferred.promise.then(remote_id => new Channel(this, id, remote_id));
 		promise.then(null, () => this.channelid_pool.release(id));
 
 		return promise;
@@ -322,7 +311,7 @@ export class Socket {
 
 			case FrameType.PONG:
 				this.latency = performance.now() - this.ping_time;
-				this.delegate.updateLatency(this.latency);
+				this.emit("update-latency", this.latency);
 				return;
 
 			case FrameType.REQUEST_ACK:
@@ -405,7 +394,8 @@ export class Socket {
 		const sender_channel = frame.sender_channel;
 		let request_replied = false;
 
-		const request: ChannelRequest = {
+		let request: ChannelRequest;
+		request = {
 			// The requested channel type
 			channel_type: frame.channel_type,
 
@@ -416,7 +406,7 @@ export class Socket {
 			channel: null,
 
 			// Accept the open request
-			accept: (delegate: ChannelDelegate) => {
+			accept: () => {
 				if (request_replied) throw new Error();
 
 				// Allocate a local Channel ID for this channel
@@ -429,7 +419,7 @@ export class Socket {
 				}
 
 				// Create the channel object
-				const channel = new Channel(this, id, sender_channel, delegate);
+				const channel = new Channel(this, id, sender_channel);
 
 				request_replied = true;
 				this.channels.set(id, channel);
@@ -459,7 +449,7 @@ export class Socket {
 			channel._openRequest(request);
 		} else {
 			try {
-				this.delegate.openChannel(request);
+				this.emit("channel-request", request);
 			} catch (e) {
 				console.error(e);
 				request.reject(1, "Channel initialization impossible");
@@ -590,6 +580,6 @@ export class Socket {
 		this.out_buffer.clear();
 
 		// Emit reset event
-		this.delegate.reset();
+		this.emit("reset");
 	}
 }

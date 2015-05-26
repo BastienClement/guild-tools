@@ -3,6 +3,7 @@ import { Queue } from "utils/queue";
 import { Deferred } from "utils/deferred";
 import { XHRText } from "utils/xhr";
 import { Server } from "client/server";
+import { dialog } from "client/dialog";
 
 let load_queue = new Queue<[string, () => void]>();
 let loaded_files = new Set<string>();
@@ -116,18 +117,14 @@ function endStep(step: string) {
 	});
 }
 
-function error(title: string, message: string, infos: string = "") {
-	const error_frame = <HTMLDivElement> document.querySelector("#error");
-	error_frame.querySelector(".title").textContent = title;
-	error_frame.querySelector(".text").textContent = message;
-	error_frame.querySelector(".infos").textContent = infos;
-	error_frame.style.display = "block";
-}
-
 /**
  * Load and initialize Guild Tools
  */
 function main() {
+	Server.on("*", function() {
+		console.log(arguments);
+	});
+
 	Deferred.pipeline(loadLess("loading"), [
 		// Loading initialization
 		(c) => less.render(c),
@@ -155,13 +152,13 @@ function main() {
 
 		// Auth
 		() => Deferred.pipeline(beginStep("auth"), [
-			() => Server.socket.openChannel("$GuildTools", null),
+			() => { throw new Error("Fail!") },
 			() => endStep("auth")
 		])
 	]).then(() => {
 
 	}, (e) => {
-		error("An error occured while loading GuildTools", e.message);
+		dialog("An error occured while loading GuildTools", e.message);
 	});
 }
 
