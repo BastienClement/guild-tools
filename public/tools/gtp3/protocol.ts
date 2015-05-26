@@ -25,7 +25,6 @@ export const enum FrameType {
 	RESUME = 0x12,
 	SYNC = 0x13,
 	ACK = 0x14,
-	BYE = 0x15,
 
 	// Connection messages
 	IGNORE = 0x20,

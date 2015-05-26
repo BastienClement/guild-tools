@@ -9,7 +9,7 @@ import { UInt64 } from "gtp3/bufferstream";
 import { FrameType, Protocol } from "gtp3/protocol";
 import { UTF8Encoder, UTF8Decoder } from "gtp3/codecs";
 
-import { Frame, HelloFrame, ResumeFrame, HandshakeFrame, SyncFrame, AckFrame, ByeFrame, PingFrame, PongFrame,
+import { Frame, HelloFrame, ResumeFrame, HandshakeFrame, SyncFrame, AckFrame, PingFrame, PongFrame,
 	RequestAckFrame, OpenFrame, OpenSuccessFrame, OpenFailureFrame, ResetFrame } from "gtp3/frames";
 
 /**
@@ -195,16 +195,15 @@ export class Socket extends EventEmitter {
 	}
 
 	/**
-	 * Close the socket and send the BYE message
+	 * Close the socket
 	 */
 	close(code: number = 3000, reason: string = ""): void {
 		// Ensure the socket is not closed more than once
 		if (this.state == SocketState.Closed) return;
 		this.state = SocketState.Closed;
 
-		// Emit events and messages
+		// Emit event
 		this.emit("disconnected", code, reason);
-		this._send(Frame.encode(ByeFrame, code, reason));
 
 		// Actually close the WebSocket
 		this.ws.close();
@@ -299,9 +298,6 @@ export class Socket extends EventEmitter {
 
 			case FrameType.ACK:
 				return this.receiveAck(frame);
-
-			case FrameType.BYE:
-				return this.close(frame.code, frame.message);
 
 			case FrameType.IGNORE:
 				return;

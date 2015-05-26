@@ -257,12 +257,6 @@ export class AckFrame extends Frame {
 	@uint16  last_seq: number;
 }
 
-@frame(FrameType.BYE)
-export class ByeFrame extends Frame {
-	@uint16  code: number;
-	@str     message: string;
-}
-
 @frame(FrameType.IGNORE)
 export class IgnoreFrame extends Frame {}
 
