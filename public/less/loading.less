@@ -120,6 +120,7 @@ body {
 
 	.text {
 		white-space: pre-wrap;
+		font-size: 14px;
 	}
 
 	.infos {
@@ -128,7 +129,19 @@ body {
 	}
 
 	.actions {
-		display: none;
+		a {
+			text-transform: uppercase;
+			font-weight: 600;
+			margin-right: 20px;
+			font-size: 14px;
+			cursor: pointer;
+			color: #eee;
+			transition: color ease-in-out .2s;
+			
+			&:hover {
+				color: #64b4ff;
+			}
+		}
 	}
 
 }

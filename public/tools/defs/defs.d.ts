@@ -5,9 +5,4 @@
 ///<reference path="pako.d.ts" />
 ///<reference path="polymer.d.ts" />
 
-declare var PolymerLoader: {
-	register: (element: string, bundle: string, prototype: Function) => any;
-	start: () => Promise<void>;
-};
-
 declare var require: Function;

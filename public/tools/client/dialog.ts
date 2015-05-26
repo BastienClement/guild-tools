@@ -11,7 +11,11 @@ export interface DialogActions {
 /**
  * Full screen error dialog
  */
+let error_visible = false;
 export function error(title: string, message: string, infos?: string, actions?: DialogActions[]) {
+	if (error_visible) return;
+	error_visible = true;
+	
 	const error = <HTMLDivElement> $("#error");
 	
 	// Title, messages and infos
@@ -43,7 +47,8 @@ export function error(title: string, message: string, infos?: string, actions?: 
  */
 let status_timeout: number = null;
 export function status(message?: string, sticky: boolean = false) {
-	const frame = <HTMLDivElement> $("#status");
+	// TODO: move to component
+	/*const frame = <HTMLDivElement> $("#status");
 	if (message) {
 		clearTimeout(status_timeout);
 		frame.innerText = message;
@@ -55,5 +60,5 @@ export function status(message?: string, sticky: boolean = false) {
 		clearTimeout(status_timeout);
 		status_timeout = null;
 		frame.classList.remove("visible");
-	}
+	}*/
 }

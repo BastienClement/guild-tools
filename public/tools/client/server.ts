@@ -48,7 +48,10 @@ class ServerDriver extends EventEmitter {
 	}
 
 	private "disconnected" (code: number, reason: string) {
-		this.connect_deferred.reject(new Error(`[${code}] ${reason}`));
+		if (this.connect_deferred) {
+			this.connect_deferred.reject(new Error(`[${code}] ${reason}`));
+		}
+		
 		error("Disconnected", "You were disconnected from the server.");
 	}
 
@@ -70,6 +73,13 @@ class ServerDriver extends EventEmitter {
 	 */
 	openChannel(ctype: string) {
 		return this.socket.openChannel(ctype);
+	}
+	
+	/**
+	 * Close the server connection
+	 */
+	disconnect() {
+		this.socket.close(0, "Client disconnected");
 	}
 }
 

@@ -1,82 +1,11 @@
-import { GtLoader } from "elements/gt-loader";
-import { Queue } from "utils/queue";
 import { Deferred } from "utils/deferred";
 import { XHRText } from "utils/xhr";
-import { Server } from "client/server";
-import { error, DialogActions } from "client/dialog";
 import { $ } from "utils/dom";
 import { Channel } from "gtp3/channel";
-import { GtLogin, GtScreen } from "elements/defs";
-
-let load_queue = new Queue<[string, () => void]>();
-let loaded_files = new Set<string>();
-
-/**
- * Polymer loader
- */
-PolymerLoader = {
-	register(selector: string, bundle: string, target: Function) {
-		// Transpose instance variable on prototype
-		target.call(target.prototype);
-		target.prototype.is = selector;
-
-		// The polymer constructor function
-		let PolymerConstructor: any = null;
-
-		// The placeholder during element loading
-		const PolymerPlaceholder: any = function () {
-			if (!PolymerConstructor) throw new Error("Polymer element is not yet ready");
-			return PolymerConstructor.apply(Object.create(PolymerConstructor.prototype), arguments);
-		};
-
-		load_queue.enqueue([bundle || selector, () => {
-			PolymerConstructor = Polymer(target.prototype);
-		}]);
-		
-		return <any> PolymerPlaceholder;
-	},
-
-	/**
-	 * Start the loading process
-	 */
-	start(): Promise<void> {
-		const deferred = new Deferred<void>();
-
-		// Async template loading loop
-		function next() {
-			// Everything has been loaded
-			if (load_queue.empty()) {
-				load_queue = null;
-				loaded_files = null;
-				deferred.resolve();
-				return;
-			}
-
-			// Get next element
-			let [file, callback] = load_queue.dequeue();
-
-			// Load callback
-			const load = () => {
-				callback();
-				next();
-			};
-
-			// Load the file if not already loaded
-			if (loaded_files.has(file)) {
-				load();
-			} else {
-				const link = document.createElement("link");
-				link.rel = "import";
-				link.href = `/assets/imports/${file}.html`;
-				link.onload = load;
-				document.head.appendChild(link);
-			}
-		}
-
-		require("elements/defs", next);
-		return deferred.promise;
-	}
-};
+import { polymer_load } from "elements/polymer";
+import { GtLogin, GtScreen, GtLoader } from "elements/defs";
+import { Server } from "client/server";
+import { error, DialogActions } from "client/dialog";
 
 /**
  * Load the source of one .less file
@@ -194,7 +123,7 @@ function main() {
 
 		// Polymer
 		() => Deferred.pipeline(begin_step("polymer"), [
-			() => PolymerLoader.start(),
+			() => polymer_load(),
 			() => end_step("polymer")
 		]),
 
@@ -206,7 +135,7 @@ function main() {
 
 		// Auth
 		() => Deferred.pipeline(begin_step("auth"), [
-			() => Server.openChannel("auth"),
+			() => Server.openChannel("auth").catch(e => Deferred.rejected(new Error("Unable to open the authentication channel."))),
 			(c: Channel) => perform_auth(c).then(() => c.close(), e => {
 				c.close();
 				throw e;
@@ -225,6 +154,9 @@ function main() {
 		}
 		
 		error("An error occured while loading GuildTools", e.message, null, actions);
+		console.error(e);
+		
+		Server.disconnect();
 	});
 }
 
