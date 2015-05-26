@@ -97,4 +97,12 @@ export class Deferred<T> {
 		obj.onload = () => deferred.resolve(obj);
 		return deferred.promise;
 	}
+	
+	/**
+	 * Attach a finalizer function to a promise completion and return the same promise
+	 */
+	static finally<T>(promise: Promise<T>, finalizer: Function): Promise<T> {
+		promise.then(() => finalizer(), () => finalizer());
+		return promise;
+	}
 }
