@@ -1,30 +1,49 @@
-export function dialog(title: string, message: string, infos: string = "", actions?: { [labl: string]: Function }) {
-	const frame = <HTMLDivElement> document.querySelector("#error");
-	
-	frame.querySelector(".title").textContent = title;
-	frame.querySelector(".text").textContent = message;
-	frame.querySelector(".infos").textContent = infos;
-	
-	const actions_container = <HTMLDivElement> frame.querySelector(".actions");
-	actions_container.innerHTML = "";
-	
-	function action_handler(label: string) {
-		return () => actions[label]();
-	}
-	
-	for (let label in actions) {
-		const link = document.createElement("a");
-		link.innerText = label;
-		link.onclick = action_handler(label);
-		actions_container.appendChild(link);
-	}
-	
-	frame.style.display = "block";
+import { $ } from "utils/dom";
+
+/**
+ * Object describing an action available on the fullscreen dialog
+ */
+export interface DialogActions {
+	label: string;
+	action: () => void;
 }
 
+/**
+ * Full screen error dialog
+ */
+export function error(title: string, message: string, infos?: string, actions?: DialogActions[]) {
+	const error = <HTMLDivElement> $("#error");
+	
+	// Title, messages and infos
+	$(".title", error).textContent = title;
+	$(".text", error).textContent = message;
+	$(".infos", error).textContent = infos ? infos : "";
+	
+	// Removes actions
+	const actions_container = <HTMLDivElement> $(".actions", error);
+	actions_container.innerHTML = "";
+	
+	if (actions) {
+		// Closure to capture the label variable
+		function create_action(da: DialogActions) {
+			const link = document.createElement("a");
+			link.innerText = da.label;
+			link.onclick = () => da.action();
+			actions_container.appendChild(link);
+		}
+
+		for (let label of actions) create_action(label);
+	}
+	
+	error.style.display = "block";
+}
+
+/**
+ * Small status pop-up
+ */
 let status_timeout: number = null;
 export function status(message?: string, sticky: boolean = false) {
-	const frame = <HTMLDivElement> document.querySelector("#status");
+	const frame = <HTMLDivElement> $("#status");
 	if (message) {
 		clearTimeout(status_timeout);
 		frame.innerText = message;
@@ -37,12 +56,4 @@ export function status(message?: string, sticky: boolean = false) {
 		status_timeout = null;
 		frame.classList.remove("visible");
 	}
-}
-
-export function server_updated() {
-	const frame = <HTMLDivElement> document.querySelector("#error");
-	frame.querySelector(".title").textContent = "GuildTools server updated";
-	frame.querySelector(".text").textContent = "message";
-	frame.querySelector(".infos").textContent = "infos";
-	frame.style.display = "block";
 }

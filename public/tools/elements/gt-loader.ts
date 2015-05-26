@@ -1,7 +1,7 @@
-import { PolymerElement, polymer } from "elements/polymer";
+import { polymer } from "elements/polymer";
 
 @polymer("gt-loader")
-export class GtLoader extends PolymerElement {
+export class GtLoader {
 	created() {
 		console.log(this, "created");
 	}

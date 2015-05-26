@@ -109,7 +109,7 @@ export class Channel extends EventEmitter {
 	/**
 	 * Close the channel and attempt to flush output buffer
 	 */
-	close(code: number, reason: string): void {
+	close(code: number = 0, reason: string = "Channel closed"): void {
 		// Ensure we don't close the channel multiple times
 		if (this.state == ChannelState.Closed) return;
 		this.state = ChannelState.Closed;

@@ -1,7 +1,7 @@
 import { polymer } from "elements/polymer";
 
-@polymer("gt-progress")
-export class GtProgress {
+@polymer("gt-screen")
+export class GtScreen {
 	created() {
 		console.log(this, "created");
 	}

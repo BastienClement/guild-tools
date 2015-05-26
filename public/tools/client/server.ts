@@ -2,7 +2,7 @@ import { Socket, SocketDelegate } from "gtp3/socket";
 import { Deferred } from "utils/deferred";
 import { EventEmitter } from "utils/eventemitter";
 import { XHRText } from "utils/xhr";
-import { server_updated } from "client/dialog";
+import { error, status } from "client/dialog";
 
 class ServerDriver extends EventEmitter {
 	// The underlying socket object
@@ -24,7 +24,7 @@ class ServerDriver extends EventEmitter {
 			this.socket.connect();
 
 			this.socket.pipe(this);
-			this.socket.bind(this, "connected", "reconnecting", "disconnected", "reset", "update-latency", "channel-request");
+			this.socket.bind(this, "connected", "reconnecting", "disconnected", "reset", "channel-request");
 
 			return this.connect_deferred.promise;
 		});
@@ -32,33 +32,44 @@ class ServerDriver extends EventEmitter {
 
 	private "connected" (version: string) {
 		if (this.version && this.version != version) {
-			server_updated();
+			error("Server updated", "test");
 		}
 
 		if (this.connect_deferred) {
 			this.connect_deferred.resolve();
 			this.connect_deferred = null;
 		}
+		
+		status(null);
 	}
 
-	private "reconnecting" () {
+	private "reconnecting"() {
+		status("Reconnecting...", true);
 	}
 
 	private "disconnected" (code: number, reason: string) {
 		this.connect_deferred.reject(new Error(`[${code}] ${reason}`));
+		error("Disconnected", "You were disconnected from the server.");
 	}
 
-	private "reset" () {
-	}
-
-	private "update-latency" () {
+	private "reset"() {
 	}
 
 	private "channel-request" () {
 	}
 
-	latency(): number {
+	/**
+	 * Access the socket latency
+	 */
+	get latency(): number {
 		return this.socket ? this.socket.latency : 0;
+	}
+	
+	/**
+	 * Channel request
+	 */
+	openChannel(ctype: string) {
+		return this.socket.openChannel(ctype);
 	}
 }
 
