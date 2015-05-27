@@ -197,13 +197,13 @@ export class Socket extends EventEmitter {
 	/**
 	 * Close the socket
 	 */
-	close(code: number = 3000, reason: string = ""): void {
+	close(): void {
 		// Ensure the socket is not closed more than once
 		if (this.state == SocketState.Closed) return;
 		this.state = SocketState.Closed;
 
 		// Emit event
-		this.emit("disconnected", code, reason);
+		this.emit("disconnected");
 
 		// Actually close the WebSocket
 		this.ws.close();

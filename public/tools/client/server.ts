@@ -79,7 +79,7 @@ class ServerDriver extends EventEmitter {
 	 * Close the server connection
 	 */
 	disconnect() {
-		this.socket.close(0, "Client disconnected");
+		this.socket.close();
 	}
 }
 
