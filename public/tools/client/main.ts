@@ -48,15 +48,22 @@ function end_step(step: string) {
 /**
  * Perform the authentification with the server
  */
+const STORAGE_SESSION_KEY = "auth.session";
 function perform_auth(chan: Channel): Promise<void> {
-	let session: string = localStorage.getItem("auth.session");
+	let session: string = localStorage.getItem(STORAGE_SESSION_KEY);
 	let gt_login: GtLogin = null;
 	
+	/**
+	 * If a session ID is available, attempt to authenticate using this session
+	 */
 	function attempt_auth(): Promise<boolean> {
 		if (!session) return Deferred.resolved(false);
 		return chan.request<boolean>("auth", session);
 	}
 	
+	/**
+	 * Request credentials to the user
+	 */
 	function request_credentials(error?: string): Promise<[string, string]> {
 		const creds = new Deferred<[string, string]>();
 		
@@ -73,24 +80,30 @@ function perform_auth(chan: Channel): Promise<void> {
 		return creds.promise;
 	}
 	
+	/**
+	 * Perform the full login procedure
+	 */
 	function perform_login(error?: string): Promise<void> {
 		return request_credentials().then(creds => {
 			return chan.request<string>("login", { user: creds[0], pass: creds[1] });
 		}).then(sid => {
 			session = sid;
-			localStorage.setItem("auth.session", sid);
+			localStorage.setItem(STORAGE_SESSION_KEY, sid);
 			return attempt_auth();
 		}).then(success => {
 			if (!success) throw new Error("Auth failed after a successful login");	
 		}).catch(e => perform_login(e.message));
 	}
 	
+	/**
+	 * Bootstrap the login loop
+	 */
 	return attempt_auth().then(success => {
 		if (success) {
 			return null;
 		} else {
 			session = null;
-			localStorage.removeItem("auth.session");
+			localStorage.removeItem(STORAGE_SESSION_KEY);
 			return perform_login();
 		}
 	}).then(() => {
@@ -101,47 +114,66 @@ function perform_auth(chan: Channel): Promise<void> {
 }
 
 /**
+ * Load and compile the GuildTools Less stylesheet
+ */
+const init_less = () => Deferred.pipeline(begin_step("less"), [
+	() => load_less("guildtools"),
+	(c) => less.render(c),
+	(r) => inject_css(r.css),
+	() => end_step("less")
+]);
+
+/**
+ * Load and initialize Polymer components
+ */
+const init_polymer = () => Deferred.pipeline(begin_step("polymer"), [
+	() => polymer_load(),
+	() => end_step("polymer")
+]);
+
+/**
+ * Fetch the server API endpoint and connect
+ */
+const init_socket = () => Deferred.pipeline(begin_step("socket"), [
+	() => Server.connect(),
+	() => end_step("socket")
+]);
+
+/**
+ * Open the authentication channel and perform the authentication
+ */
+const init_auth = () => Deferred.pipeline(begin_step("auth"), [
+	() => Server.openChannel("$AUTH").catch(e => Deferred.rejected(new Error("Unable to open the authentication channel."))),
+	(c: Channel) => Deferred.finally(perform_auth(c), () => c.close()),
+	() => end_step("auth")
+]);
+
+/**
  * Load and initialize Guild Tools
  */
 function main() {
+	// FIXME: remove
 	Server.on("*", function() {
 		console.log(arguments);
 	});
 
-	Deferred.pipeline(load_less("loading"), [
+	const init_pipeline = Deferred.pipeline(load_less("loading"), [
 		// Loading initialization
 		(c) => less.render(c),
 		(r) => inject_css(r.css),
 
-		// Less
-		() => Deferred.pipeline(begin_step("less"), [
-			() => load_less("guildtools"),
-			(c) => less.render(c),
-			(r) => inject_css(r.css),
-			() => end_step("less")
-		]),
+		// Four steps initialization		
+		init_less,
+		init_polymer,
+		init_socket,
+		init_auth
+	]);
 
-		// Polymer
-		() => Deferred.pipeline(begin_step("polymer"), [
-			() => polymer_load(),
-			() => end_step("polymer")
-		]),
-
-		// Socket
-		() => Deferred.pipeline(begin_step("socket"), [
-			() => Server.connect(),
-			() => end_step("socket")
-		]),
-
-		// Auth
-		() => Deferred.pipeline(begin_step("auth"), [
-			() => Server.openChannel("$AUTH").catch(e => Deferred.rejected(new Error("Unable to open the authentication channel."))),
-			(c: Channel) => Deferred.finally(perform_auth(c), () => c.close()),
-			() => end_step("auth")
-		])
-	]).then(() => {
+	init_pipeline.then(() => {
+		// Loading successful
 		document.body.appendChild(new GtScreen());
 	}, (e) => {
+		// Loading failed
 		const actions: DialogActions[] = [
 			{ label: "Reload", action: () => location.reload() }
 		];
