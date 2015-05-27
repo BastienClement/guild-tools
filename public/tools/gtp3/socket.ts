@@ -208,6 +208,9 @@ export class Socket extends EventEmitter {
 		// Actually close the WebSocket
 		this.ws.close();
 		this.ws = null;
+		
+		// Close open channels
+		this.channels.forEach(chan => chan.close(-1, "Socket closed"));
 	}
 
 	/**
