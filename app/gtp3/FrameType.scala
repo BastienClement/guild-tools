@@ -7,7 +7,6 @@ object FrameType {
 	final val RESUME = 0x12
 	final val SYNC = 0x13
 	final val ACK = 0x14
-	final val BYE = 0x15
 
 	// Connection commands
 	final val IGNORE = 0x20

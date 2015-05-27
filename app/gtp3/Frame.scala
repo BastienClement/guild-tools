@@ -64,15 +64,9 @@ object AckFrame {
 	implicit val codec = uint16.as[AckFrame]
 }
 
-case class ByeFrame(code: Int, message: String) extends Frame
-object ByeFrame {
-	implicit val discriminator = Discriminator[Frame, ByeFrame, Int](FrameType.BYE)
-	implicit val codec = (uint16 :: variableSizeBytes(uint16, utf8)).as[ByeFrame]
-}
-
 case class IgnoreFrame(padding: ByteVector) extends Frame
 object IgnoreFrame {
-	implicit val discriminator = Discriminator[Frame, IgnoreFrame, Int](FrameType.BYE)
+	implicit val discriminator = Discriminator[Frame, IgnoreFrame, Int](FrameType.IGNORE)
 	implicit val codec = bytes.as[IgnoreFrame]
 }
 

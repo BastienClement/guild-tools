@@ -95,7 +95,6 @@ class Socket(val id: Long, var actor: SocketActor) {
 			case PongFrame() =>
 			case RequestAckFrame() => out ! AckFrame(in_seq)
 
-			case f: ByeFrame => receiveBye(f)
 			case f: IgnoreFrame => /* ignore */
 
 			case f: OpenFrame => receiveOpen(f)
@@ -153,10 +152,6 @@ class Socket(val id: Long, var actor: SocketActor) {
 
 		// Save the sequence number as the last one received
 		out_ack = seq
-	}
-
-	private def receiveBye(frame: ByeFrame) = {
-
 	}
 
 	private def receiveOpen(frame: OpenFrame) = {
