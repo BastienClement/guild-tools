@@ -4,9 +4,7 @@ interface Polymer {
 	(prototype: any): Function;
 }
 
-interface PolymerElement {
-	
-}
+interface PolymerElement {}
 
 interface Node {
 	appendChild(e: PolymerElement): Node;

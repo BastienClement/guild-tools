@@ -1,17 +1,70 @@
 import { Deferred } from "utils/deferred";
-import { XHRText } from "utils/xhr";
-import { $ } from "utils/dom";
 import { Channel } from "gtp3/channel";
-import { polymer_load } from "elements/polymer";
-import { GtLogin, GtScreen, GtLoader } from "elements/defs";
-import { Server } from "client/server";
 import { error, DialogActions } from "client/dialog";
+
+// ###############################################
+
+/**
+ * Server lazy-loading
+ */
+import { Server as Server_t } from "client/server";
+let Server: typeof Server_t = null;
+const load_server = () => Deferred.require<typeof Server_t>("client/server", "Server").then(impl => Server = impl);
+
+/**
+ * polymer_load() lazy wrapper
+ */
+const polymer_load = () => Deferred.require<() => Promise<void>>("elements/polymer", "polymer_load").then(loader => loader())
+
+/**
+ * Components lazy-loading
+ */
+import { GtLogin as GtLogin_t, GtScreen as GtScreen_t } from "elements/defs";
+let GtLogin: typeof GtLogin_t = null;
+let GtScreen: typeof GtScreen_t = null;
+const import_main_components = () => Deferred.parallel([
+	Deferred.require<typeof GtLogin_t>("elements/defs", "GtLogin").then(impl => GtLogin = impl),
+	Deferred.require<typeof GtScreen_t>("elements/defs", "GtScreen_t").then(impl => GtScreen = impl)
+]);
+
+// ###############################################
+
+/**
+ * Simple wrapper around Element#querySelector
+ */
+function $(selector: string, parent: Element | Document = document): Element {
+	return parent.querySelector(selector);
+}
+
+/**
+ * Load text data via XMLHttpRequest
+ */
+function xhr_text(url: string): Promise<string> {
+	const deferred = new Deferred<string>();
+
+	const xhr = new XMLHttpRequest();
+	xhr.open("GET", url, true);
+	xhr.responseType = "text";
+
+	xhr.onload = function() {
+		if (this.status == 200) {
+			deferred.resolve(this.response);
+		} else {
+			deferred.reject(new Error());
+		}
+	};
+
+	xhr.send();
+	return deferred.promise;
+}
+
+// ###############################################
 
 /**
  * Load the source of one .less file
  */
 function load_less(file: string): Promise<string> {
-	return XHRText(`/assets/less/${file}.less`);
+	return xhr_text(`/assets/less/${file}.less`);
 }
 
 /**
@@ -24,12 +77,14 @@ function inject_css(code: string) {
 	document.head.appendChild(style);
 }
 
+// ###############################################
+
 /**
  * Mark the begining of a pipeline step
  */
 let steps = new Map<string, Promise<void>>();
 function begin_step(step: string) {
-	steps.set(step, Deferred.delay(250));
+	steps.set(step, Deferred.delay(1));
 	const el = <HTMLDivElement> $(`#load-${step}`);
 	el.classList.add("current");
 }
@@ -45,13 +100,15 @@ function end_step(step: string) {
 	});
 }
 
+// ###############################################
+
 /**
  * Perform the authentification with the server
  */
 const STORAGE_SESSION_KEY = "auth.session";
 function perform_auth(chan: Channel): Promise<void> {
 	let session: string = localStorage.getItem(STORAGE_SESSION_KEY);
-	let gt_login: GtLogin = null;
+	let gt_login: GtLogin_t = null;
 	
 	/**
 	 * If a session ID is available, attempt to authenticate using this session
@@ -113,6 +170,8 @@ function perform_auth(chan: Channel): Promise<void> {
 	});
 }
 
+// ###############################################
+
 /**
  * Load and compile the GuildTools Less stylesheet
  */
@@ -128,6 +187,7 @@ const init_less = () => Deferred.pipeline(begin_step("less"), [
  */
 const init_polymer = () => Deferred.pipeline(begin_step("polymer"), [
 	() => polymer_load(),
+	() => import_main_components(),
 	() => end_step("polymer")
 ]);
 
@@ -135,6 +195,7 @@ const init_polymer = () => Deferred.pipeline(begin_step("polymer"), [
  * Fetch the server API endpoint and connect
  */
 const init_socket = () => Deferred.pipeline(begin_step("socket"), [
+	() => load_server(),
 	() => Server.connect(),
 	() => end_step("socket")
 ]);
@@ -148,15 +209,12 @@ const init_auth = () => Deferred.pipeline(begin_step("auth"), [
 	() => end_step("auth")
 ]);
 
+// ###############################################
+
 /**
  * Load and initialize Guild Tools
  */
 function main() {
-	// FIXME: remove
-	Server.on("*", function() {
-		console.log(arguments);
-	});
-
 	const init_pipeline = Deferred.pipeline(load_less("loading"), [
 		// Loading initialization
 		(c) => less.render(c),

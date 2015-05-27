@@ -1,6 +1,9 @@
 import { Deferred } from "utils/deferred";
 import { Queue } from "utils/queue";
 
+/**
+ * Polymer Loader code
+ */
 let load_queue = new Queue<[string, () => void]>();
 let loaded_files = new Set<string>();
 
@@ -73,14 +76,31 @@ const PolymerLoader = {
 };
 
 /**
- * Polymer adapter
+ * Dummy class to expose Polymer functions on elements
+ */
+export class PolymerElement {
+	
+}
+
+/**
+ * Declare a Polymer Element
  */
 export function polymer(selector: string, bundle?: string) {
 	return (target: Function) => PolymerLoader.register(selector, bundle, target);
 }
 
 /**
- * Load Polymer elements
+ * Declare a Polymer Property
+ */
+export function property(config: Object) {
+	return (target: any, property: string) => {
+		if (!target.properties) target.properties = {};
+		target.properties[property] = config;
+	}
+}
+
+/**
+ * Bootstrap Polymer elements loading
  */
 export function polymer_load(): Promise<void> {
 	return PolymerLoader.start();

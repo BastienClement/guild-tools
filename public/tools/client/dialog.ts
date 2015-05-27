@@ -1,4 +1,9 @@
-import { $ } from "utils/dom";
+/**
+ * Simple wrapper around Element#querySelector
+ */
+function $(selector: string, parent: Element | Document = document): Element {
+	return parent.querySelector(selector);
+}
 
 /**
  * Object describing an action available on the fullscreen dialog

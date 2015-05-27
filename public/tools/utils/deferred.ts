@@ -105,4 +105,13 @@ export class Deferred<T> {
 		promise.then(() => finalizer(), () => finalizer());
 		return promise;
 	}
+	
+	/**
+	 * Promise interface to Require.js
+	 */
+	static require<T>(module_name: string, symbole?: string): Promise<T> {
+		const deferred = new Deferred<T>();
+		require([module_name], (mod: any) => deferred.resolve(symbole ? mod[symbole] : mod))
+		return deferred.promise;
+	}
 }
