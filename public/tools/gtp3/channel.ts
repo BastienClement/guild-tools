@@ -83,7 +83,7 @@ export class Channel extends EventEmitter {
 		let [payload, flags] = this.encodePayload(data, initial_flags);
 
 		// Build frame
-		const frame = Frame.encode(MessageFrame, 0 , this.remote_id, request, id, flags, payload);
+		const frame = Frame.encode(RequestFrame, 0 , this.remote_id, request, id, flags, payload);
 		this.socket._send(frame, true);
 
 		// Create deferred
