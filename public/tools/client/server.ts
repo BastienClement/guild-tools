@@ -21,6 +21,7 @@ class ServerDriver extends EventEmitter {
 		return XHRText("/api/socket_url").then(url => {
 			this.connect_deferred = new Deferred<void>();
 			this.socket = new Socket(url);
+			this.socket.verbose = true;
 			this.socket.connect();
 
 			this.socket.pipe(this);

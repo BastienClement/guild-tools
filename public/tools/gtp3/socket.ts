@@ -93,6 +93,9 @@ export class Socket extends EventEmitter {
 	// Last ping time
 	private ping_time: number = 0;
 	public latency: number = 0;
+	
+	// Tracing mode
+	public verbose: Boolean = false;
 
 	/**
 	 * Constructor
@@ -150,7 +153,7 @@ export class Socket extends EventEmitter {
 
 		switch (this.state) {
 			case SocketState.Uninitialized: // Create a new socket
-				frame = Frame.encode(HelloFrame, Protocol.GTP3, `GuildTools [${navigator.userAgent}]`);
+				frame = Frame.encode(HelloFrame, Protocol.GTP3, `GuildTools Client [${navigator.userAgent}]`);
 				break;
 
 			case SocketState.Reconnecting: // Resume an already open socket
@@ -164,6 +167,7 @@ export class Socket extends EventEmitter {
 		this.state = SocketState.Open;
 		this.retry_count = 0;
 
+		if (this.verbose) this.trace(">>", Frame.decode(frame));
 		this.ws.send(frame);
 	}
 
@@ -290,6 +294,7 @@ export class Socket extends EventEmitter {
 	 */
 	private receive(buf: ArrayBuffer): void {
 		const frame: any = Frame.decode(buf);
+		if (this.verbose) this.trace("<<", frame);
 
 		if (frame.sequenced) {
 			this.sendAck(frame.seq);
@@ -556,6 +561,7 @@ export class Socket extends EventEmitter {
 		}
 
 		if (this.state == SocketState.Ready) {
+			if (this.verbose) this.trace(">>", Frame.decode(frame));
 			this.ws.send(frame);
 		}
 	}
@@ -587,5 +593,14 @@ export class Socket extends EventEmitter {
 
 		// Emit reset event
 		this.emit("reset");
+	}
+	
+	/**
+	 * Print the socket activity
+	 */
+	private trace(direction: string, frame: Frame): void {
+		const frame_name = frame.constructor.name.replace(/Frame$/, "")
+		const padding = " ".repeat(15 - frame_name.length);
+		console.debug(direction, frame_name + padding, frame)
 	}
 }
