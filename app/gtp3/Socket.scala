@@ -1,5 +1,6 @@
 package gtp3
 
+import models.User
 import utils.Timeout
 
 import scala.annotation.tailrec
@@ -36,6 +37,9 @@ class Socket(val id: Long, var actor: SocketActor) {
 
 	// Limit the number of emitter REQUEST_ACK commands
 	private var request_ack_cooldown = 0
+
+	// Socket is authenticated
+	private[gtp3] var user: Option[User] = None
 
 	/**
 	 * Overloaded output helper
@@ -155,14 +159,14 @@ class Socket(val id: Long, var actor: SocketActor) {
 	}
 
 	private def receiveOpen(frame: OpenFrame) = {
-		val request = new ChannelRequest(frame.channel_type, frame.token) {
-			def accept(): Channel = {
-				if (replied) throw new Exception()
+		val request = new ChannelRequest(frame.channel_type, frame.token, this) {
+			def accept(handler: ChannelHandler): Channel = {
+				if (replied) throw new Exception("Request already responded to")
+				_replied = true
 
 				val id = channelid_pool.next
-				val channel = new Channel(Socket.this, id, frame.sender_channel)
+				val channel = new Channel(Socket.this, id, frame.sender_channel, handler)
 
-				_replied = true
 				channels += (id -> channel)
 				out ! OpenSuccessFrame(0, frame.sender_channel, id)
 
@@ -170,13 +174,26 @@ class Socket(val id: Long, var actor: SocketActor) {
 			}
 
 			def reject(code: Int, message: String): Unit = {
-				if (replied) return
+				if (replied) throw new Exception("Request already responded to")
 				_replied = true
+
 				out ! OpenFailureFrame(0, frame.sender_channel, code, message)
 			}
 		}
 
-		println(frame.channel_type)
+		if (user.isEmpty && frame.channel_type != "$AUTH") {
+			request.reject(103, "Non-authenticated socket cannot request channel")
+		} else {
+			ChannelAcceptors.get(frame.channel_type) match {
+				case Some(acceptor) =>
+					acceptor.open(request)
+					if (!request.replied) {
+						request.reject(201, "Channel acceptor did not accept or reject the request")
+					}
+
+				case None => request.reject(104, "Unknown channel type")
+			}
+		}
 	}
 
 	private def receiveOpenSuccess(frame: OpenSuccessFrame) = {}

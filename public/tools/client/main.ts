@@ -135,7 +135,7 @@ function main() {
 
 		// Auth
 		() => Deferred.pipeline(begin_step("auth"), [
-			() => Server.openChannel("auth").catch(e => Deferred.rejected(new Error("Unable to open the authentication channel."))),
+			() => Server.openChannel("$AUTH").catch(e => Deferred.rejected(new Error("Unable to open the authentication channel."))),
 			(c: Channel) => Deferred.finally(perform_auth(c), () => c.close()),
 			() => end_step("auth")
 		])
