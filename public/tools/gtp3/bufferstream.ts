@@ -37,7 +37,8 @@ export class BufferReader extends BufferStream {
 
 	buffer(): ArrayBuffer {
 		const len = this.uint16();
-		return this.data.buffer.slice(this.skip(len), len);
+		const begin = this.skip(len);
+		return this.data.buffer.slice(begin, begin + len);
 	}
 }
 

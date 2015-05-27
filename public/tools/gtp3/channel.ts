@@ -55,8 +55,7 @@ export class Channel extends EventEmitter {
 
 	constructor(public socket: Socket,
 	            public local_id: number,
-	            public remote_id: number)
-	{
+	            public remote_id: number) {
 		super();
 	}
 

@@ -243,8 +243,15 @@ export class Socket extends EventEmitter {
 		// Send the open message to the server
 		this._send(Frame.encode(OpenFrame, 0, id, channel_type, token, parent), true);
 
+		// Create the channel once the remote_id is received		
+		const promise = deferred.promise.then(remote_id => {
+			const channel = new Channel(this, id, remote_id);
+			this.channels_pending.delete(id);
+			this.channels.set(id, channel);
+			return channel;
+		});
+		
 		// Release channel ID if open fail
-		const promise = deferred.promise.then(remote_id => new Channel(this, id, remote_id));
 		promise.then(null, () => this.channelid_pool.release(id));
 
 		return promise;

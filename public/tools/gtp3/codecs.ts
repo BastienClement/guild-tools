@@ -42,10 +42,10 @@ export const uint64: Codec<UInt64> = {
 
 export const str: Codec<string> = {
 	decode: (buffer: BufferReader): string => UTF8Decoder.decode(new Uint8Array(buffer.buffer())),
-	prepare: (data: string): ArrayBuffer => <any>UTF8Encoder.encode(data).buffer
+	prepare: (data: string): ArrayBuffer => UTF8Encoder.encode(data).buffer
 };
 
 export const buffer: Codec<ArrayBuffer> = {
 	decode: (buffer: BufferReader): ArrayBuffer => buffer.buffer(),
-	prepare: (data: ArrayBuffer): ArrayBuffer => <any>data
+	prepare: (data: ArrayBuffer): ArrayBuffer => data
 };
