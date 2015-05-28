@@ -1,20 +1,19 @@
 import { Deferred } from "utils/deferred";
+import { Injector, Constructor } from "utils/di";
 import { Channel } from "gtp3/channel";
 import { error, DialogActions } from "client/dialog";
+import { Server } from "core/server";
 
 // ###############################################
 
-/**
- * Server lazy-loading
- */
-import { Server as Server_t } from "client/server";
-let Server: typeof Server_t = null;
-const load_server = () => Deferred.require<typeof Server_t>("client/server", "Server").then(impl => Server = impl);
+const injector = new Injector();
 
-/**
- * polymer_load() lazy wrapper
- */
-const polymer_load = () => Deferred.require<() => Promise<void>>("elements/polymer", "polymer_load").then(loader => loader())
+// Lazy server object loading
+let server: Server = null;
+const lazy_server = () => Deferred.require<Constructor<Server>>("core/server", "Server").then(s => server = injector.get(s));
+
+// Lazy polymer element loading
+const lazy_polymer = () => Deferred.require<() => Promise<void>>("elements/polymer", "polymer_load").then(loader => loader())
 
 /**
  * Components lazy-loading
@@ -186,7 +185,7 @@ const init_less = () => Deferred.pipeline(begin_step("less"), [
  * Load and initialize Polymer components
  */
 const init_polymer = () => Deferred.pipeline(begin_step("polymer"), [
-	() => polymer_load(),
+	() => lazy_polymer(),
 	() => import_main_components(),
 	() => end_step("polymer")
 ]);
@@ -195,8 +194,9 @@ const init_polymer = () => Deferred.pipeline(begin_step("polymer"), [
  * Fetch the server API endpoint and connect
  */
 const init_socket = () => Deferred.pipeline(begin_step("socket"), [
-	() => load_server(),
-	() => Server.connect(),
+	() => lazy_server(),
+	() => xhr_text("/api/socket_url"),
+	(url: string) => server.connect(url),
 	() => end_step("socket")
 ]);
 
@@ -204,7 +204,7 @@ const init_socket = () => Deferred.pipeline(begin_step("socket"), [
  * Open the authentication channel and perform the authentication
  */
 const init_auth = () => Deferred.pipeline(begin_step("auth"), [
-	() => Server.openChannel("$AUTH").catch(e => Deferred.rejected(new Error("Unable to open the authentication channel."))),
+	() => server.openChannel("$AUTH").catch(e => Deferred.rejected(new Error("Unable to open the authentication channel."))),
 	(c: Channel) => Deferred.finally(perform_auth(c), () => c.close()),
 	() => end_step("auth")
 ]);
@@ -243,7 +243,7 @@ function main() {
 		error("An error occured while loading GuildTools", e.message, null, actions);
 		console.error(e);
 		
-		Server.disconnect();
+		server.disconnect();
 	});
 }
 

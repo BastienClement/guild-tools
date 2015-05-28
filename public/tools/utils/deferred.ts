@@ -59,7 +59,7 @@ export class Deferred<T> {
 	 * Execute multiple promise-returning function in parallel
 	 */	
 	static parallel(jobs: Promise<any>[]): Promise<any[]> {
-		const done = new Deferred<any>();
+		const done = new Deferred<any[]>();
 
 		const results = new Array(jobs.length);
 		let left = jobs.length;

@@ -6,3 +6,7 @@
 ///<reference path="polymer.d.ts" />
 
 declare var require: Function;
+
+declare module Reflect {
+	function getMetadata(key: string, target: any): any[];
+}

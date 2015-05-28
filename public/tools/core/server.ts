@@ -1,10 +1,11 @@
+import { Component, Injector } from "utils/di";
 import { Socket, SocketDelegate } from "gtp3/socket";
 import { Deferred } from "utils/deferred";
 import { EventEmitter } from "utils/eventemitter";
-import { XHRText } from "utils/xhr";
 import { error, status } from "client/dialog";
 
-class ServerDriver extends EventEmitter {
+@Component
+export class Server extends EventEmitter {
 	// The underlying socket object
 	private socket: Socket;
 
@@ -17,18 +18,16 @@ class ServerDriver extends EventEmitter {
 	/**
 	 * Boostrap the server connection
 	 */
-	connect(): Promise<void> {
-		return XHRText("/api/socket_url").then(url => {
-			this.connect_deferred = new Deferred<void>();
-			this.socket = new Socket(url);
-			this.socket.verbose = true;
-			this.socket.connect();
+	connect(url: string): Promise<void> {
+		this.connect_deferred = new Deferred<void>();
+		this.socket = new Socket(url);
+		this.socket.verbose = true;
+		this.socket.connect();
 
-			this.socket.pipe(this);
-			this.socket.bind(this, "connected", "reconnecting", "disconnected", "reset", "channel-request");
+		this.socket.pipe(this);
+		this.socket.bind(this, "connected", "reconnecting", "disconnected", "reset", "channel-request");
 
-			return this.connect_deferred.promise;
-		});
+		return this.connect_deferred.promise;
 	}
 
 	private "connected" (version: string) {
@@ -83,5 +82,3 @@ class ServerDriver extends EventEmitter {
 		this.socket.close();
 	}
 }
-
-export const Server = new ServerDriver();
