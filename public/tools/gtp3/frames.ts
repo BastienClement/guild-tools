@@ -51,7 +51,7 @@ export class Frame {
 				this[binding.key] = fields[i];
 			}
 		} else {
-			throw new Error("No codecs defined for frame subtype. Unable to build.");
+			//throw new Error("No codecs defined for frame subtype. Unable to build.");
 		}
 	}
 
@@ -70,7 +70,7 @@ export class Frame {
 		}
 
 		// Extract constructor arguments from codecs
-		const codecs = ctor.prototype.__codecs;
+		const codecs = ctor.prototype.__codecs || [];
 		const args: any[] = [];
 
 		for (let i = 0; i < codecs.length; ++i) {
@@ -93,7 +93,7 @@ export class Frame {
 	static encode(frame: any, ...data: any[]): ArrayBuffer {
 		// Fetch codecs list and frame type
 		const proto = (frame instanceof Frame) ? frame : frame.prototype;
-		const codecs: CodecBinding[] = proto.__codecs;
+		const codecs: CodecBinding[] = proto.__codecs || [];
 		const frame_type: number = proto.frame_type;
 
 		// Create the data parameter based on the object field
