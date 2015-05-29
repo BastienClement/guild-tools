@@ -85,14 +85,14 @@ export class PolymerElement {
 /**
  * Declare a Polymer Element
  */
-export function polymer(selector: string, bundle?: string) {
+export function Element(selector: string, bundle?: string) {
 	return (target: Function) => PolymerLoader.register(selector, bundle, target);
 }
 
 /**
  * Declare a Polymer Property
  */
-export function property(config: Object) {
+export function Property(config: Object) {
 	return (target: any, property: string) => {
 		if (!target.properties) target.properties = {};
 		target.properties[property] = config;

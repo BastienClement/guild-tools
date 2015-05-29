@@ -1,9 +1,10 @@
-import { polymer, property, PolymerElement } from "elements/polymer";
+import { Element, Property, PolymerElement } from "elements/polymer";
 import { Deferred } from "utils/deferred";
 
-@polymer("gt-login")
+@Element("gt-login")
 export class GtLogin extends PolymerElement {
-	@property({ value: null, observer: "credentials-available" })
+	// Deferred to resolve with user credentials
+	@Property({ value: null, observer: "credentials-updated" })
 	credentials: Deferred<[string, string]>;
 	
 	created() {
@@ -14,7 +15,7 @@ export class GtLogin extends PolymerElement {
 		console.log(this, "attached");
 	}
 	
-	"credentials-available"() {
+	private "credentials-updated" () {
 		console.log(this, arguments);
 	}
 }

@@ -1,4 +1,12 @@
 /**
+ * Interface of the function returned by Deferred#lazy()
+ */
+interface LazyThen<T> {
+	<U>(fn: (value: T) => U | Promise<U>): Promise<U>;
+	(): Promise<T>;
+}
+
+/**
  * Represent a not-yet-available value
  */
 export class Deferred<T> {
@@ -113,5 +121,19 @@ export class Deferred<T> {
 		const deferred = new Deferred<T>();
 		require([module_name], (mod: any) => deferred.resolve(symbole ? mod[symbole] : mod))
 		return deferred.promise;
+	}
+	
+	/**
+	 * Construct a lazy promise
+	 */
+	static lazy<T>(init: () => T | Promise<T>): LazyThen<T> {
+		let promise: Promise<T> = null;
+		return (fn?: (value: T) => any) => {
+			if (!promise) {
+				const value = init();
+				promise = (value instanceof Promise) ? value : Deferred.resolved(promise);
+			}
+			return fn ? promise.then(fn) : promise;
+		};
 	}
 }

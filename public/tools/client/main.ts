@@ -1,32 +1,28 @@
 import { Deferred } from "utils/deferred";
 import { Injector, Constructor } from "utils/di";
-import { Channel } from "gtp3/channel";
 import { error, DialogActions } from "client/dialog";
-import { Server } from "core/server";
 
-// ###############################################
+import { Channel } from "gtp3/channel";
 
+/**
+ * The main application Injector
+ */
 const injector = new Injector();
 
-// Lazy server object loading
+/**
+ * Lazy server component loading
+ */
+import { Server } from "core/server";
 let server: Server = null;
-const lazy_server = () => Deferred.require<Constructor<Server>>("core/server", "Server").then(s => server = injector.get(s));
-
-// Lazy polymer element loading
-const lazy_polymer = () => Deferred.require<() => Promise<void>>("elements/polymer", "polymer_load").then(loader => loader())
+const lazy_server = Deferred.lazy(() => {
+	return Deferred.require<Constructor<Server>>("core/server", "Server").then(s => server = injector.get(s));
+});
 
 /**
  * Components lazy-loading
  */
-import { GtLogin as GtLogin_t, GtScreen as GtScreen_t } from "elements/defs";
-let GtLogin: typeof GtLogin_t = null;
-let GtScreen: typeof GtScreen_t = null;
-const import_main_components = () => Deferred.parallel([
-	Deferred.require<typeof GtLogin_t>("elements/defs", "GtLogin").then(impl => GtLogin = impl),
-	Deferred.require<typeof GtScreen_t>("elements/defs", "GtScreen_t").then(impl => GtScreen = impl)
-]);
-
-// ###############################################
+import { GtLogin } from "elements/defs";
+const lazy_GtLogin = Deferred.lazy(() => Deferred.require<typeof GtLogin>("elements/defs", "GtLogin"))
 
 /**
  * Simple wrapper around Element#querySelector
@@ -38,7 +34,7 @@ function $(selector: string, parent: Element | Document = document): Element {
 /**
  * Load text data via XMLHttpRequest
  */
-function xhr_text(url: string): Promise<string> {
+function xhr(url: string): Promise<string> {
 	const deferred = new Deferred<string>();
 
 	const xhr = new XMLHttpRequest();
@@ -52,18 +48,18 @@ function xhr_text(url: string): Promise<string> {
 			deferred.reject(new Error());
 		}
 	};
+	
+	xhr.onerror = (e) => deferred.reject(e);
 
 	xhr.send();
 	return deferred.promise;
 }
 
-// ###############################################
-
 /**
  * Load the source of one .less file
  */
 function load_less(file: string): Promise<string> {
-	return xhr_text(`/assets/less/${file}.less`);
+	return xhr(`/assets/less/${file}.less`);
 }
 
 /**
@@ -76,14 +72,10 @@ function inject_css(code: string) {
 	document.head.appendChild(style);
 }
 
-// ###############################################
-
 /**
  * Mark the begining of a pipeline step
  */
-let steps = new Map<string, Promise<void>>();
 function begin_step(step: string) {
-	steps.set(step, Deferred.delay(1));
 	const el = <HTMLDivElement> $(`#load-${step}`);
 	el.classList.add("current");
 }
@@ -92,14 +84,10 @@ function begin_step(step: string) {
  * Mark the end of a pipeline step
  */
 function end_step(step: string) {
-	return steps.get(step).then(() => {
-		const el = <HTMLDivElement> $(`#load-${step}`);
-		el.classList.remove("current");
-		el.classList.add("done");
-	});
+	const el = <HTMLDivElement> $(`#load-${step}`);
+	el.classList.remove("current");
+	el.classList.add("done");
 }
-
-// ###############################################
 
 /**
  * Perform the authentification with the server
@@ -107,7 +95,7 @@ function end_step(step: string) {
 const STORAGE_SESSION_KEY = "auth.session";
 function perform_auth(chan: Channel): Promise<void> {
 	let session: string = localStorage.getItem(STORAGE_SESSION_KEY);
-	let gt_login: GtLogin_t = null;
+	let gt_login: GtLogin = null;
 	
 	/**
 	 * If a session ID is available, attempt to authenticate using this session
@@ -121,19 +109,15 @@ function perform_auth(chan: Channel): Promise<void> {
 	 * Request credentials to the user
 	 */
 	function request_credentials(error?: string): Promise<[string, string]> {
-		const creds = new Deferred<[string, string]>();
-		
 		if (!gt_login) {
-			gt_login = new GtLogin();
-			document.body.appendChild(gt_login);
+			return lazy_GtLogin(GtLogin => {
+				gt_login = new GtLogin();
+				document.body.appendChild(gt_login);
+				return request_credentials(error);
+			});
 		}
 		
-		gt_login.credentials = creds;
-		console.log("credentials requested");
-		
-		creds.promise.then(() => gt_login.credentials = null);
-		
-		return creds.promise;
+		return (gt_login.credentials = new Deferred<[string, string]>()).promise;
 	}
 	
 	/**
@@ -169,8 +153,6 @@ function perform_auth(chan: Channel): Promise<void> {
 	});
 }
 
-// ###############################################
-
 /**
  * Load and compile the GuildTools Less stylesheet
  */
@@ -182,20 +164,11 @@ const init_less = () => Deferred.pipeline(begin_step("less"), [
 ]);
 
 /**
- * Load and initialize Polymer components
- */
-const init_polymer = () => Deferred.pipeline(begin_step("polymer"), [
-	() => lazy_polymer(),
-	() => import_main_components(),
-	() => end_step("polymer")
-]);
-
-/**
  * Fetch the server API endpoint and connect
  */
 const init_socket = () => Deferred.pipeline(begin_step("socket"), [
 	() => lazy_server(),
-	() => xhr_text("/api/socket_url"),
+	() => xhr("/api/socket_url"),
 	(url: string) => server.connect(url),
 	() => end_step("socket")
 ]);
@@ -209,8 +182,6 @@ const init_auth = () => Deferred.pipeline(begin_step("auth"), [
 	() => end_step("auth")
 ]);
 
-// ###############################################
-
 /**
  * Load and initialize Guild Tools
  */
@@ -222,14 +193,13 @@ function main() {
 
 		// Four steps initialization		
 		init_less,
-		init_polymer,
 		init_socket,
 		init_auth
 	]);
 
 	init_pipeline.then(() => {
 		// Loading successful
-		document.body.appendChild(new GtScreen());
+		//document.body.appendChild(new GtScreen());
 	}, (e) => {
 		// Loading failed
 		const actions: DialogActions[] = [
