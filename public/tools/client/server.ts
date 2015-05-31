@@ -19,21 +19,27 @@ export class Server extends EventEmitter {
 	 * Boostrap the server connection
 	 */
 	connect(url: string): Promise<void> {
-		this.connect_deferred = new Deferred<void>();
-		this.socket = new Socket(url);
-		this.socket.verbose = true;
-		this.socket.connect();
+		const defer = this.connect_deferred = new Deferred<void>();
+		const socket = this.socket = new Socket(url);
+		
+		socket.verbose = true;
+		socket.pipe(this);
+		socket.bind(this, "connected", "reconnecting", "disconnected", "reset", "channel-request");
+		socket.connect();
 
-		this.socket.pipe(this);
-		this.socket.bind(this, "connected", "reconnecting", "disconnected", "reset", "channel-request");
-
-		return this.connect_deferred.promise;
+		return defer.promise;
 	}
 
-	private "connected" (version: string) {
+	/**
+	 * The socket is connected to the server
+	 */	
+	private "connected"(version: string) {
+		// Check if the server was updated
 		if (this.version && this.version != version) {
 			error("Server updated", "test");
 		}
+		
+		this.version = version;
 
 		if (this.connect_deferred) {
 			this.connect_deferred.resolve();
@@ -43,10 +49,16 @@ export class Server extends EventEmitter {
 		status(null);
 	}
 
-	private "reconnecting"() {
+	/**
+	 * Connection to the server was interrupted
+	 */	
+	private "reconnecting" () {
 		status("Reconnecting...", true);
 	}
 
+	/**
+	 * The socket is definitively closed
+	 */	
 	private "disconnected" (code: number, reason: string) {
 		if (this.connect_deferred) {
 			this.connect_deferred.reject(new Error(`[${code}] ${reason}`));
@@ -55,21 +67,29 @@ export class Server extends EventEmitter {
 		error("Disconnected", "You were disconnected from the server.");
 	}
 
-	private "reset"() {
-	}
-
-	private "channel-request" () {
+	/**
+	 * Connection with the server was re-established but the session was lost
+	 */	
+	private "reset" () {
 	}
 
 	/**
-	 * Access the socket latency
+	 * Incomming channel request
+	 */	
+	private "channel-request" () {
+		// Todo
+		throw new Error("Unimplemented")
+	}
+
+	/**
+	 * Socket latency
 	 */
 	get latency(): number {
 		return this.socket ? this.socket.latency : 0;
 	}
 	
 	/**
-	 * Channel request
+	 * Request a channel from the server
 	 */
 	openChannel(ctype: string) {
 		return this.socket.openChannel(ctype);
@@ -79,6 +99,6 @@ export class Server extends EventEmitter {
 	 * Close the server connection
 	 */
 	disconnect() {
-		this.socket.close();
+		this.socket && this.socket.close();
 	}
 }

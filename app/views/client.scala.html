@@ -2,27 +2,25 @@
 <meta charset="UTF-8">
 <title>Guild Tools</title>
 <style>body{background-color:#2e3740}.cloak{opacity:0;}</style>
+<script>
+	var loading_less = null;
+	function fetch_loading_less() {
+		loading_less = new Promise(function(resolve) {
+			var xhr = new XMLHttpRequest();
+			xhr.open("GET", '@routes.Assets.versioned("/public", "less/loading.less")', true);
+			xhr.responseType = "text";
+			xhr.onload = function() { resolve(this.response); };
+			xhr.send();
+		});
+	}
+	if (window.Promise) fetch_loading_less();
+</script>
 <script data-async="true" data-env="production" src='@routes.Assets.versioned("/public", "javascripts/less.js")'></script>
 <script src='@routes.Assets.versioned("/public", "javascripts/reflect.js")'></script>
 <script src='@routes.Assets.versioned("/public", "javascripts/require.js")'></script>
 <script src='@routes.Assets.versioned("/public", "tools/config.js")'></script>
 <script src='@routes.Assets.versioned("/public", "javascripts/webcomponents-lite.js")'></script>
-<script>Polymer={dom:"shadow"};</script>
-<link rel="import" href='@routes.Assets.versioned("/public", "imports/polymer.html")'>
-<script>require(["client/main"],function(main){main();});</script>
-<div id="loader" class="cloak">
-	<div class="steps">
-		<div id="load-less" class="step"><img src="/assets/loading/club.png"><span>Initializing</span></div>
-		<div id="load-socket" class="step"><img src="/assets/loading/diamond.png"><span>Loading</span></div>
-		<div id="load-auth" class="step"><img src="/assets/loading/heart.png"><span>Connecting</span></div>
-		<div id="load-interface" class="step"><img src="/assets/loading/spade.png"><span>Authenticating</span></div>
-	</div>
-</div>
-<div id="error">
-	<div class="frame">
-		<h2 class="title"></h2>
-		<div class="text"></div>
-		<div class="infos"></div>
-		<div class="actions"></div>
-	</div>
-</div>
+<script type="prefetch/javascript" src='@routes.Assets.versioned("/public", "modules/client/boot.js")'></script>
+<script>if (!loading_less) fetch_loading_less();</script>
+<script>require(["client/boot"],function(boot){boot();});</script>
+<div id="loader" class="cloak"><div class="spinner"><b></b><b></b><b></b><b></b><b></b><b></b></div></div>

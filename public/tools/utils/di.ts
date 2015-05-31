@@ -5,9 +5,14 @@ if (typeof Reflect !== "object" || typeof Reflect.getMetadata !== "function")
 /**
  * Iterface of a T-constructor
  */
-export interface Constructor<T> {
+export interface Constructor<T> extends Function {
 	new (): T;
 }
+
+/**
+ * Interface of a locally declared Constructor
+ */
+export interface LocalConstructor<T> extends Function {}
 
 /**
  * The DI Injector
@@ -22,7 +27,7 @@ export class Injector {
 	/**
 	 * Construct a module using dependency injection
 	 */
-	get<T>(constructor: Constructor<T>): T {
+	get<T>(constructor: Constructor<T> | LocalConstructor<T>): T {
 		// Check is there is already a constructed instance of the requested module
 		let instance = this.instances.get(constructor);
 		if (instance) return instance;
