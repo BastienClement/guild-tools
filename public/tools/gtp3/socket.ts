@@ -599,8 +599,16 @@ export class Socket extends EventEmitter {
 	 * Print the socket activity
 	 */
 	private trace(direction: string, frame: Frame): void {
-		const frame_name = frame.constructor.name.replace(/Frame$/, "")
+		// Get the frame constructor function name
+		let frame_name = frame.constructor.name;
+		
+		// IE doesn't support Function.name and does logging really badly anyway...
+		if (!frame_name) return;
+		
+		// Remove the "Frame" prefix and construct the padding
+		frame_name = frame_name.replace(/Frame$/, "");
 		const padding = " ".repeat(15 - frame_name.length);
+		
 		console.debug(direction, frame_name + padding, frame)
 	}
 }

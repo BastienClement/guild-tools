@@ -1,7 +1,7 @@
 /**
  * Interface of the function returned by Deferred#lazy()
  */
-interface LazyThen<T> {
+export interface LazyThen<T> {
 	<U>(fn: (value: T) => U | Promise<U>): Promise<U>;
 	(): Promise<T>;
 }
@@ -100,9 +100,10 @@ export class Deferred<T> {
 	/**
 	 * Create a promise that will be resolved when the given object onload() method is called
 	 */	
-	static onload<T extends { onload: Function }>(obj: T): Promise<T> {
+	static onload<T extends { onload: Function; onerror?: Function }>(obj: T): Promise<T> {
 		const deferred = new Deferred<T>();
 		obj.onload = () => deferred.resolve(obj);
+		obj.onerror = (e: any) => deferred.reject(e);
 		return deferred.promise;
 	}
 	

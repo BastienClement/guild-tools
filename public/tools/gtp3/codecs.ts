@@ -1,3 +1,4 @@
+import "encoding";
 import { BufferReader, BufferWriter, UInt64 } from "gtp3/bufferstream";
 
 export const UTF8Decoder: TextDecoder = new TextDecoder("utf-8");

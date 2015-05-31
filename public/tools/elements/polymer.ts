@@ -1,4 +1,4 @@
-import { Deferred } from "utils/deferred";
+import { Deferred, LazyThen } from "utils/deferred";
 import { Queue } from "utils/queue";
 
 /**
@@ -79,14 +79,70 @@ const PolymerLoader = {
  * Dummy class to expose Polymer functions on elements
  */
 export class PolymerElement {
-	
+}
+
+export interface PolymerProxy extends Function {
+	__polymer: PolymerMetadata;
+	[key: string]: any;
+}
+
+export interface PolymerMetadata {
+	selector: string;
+	template: string;
+	proto: any;
+	dependencies: PolymerProxy[];
+	loaded: boolean;
+	domModule?: Element;
+	constructor?: Function;
 }
 
 /**
  * Declare a Polymer Element
  */
-export function Element(selector: string, bundle?: string) {
-	return (target: Function) => PolymerLoader.register(selector, bundle, target);
+export function Element(selector: string, template: string) {
+	return (target: Function) => {
+		// Transpose instance variables on prototype
+		target.call(target.prototype);
+		target.prototype.is = selector;
+		
+		// Reference to the element metadata object
+		let meta: PolymerMetadata;
+
+		// The placeholder during element loading
+		const proxy: PolymerProxy = <any> function() {
+			if (!meta.constructor) throw new Error("Polymer element is not yet loaded");
+			return meta.constructor.apply(Object.create(meta.constructor.prototype), arguments);
+		};
+		
+		// Create the metadata objet
+		meta = proxy.__polymer = {
+			selector: selector,
+			template: template,
+			proto: target.prototype,
+			dependencies: (<any> target).__polymer_dependencies,
+			loaded: false
+		};
+		
+		// Transpose static members on the proxy function
+		for (let key in target) {
+			if (target.hasOwnProperty(key)) {
+				proxy[key] = (<{ [key: string]: any; }><any> target)[key];
+			}
+		}
+		
+		return <any> proxy;
+	};
+}
+
+/**
+ * Delcare Polymer element dependencies
+ */
+export function Dependencies(...dependencies: Function[]) {
+	return (target: Function) => {
+		const meta = (<PolymerProxy> target).__polymer;
+		if (!meta) (<any> target).__polymer_dependencies = dependencies
+		else meta.dependencies = <PolymerProxy[]> dependencies;
+	}
 }
 
 /**
@@ -97,11 +153,4 @@ export function Property(config: Object) {
 		if (!target.properties) target.properties = {};
 		target.properties[property] = config;
 	}
-}
-
-/**
- * Bootstrap Polymer elements loading
- */
-export function polymer_load(): Promise<void> {
-	return PolymerLoader.start();
 }

@@ -2,12 +2,15 @@ import { Deferred } from "utils/deferred";
 import { Injector, Constructor } from "utils/di";
 import { Application } from "client/main";
 
-declare const loading_less: Promise<string>;
+/**
+ * The global reference to the Application instance
+ */
+declare var GuildTools: Application;
 
 /**
- * LocalStorage key storing user's session
+ * This promise is resolved when loading.less is available
  */
-const STORAGE_SESSION_KEY = "auth.session";
+declare const loading_less: Promise<string>;
 
 /**
  * Perform the authentification with the server
@@ -120,6 +123,7 @@ function boot() {
 	}).then((injector: Injector) => {
 		return DeferredLazy.require<Constructor<Application>>("client/main", "Application").then(Application => injector.get(Application));
 	}).then((app: Application) => {
+		GuildTools = app;
 		app.main();
 	});
 }
