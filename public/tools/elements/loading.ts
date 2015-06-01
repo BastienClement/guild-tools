@@ -13,11 +13,9 @@ export class GtLogin extends PolymerElement {
 	
 	attached() {
 		console.log(this, "attached");
-		document.body.classList.add("step-login");
 	}
 	
 	detached() {
-		document.body.classList.remove("step-login");
 	}
 	
 	private "credentials-updated" () {

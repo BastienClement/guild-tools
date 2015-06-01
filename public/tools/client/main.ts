@@ -16,19 +16,18 @@ export class Application {
     constructor(
         public server: Server,
 		public loader: Loader,
-		public injector: Injector) {}
+		public injector: Injector) { }
 	
 	/**
 	 * Initialize the GuildTools application
 	 */
 	main(): void {
-		const loading_delay = Deferred.delay(1000);
-		const socket_endpoint = this.loader.fetch("/api/socket_url")
-		
+		const socket_endpoint = this.loader.fetch("/api/socket_url");
+
 		const init_pipeline = Deferred.pipeline(socket_endpoint, [
 			(url: string) => this.server.connect(url),
-			() => loading_delay,
-			() => new AuthenticationDriver(this).start()
+			() => new AuthenticationDriver(this).start(),
+			() => this.spinner_enabled ? this.stopSpinner() : null
 		]);
 		
 		init_pipeline.then(() => {
@@ -36,6 +35,37 @@ export class Application {
 		}, (e) => {
 			console.error("Loading failed", e);
 		});
+	}
+	
+	/**
+	 * Track loading spinner state
+	 */
+	private spinner_enabled = true;
+	
+	/**
+	 * Return a promise that will be resolved when the next iteration
+	 * of the loadind spinner annimation is completed. Also stop the
+	 * spinner annimation.
+	 */
+	stopSpinner() {
+		this.spinner_enabled = false;
+		
+		const last_dot = <HTMLSpanElement> document.querySelector("#loader .spinner b:last-child");
+		if (!last_dot) return Deferred.resolved(null);
+		
+		const trigger = new Deferred<void>();
+		
+		const listener = () => {
+			trigger.resolve(null);
+			last_dot.removeEventListener("animationiteration", listener);
+			const dots = document.querySelectorAll("#loader .spinner b");
+			for (let i = 0; i < dots.length; ++i) {
+				(<HTMLSpanElement> dots[i]).style.animationIterationCount = "1";
+			}
+		};
+		
+		last_dot.addEventListener("animationiteration", listener);
+		return trigger.promise;
 	}
 }
 
@@ -110,8 +140,9 @@ class AuthenticationDriver {
 	 * Create the login form interface
 	 */
 	private constructForm(): Promise<void> {
-		return this.loader.loadElement(GtLogin).then(() => {
+		return this.loader.loadElement(GtLogin).then(() => this.app.stopSpinner()).then(() => {
 			this.gt_login = new GtLogin();
+			document.body.classList.add("step-login");
 			document.body.appendChild(this.gt_login);
 		});
 	}

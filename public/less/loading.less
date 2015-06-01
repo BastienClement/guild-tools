@@ -19,9 +19,9 @@
 	
 	.step-login & {
 		transition: all 0.75s ease-in-out;
-		transform: translateY(-30px);
+		transform: translateY(-50px);
 		opacity: 0;
-		transition-delay: 0.75s;
+		transition-delay: 0.4s;
 	}
 	
 	.spinner {
@@ -30,11 +30,6 @@
 		left: 0;
 		right: 0;
 		text-align: center;
-		
-		.step-login & {
-			transition: all .5s ease-in-out;
-			opacity: 0;
-		}
 	}
 }
 
@@ -61,10 +56,11 @@
 }
 
 @keyframes spinner {
-	0%   { transform: translateX(-50px); opacity: 0; }
-	20%  { opacity: 0.5; }
-	30%  { opacity: 0.6; }
+	0%   { opacity: 0; }
+	20%  { transform: translateX(-50px); opacity: 0; }
 	40%  { opacity: 0.5; }
-	60%  { transform: translateX(50px); opacity: 0; }
+	50%  { opacity: 0.6; }
+	60%  { opacity: 0.5; }
+	80%  { transform: translateX(50px); opacity: 0; }
 	100% { opacity: 0; }
 }

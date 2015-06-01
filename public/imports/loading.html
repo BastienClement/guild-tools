@@ -3,18 +3,7 @@
 		:host {
 			position: fixed;
 			top: 0; left: 0; right: 0; bottom: 0;
-			z-index: 500;
-		}
-		
-		* {
-			box-sizing: border-box;
-		}
-		
-		#cover {
-			//background: #2e3740;
-			position: absolute;
-			top: 0; left: 0; right: 0; bottom: 0;
-			animation: fading .5s ease-in-out;
+			z-index: 2000;
 		}
 		
 		#form {
@@ -28,27 +17,19 @@
 		    box-shadow: 0 1px 1px rgba(17, 17, 17, 0.3);
 			padding: 16px;
 			animation: slide 1s ease-in-out;
-			animation-delay: 1.2s;
+			animation-delay: 0.75s;
 			animation-fill-mode: both;
-		}
-		
-		@keyframes fading {
-			0%   { opacity: 0; }
-			100% { opacity: 1; }
+			box-sizing: border-box;
 		}
 		
 		@keyframes slide {
-			0%   { opacity: 0; transform: translateY(30px); }
+			0%   { opacity: 0; transform: translateY(40px); }
 			100% { opacity: 1; transform: translateY(0px); }
 		}
 	</style>
 	<template>
-		<div id="cover">
-			<div id="form">
-				
-			</div>
+		<div id="form">
+			GtLogin
 		</div>
-		<span [click]="helloworld" (foo)="bar"></span>
-		GtLogin
 	</template>
 </dom-module>
