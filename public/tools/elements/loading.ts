@@ -4,7 +4,7 @@ import { Deferred } from "utils/deferred";
 @Element("gt-login", "/assets/imports/loading.html")
 export class GtLogin extends PolymerElement {
 	// Deferred to resolve with user credentials
-	@Property({ value: null, observer: "credentials-updated" })
+	@Property({ observer: "credentials-updated" })
 	credentials: Deferred<[string, string]>;
 	
 	created() {
@@ -13,6 +13,11 @@ export class GtLogin extends PolymerElement {
 	
 	attached() {
 		console.log(this, "attached");
+		document.body.classList.add("step-login");
+	}
+	
+	detached() {
+		document.body.classList.remove("step-login");
 	}
 	
 	private "credentials-updated" () {

@@ -132,10 +132,29 @@ export class Loader {
 		return load_dependencies.then(() => this.loadDocument(meta.template)).then(document => {
 			const domModule = document.querySelector(`dom-module[id=${meta.selector}]`);
 			if (!domModule) throw new Error(`no <dom-module> found for element <${meta.selector}> in file '${meta.template}'`);
+			return meta.domModule = domModule;
+		}).then((domModule) => {
+			// Compile LESS
+			const less_styles = domModule.querySelectorAll(`style[type="text/less"]`);
+			if (less_styles.length < 1) return;
 			
-			meta.domModule = domModule;
+			const job = (i: number) => {
+				const style = <HTMLStyleElement> less_styles[i];
+				return less.render(style.innerHTML).then(res => {
+					style.type = "text/css";
+					style.innerHTML = res.css;
+				});
+			};
+			
+			const jobs: Promise<void>[] = [];
+			for (let i = 0; i < less_styles.length; ++i) {
+				jobs[i] = job(i);
+			}
+			
+			return Deferred.parallel(jobs);
+		}).then(() => {
+			// Polymer constructor	
 			meta.constructor = Polymer(meta.proto);
-			
 			return element;
 		});
 	}

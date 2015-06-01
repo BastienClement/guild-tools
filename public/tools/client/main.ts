@@ -27,8 +27,8 @@ export class Application {
 		
 		const init_pipeline = Deferred.pipeline(socket_endpoint, [
 			(url: string) => this.server.connect(url),
-			() => new AuthenticationDriver(this).start(),
-			() => loading_delay
+			() => loading_delay,
+			() => new AuthenticationDriver(this).start()
 		]);
 		
 		init_pipeline.then(() => {
@@ -85,6 +85,7 @@ class AuthenticationDriver {
 	 * Perform the login request
 	 */
 	private login(error?: string): Promise<void> {
+		if (error) console.error(error);
 		return this.requestCredentials().then(credentials => {
 			const [user, pass] = credentials;
 			return this.channel.request<string>("login", { user: user, pass: pass });

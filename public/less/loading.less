@@ -1,3 +1,7 @@
+* {
+	box-sizing: border-box;
+}
+
 .cloak {
 	opacity: 0.9;
 	transition: opacity ease-in-out 1s;
@@ -5,14 +9,20 @@
 
 #loader {
 	position: absolute;
-	top: 50%;
-	left: 50%;
-	margin-top: -80px;
-	margin-left: -200px;
-	height: 160px;
+	top: 0; left: 0; right: 0; bottom: 0;
+	margin: auto;
 	width: 400px;
+	height: 160px;
 	background: url(/assets/loading/logo.png) no-repeat center 20px;
 	background-size: contain;
+	z-index: 1000;
+	
+	.step-login & {
+		transition: all 0.75s ease-in-out;
+		transform: translateY(-30px);
+		opacity: 0;
+		transition-delay: 0.75s;
+	}
 	
 	.spinner {
 		position: absolute;
@@ -20,6 +30,11 @@
 		left: 0;
 		right: 0;
 		text-align: center;
+		
+		.step-login & {
+			transition: all .5s ease-in-out;
+			opacity: 0;
+		}
 	}
 }
 
@@ -47,9 +62,9 @@
 
 @keyframes spinner {
 	0%   { transform: translateX(-50px); opacity: 0; }
-	25%  { opacity: 0.5; }
-	33%  { opacity: 0.6; }
+	20%  { opacity: 0.5; }
+	30%  { opacity: 0.6; }
 	40%  { opacity: 0.5; }
-	66%  { transform: translateX(50px); opacity: 0; }
+	60%  { transform: translateX(50px); opacity: 0; }
 	100% { opacity: 0; }
 }
