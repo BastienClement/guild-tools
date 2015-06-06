@@ -77,9 +77,10 @@ class Socket(val id: Long, var actor: SocketActor) {
 		}
 	}
 
-	// Send the Handshake frame to the client
-	out ! HandshakeFrame(GTP3Magic, Global.serverVersion, id)
-	println("socket open", id)
+	/**
+	 * Send the Handshake frame to the client
+	 */
+	def handshake() = out ! HandshakeFrame(GTP3Magic, Global.serverVersion, id)
 
 	/**
 	 * Receive a frame
@@ -231,6 +232,5 @@ class Socket(val id: Long, var actor: SocketActor) {
 	}
 
 	def closed() = {
-		println("socket closed", id)
 	}
 }
