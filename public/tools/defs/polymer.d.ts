@@ -4,6 +4,8 @@ interface Polymer {
 	(prototype: any): Function;
 }
 
+declare var Polymer: Polymer;
+
 interface PolymerElement {}
 
 interface Node {
@@ -11,4 +13,12 @@ interface Node {
 	removeChild(e: PolymerElement): Node;
 }
 
-declare var Polymer: Polymer;
+interface Document {
+	createElement(tag: "template"): HTMLTemplateElement;
+}
+
+interface DocumentFragment extends Document {}
+
+interface HTMLTemplateElement extends HTMLElement {
+	content: DocumentFragment;
+}

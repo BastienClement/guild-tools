@@ -25,13 +25,6 @@ export interface FetchResponse {
 }
 
 /**
- * Interface of a <template> tag
- */
-interface HTMLTemplateElement extends Element {
-	content: Document;
-}
-
-/**
  * Resource loading service
  */
 @Component
@@ -179,7 +172,7 @@ export class Loader {
 			// Compile LESS
 			const less_styles = domModule.querySelectorAll(`style[type="text/less"]`);
 			if (less_styles.length < 1) return;
-			
+
 			const job = (i: number) => {
 				const style = <HTMLStyleElement> less_styles[i];
 				return this.compileLess(style.innerHTML).then(css => {
@@ -187,17 +180,76 @@ export class Loader {
 					style.innerHTML = css;
 				});
 			};
-			
+
 			const jobs: Promise<void>[] = [];
 			for (let i = 0; i < less_styles.length; ++i) {
 				jobs[i] = job(i);
 			}
-			
+
 			return Deferred.all(jobs);
+		}).then(() => {
+			const template = <HTMLTemplateElement> meta.domModule.querySelector("template");
+			if (template) return this.compilePolymerSugars(template)
 		}).then(() => {
 			// Polymer constructor	
 			meta.constructor = Polymer(meta.proto);
 			return element;
 		});
+	}
+	
+	/**
+	 * Compile Polymer sugars inside a template
+	 */
+	compilePolymerSugars(tpl: HTMLTemplateElement) {
+		const template = tpl.content;
+		
+		let node: HTMLElement;
+		let wrapper: HTMLTemplateElement = document.createElement("template");
+		
+		// Attribute promotion helper
+		const promote_attribute = (from: string, to?: string, def?: string) => {
+			// Implicit target name
+			if (!to) to = from;
+			
+			// Try from extended form
+			const extended = `(${from})`;
+			if (!node.hasAttribute(extended)) from = extended;
+			
+			// Get value
+			const value = node.getAttribute(from) || def;
+			if (value) {
+				node.removeAttribute(from);
+				wrapper.setAttribute(to, value);
+			}
+		};
+		
+		// Move node inside the wrapper
+		const promote_node = () => {
+			node.parentNode.insertBefore(wrapper, node);
+			wrapper.content.appendChild(node);
+			wrapper = document.createElement("template");
+		};
+		
+		// <element [if]="{{cond}}">
+		const if_nodes = template.querySelectorAll("[\\[if\\]]");
+		for (let i = 0; i < if_nodes.length; ++i) {
+			node = <HTMLElement> if_nodes[i];
+			wrapper.setAttribute("is", "dom-if");
+			promote_attribute("[if]", "if", node.textContent);
+			promote_node();
+		}
+		
+		// <element [repeat]="{{collection}}" filter sort observe>
+		const repeat_nodes = template.querySelectorAll("[\\[repeat\\]]");
+		for (let i = 0; i < repeat_nodes.length; ++i) {
+			node = <HTMLElement> if_nodes[i];
+			wrapper.setAttribute("is", "dom-repeat");
+			promote_attribute("[repeat]", "items");
+			promote_attribute("filter");
+			promote_attribute("sort");
+			promote_attribute("observe");
+			promote_attribute("id");
+			promote_node();
+		}
 	}
 }
