@@ -65,8 +65,11 @@ export class Deferred<T> {
 
 	/**
 	 * Execute multiple promise-returning function in parallel
-	 */	
-	static parallel(jobs: Promise<any>[]): Promise<any[]> {
+	 */
+	static all<T>(jobs: Promise<T>[]): Promise<T[]> {
+		// Short circuit on empty array
+		if (jobs.length < 1) return Deferred.resolved([]);
+		
 		const done = new Deferred<any[]>();
 
 		const results = new Array(jobs.length);

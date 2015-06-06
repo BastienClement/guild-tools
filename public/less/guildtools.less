@@ -1,62 +1,21 @@
-@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,300,600|Roboto+Condensed:400,300);
-@import url(http://fonts.googleapis.com/css?family=Source+Code+Pro);
+@import url("http://fonts.googleapis.com/css?family=Open+Sans:400,300,600|Roboto+Condensed:400,300|Source+Code+Pro");
 
-#error {
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background-color: #2e3740;
-	z-index: 3000;
-	display: none;
+:root /deep/ * {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
 
-	.frame {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
+body {
+	font-family: "Open Sans";
+	color: #f1f1f1;
+	font-size: 14px;
+}
 
-		width: 800px;
-		height: 300px;
-		margin: auto;
-		padding: 20px 20px 20px 200px;
-		background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAABWVBMVEVktP////9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ktP9ZK21RAAAAcnRSTlMAAAIEBggKDA4QEhQWGBocHiAiJCYoKiwuMDQ2ODo+QEJERkpMTlBUVlhaXF5gYmRmaGpsbnBydHZ4enx+gYOFiY2Pk5WZm52foaOlp6mrra+xs7W3ubu9v8HDxcfJy83P0dPV19nh4+Xn6fHz9ff5+/206YXZAAADfklEQVR4Xuza2VITQRiG4Ta7EBA0BmQJoLhhAogLCAiioCKKG7IbVjPBSWamv/tfLLW0azTbzN/LCe8VPCdfdXV1swuGOwecA84BjFQiv7wx38eM1VXkAJwnpgDJLfzKGzcEmOT43bdOI4DOb/jTghHAAv72PWsAkD2DaM0AYA0iOCPaASMORMBeQjMgsQdffEIzYILD32mH3gme4t/mzUxQdJY1M0HRGzMTFFWHtAGGqqjVTlwTIL6DmnkFTYBxD7U7SWsBdJyiTnxOC2Ceo17lq2YmKFrVAFhFgyo55YBcBY3aVj3F+DYa5uYVAwouRAammD6ByMQU5ziaVc4oBGTKaN5rhYBXaCE7Z2aCoi1VU4xtQWRiinkXrXXcrgTQfowW4zNKALMcrWZdMTNB0UszExTZg9IBgzaCtBmVPcFN+Bvr8bcLX85dyYAxF/4GmL8N+DtqkwpoO0ZAAJ+WCpjhQQGwuiUCLpcRGIAViYAVhADYwkhtwA4DwBdZU4x+QSiAc0cS4K4TDoDDi3ImeIQAAAVTnOZhAbC6GL0uC6EBWGb0lkEA2P1kQL9NAWAjSp8gCeDcJgJuOzQADlMkQOoQRID3iAR47FEBKHVSJlgGGYAXtAnSAXZfaECfLQOAz5GQgMgnSAE4N0MCbjlyADhIhgIkDyEJ4D0MBXjoyQLA6ggB6LAgDYDnIQDPIRFg9wYGXLNlAvAxQpogHeCMBgSMOnIBKCYCARIHkAzwpgIBpjzZAFjpAIC0BQqAPsUlUAD0KfbaFAB9ipGPoADoU7zhqAGgGG9tgkUoAnj3SROkA1Bq5brcbkEZAM+oExRtrfs7QytVsk0BPRWo7ENTwAcozR1pArjuQm37sYaA+FcozptoCJj0oDor1QCQsqC+xQaARWiocrkuIFOBjtbrAt5DS+5wHcBwkAk+zfs7CjLFaE1AdB8iBWeBiBdqAgpcFwClZA1A0gIJQJ7iIjQCqt3/AbqrOgF49x9gHVoBXo75y3l6AdiNEiYoA8Dv+QB5rhuAUpyJ4ha0AzDHRAswAHAu/QVccrQD/D/i3yJ4Sw/8nSBw/M+SBjnMtBv5BYjswlD899PqGIxVijHGYhbMNcsYm4XBnDRLuzDZKnsBszHXNACGY9w04B2MxlnGhsnWGOs5cDmMxHl1if2sO/9jhgMDlFkZGEY3vY46YNQBALdQhpNOhedwAAAAAElFTkSuQmCC") no-repeat 25px 25px;
-	}
+.font-roboto {
+	font-family: "Roboto Condensed";
+}
 
-	h2 {
-		font-family: "Roboto Condensed";
-		font-size: 24px;
-		font-weight: 400;
-		margin-bottom: 20px;
-		color: #8eafce;
-	}
-
-	.text {
-		white-space: pre-wrap;
-		font-size: 14px;
-	}
-
-	.infos {
-		margin-top: 20px;
-		color: rgb(142, 175, 206);
-	}
-
-	.actions {
-		a {
-			text-transform: uppercase;
-			font-weight: 600;
-			margin-right: 20px;
-			font-size: 14px;
-			cursor: pointer;
-			color: #eee;
-			transition: color ease-in-out .2s;
-			
-			&:hover {
-				color: #64b4ff;
-			}
-		}
-	}
-
+.font-source {
+	font-family: "Source Code Pro";
 }

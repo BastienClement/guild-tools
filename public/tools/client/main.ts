@@ -26,6 +26,7 @@ export class Application {
 
 		const init_pipeline = Deferred.pipeline(socket_endpoint, [
 			(url: string) => this.server.connect(url),
+			() => this.loader.loadLess("/assets/less/guildtools.less"),
 			() => new AuthenticationDriver(this).start(),
 			() => this.spinner_enabled ? this.stopSpinner() : null
 		]);

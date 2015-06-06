@@ -11,6 +11,9 @@ const Fetch: (url: string) => Promise<FetchResponse> = (<any>window).fetch;
 // Keep references to already imported HTML document
 const imported_documents: Map<string, Promise<Document>> = new Map<any, any>();
 
+// Keep references to already imported LESS stylesheet
+const imported_less: Map<string, Promise<void>> = new Map<any, any>();
+
 // Track polymer status
 let polymer_loaded = false;
 
@@ -80,17 +83,56 @@ export class Loader {
 	}
 	
 	/**
+	 * Import a LESS stylesheet
+	 */
+	loadLess(url: string): Promise<void> {
+		let promise = imported_less.get(url);
+		if (promise) return promise;
+		
+		promise = this.fetch(url).then(source => this.compileLess(source)).then(css => {
+			const style = document.createElement("style");
+			style.innerHTML = css;
+			style.setAttribute("data-source", url);
+			document.head.appendChild(style);
+		});
+		
+		imported_less.set(url, promise);
+		return promise;
+	}
+	
+	/**
+	 * Compile LESS source to CSS
+	 */
+	compileLess(source: string): Promise<string> {
+		// Split the input file on every dynamic import
+		const parts = source.split(/@import\s*\(dynamic\)\s*"([^"]*)";?/);
+		
+		// Fetch imports
+		const dyn_imports: Promise<string>[] = [];
+		for (let i = 1; i < parts.length; ++i) {
+			if (i % 2 == 1) dyn_imports.push(this.fetch(parts[i]));
+		}
+		
+		return Deferred.all(dyn_imports).then(dyn_source => {
+			for (let i = 0; i < dyn_source.length; ++i) {
+				parts[i * 2 + 1] = dyn_source[i];
+			}
+			return less.render(parts.join(""));
+		}).then(output => output.css);
+	}
+	
+	/**
 	 * Perform an HTML import
 	 */
 	loadDocument(url: string): Promise<Document> {
-		const import_promise = imported_documents.get(url);
-		if (import_promise) return import_promise;
+		let promise = imported_documents.get(url);
+		if (promise) return promise;
 		
 		const link = document.createElement("link");
 		link.rel = "import";
 		link.href = url;
 		
-		const promise = Deferred.onload(link).then((el: any) => {
+		promise = Deferred.onload(link).then((el: any) => {
 			const doc = el.import;
 			if (!doc) throw new Error(`HTML import of ${url} failed`);
 			return el.import
@@ -125,7 +167,7 @@ export class Loader {
 		
 		// Load dependencies of the element if any
 		const load_dependencies = (meta.dependencies) ?
-			Deferred.parallel(meta.dependencies.map(dep => this.loadElement(dep))) :
+			Deferred.all(meta.dependencies.map(dep => this.loadElement(dep))) :
 			Deferred.resolved(null);
 
 		// Load the template file
@@ -140,9 +182,9 @@ export class Loader {
 			
 			const job = (i: number) => {
 				const style = <HTMLStyleElement> less_styles[i];
-				return less.render(style.innerHTML).then(res => {
+				return this.compileLess(style.innerHTML).then(css => {
 					style.type = "text/css";
-					style.innerHTML = res.css;
+					style.innerHTML = css;
 				});
 			};
 			
@@ -151,7 +193,7 @@ export class Loader {
 				jobs[i] = job(i);
 			}
 			
-			return Deferred.parallel(jobs);
+			return Deferred.all(jobs);
 		}).then(() => {
 			// Polymer constructor	
 			meta.constructor = Polymer(meta.proto);
