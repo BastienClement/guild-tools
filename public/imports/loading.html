@@ -28,8 +28,13 @@
 		}
 	</style>
 	<template>
-		<div id="form">
-			<h3 class="font-roboto">GtLogin</h3>
-		</div>
+		<gt-dialog title="GuildTools Login" id="form">
+			<input type="text" id="username">
+			<input type="text" id="password">
+			
+			<gt-button-container>
+				<gt-button>Login</gt-button>
+			</gt-button-container>
+		</gt-dialog>
 	</template>
 </dom-module>

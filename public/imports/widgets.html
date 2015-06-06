@@ -1,0 +1,87 @@
+<dom-module id="gt-dialog">
+	<style type="text/less">
+		@box-padding: 24px;
+	
+		:host {
+			padding: 0 !important;
+		}
+		
+		.inner {
+			display: flex;
+			flex-direction: column;
+			padding: @box-padding;
+			height: 100%;
+			width: 100%;
+			box-sizing: border-box;
+		}
+		
+		h3 {
+			margin: 0;
+			font-size: 20px;
+			margin-bottom: 20px;
+		}
+		
+		::content gt-button-container {
+			margin: 0 -@box-padding;
+		}
+	</style>
+	<template>
+		<div class="inner">
+			<h3 [if] class="font-roboto">{{title}}</h3>
+			<content></content>
+		</div>
+	</template>
+</dom-module>
+
+<dom-module id="gt-input">
+	<style type="text/less">
+		:host {
+			display: inline-block;
+			text-transform: uppercase;
+			font-weight: 600;
+			cursor: pointer;
+			
+			height: 36px;
+			min-width: 64px;
+			padding: 0 8px;
+			margin: 0 8px;
+		}
+	</style>
+	<template>
+		<content></content>
+	</template>
+</dom-module>
+
+<dom-module id="gt-button">
+	<style type="text/less">
+		:host {
+			display: inline-block;
+			text-transform: uppercase;
+			font-weight: 600;
+			cursor: pointer;
+			
+			height: 36px;
+			min-width: 64px;
+			padding: 0 8px;
+			margin: 0 8px;
+		}
+	</style>
+	<template>
+		<content></content>
+	</template>
+</dom-module>
+
+<dom-module id="gt-button-container">
+	<style type="text/less">
+		:host {
+			display: block;
+			height: 36px;
+			margin-top: 24px;
+			padding: 8px;
+			text-align: right;
+		}
+	</style>
+	<template>
+		<content></content>
+	</template>
+</dom-module>
