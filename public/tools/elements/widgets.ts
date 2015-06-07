@@ -5,7 +5,7 @@ export class GtDialog extends PolymerElement {
 	/**
 	 * The dialog title
 	 */
-	public label: string;
+	public heading: string;
 	
 	/**
 	 * If defined, the .with-modal class will not be added

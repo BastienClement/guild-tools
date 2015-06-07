@@ -4,9 +4,14 @@
 		@box-padding: 24px;
 	
 		:host {
+			display: block;
 			animation: slide 0.5s ease-out;
 			animation-delay: 0.25s;
 			animation-fill-mode: both;
+			background: fade(mix(#2e3740, rgb(99, 180, 255), 90%), 75%);
+		    border: 1px solid #395066;
+		    box-shadow: 0 1px 1px rgba(17, 17, 17, 0.3);
+			overflow: hidden;
 		}
 		
 		#layout {
@@ -20,17 +25,23 @@
 			& > gt-dialog-actions {
 				margin: 0 -@box-padding -@box-padding;
 			}
-			
-			#content {
-				flex: 1;
-				overflow: auto;
-			}
 		}
 		
 		h3 {
+			font: 500 20px Roboto;
+			margin: -@box-padding;
+			margin-bottom: 0;
+			padding: @box-padding;
+			padding-bottom: 20px;
+		}
+		
+		#content {
+			flex: 1;
+			overflow: auto;
+		}
+		
+		::content p {
 			margin: 0;
-			font: 400 20px "Roboto Condensed";
-			margin-bottom: 20px;
 		}
 		
 		@keyframes slide {
@@ -40,7 +51,7 @@
 	</style>
 	<template>
 		<div id="layout">
-			<h3 [if]>{{label}}</h3>
+			<h3 [if]>{{heading}}</h3>
 			<div id="content">
 				<content></content>
 			</div>
@@ -69,8 +80,8 @@
 	<style type="text/less">
 		:host {
 			display: inline-flex;
+			font: 500 14px Roboto;
 			text-transform: uppercase;
-			font-weight: 600;
 			cursor: pointer;
 			
 			height: 36px;
