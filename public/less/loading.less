@@ -1,7 +1,3 @@
-* {
-	box-sizing: border-box;
-}
-
 .cloak {
 	opacity: 0.9;
 	transition: opacity ease-in-out 1s;
@@ -15,10 +11,10 @@
 	height: 160px;
 	background: url(/assets/loading/logo.png) no-repeat center 20px;
 	background-size: contain;
-	z-index: 1000;
+	z-index: 500;
 	
-	.step-login & {
-		transition: all 0.75s ease-in-out;
+	.no-loader & {
+		transition: all 0.75s ease-in;
 		transform: translateY(-50px);
 		opacity: 0;
 		transition-delay: 0.4s;
@@ -31,7 +27,7 @@
 		right: 0;
 		text-align: center;
 		
-		.step-login & {
+		.no-loader & {
 			transition: opacity .3s ease-in-out;
 			transition-delay: .1s;
 			opacity: 0;

@@ -51,7 +51,7 @@ export class Application {
 	stopSpinner() {
 		this.spinner_enabled = false;
 		
-		const last_dot = <HTMLSpanElement> document.querySelector("#loader .spinner b:last-child");
+		const last_dot = document.querySelector<HTMLSpanElement>("#loader .spinner b:last-child");
 		if (!last_dot) return Deferred.resolved(null);
 		
 		const trigger = new Deferred<void>();
@@ -59,9 +59,9 @@ export class Application {
 		const listener = () => {
 			trigger.resolve(null);
 			last_dot.removeEventListener("animationiteration", listener);
-			const dots = document.querySelectorAll("#loader .spinner b");
+			const dots = document.querySelectorAll<HTMLSpanElement>("#loader .spinner b");
 			for (let i = 0; i < dots.length; ++i) {
-				(<HTMLSpanElement> dots[i]).style.animationIterationCount = "1";
+				dots[i].style.animationIterationCount = "1";
 			}
 		};
 		
@@ -143,7 +143,7 @@ class AuthenticationDriver {
 	private constructForm(): Promise<void> {
 		return this.loader.loadElement(GtLogin).then(() => this.app.stopSpinner()).then(() => {
 			this.gt_login = new GtLogin();
-			document.body.classList.add("step-login");
+			document.body.classList.add("no-loader", "with-background");
 			document.body.appendChild(this.gt_login);
 		});
 	}

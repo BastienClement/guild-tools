@@ -1,11 +1,4 @@
 /**
- * Simple wrapper around Element#querySelector
- */
-function $(selector: string, parent: Element | Document = document): Element {
-	return parent.querySelector(selector);
-}
-
-/**
  * Object describing an action available on the fullscreen dialog
  */
 export interface DialogActions {
@@ -21,15 +14,15 @@ export function error(title: string, message: string, infos?: string, actions?: 
 	if (error_visible) return;
 	error_visible = true;
 	
-	const error = <HTMLDivElement> $("#error");
+	const error = document.querySelector<HTMLDivElement>("#error");
 	
 	// Title, messages and infos
-	$(".title", error).textContent = title;
-	$(".text", error).textContent = message;
-	$(".infos", error).textContent = infos ? infos : "";
+	error.querySelector<HTMLSpanElement>(".title").textContent = title;
+	error.querySelector<HTMLSpanElement>(".text").textContent = message;
+	error.querySelector<HTMLSpanElement>(".infos").textContent = infos ? infos : "";
 	
 	// Removes actions
-	const actions_container = <HTMLDivElement> $(".actions", error);
+	const actions_container = error.querySelector<HTMLDivElement>(".actions");
 	actions_container.innerHTML = "";
 	
 	if (actions) {

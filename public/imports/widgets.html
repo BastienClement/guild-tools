@@ -1,38 +1,96 @@
+<!-- <gt-dialog> -->
 <dom-module id="gt-dialog">
 	<style type="text/less">
 		@box-padding: 24px;
 	
 		:host {
-			padding: 0 !important;
+			animation: slide 0.5s ease-out;
+			animation-delay: 0.25s;
+			animation-fill-mode: both;
 		}
 		
-		.inner {
+		#layout {
 			display: flex;
 			flex-direction: column;
 			padding: @box-padding;
 			height: 100%;
 			width: 100%;
 			box-sizing: border-box;
+			
+			& > gt-dialog-actions {
+				margin: 0 -@box-padding -@box-padding;
+			}
+			
+			#content {
+				flex: 1;
+				overflow: auto;
+			}
 		}
 		
 		h3 {
 			margin: 0;
-			font-size: 20px;
+			font: 400 20px "Roboto Condensed";
 			margin-bottom: 20px;
 		}
 		
-		::content gt-button-container {
-			margin: 0 -@box-padding;
+		@keyframes slide {
+			0%   { opacity: 0; transform: translateY(40px); }
+			100% { opacity: 1; transform: translateY(0px); }
 		}
 	</style>
 	<template>
-		<div class="inner">
-			<h3 [if] class="font-roboto">{{title}}</h3>
-			<content></content>
+		<div id="layout">
+			<h3 [if]>{{label}}</h3>
+			<div id="content">
+				<content></content>
+			</div>
 		</div>
 	</template>
 </dom-module>
 
+<!-- <gt-dialog-actions> -->
+<dom-module id="gt-dialog-actions">
+	<style type="text/less">
+		:host {
+			display: flex;
+			height: 36px;
+			margin-top: 24px;
+			padding: 8px;
+			direction: rtl;
+		}
+	</style>
+	<template>
+		<content></content>
+	</template>
+</dom-module>
+
+<!-- <gt-button> -->
+<dom-module id="gt-button">
+	<style type="text/less">
+		:host {
+			display: inline-flex;
+			text-transform: uppercase;
+			font-weight: 600;
+			cursor: pointer;
+			
+			height: 36px;
+			padding: 0 8px;
+			margin: 0 8px;
+			
+			align-items: center;
+			justify-content: center;
+		}
+		
+		:host(.remove-right-margin) {
+			margin-right: 0;
+		}
+	</style>
+	<template>
+		<content></content>
+	</template>
+</dom-module>
+
+<!-- <gt-input> -->
 <dom-module id="gt-input">
 	<style type="text/less">
 		:host {
@@ -45,40 +103,6 @@
 			min-width: 64px;
 			padding: 0 8px;
 			margin: 0 8px;
-		}
-	</style>
-	<template>
-		<content></content>
-	</template>
-</dom-module>
-
-<dom-module id="gt-button">
-	<style type="text/less">
-		:host {
-			display: inline-block;
-			text-transform: uppercase;
-			font-weight: 600;
-			cursor: pointer;
-			
-			height: 36px;
-			min-width: 64px;
-			padding: 0 8px;
-			margin: 0 8px;
-		}
-	</style>
-	<template>
-		<content></content>
-	</template>
-</dom-module>
-
-<dom-module id="gt-button-container">
-	<style type="text/less">
-		:host {
-			display: block;
-			height: 36px;
-			margin-top: 24px;
-			padding: 8px;
-			text-align: right;
 		}
 	</style>
 	<template>

@@ -12,29 +12,22 @@
 			position: absolute;
 			top: 0; left: 0; right: 0; bottom: 0;
 			margin: auto;
-			background: #334353;
+			background: fade(mix(#2e3740, rgb(99, 180, 255), 90%), 75%);
 		    border: 1px solid #395066;
 		    box-shadow: 0 1px 1px rgba(17, 17, 17, 0.3);
-			padding: 16px;
-			animation: slide 1s ease-in-out;
-			animation-delay: 0.75s;
-			animation-fill-mode: both;
-			box-sizing: border-box;
-		}
-		
-		@keyframes slide {
-			0%   { opacity: 0; transform: translateY(40px); }
-			100% { opacity: 1; transform: translateY(0px); }
+			animation-delay: 1.1s;
+			animation-duration: 0.75s;
 		}
 	</style>
 	<template>
-		<gt-dialog title="GuildTools Login" id="form">
+		<gt-dialog label="GuildTools Login" no-modal id="form">
 			<input type="text" id="username">
 			<input type="text" id="password">
 			
-			<gt-button-container>
+			<gt-dialog-actions>
 				<gt-button>Login</gt-button>
-			</gt-button-container>
+				<gt-button>Cancel</gt-button>
+			</gt-dialog-actions>
 		</gt-dialog>
 	</template>
 </dom-module>

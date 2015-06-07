@@ -1,6 +1,6 @@
 import { Component, Constructor } from "utils/di";
 import { Deferred } from "utils/deferred";
-import { PolymerElement, PolymerMetadata } from "elements/polymer";
+import { PolymerElement, PolymerConstructor, PolymerMetadata, apply_polymer_fns } from "elements/polymer";
 
 // Path to the polymer file
 const POLYMER_PATH = "/assets/imports/polymer.html";
@@ -94,11 +94,14 @@ export class Loader {
 	}
 	
 	/**
-	 * Compile LESS source to CSS
+	 * Handle @import (dynamic) statements
 	 */
-	compileLess(source: string): Promise<string> {
+	private lessImportDynamics(source: string): Promise<string> {
 		// Split the input file on every dynamic import
 		const parts = source.split(/@import\s*\(dynamic\)\s*"([^"]*)";?/);
+		
+		// No import fournd
+		if (parts.length == 1) return Deferred.resolved(source);
 		
 		// Fetch imports
 		const dyn_imports: Promise<string>[] = [];
@@ -106,12 +109,28 @@ export class Loader {
 			if (i % 2 == 1) dyn_imports.push(this.fetch(parts[i]));
 		}
 		
+		// Combine
 		return Deferred.all(dyn_imports).then(dyn_source => {
 			for (let i = 0; i < dyn_source.length; ++i) {
 				parts[i * 2 + 1] = dyn_source[i];
 			}
-			return less.render(parts.join(""));
-		}).then(output => output.css);
+			
+			// Recursive handling of deep @import (dynamic)
+			return this.lessImportDynamics(parts.join(""));
+		});
+	}
+	
+	/**
+	 * Compile LESS source to CSS
+	 */
+	compileLess(source: string): Promise<string> {
+		// Prepend the 
+		source = `
+			@import (dynamic) "/assets/less/lib.less";
+			${source}
+		`;
+		
+		return this.lessImportDynamics(source).then(source => less.render(source)).then(output => output.css);
 	}
 	
 	/**
@@ -140,16 +159,18 @@ export class Loader {
 	/**
 	 * Load and instantiate a Polymer element
 	 */
-	loadElement<T extends PolymerElement>(element: T): Promise<T> {
+	loadElement<T extends PolymerElement>(element: PolymerConstructor<T>): Promise<PolymerConstructor<T>> {
 		// Ensure that Polymer is loaded
 		if (!polymer_loaded) {
 			polymer_loaded = true;
-			Polymer = <any> { dom: "shadow" };
+			if (localStorage.getItem("polymer.useShadowDOM") == "1") Polymer = <any> { dom: "shadow" };
 			return this.loadDocument(POLYMER_PATH).then(() => this.loadElement(element));
+		} else if (!Polymer.is) {
+			apply_polymer_fns();
 		}
 		
-		// Read Polymer metadata;
-		const meta: PolymerMetadata = (<any> element).__polymer;
+		// Read Polymer metadata
+		const meta = element.__polymer;
 		
 		// Check if the element was already loaded once
 		if (meta.loaded) {
@@ -165,19 +186,22 @@ export class Loader {
 
 		// Load the template file
 		return load_dependencies.then(() => this.loadDocument(meta.template)).then(document => {
-			const domModule = document.querySelector(`dom-module[id=${meta.selector}]`);
+			const domModule = document.querySelector<HTMLElement>(`dom-module[id=${meta.selector}]`);
 			if (!domModule) throw new Error(`no <dom-module> found for element <${meta.selector}> in file '${meta.template}'`);
 			return meta.domModule = domModule;
 		}).then((domModule) => {
 			// Compile LESS
-			const less_styles = domModule.querySelectorAll(`style[type="text/less"]`);
+			const less_styles = <NodeListOf<HTMLStyleElement>> domModule.querySelectorAll(`style[type="text/less"]`);
 			if (less_styles.length < 1) return;
 
 			const job = (i: number) => {
-				const style = <HTMLStyleElement> less_styles[i];
+				const style = less_styles[i];
 				return this.compileLess(style.innerHTML).then(css => {
-					style.type = "text/css";
-					style.innerHTML = css;
+					const new_style = document.createElement("style");
+					new_style.innerHTML = css;
+					
+					style.parentNode.insertBefore(new_style, style);
+					style.parentNode.removeChild(style);
 				});
 			};
 
@@ -188,7 +212,7 @@ export class Loader {
 
 			return Deferred.all(jobs);
 		}).then(() => {
-			const template = <HTMLTemplateElement> meta.domModule.querySelector("template");
+			const template = meta.domModule.getElementsByTagName("template")[0];
 			if (template) return this.compilePolymerSugars(template)
 		}).then(() => {
 			// Polymer constructor	
@@ -204,7 +228,7 @@ export class Loader {
 		const template = tpl.content;
 		
 		let node: HTMLElement;
-		let wrapper: HTMLTemplateElement = document.createElement("template");
+		let wrapper = document.createElement("template");
 		
 		// Attribute promotion helper
 		const promote_attribute = (from: string, to?: string, def?: string) => {
@@ -213,7 +237,7 @@ export class Loader {
 			
 			// Try from extended form
 			const extended = `(${from})`;
-			if (!node.hasAttribute(extended)) from = extended;
+			if (node.hasAttribute(extended)) from = extended;
 			
 			// Get value
 			const value = node.getAttribute(from) || def;
@@ -224,32 +248,31 @@ export class Loader {
 		};
 		
 		// Move node inside the wrapper
-		const promote_node = () => {
+		const promote_node = (wrapper_behaviour: string) => {
 			node.parentNode.insertBefore(wrapper, node);
+			wrapper.setAttribute("is", wrapper_behaviour);
 			wrapper.content.appendChild(node);
 			wrapper = document.createElement("template");
 		};
 		
 		// <element [if]="{{cond}}">
-		const if_nodes = template.querySelectorAll("[\\[if\\]]");
+		const if_nodes = <NodeListOf<HTMLElement>> template.querySelectorAll("[\\[if\\]]");
 		for (let i = 0; i < if_nodes.length; ++i) {
-			node = <HTMLElement> if_nodes[i];
-			wrapper.setAttribute("is", "dom-if");
+			node = if_nodes[i];
 			promote_attribute("[if]", "if", node.textContent);
-			promote_node();
+			promote_node("dom-if");
 		}
 		
 		// <element [repeat]="{{collection}}" filter sort observe>
-		const repeat_nodes = template.querySelectorAll("[\\[repeat\\]]");
+		const repeat_nodes = <NodeListOf<HTMLElement>>  template.querySelectorAll("[\\[repeat\\]]");
 		for (let i = 0; i < repeat_nodes.length; ++i) {
-			node = <HTMLElement> if_nodes[i];
-			wrapper.setAttribute("is", "dom-repeat");
+			node = if_nodes[i];
 			promote_attribute("[repeat]", "items");
 			promote_attribute("filter");
 			promote_attribute("sort");
 			promote_attribute("observe");
 			promote_attribute("id");
-			promote_node();
+			promote_node("dom-repeat");
 		}
 	}
 }

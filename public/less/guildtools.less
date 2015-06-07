@@ -1,4 +1,4 @@
-@import url("http://fonts.googleapis.com/css?family=Open+Sans:400,300,600|Roboto+Condensed:400,300|Source+Code+Pro");
+@import url("http://fonts.googleapis.com/css?family=Open+Sans:400,300,600|Roboto+Condensed:400,300,600|Source+Code+Pro:400,600");
 
 body {
 	font-family: "Open Sans";
@@ -6,10 +6,30 @@ body {
 	font-size: 14px;
 }
 
-.font-roboto {
-	font-family: "Roboto Condensed";
+#background {
+	.cover(-1);
+	background: url("/assets/images/background_welcome.jpg") center top;
+	opacity: 0;
+	
+	.with-background & {
+		opacity: 1;
+		transition: opacity 1s ease-out;
+		transition-delay: 0.5s;
+	}
 }
 
-.font-source {
-	font-family: "Source Code Pro";
+#fader {
+	.cover();
+	background: rgba(17, 17, 17, 0.3);
+	opacity: 0;
+	z-index: -2;
+	
+	.no-loader & {
+		transition: opacity .5s ease-out;
+	}
+	
+	.with-modal & {
+		opacity: 1;
+		z-index: 1000;
+	}
 }
