@@ -2,11 +2,18 @@ import { Element, Property, Listener, Dependencies, PolymerElement, PolymerEvent
 
 @Element("gt-button", "/assets/imports/widgets.html")
 export class GtButton extends PolymerElement {
+	@Property({ type: Boolean, reflectToAttribute: true })
+	public disabled: boolean;
+	
+	@Listener("click")
+	private "on-click" (e: Event) {
+		if (!this.disabled) this.fire("button-click");
+	}
 }
 
 @Element("gt-dialog-action")
 export class GtDialogAction extends PolymerElement {
-	public attached() {
+	private attached() {
 		const self = Polymer.dom(this);
 		const parent = Polymer.enclosing(self, GtDialog);
 		const label = self.textContent;
@@ -54,9 +61,5 @@ export class GtDialog extends PolymerElement {
 	public performAction(e: PolymerEvent<{ item: string; }>) {
 		this.fire("dialog-action", e.model.item);
 		this.locked = true;
-	}
-	
-	private "scrollable-changed" () {
-		//console.log(arguments);
 	}
 }

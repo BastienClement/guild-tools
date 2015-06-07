@@ -11,21 +11,50 @@
 		
 		#loginDialog {
 			width: 90%;
-			max-width: 350px;
+			max-width: 500px;
 			
 			&.slide-in {
 				animation-delay: 1.1s;
 				animation-duration: 0.75s;
 			}
+			
+			@side-width: 48%;
+			
+			.side {
+				width: @side-width;
+				
+				img {
+					max-width: 100%;
+					opacity: 0.99;
+					margin-bottom: 20px;
+				}
+				
+				p {
+					color: #8eafce;
+				}
+			}
+			
+			.main {
+				margin-left: @side-width;
+				min-height: 200px;
+			}
+			
+			.side p {
+				font-size: 13px;
+			}
 		}
 	</style>
 	<template>
-		<gt-dialog heading="GuildTools Login" no-modal id="loginDialog">
-			<p>GuildTools access is restricted to From Scratch members. Enter your login informations below.</p>
-			
-			<input type="text" id="username">
-			<input type="text" id="password">
-			
+		<gt-dialog no-modal id="loginDialog">
+			<div class="side">
+				<img src="/assets/images/login_logo.png">
+				<p>GuildTools access is restricted to guild members. Please enter your login informations on the right to continue.</p>
+			</div>
+			<div class="main">
+				<h3>Login</h3>
+				<input type="text" id="username">
+				<input type="text" id="password">
+			</div>
 			<gt-dialog-action>Login</gt-dialog-action>
 			<gt-dialog-action>Cancel</gt-dialog-action>
 		</gt-dialog>

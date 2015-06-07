@@ -25,12 +25,13 @@
 		}
 		
 		#layout {
+			position: relative;
 			box-sizing: border-box;
 			padding: @box-padding;
 			height: 100%;
 			width: 100%;
 		}
-		
+	
 		h3 {
 			font: 500 20px Roboto;
 			margin: -@box-padding;
@@ -39,8 +40,15 @@
 			padding-bottom: 20px;
 		}
 		
+		::content h3 {
+			font: 500 20px Roboto;
+			margin: 0;
+			margin-bottom: 20px;
+		}
+		
 		#content {
 			overflow: auto;
+			overflow-x: hidden;
 		}
 		
 		#actions {
@@ -51,8 +59,22 @@
 			direction: rtl;
 		}
 		
-		::content p {
+		:host ::content p {
 			margin: 0;
+		}
+		
+		:host ::content .side {
+			position: absolute;
+			top: 0; left: 0; bottom: 0;
+			width: 40%;
+			padding: 24px;
+			box-sizing: border-box;
+			background: rgba(99, 180, 255, 0.05);
+		}
+		
+		:host ::content .main {
+			margin-left: 40%;
+			padding-left: @box-padding;
 		}
 		
 		@keyframes slide {
@@ -72,7 +94,7 @@
 				<content></content>
 			</div>
 			<div id="actions">
-				<gt-button [repeat]="{{actions}}" class="collapse" on-click="performAction">{{item}}</gt-button>
+				<gt-button [repeat]="{{actions}}" class="collapse" on-button-click="performAction" disabled="{{locked}}">{{item}}</gt-button>
 			</div>
 		</div>
 	</template>
@@ -93,10 +115,17 @@
 			
 			align-items: center;
 			justify-content: center;
+			
+			transition: opacity 0.2s ease;
 		}
 		
 		:host(.collapse:not(:first-child)) {
 			margin-right: 0;
+		}
+		
+		:host([disabled]) {
+			opacity: 0.3;
+			cursor: default;
 		}
 	</style>
 	<template>

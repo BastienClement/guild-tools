@@ -20,9 +20,9 @@ interface ShadyDOMContructor {
 }
 
 interface ShadyDOM {
-	appendChild<T extends Node>(node: T): T;
-	insertBefore<T extends Node>(node: T, beforeNode: Node): T;
-	removeChild<T extends Node>(node: T): T;
+	appendChild<T extends Node>(node: T | PolymerElement): T;
+	insertBefore<T extends Node>(node: T | PolymerElement, beforeNode: Node | PolymerElement): T;
+	removeChild<T extends Node>(node: T | PolymerElement): T;
 	
 	childNodes: Node[];
 	parentNode: Node;
