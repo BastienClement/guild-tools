@@ -1,9 +1,9 @@
-import { Element, Dependencies, Property, PolymerElement } from "elements/polymer";
+import { Element, Dependencies, Property, Listener, PolymerElement } from "elements/polymer";
 import * as Widget from "elements/widgets";
 import { Deferred } from "utils/deferred";
 
 @Element("gt-login", "/assets/imports/loading.html")
-@Dependencies(Widget.GtDialog, Widget.GtButton, Widget.GtDialogActions)	
+@Dependencies(Widget.GtDialog)	
 export class GtLogin extends PolymerElement {
 	// Deferred to resolve with user credentials
 	@Property({ observer: "credentials-updated" })
@@ -13,20 +13,19 @@ export class GtLogin extends PolymerElement {
 	}
 	
 	attached() {
+		const dialog: Widget.GtDialog = this.$.loginDialog;
+		dialog.show();
 	}
 	
 	detached() {
 	}
 	
 	private "credentials-updated" () {
-		console.log(this, arguments);
 	}
 	
-	loginInProgress() {
-		return true;
-	}
-	
-	login(foo: any) {
-		console.log("Login", foo);
+	@Listener("dialog-action")
+	private "on-dialog-action" (e: Event, action: string) {
+		console.log(action, e);
+		e.preventDefault();
 	}
 }

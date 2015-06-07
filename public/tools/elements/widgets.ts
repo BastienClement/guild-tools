@@ -1,64 +1,62 @@
-import { Element, Property, PolymerElement } from "elements/polymer";
+import { Element, Property, Listener, Dependencies, PolymerElement, PolymerEvent } from "elements/polymer";
+
+@Element("gt-button", "/assets/imports/widgets.html")
+export class GtButton extends PolymerElement {
+}
+
+@Element("gt-dialog-action")
+export class GtDialogAction extends PolymerElement {
+	public attached() {
+		const self = Polymer.dom(this);
+		const parent = Polymer.enclosing(self, GtDialog);
+		const label = self.textContent;
+		
+		Polymer.dom(self.parentNode).removeChild(this);
+		parent.addAction(label);
+	}
+}
 
 @Element("gt-dialog", "/assets/imports/widgets.html")
+@Dependencies(GtButton, GtDialogAction)	
 export class GtDialog extends PolymerElement {
-	/**
-	 * The dialog title
-	 */
+	// The dialog title
+	@Property({ type: String })
 	public heading: string;
 	
-	/**
-	 * If defined, the .with-modal class will not be added
-	 */
+	// Available actions
+	@Property({ type: Array, value: [] })
+	private actions: string[];
+	
+	// If defined, the .with-modal class will not be added
 	@Property({ type: Boolean })
 	public noModal: boolean;
 	
-	/**
-	 * Define the dialog as scrollable
-	 */
-	@Property({ value: false, observer: "scrollable-changed" })
-	public scrollable: boolean;
+	// Lock the dialog actions
+	@Property({ type: Boolean })
+	public locked: boolean;
 	
-	// <gt-dialog-actions>
-	private actions: Element;
-	
-	private created() {
-		// Detach the <gt-dialog-actions> element from the content
-		if (this.actions = this.$$("gt-dialog-actions")) {
-			this.actions.parentNode.removeChild(this.actions);
-		}
-	}
-	
-	private ready() {
-		// If we have picked up a <gt-dialog-actions> element, insert it back
-		if (this.actions) {
-			Polymer.dom(this.$["layout"]).appendChild(this.actions);
-		}	
-	}
-	
-	private attached() {
+	public show() {
 		if (!this.noModal) document.body.classList.add("with-modal");
+		Polymer.dom(this).classList.add("slide-in");
 	}
 	
-	private detached() {
+	public hide() {
 		if (!this.noModal) document.body.classList.remove("with-modal");
+		Polymer.dom(this).classList.remove("slide-in");
+		Polymer.dom.flush();
+		Polymer.dom(this).classList.add("slide-out");
+	}
+	
+	public addAction(label: string) {
+		this.push("actions", label);
+	}
+	
+	public performAction(e: PolymerEvent<{ item: string; }>) {
+		this.fire("dialog-action", e.model.item);
+		this.locked = true;
 	}
 	
 	private "scrollable-changed" () {
 		//console.log(arguments);
-	}
-}
-
-@Element("gt-button", "/assets/imports/widgets.html")
-export class GtButton extends PolymerElement {
-	
-}
-
-@Element("gt-dialog-actions", "/assets/imports/widgets.html")
-export class GtDialogActions extends PolymerElement {
-	private ready() {
-		for (let child of this.getContentChildren().slice(1)) {
-			child.classList.add("remove-right-margin");
-		}
 	}
 }

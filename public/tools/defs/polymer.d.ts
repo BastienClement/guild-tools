@@ -4,8 +4,9 @@ interface Polymer {
 	Base: PolymerBase;
 	dom: ShadyDOMContructor;
 	
-	is<T>(el: Node, ctor: { new (): T; }): boolean;
-	cast<T>(el: Node, ctor: { new (): T; }): T;
+	is<T extends PolymerElement>(el: Node | PolymerElement, ctor: { new (): T; }): boolean;
+	cast<T extends PolymerElement>(el: Node | PolymerElement, ctor: { new (): T; }): T;
+	enclosing<T extends PolymerElement>(el: Node | PolymerElement, ctor: { new (): T; }): T;
 }
 
 interface PolymerBase {

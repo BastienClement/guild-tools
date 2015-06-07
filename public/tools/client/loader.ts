@@ -183,38 +183,44 @@ export class Loader {
 		const load_dependencies = (meta.dependencies) ?
 			Deferred.all(meta.dependencies.map(dep => this.loadElement(dep))) :
 			Deferred.resolved(null);
+		
+		// Load and compile the element template
+		const load_template = () => {
+			if (!meta.template) return null;
+			return this.loadDocument(meta.template).then(document => {
+				const domModule = document.querySelector<HTMLElement>(`dom-module[id=${meta.selector}]`);
+				if (!domModule) throw new Error(`no <dom-module> found for element <${meta.selector}> in file '${meta.template}'`);
+				return meta.domModule = domModule;
+			}).then((domModule) => {
+				// Compile LESS
+				const less_styles = <NodeListOf<HTMLStyleElement>> domModule.querySelectorAll(`style[type="text/less"]`);
+				if (less_styles.length < 1) return;
+
+				const job = (i: number) => {
+					const style = less_styles[i];
+					return this.compileLess(style.innerHTML).then(css => {
+						const new_style = document.createElement("style");
+						new_style.innerHTML = css;
+
+						style.parentNode.insertBefore(new_style, style);
+						style.parentNode.removeChild(style);
+					});
+				};
+
+				const jobs: Promise<void>[] = [];
+				for (let i = 0; i < less_styles.length; ++i) {
+					jobs[i] = job(i);
+				}
+
+				return Deferred.all(jobs);
+			}).then(() => {
+				const template = meta.domModule.getElementsByTagName("template")[0];
+				if (template) return this.compilePolymerSugars(template)
+			});
+		}
 
 		// Load the template file
-		return load_dependencies.then(() => this.loadDocument(meta.template)).then(document => {
-			const domModule = document.querySelector<HTMLElement>(`dom-module[id=${meta.selector}]`);
-			if (!domModule) throw new Error(`no <dom-module> found for element <${meta.selector}> in file '${meta.template}'`);
-			return meta.domModule = domModule;
-		}).then((domModule) => {
-			// Compile LESS
-			const less_styles = <NodeListOf<HTMLStyleElement>> domModule.querySelectorAll(`style[type="text/less"]`);
-			if (less_styles.length < 1) return;
-
-			const job = (i: number) => {
-				const style = less_styles[i];
-				return this.compileLess(style.innerHTML).then(css => {
-					const new_style = document.createElement("style");
-					new_style.innerHTML = css;
-					
-					style.parentNode.insertBefore(new_style, style);
-					style.parentNode.removeChild(style);
-				});
-			};
-
-			const jobs: Promise<void>[] = [];
-			for (let i = 0; i < less_styles.length; ++i) {
-				jobs[i] = job(i);
-			}
-
-			return Deferred.all(jobs);
-		}).then(() => {
-			const template = meta.domModule.getElementsByTagName("template")[0];
-			if (template) return this.compilePolymerSugars(template)
-		}).then(() => {
+		return load_dependencies.then(load_template).then(() => {
 			// Polymer constructor	
 			meta.constructor = Polymer(meta.proto);
 			return element;
@@ -256,7 +262,7 @@ export class Loader {
 		};
 		
 		// <element [if]="{{cond}}">
-		const if_nodes = <NodeListOf<HTMLElement>> template.querySelectorAll("[\\[if\\]]");
+		const if_nodes = <NodeListOf<HTMLElement>> template.querySelectorAll("*[\\[if\\]]");
 		for (let i = 0; i < if_nodes.length; ++i) {
 			node = if_nodes[i];
 			promote_attribute("[if]", "if", node.textContent);
@@ -264,9 +270,9 @@ export class Loader {
 		}
 		
 		// <element [repeat]="{{collection}}" filter sort observe>
-		const repeat_nodes = <NodeListOf<HTMLElement>>  template.querySelectorAll("[\\[repeat\\]]");
+		const repeat_nodes = <NodeListOf<HTMLElement>>  template.querySelectorAll("*[\\[repeat\\]]");
 		for (let i = 0; i < repeat_nodes.length; ++i) {
-			node = if_nodes[i];
+			node = repeat_nodes[i];
 			promote_attribute("[repeat]", "items");
 			promote_attribute("filter");
 			promote_attribute("sort");

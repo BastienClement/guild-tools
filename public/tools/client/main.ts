@@ -66,6 +66,10 @@ export class Application {
 		};
 		
 		last_dot.addEventListener("animationiteration", listener);
+		
+		// Bypass the synchronization if loading.fast is set
+		if (localStorage.getItem("loading.fast") == "1") return null;
+		
 		return trigger.promise;
 	}
 }
@@ -143,7 +147,8 @@ class AuthenticationDriver {
 	private constructForm(): Promise<void> {
 		return this.loader.loadElement(GtLogin).then(() => this.app.stopSpinner()).then(() => {
 			this.gt_login = new GtLogin();
-			document.body.classList.add("no-loader", "with-background");
+			document.body.classList.add("with-background");
+			document.body.classList.add("no-loader");
 			document.body.appendChild(this.gt_login);
 		});
 	}

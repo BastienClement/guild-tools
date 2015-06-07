@@ -9,24 +9,25 @@
 			justify-content: center;
 		}
 		
-		#form {
+		#loginDialog {
 			width: 90%;
 			max-width: 350px;
-			animation-delay: 1.1s;
-			animation-duration: 0.75s;
+			
+			&.slide-in {
+				animation-delay: 1.1s;
+				animation-duration: 0.75s;
+			}
 		}
 	</style>
 	<template>
-		<gt-dialog heading="GuildTools Login" no-modal id="form">
+		<gt-dialog heading="GuildTools Login" no-modal id="loginDialog">
 			<p>GuildTools access is restricted to From Scratch members. Enter your login informations below.</p>
 			
 			<input type="text" id="username">
 			<input type="text" id="password">
 			
-			<gt-dialog-actions>
-				<gt-button>Login</gt-button>
-				<gt-button>Cancel</gt-button>
-			</gt-dialog-actions>
+			<gt-dialog-action>Login</gt-dialog-action>
+			<gt-dialog-action>Cancel</gt-dialog-action>
 		</gt-dialog>
 	</template>
 </dom-module>

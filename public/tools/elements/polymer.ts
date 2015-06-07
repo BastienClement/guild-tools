@@ -12,7 +12,7 @@ export class PolymerElement {
 	/**
 	 * The Dollar Helper
 	 */
-	protected $: PolymerDollarHelper;
+	protected $: any;
 	
 	/**
 	 * Returns the first node in this element's local DOM that matches selector
@@ -114,13 +114,6 @@ export class PolymerElement {
 }
 
 /**
- * Type of the $ helper on Polymer elements
- */
-interface PolymerDollarHelper {
-	[key: string]: HTMLElement;
-}
-
-/**
  * Interface of PolymerElement#fire
  */
 interface PolymerFireInterface {
@@ -173,9 +166,16 @@ export interface PolymerMetadata<T extends PolymerElement> {
 }
 
 /**
+ * Polymer powered events
+ */
+export interface PolymerEvent<T> extends Event {
+	model: T;
+}
+
+/**
  * Declare a Polymer Element
  */
-export function Element(selector: string, template: string) {
+export function Element(selector: string, template?: string) {
 	return <T extends PolymerElement>(target: PolymerConstructor<T>) => {
 		// Transpose instance variables on prototype
 		target.call(target.prototype);
@@ -237,18 +237,37 @@ export function Property(config: Object) {
 }
 
 /**
+ * Declare a Polymer Property
+ */
+export function Listener(...events: string[]) {
+	return (target: any, property: string) => {
+		if (!target.listeners) target.listeners = {};
+		for (let event of events) target.listeners[event] = property;
+	}
+}
+
+/**
  * Apply additionnal functions on the Polymer object
  */
 export function apply_polymer_fns() {
-	Polymer.is = <T extends PolymerElement>(el: Node, ctor: PolymerConstructor<T>) => {
-		return Object.getPrototypeOf(el) === Polymer.Base.getNativePrototype(ctor.__polymer.selector);
+	Polymer.is = <T extends PolymerElement>(node: Node, ctor: PolymerConstructor<T>) => {
+		return Object.getPrototypeOf(node) === Polymer.Base.getNativePrototype(ctor.__polymer.selector);
 	};
 	
-	Polymer.cast = <T extends PolymerElement>(el: Node, ctor: PolymerConstructor<T>) => {
-		if (Polymer.is(el, ctor)) {
-			return el;
+	Polymer.cast = <T extends PolymerElement>(node: Node, ctor: PolymerConstructor<T>) => {
+		if (Polymer.is(node, ctor)) {
+			return node;
 		} else {
-			throw new TypeError(`Node <${el.nodeName}> is not castable to <${ctor.__polymer.selector}>`);
+			throw new TypeError(`Node <${node.nodeName}> is not castable to <${ctor.__polymer.selector}>`);
 		}
+	};
+	
+	Polymer.enclosing = <T extends PolymerElement>(node: Node, ctor: PolymerConstructor<T>) => {
+		const initial_name = node.nodeName;
+		do {
+			node = node.parentNode;
+		} while (node && !Polymer.is(node, ctor));
+		if (!node) throw new SyntaxError(`<${initial_name}> is not enclosed by a <${ctor.__polymer.selector}>`);
+		return node;
 	};
 }
