@@ -21,6 +21,11 @@
 			@side-width: 48%;
 			
 			.side {
+				position: absolute;
+				top: 0; left: 0; bottom: 0;
+				padding: 24px;
+				box-sizing: border-box;
+				background: rgba(99, 180, 255, 0.05);
 				width: @side-width;
 				
 				img {
@@ -37,6 +42,13 @@
 			.main {
 				margin-left: @side-width;
 				min-height: 200px;
+				padding-left: 24px;
+				
+				h3 {
+					font: 500 20px Roboto;
+					margin: 0;
+					margin-bottom: 20px;
+				}
 			}
 			
 			.side p {
