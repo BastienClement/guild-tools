@@ -15,11 +15,10 @@ export class GtButton extends PolymerElement {
 export class GtDialogAction extends PolymerElement {
 	private attached() {
 		const self = Polymer.dom(this);
-		const parent = Polymer.enclosing(self, GtDialog);
 		const label = self.textContent;
 		
 		Polymer.dom(self.parentNode).removeChild(this);
-		parent.addAction(label);
+		this.host<GtDialog>().addAction(label);
 	}
 }
 

@@ -115,7 +115,8 @@ export class PolymerElement {
 	/**
 	 * Return the element whose local dom within which this element is contained.
 	 */
-	protected domHost: () => PolymerElement;
+	protected domHost: PolymerElement;
+	protected host: <T extends PolymerElement>() => T;
 	
 	/**
 	 * Removes an item from an array, if it exists.
@@ -335,5 +336,9 @@ export function apply_polymer_fns() {
 		} while (node && !Polymer.is(node, ctor));
 		if (!node) throw new SyntaxError(`<${initial_name}> is not enclosed by a <${ctor.__polymer.selector}>`);
 		return node;
+	};
+	
+	(<any>Polymer.Base).host = function() {
+		return this.domHost;
 	};
 }
