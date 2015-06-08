@@ -111,6 +111,72 @@ export class PolymerElement {
 	 * Dynamically imports an HTML document
 	 */
 	protected importHref: (href: string, onload: Function, onerror: Function) => void;
+	
+	/**
+	 * Return the element whose local dom within which this element is contained.
+	 */
+	protected domHost: () => PolymerElement;
+	
+	/**
+	 * Removes an item from an array, if it exists.
+	 */
+	protected arrayDelete: <T>(path: string | Array<T>, item: any) => Array<T>;
+	
+	/**
+	 * Adds items onto the end of the array at the path specified.
+	 * This method notifies other paths to the same array that a splice occurred to the array.
+	 */
+	protected push: (path: string, ...values: any[]) => number;
+	
+	/**
+	 * Removes an item from the end of array at the path specified.
+	 * This method notifies other paths to the same array that a splice occurred to the array.
+	 */
+	protected pop: (path: string) => any;
+	
+	/**
+	 * Removes an item from the beginning of array at the path specified.
+	 * This method notifies other paths to the same array that a splice occurred to the array.
+	 */
+	protected shift: (path: string) => any;
+	
+	/**
+	 * Adds items onto the beginning of the array at the path specified.
+	 * This method notifies other paths to the same array that a splice occurred to the array.
+	 */
+	protected unshift: (path: string, ...values: any[]) => number;
+	
+	/**
+	 * Starting from the start index specified, removes 0 or more items from the
+	 * array and inserts 0 or more new itms in their place.
+	 * This method notifies other paths to the same array that a splice occurred to the array.
+	 */
+	protected splice: (path: string, start: number, deleteCount: number, ...newElements: any[]) => number;
+	
+	/**
+	 * Convienence method for setting a value to a path and notifying any elements bound to the same path.
+	 */
+	protected set: (path: any, value: any, root?: any) => void;
+	
+	/**
+	 * 
+	 */
+	//protected notifyPath: (path: string, value: )
+	
+	/**
+	 * Convenience method to add an event listener on a given element,
+	 * late bound to a named method on this element.
+	 */
+	protected listen: <T>(element: Node | PolymerElement, event: string, method: string) => void;
+	
+	/**
+	 * Re-evaluates and applies custom CSS properties based on dynamic changes to this
+	 * element's scope, such as adding or removing classes in this element's local DOM.
+	 * For performance reasons, Polymer's custom CSS property shim relies on this explicit
+	 * signal from the user to indicate when changes have been made that affect the values
+	 * of custom properties.
+	 */
+	protected updateStyles: () => void;
 }
 
 /**
