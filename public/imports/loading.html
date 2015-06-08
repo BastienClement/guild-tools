@@ -9,7 +9,7 @@
 			justify-content: center;
 		}
 		
-		#loginDialog {
+		#form {
 			width: 90%;
 			max-width: 500px;
 			
@@ -57,7 +57,7 @@
 		}
 	</style>
 	<template>
-		<gt-dialog no-modal id="loginDialog">
+		<gt-dialog no-modal id="form">
 			<div class="side">
 				<img src="/assets/images/login_logo.png">
 				<p>GuildTools access is restricted to guild members. Please enter your login informations on the right to continue.</p>
@@ -68,7 +68,6 @@
 				<input type="text" id="password">
 			</div>
 			<gt-dialog-action>Login</gt-dialog-action>
-			<gt-dialog-action>Cancel</gt-dialog-action>
 		</gt-dialog>
 	</template>
 </dom-module>

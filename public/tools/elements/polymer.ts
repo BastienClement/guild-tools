@@ -5,9 +5,9 @@ import { Queue } from "utils/queue";
  * Dummy class to expose Polymer functions on elements
  */
 export class PolymerElement {
-	//protected node: PolymerDomNode;
-	//protected shadow: PolymerDomNode;
 	protected root: DocumentFragment;
+	protected node: ShadyDOM;
+	protected shadow: ShadyDOM;
 	
 	/**
 	 * The Dollar Helper
@@ -115,8 +115,7 @@ export class PolymerElement {
 	/**
 	 * Return the element whose local dom within which this element is contained.
 	 */
-	protected domHost: PolymerElement;
-	protected host: <T extends PolymerElement>() => T;
+	protected host: <T extends PolymerElement>(ctor: PolymerConstructor<T>) => T;
 	
 	/**
 	 * Removes an item from an array, if it exists.
@@ -178,6 +177,11 @@ export class PolymerElement {
 	 * of custom properties.
 	 */
 	protected updateStyles: () => void;
+	
+	/**
+	 * Prevent further event propagation
+	 */
+	protected stopEvent: (e: Event) => boolean;
 }
 
 /**
@@ -249,8 +253,11 @@ export function Element(selector: string, template?: string) {
 		target.prototype.is = selector;
 		target.prototype.factoryImpl = target.prototype.factory;
 		
+		// TODO: comment
 		target.prototype.createdCallback = function() {
 			Polymer.Base.createdCallback.apply(this, arguments);
+			this.node = Polymer.dom(this);
+			this.shadow = Polymer.dom(this.root);
 		};
 		
 		// Reference to the element metadata object
@@ -317,10 +324,16 @@ export function Listener(...events: string[]) {
  * Apply additionnal functions on the Polymer object
  */
 export function apply_polymer_fns() {
+	/**
+	 * Check if an Node is an instance of the given Polymer element
+	 */
 	Polymer.is = <T extends PolymerElement>(node: Node, ctor: PolymerConstructor<T>) => {
 		return Object.getPrototypeOf(node) === Polymer.Base.getNativePrototype(ctor.__polymer.selector);
 	};
 	
+	/**
+	 * Type-safe cast of Node to Polymer elements
+	 */
 	Polymer.cast = <T extends PolymerElement>(node: Node, ctor: PolymerConstructor<T>) => {
 		if (Polymer.is(node, ctor)) {
 			return node;
@@ -329,16 +342,36 @@ export function apply_polymer_fns() {
 		}
 	};
 	
+	/**
+	 * Find the closed parent node of a given type
+	 * TODO: prevent crossing shadow-dom boundaries
+	 */
 	Polymer.enclosing = <T extends PolymerElement>(node: Node, ctor: PolymerConstructor<T>) => {
 		const initial_name = node.nodeName;
 		do {
 			node = node.parentNode;
 		} while (node && !Polymer.is(node, ctor));
-		if (!node) throw new SyntaxError(`<${initial_name}> is not enclosed by a <${ctor.__polymer.selector}>`);
+		//if (!node) throw new SyntaxError(`<${initial_name}> is not enclosed by a <${ctor.__polymer.selector}>`);
 		return node;
 	};
 	
-	(<any>Polymer.Base).host = function() {
-		return this.domHost;
+	
+	const Base: any = Polymer.Base;
+	
+	/**
+	 * Find the closed host element of a given type
+	 */
+	Base.host = function <T extends PolymerElement>(ctor: PolymerConstructor<T>): T {
+		return Polymer.enclosing(this, ctor);
 	};
+	
+	/**
+	 * Prevent further event propagation
+	 */
+	Base.stopEvent = function(e: Event) {
+		e.stopPropagation();
+		e.stopImmediatePropagation();
+		e.preventDefault();
+		return false;
+	}
 }

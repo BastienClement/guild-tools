@@ -74,7 +74,7 @@
 				<content></content>
 			</div>
 			<div id="actions">
-				<gt-button [repeat]="{{actions}}" class="collapse" on-button-click="performAction" disabled="{{locked}}">{{item}}</gt-button>
+				<gt-button [repeat]="{{actions}}" class="collapse" on-tap="handle-action" disabled="{{locked}}">{{item}}</gt-button>
 			</div>
 		</div>
 	</template>
