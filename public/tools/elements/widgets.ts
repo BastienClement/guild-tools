@@ -1,9 +1,78 @@
 import { Element, Property, Listener, Dependencies, PolymerElement, PolymerEvent } from "elements/polymer";
 
+@Element("gt-form")
+export class GtForm extends PolymerElement {
+	/**
+	 * Trigger the submit event
+	 */
+	public submit() {
+		this.fire("submit");
+	}
+}
+
+/**
+ * Text input
+ */
+@Element("gt-input", "/assets/imports/widgets.html")
+@Dependencies(GtForm)
+export class GtInput extends PolymerElement {
+	/**
+	 * Input type "text", "password"
+	 */
+	@Property({ type: String, value: "text" })
+	public type: string;
+	
+	/**
+	 * Proxy to input value
+	 */
+	@Property({ type: String })
+	get value(): string { return this.$.input.value; }
+	set value(v: string) { this.$.input.value = v; }
+	
+	/**
+	 * Focus the input
+	 */
+	public focus() {
+		this.$.input.focus();
+	}
+	
+	/**
+	 * Blur the input
+	 */
+	public blur() {
+		this.$.input.blur();
+	}
+	
+	/**
+	 * Relay input change event
+	 */
+	@Listener("input.change")
+	private "input-changed" () {
+		this.fire("change", this.value);
+	}
+	
+	/**
+	 * Catch Enter-key presses in the input and forward to the form
+	 */
+	@Listener("input.keypress")
+	private "input-keypressed"(e: KeyboardEvent) {
+		if (e.keyCode == 13) {
+			e.preventDefault();
+			const form = this.host(GtForm);
+			if (form) {
+				form.submit();
+				this.$.input.blur();
+			}
+		}
+	}
+}
+
+
 /**
  * Clickable button
  */
 @Element("gt-button", "/assets/imports/widgets.html")
+@Dependencies(GtForm)
 export class GtButton extends PolymerElement {
 	/**
 	 * Disable the button, prevent event triggering
@@ -12,11 +81,22 @@ export class GtButton extends PolymerElement {
 	public disabled: boolean;
 	
 	/**
+	 * If set, clicking the button will trigger the submit event
+	 * in the enclosing GtForm
+	 */
+	@Property({ type: Boolean })
+	public submit: boolean;
+	
+	/**
 	 * Filter click and tap event if the element is disabled
 	 */
 	@Listener("click", "tap")
-	private "event-filter" (e: Event) {
+	private "event-filter"(e: Event) {
 		if (this.disabled) return this.stopEvent(e);
+		if (this.submit) {
+			const form = this.host(GtForm);
+			if (form) form.submit();
+		}	
 	}
 }
 
@@ -27,7 +107,7 @@ export class GtButton extends PolymerElement {
 export class GtDialogAction extends PolymerElement {
 	private attached() {
 		this.host(GtDialog).addAction(this.node.textContent);
-		this.node.parentNode.removeChild(this);
+		Polymer.dom(this.node.parentNode).removeChild(this);
 	}
 }
 
@@ -74,6 +154,7 @@ export class GtDialog extends PolymerElement {
 	public show() {
 		if (!this.noModal) document.body.classList.add("with-modal");
 		Polymer.dom(this).classList.add("slide-in");
+		this.fire("show");
 	}
 	
 	/**
@@ -84,6 +165,7 @@ export class GtDialog extends PolymerElement {
 		Polymer.dom(this).classList.remove("slide-in");
 		Polymer.dom.flush();
 		Polymer.dom(this).classList.add("slide-out");
+		this.fire("hide");
 	}
 	
 	/**
@@ -103,8 +185,8 @@ export class GtDialog extends PolymerElement {
 	/**
 	 * Handle action button click
 	 */
-	private "handle-action" (e: PolymerEvent<{ item: string; }>) {
-		this.fire("dialog-action", e.model.item);
+	private "handle-action"(e: PolymerEvent<{ item: string; }>) {
+		this.fire("action", e.model.item);
 		this.locked = true;
 	}
 }

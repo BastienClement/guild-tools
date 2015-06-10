@@ -117,18 +117,60 @@
 <dom-module id="gt-input">
 	<style type="text/less">
 		:host {
-			display: inline-block;
-			text-transform: uppercase;
-			font-weight: 600;
-			cursor: pointer;
+			display: block;
+			position: relative;
+			margin-top: 20px;
+		}
+		
+		input {
+			box-sizing: border-box;
+			width: 100%;
+			padding: 5px 0 6px 0;
 			
-			height: 36px;
-			min-width: 64px;
-			padding: 0 8px;
-			margin: 0 8px;
+			font: 400 15px Roboto;
+			color: #fff;
+			
+			background: transparent;
+			border: 0;
+			border-bottom: 1px solid rgb(59, 85, 110);
+			
+			transition: border-color .3s ease-out, opacity .3s ease-out;
+			
+			// Style reset
+			-moz-appearance: none;
+			-webkit-appearance: none;
+			border-radius: 0;
+			outline: none;
+			
+			&:hover {
+				border-bottom-width: 2px;
+				margin-bottom: -1px;
+				border-color: rgb(66, 101, 133);
+			}
+			
+			&:focus {
+				border-bottom-width: 2px;
+				margin-bottom: -1px;
+				border-color: rgb(100, 180, 255);
+			}
+		}
+		
+		#wrapper {
+			display: block;
+			padding-bottom: 1px;
+		}
+		
+		#label {
+			font: 300 13px Roboto;
+			margin-bottom: 8px;
 		}
 	</style>
 	<template>
-		<content></content>
+		<label>
+			<span id="label" [if]>{{label}}</span>
+			<span id="wrapper">
+				<input id="input" type="{{type}}">
+			</span>
+		</label>
 	</template>
 </dom-module>

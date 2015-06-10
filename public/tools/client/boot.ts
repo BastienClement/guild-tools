@@ -22,7 +22,10 @@ function fix_imports_shim() {
 		parser.addElementToDocument = function(elt: Element) {
 			add_element.apply(parser, arguments);
 			if (elt.nodeName == "STYLE") {
-				elt.addEventListener("load", () => elt.parentNode.removeChild(elt));
+				elt.addEventListener("load", () => {
+					const parent = elt.parentNode;
+					if (parent) parent.removeChild(elt);
+				});
 			}
 		}
 	}	

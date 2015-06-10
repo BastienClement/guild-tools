@@ -9,7 +9,12 @@
 			justify-content: center;
 		}
 		
-		#form {
+		* {
+			-webkit-user-select: none;
+			cursor: default;
+		}
+		
+		#dialog {
 			width: 90%;
 			max-width: 500px;
 			
@@ -57,15 +62,17 @@
 		}
 	</style>
 	<template>
-		<gt-dialog no-modal id="form">
+		<gt-dialog no-modal id="dialog">
 			<div class="side">
 				<img src="/assets/images/login_logo.png">
 				<p>GuildTools access is restricted to guild members. Please enter your login informations on the right to continue.</p>
 			</div>
 			<div class="main">
 				<h3>Login</h3>
-				<input type="text" id="username">
-				<input type="text" id="password">
+				<gt-form id="form">
+					<gt-input id="username" label="From Scratch ID"></gt-input>
+					<gt-input id="password" type="password" label="Password"></gt-input>
+				</gt-form>
 			</div>
 			<gt-dialog-action>Login</gt-dialog-action>
 		</gt-dialog>
