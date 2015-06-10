@@ -17,10 +17,18 @@ export class GtLogin extends PolymerElement {
 	/**
 	 * Auto show dialog when attached
 	 */
-	attached() {
+	private attached() {
 		this.$.username.value = localStorage.getItem("login.username") || "";
 		const dialog: Widget.GtDialog = this.$.dialog;
 		dialog.show();
+	}
+	
+	/**
+	 * Toggle dialog locked state based on credentials deferred availability
+	 */
+	private "credentials-updated"() {
+		const dialog: Widget.GtDialog = this.$.dialog;
+		dialog.locked = !this.credentials;
 	}
 	
 	/**
@@ -30,14 +38,6 @@ export class GtLogin extends PolymerElement {
 	private "dialog-shown"() {
 		const input: Widget.GtInput = (this.$.username.value) ? this.$.password : this.$.username;
 		input.focus();
-	}
-	
-	/**
-	 * Toggle dialog locked state based on credentials deferred availability
-	 */
-	private "credentials-updated"() {
-		const dialog: Widget.GtDialog = this.$.dialog;
-		dialog.locked = !this.credentials;
 	}
 	
 	/**

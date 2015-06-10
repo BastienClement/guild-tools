@@ -13,10 +13,11 @@ object Auth extends ChannelAcceptor {
 }
 
 class Auth(private val socket: Socket) extends ChannelHandler {
-	def request(req: String, payload: Payload): Future[Payload] = {
-		println(req, payload.string)
-		utils.atLeast(1.second) {
-			false
-		}
+	override val requests = Map(
+		"logsin" -> login _
+	)
+
+	def login(payload: Payload): Future[Payload] = {
+		false
 	}
 }

@@ -161,12 +161,18 @@
 		}
 		
 		#label {
-			font: 300 13px Roboto;
+			font: 400 13px Roboto;
 			margin-bottom: 8px;
+			opacity: .6;
+			transition: opacity .3s ease-out;
+			
+			.focus & {
+				opacity: 1;
+			}
 		}
 	</style>
 	<template>
-		<label>
+		<label id="outer">
 			<span id="label" [if]>{{label}}</span>
 			<span id="wrapper">
 				<input id="input" type="{{type}}">

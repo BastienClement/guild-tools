@@ -17,6 +17,12 @@ export class GtForm extends PolymerElement {
 @Dependencies(GtForm)
 export class GtInput extends PolymerElement {
 	/**
+	 * Disable the input
+	 */
+	@Property({ type: Boolean, reflectToAttribute: true })
+	public disabled: boolean;
+	
+	/**
 	 * Input type "text", "password"
 	 */
 	@Property({ type: String, value: "text" })
@@ -65,6 +71,12 @@ export class GtInput extends PolymerElement {
 			}
 		}
 	}
+	
+	/**
+	 * Reflect input focused state to the outer <label> element
+	 */
+	@Listener("input.focus") private "input-focused"() { this.$.outer.classList.add("focus"); }
+	@Listener("input.blur") private "input-blured"() { this.$.outer.classList.remove("focus"); }
 }
 
 
