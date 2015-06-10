@@ -13,14 +13,12 @@ object AuthService {
 
 trait AuthService {
 	def auth(session: String): Option[User]
+	def setting(user: String): String
 	def login(name: String, password: String, salt: String): Either[String, String]
 	def logout(session: String): Unit
 }
 
 class AuthServiceImpl extends AuthService {
-	/**
-	 *
-	 */
 	private val sessionCache = LazyCollection(1.minute) { (session: String) =>
 		DB.withSession { implicit s =>
 			val sess_query = Sessions.filter(_.token === session)
@@ -31,10 +29,26 @@ class AuthServiceImpl extends AuthService {
 		}
 	}
 
+	private val settingCache = LazyCollection(1.minute) { (user: String) =>
+		DB.withSession { implicit s =>
+			val password = for (u <- Users if u.name === user || u.name_clean === user) yield u.pass
+			password.firstOption map { pass =>
+				pass.substring(0, 12)
+			} getOrElse {
+				"$H$9" + utils.randomToken().substring(0, 8)
+			}
+		}
+	}
+
 	/**
 	 * Perform user authentication based on the session token
 	 */
 	def auth(session: String): Option[User] = sessionCache(session)
+
+	/**
+	 * Get hash setting for user
+	 */
+	def setting(user: String): String = settingCache(user)
 
 	/**
 	 *

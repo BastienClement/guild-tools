@@ -14,6 +14,9 @@ class Channel(val socket: Socket, val id: Int, val sender_channel: Int, val hand
 				case Failure(fail) =>
 					socket.out ! FailureFrame(0, sender_channel, rid, 0, fail.getMessage)
 			}
+
+		case CloseFrame(seq, channel, code, reason) =>
+			this.close(code, reason)
 	}
 
 	def close(code: Int, reason: String) = {

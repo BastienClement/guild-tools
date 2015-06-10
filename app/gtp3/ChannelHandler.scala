@@ -15,12 +15,21 @@ trait ChannelHandler {
 	implicit def toFuturePayload(value: JsValue): Future[Payload] = Payload(value)
 	implicit def toFuturePayload(value: Boolean): Future[Payload] = JsBoolean(value)
 
-	val requests: Map[String, (Payload) => Future[Payload]] = Map()
+	type Handlers =  PartialFunction[String, (Payload) => Any]
+	def handlers: Handlers
 
 	def request(req: String, payload: Payload): Future[Payload] = {
-		this.requests.get(req) match {
-			case Some(handler) => handler(payload)
-			case None => Future.failed(new Exception("Undefined request"))
+		handlers.lift.apply(req) match {
+			case Some(handler) => handler(payload) match {
+				case p: Future[Payload] => p
+				case p: Payload => Future.successful(p)
+				case _ =>  Future.failed(new Exception("Invalid result type"))
+			}
+			case None => Future.failed(new Exception("Undefined handler"))
 		}
+	}
+
+	def message(msg: String, payload: Payload): Unit = {
+		request(msg, payload)
 	}
 }

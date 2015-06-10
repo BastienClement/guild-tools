@@ -53,7 +53,6 @@ export class GtLogin extends PolymerElement {
 	 */
 	@Listener("dialog.action", "form.submit")
 	private "on-submit"(e: Event) {
-		console.log(this.$.username.value, this.$.password.value);
 		this.credentials.resolve([this.$.username.value, this.$.password.value]);
 		this.credentials = null;
 	}

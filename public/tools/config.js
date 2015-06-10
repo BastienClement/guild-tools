@@ -3,10 +3,14 @@ requirejs.config({
 	paths: {
 		"pako": "/assets/javascripts/pako",
 		"less": "/assets/javascripts/less",
-		"encoding": "/assets/javascripts/encoding"
+		"encoding": "/assets/javascripts/encoding",
+		"phpbb_hash": "/assets/javascripts/phpbb_hash",
+		"cryptojs": "/assets/javascripts/crypto"
 	},
 	shim: {
 		"pako": { exports: "pako" },
-		"encoding": { exports: "Object" }
+		"encoding": { exports: "Object" },
+		"phpbb_hash": { deps: ["cryptojs"], exports: "phpbb_hash" },
+		"cryptojs": { exports: "CryptoJS" }
 	}
 });

@@ -114,7 +114,7 @@ export class Channel extends EventEmitter {
 		this.state = ChannelState.Closed;
 
 		// Send close message to remote and local listeners
-		this.socket._send(Frame.encode(CloseFrame, 0, code, reason), true);
+		this.socket._send(Frame.encode(CloseFrame, 0, this.remote_id, code, reason), true);
 		this.emit("closed", code, reason);
 
 		this.socket._channelClosed(this);
