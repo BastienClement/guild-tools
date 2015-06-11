@@ -838,7 +838,7 @@ trait CalendarHandler {
 		 * $:calendar:load:events
 		 */
 		def handleLoadEvents(arg: JsValue): MessageResponse = {
-			val previous = (arg \ "extended").as[Option[Boolean]] getOrElse false
+			val previous = (arg \ "extended").asOpt[Boolean] getOrElse false
 
 			val today = SmartTimestamp.today
 			val from = if (previous) today - 15.day else today

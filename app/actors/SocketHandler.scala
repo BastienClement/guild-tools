@@ -134,12 +134,12 @@ with ComposerHandler {
 	def receive = {
 		// Incoming message
 		case message: JsValue => {
-			val id = message \ "#"
+			val id = (message \ "#").get
 			//Logger.debug(s">>> $message")
 
 			try {
 				val cmd = (message \ "$").as[String]
-				val arg = (message \ "&")
+				val arg = (message \ "&").get
 				val response = dispatcher.getOrElse(cmd, handleUnavailable _)(arg)
 				responseResult(id, response)
 			} catch {

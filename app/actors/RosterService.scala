@@ -2,7 +2,7 @@ package actors
 
 import scala.compat.Platform
 import scala.concurrent.duration._
-import scala.slick.jdbc.JdbcBackend.SessionDef
+import slick.jdbc.JdbcBackend
 import scala.util.{Failure, Success, Try}
 import actors.Actors.{Dispatcher, _}
 import api._
@@ -156,7 +156,7 @@ class RosterServiceImpl extends RosterService {
 		}
 
 		// Handle a sucessful char retrieval
-		def handleSuccess(nc: Char, char: Char)(implicit s: SessionDef): Unit = {
+		def handleSuccess(nc: Char, char: Char)(implicit s: JdbcBackend#SessionDef): Unit = {
 			char_query.map { c =>
 				(c.klass, c.race, c.gender, c.level, c.achievements, c.thumbnail, c.ilvl, c.failures, c.invalid, c.last_update)
 			} update {
@@ -165,7 +165,7 @@ class RosterServiceImpl extends RosterService {
 		}
 
 		// Handle an error on char retrieval
-		def handleFailure(e: Throwable, char: Char)(implicit s: SessionDef): Unit = e match {
+		def handleFailure(e: Throwable, char: Char)(implicit s: JdbcBackend#SessionDef): Unit = e match {
 			// The character is not found on Battle.net, increment failures counter
 			case BattleNetFailure(response) if response.status == 404 =>
 				val failures = char_query.map(_.failures).first + 1

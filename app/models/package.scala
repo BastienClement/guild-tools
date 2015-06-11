@@ -1,13 +1,16 @@
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import scala.language.implicitConversions
-import play.api.Play.current
+import play.api.Play
+import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.json._
+import slick.driver.JdbcProfile
 
 package object models {
-	val DB = play.api.db.slick.DB
-	val mysql = scala.slick.driver.MySQLDriver.simple
-	val sql = scala.slick.jdbc.StaticQuery
+	val DB = DatabaseConfigProvider.get[JdbcProfile](Play.current).db
+	val mysql = slick.driver.MySQLDriver.simple
+	//val api = slick.driver.MySQLDriver.api
+	val sql = slick.jdbc.StaticQuery
 
 	implicit object timestampFormat extends Format[Timestamp] {
 		val format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")

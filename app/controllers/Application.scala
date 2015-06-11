@@ -18,14 +18,6 @@ object Application extends Controller {
 		Ok(views.html.client.render())
 	}
 
-	def socket = WebSocket.acceptWithActor[JsValue, JsValue] { request => out =>
-		Props(new SocketHandler(out, request.remoteAddress))
-	}
-
-	def socket_z = WebSocket.acceptWithActor[Array[Byte], Array[Byte]] { request => out =>
-		Props(new CompressedSocketHandler(out, request.remoteAddress))
-	}
-
 	def gtp3 = WebSocket.acceptWithActor[Array[Byte], Array[Byte]] { request => out =>
 		Props(new SocketActor(out, request.remoteAddress))
 	}

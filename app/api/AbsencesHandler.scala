@@ -3,7 +3,7 @@ package api
 import actors.SocketHandler
 import models._
 import models.mysql._
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsLookupResult, JsValue, Json}
 import utils.SmartTimestamp
 
 trait AbsencesHandler {
@@ -28,7 +28,7 @@ trait AbsencesHandler {
 		/**
 		 * Parse a { day: Int, month: Int } object and return a SmartTimestamp
 		 */
-		def parseDate(date: JsValue, from_locked: Boolean): SmartTimestamp = {
+		def parseDate(date: JsLookupResult, from_locked: Boolean): SmartTimestamp = {
 			val day = (date \ "day").as[Int]
 			val month = (date \ "month").as[Int]
 
@@ -44,7 +44,7 @@ trait AbsencesHandler {
 		/**
 		 * Parse and validate a reason for an absence
 		 */
-		def parseReason(reason: JsValue): Option[String] = {
+		def parseReason(reason: JsLookupResult): Option[String] = {
 			reason.asOpt[String] map {
 				"^\\s+|\\s+$".r.replaceAllIn(_, "")
 			} filter {
@@ -62,7 +62,7 @@ trait AbsencesHandler {
 			val reason = parseReason(arg \ "reason")
 
 			if (from > to) return MessageFailure("The requested range is invalid")
-			if (!reason.isDefined) return MessageFailure("You must provide a reason for this absence")
+			if (reason.isEmpty) return MessageFailure("You must provide a reason for this absence")
 
 			handler(from, to, reason)
 		}

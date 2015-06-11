@@ -7,8 +7,6 @@ GET         /views/*file                controllers.Assets.versioned(path="/publ
 
 GET         /webjars/*file              controllers.WebJarAssets.at(file)
 
-GET         /socket                     controllers.Application.socket
-GET         /socket_z                   controllers.Application.socket_z
 GET			/gtp3						controllers.Application.gtp3
 
 GET         /api/gamedata               controllers.Api.gamedata

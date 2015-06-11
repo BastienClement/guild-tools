@@ -1,14 +1,10 @@
 package channels
 
-import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import play.api.libs.json.Json
 import actors.Actors._
-import api.{MessageFailure, MessageResults}
 import gtp3._
-import models._
-import models.mysql._
 
 object Auth extends ChannelAcceptor {
 	def open(request: ChannelRequest) = request.accept(new Auth(request.socket))

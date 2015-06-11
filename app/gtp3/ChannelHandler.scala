@@ -21,7 +21,7 @@ trait ChannelHandler {
 	def request(req: String, payload: Payload): Future[Payload] = {
 		handlers.lift.apply(req) match {
 			case Some(handler) => handler(payload) match {
-				case p: Future[Payload] => p
+				case p: Future[_] => p.asInstanceOf
 				case p: Payload => Future.successful(p)
 				case _ =>  Future.failed(new Exception("Invalid result type"))
 			}
