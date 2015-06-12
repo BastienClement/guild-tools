@@ -2,8 +2,7 @@ package models
 
 import java.sql.Timestamp
 import actors.Actors.Dispatcher
-import api.{CalendarAnswerCreate, CalendarAnswerDelete, CalendarAnswerUpdate}
-import models.mysql._
+import models.simple._
 
 /**
  * One answer for one event for one user
@@ -37,15 +36,5 @@ class CalendarAnswers(tag: Tag) extends Table[CalendarAnswer](tag, "gt_answers")
  * Helpers
  */
 object CalendarAnswers extends TableQuery(new CalendarAnswers(_)) {
-	def notifyCreate(answer: CalendarAnswer): Unit = {
-		Dispatcher !# CalendarAnswerCreate(answer)
-	}
 
-	def notifyUpdate(answer: CalendarAnswer): Unit = {
-		Dispatcher !# CalendarAnswerUpdate(answer)
-	}
-
-	def notifyDelete(user: Int, event: Int): Unit = {
-		Dispatcher !# CalendarAnswerDelete(user, event)
-	}
 }

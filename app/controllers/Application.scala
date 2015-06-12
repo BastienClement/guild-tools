@@ -1,6 +1,5 @@
 package controllers
 
-import actors.{CompressedSocketHandler, SocketHandler}
 import akka.actor.Props
 import gtp3.SocketActor
 import play.api.Play.current
@@ -11,7 +10,8 @@ object Application extends Controller {
 	def catchall(path: String) = index()
 
 	def index() = Action {
-		Ok(views.html.index.render())
+		//Ok(views.html.index.render())
+		Ok("")
 	}
 
 	def client() = Action {

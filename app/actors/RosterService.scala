@@ -5,10 +5,9 @@ import scala.concurrent.duration._
 import slick.jdbc.JdbcBackend
 import scala.util.{Failure, Success, Try}
 import actors.Actors.{Dispatcher, _}
-import api._
 import gt.Global.ExecutionContext
 import models._
-import models.mysql._
+import models.simple._
 import play.api.libs.json._
 import utils.{LazyCollection, LazyCache}
 
@@ -120,13 +119,13 @@ class RosterServiceImpl extends RosterService {
 
 		roster_composite.clear()
 		inflightUpdates -= char.id
-		Dispatcher !# RosterCharUpdate(char)
+		//Dispatcher !# RosterCharUpdate(char)
 	}
 
 	def deleteChar(id: Int): Unit = {
 		roster_chars := roster_chars - id
 		roster_composite.clear()
-		Dispatcher !# RosterCharDelete(id)
+		//Dispatcher !# RosterCharDelete(id)
 	}
 
 	/**

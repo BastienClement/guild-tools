@@ -6,7 +6,7 @@ import scala.concurrent.duration._
 import scala.sys.process._
 import actors.Actors._
 import models._
-import models.mysql._
+import models.simple._
 import play.libs.Akka
 import utils._
 
@@ -15,12 +15,12 @@ object Global {
 	val serverVersion = "git rev-parse HEAD".!!.trim
 
 	// Char update job
-	scheduler.schedule(1500.seconds, 15.minutes) {
+	/*scheduler.schedule(1500.seconds, 15.minutes) {
 		val chars = RosterService.chars.values.toSeq.view
 		chars.filter(c => c.active && !c.invalid && c.last_update < Platform.currentTime - 21600000)
 			.sortBy(_.last_update)
 			.take(5)
 			.map(_.id)
 			.foreach(RosterService.refreshChar)
-	}
+	}*/
 }

@@ -1,15 +1,19 @@
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
+import scala.concurrent.Future
+import scala.concurrent.{Awaitable, Await}
 import scala.language.implicitConversions
 import play.api.Play
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.json._
 import slick.driver.JdbcProfile
+import slick.lifted.{QueryBase, Query}
+import scala.concurrent.duration._
 
 package object models {
 	val DB = DatabaseConfigProvider.get[JdbcProfile](Play.current).db
-	val mysql = slick.driver.MySQLDriver.simple
-	//val api = slick.driver.MySQLDriver.api
+	val simple = slick.driver.MySQLDriver.simple
+	val mysql = slick.driver.MySQLDriver.api
 	val sql = slick.jdbc.StaticQuery
 
 	implicit object timestampFormat extends Format[Timestamp] {
@@ -17,6 +21,15 @@ package object models {
 		def reads(json: JsValue) = JsSuccess(new Timestamp(format.parse(json.as[String]).getTime))
 		def writes(ts: Timestamp) = JsString(format.format(ts))
 	}
+
+	implicit class QueryExecutor[A](query: Query[_, A, Seq]) {
+		import mysql._
+		def run = DB.run(query.result)
+		def head = DB.run(query.result.head)
+		def headOption = DB.run(query.result.headOption)
+	}
+
+
 
 	implicit val userJsonWriter = new Writes[User] {
 		def writes(user: User): JsValue = {

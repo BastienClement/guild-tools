@@ -3,9 +3,8 @@ package actors
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import actors.Actors._
-import api._
 import models._
-import models.mysql._
+import models.simple._
 import utils.LazyCache
 import gt.Global.ExecutionContext
 
@@ -49,14 +48,14 @@ class ComposerServiceImpl extends ComposerService {
 		val lockout = template.copy(id = id)
 
 		composer_lockouts := (lockout :: _)
-		Dispatcher !# ComposerLockoutCreate(lockout)
+		//Dispatcher !# ComposerLockoutCreate(lockout)
 	}
 
 	def renameLockout(id: Int, title: String): Unit = {
 		DB.withSession { implicit s =>
 			val lockout = ComposerLockouts.filter(_.id === id)
 			lockout.map(_.title).update(title)
-			Dispatcher !# ComposerLockoutUpdate(lockout.first)
+			//Dispatcher !# ComposerLockoutUpdate(lockout.first)
 		}
 	}
 
@@ -70,7 +69,7 @@ class ComposerServiceImpl extends ComposerService {
 			val deleted_groups = deleted.map(_.id).toSet
 			composer_slots := (_ filter (s => deleted_groups.contains(s.group)))
 
-			Dispatcher !# ComposerLockoutDelete(id)
+			//Dispatcher !# ComposerLockoutDelete(id)
 		}
 	}
 
@@ -85,7 +84,7 @@ class ComposerServiceImpl extends ComposerService {
 			val group = template.copy(id = id)
 
 			composer_groups := (group :: _)
-			Dispatcher !# ComposerGroupCreate(group)
+			//Dispatcher !# ComposerGroupCreate(group)
 		}
 	}
 
@@ -93,7 +92,7 @@ class ComposerServiceImpl extends ComposerService {
 		DB.withSession { implicit s =>
 			val group = ComposerGroups.filter(_.id === id)
 			group.map(_.title).update(title)
-			Dispatcher !# ComposerGroupUpdate(group.first)
+			//Dispatcher !# ComposerGroupUpdate(group.first)
 		}
 	}
 
@@ -101,7 +100,7 @@ class ComposerServiceImpl extends ComposerService {
 		if (ComposerGroups.filter(_.id === id).delete > 0) {
 			composer_groups := (_ filter (_.id != id))
 			composer_slots := (_ filter (_.group != id))
-			Dispatcher !# ComposerGroupDelete(id)
+			//Dispatcher !# ComposerGroupDelete(id)
 		}
 	}
 
@@ -112,13 +111,13 @@ class ComposerServiceImpl extends ComposerService {
 		composer_slots := (_ filter (s => s.group != group || s.char != char))
 		composer_slots := (slot :: _)
 
-		Dispatcher !# ComposerSlotSet(slot)
+		//Dispatcher !# ComposerSlotSet(slot)
 	}
 
 	def unsetSlot(group: Int, char: Int): Unit = DB.withSession { implicit s =>
 		if (ComposerSlots.filter(s => s.group === group && s.char === char).delete > 0) {
 			composer_slots := (_ filter (s => s.group != group || s.char != char))
-			Dispatcher !# ComposerSlotUnset(group, char)
+			//Dispatcher !# ComposerSlotUnset(group, char)
 		}
 	}
 

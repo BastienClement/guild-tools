@@ -128,6 +128,7 @@ class AuthenticationDriver {
 			return Deferred.all([this.channel.request("prepare", user), Deferred.require("phpbb_hash"), Deferred.require("cryptojs")]);
 		}).then((res: any[]) => {
 			const [prepare, phpbb_hash, crypto] = res;
+			console.log(prepare);
 			pass = crypto.SHA1(phpbb_hash(pass, prepare.setting) + prepare.salt).toString();
 			return this.channel.request<string>("login", { user: user, pass: pass });
 		}).then(sid => {

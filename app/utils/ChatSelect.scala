@@ -1,7 +1,7 @@
 package utils
 
 import models.ChatMessages
-import models.mysql._
+import models.simple._
 
 object ChatSelect extends ChatSelect(None, None, None, None, None) {
 	val all = this

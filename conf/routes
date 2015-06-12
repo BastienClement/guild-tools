@@ -5,7 +5,7 @@
 GET         /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
 GET         /views/*file                controllers.Assets.versioned(path="/public/views", file: Asset)
 
-GET         /webjars/*file              controllers.WebJarAssets.at(file)
+#GET         /webjars/*file              controllers.WebJarAssets.at(file)
 
 GET			/gtp3						controllers.Application.gtp3
 

@@ -5,9 +5,8 @@ import scala.language.implicitConversions
 import scala.util.{Success, Try}
 import actors.Actors.Dispatcher
 import akka.actor.ActorRef
-import api.{ChatShoutboxMsg, ChatUserConnect, ChatUserDisconnect}
 import models._
-import models.mysql._
+import models.simple._
 import utils._
 
 case class ChatException(msg: String) extends Exception(msg)
@@ -44,7 +43,7 @@ class ChatServiceImpl extends ChatService {
 
 			case None =>
 				sessions += user.id -> Session(user, Set(socket))
-				Dispatcher !# ChatUserConnect(user.id)
+				//Dispatcher !# ChatUserConnect(user.id)
 		}
 	}
 
@@ -56,7 +55,7 @@ class ChatServiceImpl extends ChatService {
 				session.sockets -= socket
 				if (session.sockets.size < 1) {
 					sessions -= user
-					Dispatcher !# ChatUserDisconnect(user)
+					//Dispatcher !# ChatUserDisconnect(user)
 				}
 		}
 	}
@@ -77,7 +76,7 @@ class ChatServiceImpl extends ChatService {
 		}
 
 		shoutbox_backlog := (message :: _)
-		Dispatcher !# ChatShoutboxMsg(message)
+		//Dispatcher !# ChatShoutboxMsg(message)
 	}
 
 	private val memberships = LazyCollection[Int, Set[Int]](1.minute) { channel =>

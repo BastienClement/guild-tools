@@ -1,8 +1,7 @@
 package models
 
 import actors.Actors.Dispatcher
-import api.{CalendarSlotDelete, CalendarSlotUpdate}
-import models.mysql._
+import models.simple._
 
 case class CalendarSlot(tab: Int, slot: Int, owner: Int, name: String, `class`: Int, role: String) {
 	if (!Chars.validateRole(role)) {
@@ -32,11 +31,5 @@ class CalendarSlots(tag: Tag) extends Table[CalendarSlot](tag, "gt_events_slots"
  * Helpers
  */
 object CalendarSlots extends TableQuery(new CalendarSlots(_)) {
-	def notifyUpdate(slot: CalendarSlot): Unit = {
-		Dispatcher !# CalendarSlotUpdate(slot)
-	}
 
-	def notifyDelete(tab: Int, slot: Int): Unit = {
-		Dispatcher !# CalendarSlotDelete(tab, slot)
-	}
 }

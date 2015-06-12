@@ -2,8 +2,7 @@ package models
 
 import java.sql.Timestamp
 import actors.Actors.Dispatcher
-import api.{CalendarEventCreate, CalendarEventDelete, CalendarEventUpdate}
-import models.mysql._
+import models.simple._
 
 object CalendarVisibility {
 	val Roster = 1
@@ -90,15 +89,5 @@ class CalendarEvents(tag: Tag) extends Table[CalendarEvent](tag, "gt_events_visi
 }
 
 object CalendarEvents extends TableQuery(new CalendarEvents(_)) {
-	def notifyCreate(event: CalendarEvent): Unit = {
-		Dispatcher !# CalendarEventCreate(event)
-	}
 
-	def notifyUpdate(event: CalendarEvent): Unit = {
-		Dispatcher !# CalendarEventUpdate(event)
-	}
-
-	def notifyDelete(id: Int): Unit = {
-		Dispatcher !# CalendarEventDelete(id)
-	}
 }

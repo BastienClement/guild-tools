@@ -2,7 +2,7 @@ package controllers
 
 import scala.util.Try
 import models._
-import models.mysql._
+import models.simple._
 import models.sql._
 import play.api.Play.current
 import play.api.cache.Cached

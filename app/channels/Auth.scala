@@ -5,6 +5,7 @@ import scala.concurrent.duration._
 import play.api.libs.json.Json
 import actors.Actors._
 import gtp3._
+import reactive._
 
 object Auth extends ChannelAcceptor {
 	def open(request: ChannelRequest) = request.accept(new Auth(request.socket))
@@ -25,7 +26,7 @@ class Auth(private val socket: Socket) extends ChannelHandler {
 
 	def prepare(payload: Payload): Future[Payload] = utils.atLeast(250.milliseconds) {
 		val user = payload.value.as[String].toLowerCase
-		Json.obj("salt" -> salt, "setting" -> AuthService.setting(user))
+		AuthService.setting(user) map { setting => Json.obj("salt" -> salt, "setting" -> setting) }
 	}
 
 	def login(payload: Payload): Future[Payload] = utils.atLeast(500.milliseconds) {

@@ -1,8 +1,7 @@
 package models
 
 import actors.Actors.Dispatcher
-import api._
-import models.mysql._
+import models.simple._
 
 case class CalendarTab(id: Int, event: Int, title: String, note: Option[String], order: Int, locked: Boolean, undeletable: Boolean) {
 	lazy val expandEvent = DB.withSession { implicit s =>
@@ -29,19 +28,5 @@ class CalendarTabs(tag: Tag) extends Table[CalendarTab](tag, "gt_events_tabs") {
  * Helpers
  */
 object CalendarTabs extends TableQuery(new CalendarTabs(_)) {
-	def notifyCreate(tab: CalendarTab): Unit = {
-		Dispatcher !# CalendarTabCreate(tab)
-	}
 
-	def notifyUpdate(tab: CalendarTab): Unit = {
-		Dispatcher !# CalendarTabUpdate(tab)
-	}
-
-	def notifyDelete(id: Int): Unit = {
-		Dispatcher !# CalendarTabDelete(id)
-	}
-
-	def notifyWipe(id: Int): Unit = {
-		Dispatcher !# CalendarTabWipe(id)
-	}
 }

@@ -3,9 +3,8 @@ package actors
 import scala.concurrent.duration._
 import actors.Actors.Dispatcher
 import actors.CalendarServiceShr.CalendarLock
-import api.{CalendarLockAcquire, CalendarLockRelease}
 import gt.Global.ExecutionContext
-import models.mysql._
+import models.simple._
 import models.{CalendarTab, CalendarTabs, _}
 import utils.scheduler
 import scala.concurrent.Future
@@ -93,7 +92,7 @@ class CalendarServiceImpl extends CalendarService {
 			val template = CalendarTab(0, event, title, None, max_order + 1, false, false)
 			val id = (CalendarTabs returning CalendarTabs.map(_.id)).insert(template)
 			val tab = template.copy(id = id)
-			CalendarTabs.notifyCreate(tab)
+			//CalendarTabs.notifyCreate(tab)
 			tab
 		}
 	}
@@ -101,7 +100,7 @@ class CalendarServiceImpl extends CalendarService {
 	def deleteTab(tab: Int): Unit = {
 		DB.withSession { implicit s =>
 			if (CalendarTabs.filter(t => t.id === tab && !t.undeletable).delete > 0) {
-				CalendarTabs.notifyDelete(tab)
+				//CalendarTabs.notifyDelete(tab)
 			} else {
 				wipeTab(tab)
 			}
@@ -111,7 +110,7 @@ class CalendarServiceImpl extends CalendarService {
 	def wipeTab(tab: Int): Unit = {
 		DB.withSession { implicit s =>
 			if (CalendarSlots.filter(_.tab === tab).delete > 0) {
-				CalendarTabs.notifyWipe(tab)
+				//CalendarTabs.notifyWipe(tab)
 			}
 		}
 	}
@@ -120,7 +119,7 @@ class CalendarServiceImpl extends CalendarService {
 		DB.withSession { implicit s =>
 			val tab_query = CalendarTabs.filter(_.id === tab)
 			if (tab_query.map(_.locked).update(locked) > 0) {
-				CalendarTabs.notifyUpdate(tab_query.first)
+				//CalendarTabs.notifyUpdate(tab_query.first)
 			}
 		}
 	}
@@ -131,7 +130,7 @@ class CalendarServiceImpl extends CalendarService {
 		} else {
 			val lock = new CalendarLock(tab, owner)
 			locks += (tab -> lock)
-			Dispatcher !# CalendarLockAcquire(tab, owner)
+			//Dispatcher !# CalendarLockAcquire(tab, owner)
 			Some(lock)
 		}
 	}
@@ -142,7 +141,7 @@ class CalendarServiceImpl extends CalendarService {
 		for (l <- locks.get(lock.tab)) {
 			if (lock == l) {
 				locks -= lock.tab
-				Dispatcher !# CalendarLockRelease(lock.tab)
+				//Dispatcher !# CalendarLockRelease(lock.tab)
 			}
 		}
 	}
@@ -151,21 +150,21 @@ class CalendarServiceImpl extends CalendarService {
 		DB.withSession { implicit s =>
 			CalendarSlots.filter(s => s.tab === template.tab && s.owner === template.owner).delete
 			CalendarSlots.insertOrUpdate(template)
-			CalendarSlots.notifyUpdate(template)
+			//CalendarSlots.notifyUpdate(template)
 		}
 	}
 
 	def setSlots(templates: List[CalendarSlot]): Unit = {
 		DB.withSession { implicit s =>
 			CalendarSlots ++= templates
-			for (t <- templates) CalendarSlots.notifyUpdate(t)
+			//for (t <- templates) CalendarSlots.notifyUpdate(t)
 		}
 	}
 
 	def resetSlot(tab: Int, slot: Int): Unit = {
 		DB.withSession { implicit s =>
 			CalendarSlots.filter(s => s.tab === tab && s.slot === slot).delete
-			CalendarSlots.notifyDelete(tab, slot)
+			//CalendarSlots.notifyDelete(tab, slot)
 		}
 	}
 
@@ -185,11 +184,11 @@ class CalendarServiceImpl extends CalendarService {
 					// Fetch a replacement default tab and make it undeletable
 					val replacement = tabs.find(!_.undeletable).get.copy(undeletable = true)
 					CalendarTabs.filter(_.id === replacement.id).update(replacement)
-					CalendarTabs.notifyUpdate(replacement)
+					//CalendarTabs.notifyUpdate(replacement)
 
 					// Remove the old one
 					CalendarTabs.filter(_.id === locked_tab.id).delete
-					CalendarTabs.notifyDelete(locked_tab.id)
+					//CalendarTabs.notifyDelete(locked_tab.id)
 				}
 			}
 		}

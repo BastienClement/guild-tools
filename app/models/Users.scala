@@ -1,6 +1,6 @@
 package models
 
-import models.mysql._
+import models.simple._
 
 case class User(id: Int, name: String, group: Int, color: String) {
 	val developer = Users.developer_users.contains(id)

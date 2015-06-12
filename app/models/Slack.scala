@@ -2,8 +2,7 @@ package models
 
 import java.sql.Timestamp
 import actors.Actors._
-import api.{SlackCreate, SlackDelete, SlackUpdate}
-import models.mysql._
+import models.simple._
 
 case class Slack(id: Int, user: Int, from: Timestamp, to: Timestamp, reason: Option[String]) {
 	lazy val conceal = this.copy(reason = None)
@@ -26,15 +25,4 @@ class Slacks(tag: Tag) extends Table[Slack](tag, "gt_slacks") {
  * Helpers
  */
 object Slacks extends TableQuery(new Slacks(_)) {
-	def notifyCreate(slack: Slack): Unit = {
-		Dispatcher !# SlackCreate(slack)
-	}
-
-	def notifyUpdate(slack: Slack): Unit = {
-		Dispatcher !# SlackUpdate(slack)
-	}
-
-	def notifyDelete(id: Int): Unit = {
-		Dispatcher !# SlackDelete(id)
-	}
 }

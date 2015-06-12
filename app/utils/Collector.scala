@@ -29,7 +29,7 @@ trait Collector[T <: Collectable] {
 		if (!collector_started) {
 			collector_started = true
 			collector = scheduler.schedule(1.minute, 1.minute) {
-				if (instances.size > 0) {
+				if (instances.nonEmpty) {
 					instances.keys.foreach(_.collect())
 				} else {
 					collector.cancel()

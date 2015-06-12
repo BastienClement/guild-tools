@@ -1,7 +1,7 @@
 package models
 
 import java.sql.Timestamp
-import models.mysql._
+import models.simple._
 
 case class BugReport(key: String, user: Int, date: Timestamp, rev: String, error: String, stack: String, navigator: String)
 
