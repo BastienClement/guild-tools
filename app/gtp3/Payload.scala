@@ -11,10 +11,11 @@ object Payload {
 	def apply(buf: ByteVector, flags: Int) = new Payload(buf, flags)
 
 	def apply(value: JsValue) = new Payload(Json.stringify(value), 0x06)
+	def apply(value: String) = new Payload(value, 0x02)
 	def apply(buffer: Array[Byte]) = new Payload(buffer, 0x00)
 
-	implicit def StringToByteVector(string: String): ByteVector = string.getBytes(StandardCharsets.UTF_8)
-	implicit def ByteArrayToByteVector(arr: Array[Byte]): ByteVector = ByteVector(arr)
+	implicit def ImplicitByteVector(string: String): ByteVector = ByteVector(string.getBytes(StandardCharsets.UTF_8))
+	implicit def ImplicitByteVector(arr: Array[Byte]): ByteVector = ByteVector(arr)
 }
 
 class Payload(val byteVector: ByteVector, val flags: Int) {
@@ -37,4 +38,7 @@ class Payload(val byteVector: ByteVector, val flags: Int) {
 	}
 
 	lazy val string: String = new String(inflated, StandardCharsets.UTF_8)
+
+	def get(selector: String) = value \ selector
+	def get[T](selector: (JsValue) => T) = selector(value)
 }

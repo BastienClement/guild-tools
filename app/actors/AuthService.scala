@@ -1,5 +1,6 @@
 package actors
 
+import scala.annotation.tailrec
 import scala.concurrent.duration._
 import scala.util.Try
 import actors.AuthService._
@@ -15,7 +16,7 @@ object AuthService {
 trait AuthService {
 	def auth(session: String): Future[User]
 	def setting(user: String): Future[String]
-	def login(name: String, password: String, salt: String): Either[String, String]
+	def login(name: String, password: String, salt: String): Future[String]
 	def logout(session: String): Unit
 }
 
@@ -50,21 +51,18 @@ class AuthServiceImpl extends AuthService {
 	/**
 	 *
 	 */
-	def login(name: String, password: String, salt: String): Either[String, String] = {
+	def login(name: String, password: String, salt: String): Future[String] = {
 		val user_credentials = for (u <- Users if (u.name === name || u.name_clean === name) && (u.group inSet allowedGroups)) yield (u.pass, u.id)
-		user_credentials.headOption.get filter {
-			case (pass_ref, user_id) =>
-				password == utils.md5(pass_ref + salt)
-		} map {
-			case (pass_ref, user_id) =>
+		user_credentials.head collect {
+			case (pass_ref, user_id) if password == utils.sha1(pass_ref + salt) =>
 				def createSession(attempt: Int = 1): Option[String] = {
 					val token = utils.randomToken()
 					Try {
 						val now = SmartTimestamp.now
-						Sessions.map { s =>
-							(s.token, s.user, s.ip, s.created, s.last_access)
-						} += {
-							(token, user_id, "", now, now)
+						DB run {
+							Sessions.map { s =>
+								(s.token, s.user, s.ip, s.created, s.last_access)
+							} += (token, user_id, "", now, now)
 						}
 						Some(token)
 					} getOrElse {
@@ -73,13 +71,11 @@ class AuthServiceImpl extends AuthService {
 					}
 				}
 
-				createSession() map { s =>
-					Right(s)
-				} getOrElse {
-					Left("Unable to login")
+				createSession() getOrElse {
+					throw new Exception("Unable to login")
 				}
-		} getOrElse {
-			Left("Invalid credentials")
+
+			case _ => throw new Exception("Invalid credentials")
 		}
 	}
 

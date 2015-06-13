@@ -15,6 +15,12 @@ export class GtLogin extends PolymerElement {
 	credentials: Deferred<[string, string]>;
 	
 	/**
+	 * Deferred to resolve with user credentials
+	 */
+	@Property({ type: String, value: "" })
+	error: string;
+	
+	/**
 	 * Auto show dialog when attached
 	 */
 	private attached() {
@@ -35,9 +41,10 @@ export class GtLogin extends PolymerElement {
 	 * Automatically focus the correct field when the dialog is shown
 	 */
 	@Listener("dialog.show")
-	private "dialog-shown"() {
+	public autofocus() {
 		const input: Widget.GtInput = (this.$.username.value) ? this.$.password : this.$.username;
 		input.focus();
+		input.value = "";
 	}
 	
 	/**

@@ -6,6 +6,13 @@ export class GtForm extends PolymerElement {
 	 * Trigger the submit event
 	 */
 	public submit() {
+		for (let input of this.node.querySelectorAll("gt-input[required]").map(n => Polymer.cast(n, GtInput))) {
+			if (input.value.match(/^\s*$/)) {
+				input.error = "This field is required";
+				input.focus();
+				return;
+			}
+		}
 		this.fire("submit");
 	}
 }
@@ -23,10 +30,22 @@ export class GtInput extends PolymerElement {
 	public disabled: boolean;
 	
 	/**
+	 * Prevent form submission if empty
+	 */
+	@Property({ type: Boolean, reflectToAttribute: true })
+	public required: boolean;
+	
+	/**
 	 * Input type "text", "password"
 	 */
 	@Property({ type: String, value: "text" })
 	public type: string;
+	
+	/**
+	 * Error message
+	 */
+	@Property({ type: String, value: "", reflectToAttribute: true })
+	public error: string;
 	
 	/**
 	 * Proxy to input value
@@ -53,7 +72,8 @@ export class GtInput extends PolymerElement {
 	 * Relay input change event
 	 */
 	@Listener("input.change")
-	private "input-changed" () {
+	private "input-changed"(e: Event) {
+		this.stopEvent(e);
 		this.fire("change", this.value);
 	}
 	
@@ -66,8 +86,8 @@ export class GtInput extends PolymerElement {
 			e.preventDefault();
 			const form = this.host(GtForm);
 			if (form) {
-				form.submit();
 				this.$.input.blur();
+				form.submit();
 			}
 		}
 	}
@@ -117,8 +137,14 @@ export class GtButton extends PolymerElement {
  */
 @Element("gt-dialog-action")
 export class GtDialogAction extends PolymerElement {
+	/**
+	 * The button icon
+	 */
+	@Property({ type: String })
+	public icon: string;
+	
 	private attached() {
-		this.host(GtDialog).addAction(this.node.textContent);
+		this.host(GtDialog).addAction(this.node.textContent, this.icon);
 		Polymer.dom(this.node.parentNode).removeChild(this);
 	}
 }
@@ -139,7 +165,7 @@ export class GtDialog extends PolymerElement {
 	 * Available actions
 	 */
 	@Property({ type: Array, value: [] })
-	private actions: string[];
+	private actions: [string, string][];
 	
 	/**
 	 * If defined, the .with-modal class will not be added
@@ -183,8 +209,8 @@ export class GtDialog extends PolymerElement {
 	/**
 	 * Add a new action button
 	 */
-	public addAction(label: string) {
-		this.push("actions", label);
+	public addAction(label: string, icon: string) {
+		this.push("actions", [label, icon]);
 	}
 	
 	/**
@@ -198,7 +224,7 @@ export class GtDialog extends PolymerElement {
 	 * Handle action button click
 	 */
 	private "handle-action"(e: PolymerEvent<{ item: string; }>) {
-		this.fire("action", e.model.item);
+		this.fire("action", e.model.item[0]);
 		this.locked = true;
 	}
 }

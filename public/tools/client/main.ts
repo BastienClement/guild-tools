@@ -123,12 +123,11 @@ class AuthenticationDriver {
 		if (error) console.error(error);
 		let user: string;
 		let pass: string;
-		return this.requestCredentials().then(credentials => {
+		return this.requestCredentials(error).then(credentials => {
 			[user, pass] = credentials;
 			return Deferred.all([this.channel.request("prepare", user), Deferred.require("phpbb_hash"), Deferred.require("cryptojs")]);
 		}).then((res: any[]) => {
 			const [prepare, phpbb_hash, crypto] = res;
-			console.log(prepare);
 			pass = crypto.SHA1(phpbb_hash(pass, prepare.setting) + prepare.salt).toString();
 			return this.channel.request<string>("login", { user: user, pass: pass });
 		}).then(sid => {
@@ -143,8 +142,10 @@ class AuthenticationDriver {
 	/**
 	 * Request user credentials
 	 */
-	private requestCredentials(): Promise<[string, string]> {
+	private requestCredentials(error?: string): Promise<[string, string]> {
 		if (!this.gt_login) return this.constructForm().then(() => this.requestCredentials());
+		this.gt_login.error = error;
+		this.gt_login.autofocus();
 		return (this.gt_login.credentials = new Deferred<[string, string]>()).promise;
 	}
 	

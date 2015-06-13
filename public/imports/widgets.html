@@ -50,7 +50,11 @@
 			height: 36px;
 			margin: 0 -@box-padding -@box-padding;
 			padding: 8px;
-			direction: rtl;
+			justify-content: flex-end;
+		}
+		
+		i {
+			margin-right: 4px;
 		}
 		
 		:host ::content p {
@@ -69,12 +73,15 @@
 	</style>
 	<template>
 		<div id="layout">
-			<h3 [if]>{{heading}}</h3>
+			<h3 [if]>[[heading]]</h3>
 			<div id="content">
 				<content></content>
 			</div>
 			<div id="actions">
-				<gt-button [repeat]="{{actions}}" class="collapse" on-tap="handle-action" disabled="{{locked}}">{{item}}</gt-button>
+				<gt-button [repeat]="[[actions]]" class="collapse" on-tap="handle-action" disabled="[[locked]]">
+					<i [[if]]>[[item.1]]</i>
+					<b>[[item.0]]</b>
+				</gt-button>
 			</div>
 		</div>
 	</template>
@@ -142,16 +149,22 @@
 			border-radius: 0;
 			outline: none;
 			
-			&:hover {
+			:host:hover & {
 				border-bottom-width: 2px;
 				margin-bottom: -1px;
 				border-color: rgb(66, 101, 133);
 			}
 			
-			&:focus {
+			:host:focus & {
 				border-bottom-width: 2px;
 				margin-bottom: -1px;
 				border-color: rgb(100, 180, 255);
+			}
+			
+			#outer:not([data-valid]) & {
+				border-color: rgba(222, 50, 32, 0.5);
+				:host:hover & { border-color: rgba(222, 50, 32, 0.6); }
+				:host:focus & { border-color: rgba(222, 50, 32, 1); }
 			}
 		}
 		
@@ -170,13 +183,32 @@
 				opacity: 1;
 			}
 		}
+		
+		#error {
+			font: 400 13px Roboto;
+			height: 1.15em;
+			line-height: 1em;
+			overflow: hidden;
+    		text-overflow: ellipsis;
+			opacity: 1;
+			color: rgb(222, 50, 32);
+			margin-top: 8px;
+			transition: height .2s ease-out, opacity .3s ease-out, margin .2s ease-out;
+			
+			#outer[data-valid] & {
+				height: 0;
+				opacity: 0;
+				margin-top: 0;
+			}
+		}
 	</style>
 	<template>
-		<label id="outer">
+		<label id="outer" data-valid$="{{!error}}">
 			<span id="label" [if]>{{label}}</span>
 			<span id="wrapper">
 				<input id="input" type="{{type}}">
 			</span>
+			<div id="error">{{error}}</div>
 		</label>
 	</template>
 </dom-module>

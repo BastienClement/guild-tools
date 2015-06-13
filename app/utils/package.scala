@@ -29,6 +29,15 @@ package object utils {
 	}
 
 	/**
+	 * MD5 hash with hex string result
+	 */
+	def sha1(data: String): String = {
+		val bytes = MessageDigest.getInstance("SHA1").digest(data.getBytes)
+		val parts = bytes map ("%1$02x".format(_))
+		parts.mkString
+	}
+
+	/**
 	 * Do not return before a minimum duration
 	 */
 	def atLeast[T](d: FiniteDuration)(body: => T): T = {

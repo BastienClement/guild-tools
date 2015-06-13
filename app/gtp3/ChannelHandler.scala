@@ -1,6 +1,6 @@
 package gtp3
 
-import play.api.libs.json.{JsBoolean, JsValue}
+import play.api.libs.json.{JsString, JsBoolean, JsValue}
 import play.api.libs.json.Json.JsValueWrapper
 
 import scala.concurrent.Future
@@ -12,12 +12,12 @@ trait ChannelAcceptor {
 }
 
 trait ChannelHandler {
-	implicit def JSValueToPayload(value: JsValue): Payload = Payload(value)
-	implicit def BooleanToPayload(value: Boolean): Payload = Payload(JsBoolean(value))
-	implicit def JSValueToFuturePayload(value: JsValue): Future[Payload] = Payload(value)
-	implicit def BooleanToFuturePayload(value: Boolean): Future[Payload] = Payload(JsBoolean(value))
-	implicit def FutureJSValueToFuturePayload(value: Future[JsValue]): Future[Payload] = value map { Payload(_) }
-	implicit def FutureBooleanToFuturePayload(value: Future[Boolean]): Future[Payload] = value map { v => Payload(JsBoolean(v)) }
+	implicit def ImplicitPayload(value: JsValue): Payload = Payload(value)
+	implicit def ImplicitPayload(value: String): Payload = Payload(JsString(value))
+	implicit def ImplicitPayload(value: Boolean): Payload = Payload(JsBoolean(value))
+
+	implicit def ImplicitFuturePayload[T](value: T)(implicit ev: T => Payload): Future[Payload] = Future.successful[Payload](value)
+	implicit def ImplicitFuturePayload[T](future: Future[T])(implicit ev: T => Payload): Future[Payload] = future.map(ev(_))
 
 	type Handlers =  PartialFunction[String, (Payload) => Any]
 	def handlers: Handlers

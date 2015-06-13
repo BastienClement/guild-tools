@@ -21,7 +21,10 @@ class Auth(private val socket: Socket) extends ChannelHandler {
 	private var salt = utils.randomToken()
 
 	def auth(payload: Payload): Future[Payload] = {
-		false
+		AuthService.auth(payload.string).map(user => {
+			socket.user = user
+			true
+		}).fallbackTo[Boolean](false)
 	}
 
 	def prepare(payload: Payload): Future[Payload] = utils.atLeast(250.milliseconds) {
@@ -32,7 +35,6 @@ class Auth(private val socket: Socket) extends ChannelHandler {
 	def login(payload: Payload): Future[Payload] = utils.atLeast(500.milliseconds) {
 		val cur_salt = salt
 		salt = utils.randomToken()
-
-		Future.failed(new Exception("Failed"))
+		AuthService.login(payload.get("user").as[String], payload.get("pass").as[String], cur_salt)
 	}
 }

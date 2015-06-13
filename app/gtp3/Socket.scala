@@ -39,7 +39,7 @@ class Socket(val id: Long, var actor: SocketActor) {
 	private var request_ack_cooldown = 0
 
 	// Socket is authenticated
-	private[gtp3] var user: Option[User] = None
+	var user: User = null
 
 	/**
 	 * Overloaded output helper
@@ -182,7 +182,7 @@ class Socket(val id: Long, var actor: SocketActor) {
 			}
 		}
 
-		if (user.isEmpty && frame.channel_type != "$AUTH") {
+		if (user == null && frame.channel_type != "$AUTH") {
 			request.reject(103, "Non-authenticated socket cannot request channel")
 		} else {
 			ChannelAcceptors.get(frame.channel_type) match {
