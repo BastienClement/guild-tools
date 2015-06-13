@@ -12,6 +12,9 @@ trait ChannelAcceptor {
 }
 
 trait ChannelHandler {
+	var socket: Socket = null
+	var channel: Channel = null
+
 	implicit def ImplicitPayload(value: JsValue): Payload = Payload(value)
 	implicit def ImplicitPayload(value: String): Payload = Payload(JsString(value))
 	implicit def ImplicitPayload(value: Boolean): Payload = Payload(JsBoolean(value))

@@ -168,6 +168,9 @@ class Socket(val id: Long, var actor: SocketActor) {
 				val id = channelid_pool.next
 				val channel = new Channel(Socket.this, id, frame.sender_channel, handler)
 
+				handler.socket = Socket.this
+				handler.channel = channel
+
 				channels += (id -> channel)
 				out ! OpenSuccessFrame(0, frame.sender_channel, id)
 

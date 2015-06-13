@@ -1,0 +1,93 @@
+<!-- <gt-dialog> -->
+<dom-module id="gt-dialog">
+	<style type="text/less">
+		@box-padding: 24px;
+	
+		:host {
+			display: none;
+			position: fixed;
+			top: 0; left: 0; right: 0; bottom: 0;
+			margin: auto;
+			z-index: 3000;
+			justify-content: center;
+			align-items: center;
+		}
+		
+		:host(.slide-in) {
+			display: flex;
+			animation: slide 0.5s ease-out;
+			animation-delay: 0.25s;
+			animation-fill-mode: both;
+		}
+		
+		:host(.slide-out) {
+			display: flex;
+			animation: slide-out 0.2s ease;
+			animation-fill-mode: both;
+		}
+		
+		#layout {
+			position: relative;
+			box-sizing: border-box;
+			width: 100%;
+			background: fade(mix(#2e3740, rgb(99, 180, 255), 90%), 75%);
+		    border: 1px solid #395066;
+		    box-shadow: 0 1px 1px rgba(17, 17, 17, 0.3);
+			overflow: hidden;
+			padding: @box-padding;
+		}
+	
+		h3 {
+			font: 500 20px Roboto;
+			margin: -@box-padding;
+			margin-bottom: 0;
+			padding: @box-padding;
+			padding-bottom: 20px;
+		}
+		
+		#content {
+			overflow: auto;
+			overflow-x: hidden;
+		}
+		
+		#actions {
+			display: flex;
+			height: 36px;
+			margin: 0 -@box-padding -@box-padding;
+			padding: 8px;
+			justify-content: flex-end;
+		}
+		
+		i {
+			margin-right: 4px;
+		}
+		
+		:host ::content p {
+			margin: 0;
+		}
+		
+		@keyframes slide {
+			0%   { opacity: 0; transform: translateY(40px); }
+			100% { opacity: 1; transform: translateY(0px); }
+		}
+		
+		@keyframes slide-out {
+			0%   { opacity: 1; }
+			100% { opacity: 0; }
+		}
+	</style>
+	<template>
+		<div id="layout">
+			<h3 [if]>[[heading]]</h3>
+			<div id="content">
+				<content></content>
+			</div>
+			<div id="actions">
+				<gt-button [repeat]="[[actions]]" class="collapse" on-tap="handle-action" disabled="[[locked]]">
+					<i [if]>[[item.1]]</i>
+					<b>[[item.0]]</b>
+				</gt-button>
+			</div>
+		</div>
+	</template>
+</dom-module>

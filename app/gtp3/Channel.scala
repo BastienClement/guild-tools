@@ -20,7 +20,7 @@ class Channel(val socket: Socket, val id: Int, val sender_channel: Int, val hand
 	}
 
 	def close(code: Int, reason: String) = {
-		println("Channel closed", code, reason)
+		println("Channel closed", socket.user)
 		socket.channelClosed(this)
 	}
 }

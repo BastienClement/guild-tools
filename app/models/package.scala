@@ -29,8 +29,6 @@ package object models {
 		def headOption = DB.run(query.result.headOption)
 	}
 
-
-
 	implicit val userJsonWriter = new Writes[User] {
 		def writes(user: User): JsValue = {
 			Json.obj(
@@ -44,6 +42,7 @@ package object models {
 		}
 	}
 
+	implicit val userFormat = Json.format[User]
 	implicit val charJsonFormat = Json.format[Char]
 	implicit val eventJsonFormat = Json.format[CalendarEvent]
 	implicit val answerJsonFormat = Json.format[CalendarAnswer]

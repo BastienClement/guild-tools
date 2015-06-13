@@ -8,6 +8,13 @@ import { GtLogin } from "elements/loading";
 // LocalStorage key storing user's session
 const KEY_AUTH_SESSION = "auth.session";
 
+interface UserInformations {
+	id: number;
+	name: string;
+	group: number;
+	color: string;
+}
+
 /**
  * GuildTools
  */
@@ -17,6 +24,11 @@ export class Application {
         public server: Server,
 		public loader: Loader,
 		public injector: Injector) { }
+	
+	/**
+	 * Information about the current user
+	 */
+	public user: UserInformations = null;
 	
 	/**
 	 * Initialize the GuildTools application
@@ -93,6 +105,7 @@ class AuthenticationDriver {
 			this.channel = channel;
 			return this.auth();
 		}).then(success => {
+			console.log(success);	
 			if (success) return;
 			this.session = null;
 			localStorage.removeItem(KEY_AUTH_SESSION);
@@ -112,8 +125,11 @@ class AuthenticationDriver {
 	 * the authentication was successful
 	 */
 	private auth(): Promise<boolean> {
-		if (!this.session) return Deferred.resolved(false);
-		return this.channel.request<boolean>("auth", this.session);
+		if (!this.session) return Deferred.resolved(null);
+		return this.channel.request<UserInformations>("auth", this.session).then(user => {
+			this.app.user = user;
+			return !!user;
+		});
 	}
 	
 	/**

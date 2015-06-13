@@ -1,12 +1,13 @@
 import { Element, Dependencies, Property, Listener, PolymerElement } from "elements/polymer";
 import * as Widget from "elements/widgets";
+import { GtDialog } from "elements/dialog";
 import { Deferred } from "utils/deferred";
 
 /**
  * Handle the user login credentials request
  */
 @Element("gt-login", "/assets/imports/loading.html")
-@Dependencies(Widget.GtDialog, Widget.GtInput)	
+@Dependencies(GtDialog, Widget.GtInput)	
 export class GtLogin extends PolymerElement {
 	/**
 	 * Deferred to resolve with user credentials
@@ -25,7 +26,7 @@ export class GtLogin extends PolymerElement {
 	 */
 	private attached() {
 		this.$.username.value = localStorage.getItem("login.username") || "";
-		const dialog: Widget.GtDialog = this.$.dialog;
+		const dialog: GtDialog = this.$.dialog;
 		dialog.show();
 	}
 	
@@ -33,7 +34,7 @@ export class GtLogin extends PolymerElement {
 	 * Toggle dialog locked state based on credentials deferred availability
 	 */
 	private "credentials-updated"() {
-		const dialog: Widget.GtDialog = this.$.dialog;
+		const dialog: GtDialog = this.$.dialog;
 		dialog.locked = !this.credentials;
 	}
 	
