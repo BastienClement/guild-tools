@@ -59,8 +59,8 @@
 		}
 	</style>
 	<template>
-		<gt-dialog no-modal id="dialog">
-			<div id="side">
+		<gt-dialog #dialog no-modal>
+			<div #side>
 				<img src="/assets/images/login_logo.png">
 				<p>
 					<i>info_outline</i>
@@ -70,9 +70,9 @@
 					Please enter your login informations to continue.
 				</p>
 			</div>
-			<div id="main">
+			<div #main>
 				<h3>GuildTools Login</h3>
-				<gt-form id="form">
+				<gt-form #form>
 					<gt-input id="username" label="From Scratch ID" required></gt-input>
 					<gt-input id="password" type="password" label="Password" [error]="error" required></gt-input>
 				</gt-form>
