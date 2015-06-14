@@ -254,9 +254,10 @@ export interface PolymerEvent<T> extends Event {
 export function Element(selector: string, template?: string) {
 	return <T extends PolymerElement>(target: PolymerConstructor<T>) => {
 		// Transpose instance variables on prototype
-		target.call(target.prototype);
+		//target.call(target.prototype);
+		
 		target.prototype.is = selector;
-		target.prototype.factoryImpl = target.prototype.factory;
+		target.prototype.factoryImpl = target;
 		
 		// TODO: comment
 		target.prototype.createdCallback = function() {

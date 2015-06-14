@@ -6,6 +6,6 @@ package object gtp3 {
 	final val GTP3Magic = 0x47545033
 
 	val ChannelAcceptors = immutable.Map[String, ChannelAcceptor](
-		"$AUTH" -> Auth
+		"auth" -> Auth
 	)
 }

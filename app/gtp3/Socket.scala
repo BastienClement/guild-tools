@@ -185,7 +185,7 @@ class Socket(val id: Long, var actor: SocketActor) {
 			}
 		}
 
-		if (user == null && frame.channel_type != "$AUTH") {
+		if (user == null && frame.channel_type != "auth") {
 			request.reject(103, "Non-authenticated socket cannot request channel")
 		} else {
 			ChannelAcceptors.get(frame.channel_type) match {

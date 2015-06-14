@@ -59,7 +59,7 @@ class AuthServiceImpl extends AuthService {
 					val token = utils.randomToken()
 					Try {
 						val now = SmartTimestamp.now
-						DB run {
+						DB.run {
 							Sessions.map { s =>
 								(s.token, s.user, s.ip, s.created, s.last_access)
 							} += (token, user_id, "", now, now)
@@ -83,9 +83,7 @@ class AuthServiceImpl extends AuthService {
 	 *
 	 */
 	def logout(session: String): Unit = {
-		DB.withSession { implicit s =>
-			Sessions.filter(_.token === session).delete
-			sessionCache.clear(session)
-		}
+		DB.run { Sessions.filter(_.token === session).delete }
+		sessionCache.clear(session)
 	}
 }

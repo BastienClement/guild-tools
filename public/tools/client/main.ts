@@ -109,7 +109,7 @@ class AuthenticationDriver {
 	 * Begin the authentication process
 	 */
 	start(): Promise<void> {
-		const auth = this.app.server.openChannel("$AUTH").then(channel => {
+		const auth = this.app.server.openChannel("auth").then(channel => {
 			this.channel = channel;
 			return this.auth();
 		}).then(success => {
