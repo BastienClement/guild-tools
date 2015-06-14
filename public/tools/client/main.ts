@@ -4,6 +4,7 @@ import { Server } from "client/server"
 import { Channel } from "gtp3/channel";
 import { Loader } from "client/loader";
 import { GtLogin } from "elements/loading";
+import { GtApp } from "elements/app";
 
 // LocalStorage key storing user's session
 const KEY_AUTH_SESSION = "auth.session";
@@ -31,10 +32,16 @@ export class Application {
 	public user: UserInformations = null;
 	
 	/**
+	 * The root Application Node
+	 */
+	public root: GtApp = null;
+	
+	/**
 	 * Initialize the GuildTools application
 	 */
 	main(): void {
 		const socket_endpoint = this.loader.fetch("/api/socket_url");
+		const body = document.body;
 
 		const init_pipeline = Deferred.pipeline(socket_endpoint, [
 			(url: string) => this.server.connect(url),
@@ -42,12 +49,16 @@ export class Application {
 			() => new AuthenticationDriver(this).start(),
 			() => this.spinner_enabled ? this.stopSpinner() : null,
 			() => {
-				document.body.classList.add("no-loader");
-				document.body.classList.add("with-background");
+				body.classList.add("no-loader");
+				body.classList.add("with-background");
 				return Deferred.delay(1100);
 			},
 			() => {
-				document.body.classList.add("app-loader");
+				body.classList.add("app-loader");
+				return this.loader.loadElement(GtApp);
+			},
+			() => {
+				body.appendChild(this.root = new GtApp());
 			}
 		]);
 		

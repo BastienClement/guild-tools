@@ -1,0 +1,54 @@
+<dom-module id="gt-app">
+	<style type="text/less">
+		:host {
+			.cover;
+			z-index: 500;
+		}
+	</style>
+	<template>
+		<gt-title-bar #title></gt-title-bar>
+		<gt-sidebar #side></gt-sidebar>
+	</template>
+</dom-module>
+
+<dom-module id="gt-title-bar">
+	<style type="text/less">
+		@titlebar-height: 64px;
+		
+		:host {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 56px;
+			padding: 12px;
+			box-sizing: border-box;
+			background: rgba(99, 180, 255, 0.1);
+			animation: slide 0.5s ease-out;
+			animation-fill-mode: both;
+		}
+		
+		@keyframes slide {
+			0% { transform: translateY(-56px); opacity: 0; }
+			100% { transform: translateY(0); opacity: 1; }
+		}
+	</style>
+	<template>
+		
+	</template>
+</dom-module>
+
+<dom-module id="gt-sidebar">
+	<style type="text/less">
+		:host {
+			position: absolute;
+			top: 56px;
+			left: 0;
+			bottom: 0;
+			width: 56px;
+		}
+	</style>
+	<template>
+		
+	</template>
+</dom-module>
