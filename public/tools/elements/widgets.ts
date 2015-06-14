@@ -3,6 +3,12 @@ import { Element, Property, Listener, Dependencies, PolymerElement, PolymerEvent
 @Element("gt-form")
 export class GtForm extends PolymerElement {
 	/**
+	 * Indicate an error during form validation
+	 */
+	@Property({ type: Boolean })
+	public failed: boolean;
+	
+	/**
 	 * Trigger the submit event
 	 */
 	public submit() {
@@ -10,9 +16,11 @@ export class GtForm extends PolymerElement {
 			if (input.value.match(/^\s*$/)) {
 				input.error = "This field is required";
 				input.focus();
+				this.failed = true;
 				return;
 			}
 		}
+		this.failed = false;
 		this.fire("submit");
 	}
 }
@@ -50,9 +58,8 @@ export class GtInput extends PolymerElement {
 	/**
 	 * Proxy to input value
 	 */
-	@Property({ type: String })
-	get value(): string { return this.$.input.value; }
-	set value(v: string) { this.$.input.value = v; }
+	@Property({ type: String, notify: true })
+	public value: string;
 	
 	/**
 	 * Focus the input
@@ -66,15 +73,6 @@ export class GtInput extends PolymerElement {
 	 */
 	public blur() {
 		this.$.input.blur();
-	}
-	
-	/**
-	 * Relay input change event
-	 */
-	@Listener("input.change")
-	private "input-changed"(e: Event) {
-		this.stopEvent(e);
-		this.fire("change", this.value);
 	}
 	
 	/**

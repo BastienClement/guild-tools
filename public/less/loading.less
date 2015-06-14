@@ -66,3 +66,24 @@
 	80%  { transform: translateX(50px); opacity: 0; }
 	100% { opacity: 0; }
 }
+
+
+#app-loader {
+	position: fixed;
+	top: 0; left: 0; right: 0; bottom: 0;
+	margin: auto;
+	width: 50px;
+	height: 50px;
+	z-index: 1500;
+	opacity: 0;
+	transition: opacity 2s ease;
+	
+	img {
+		width: 50px;
+		height: 50px;
+	}
+	
+	.app-loader & {
+		opacity: 0.99;
+	}
+}

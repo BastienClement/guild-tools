@@ -77,15 +77,15 @@
 		}
 	</style>
 	<template>
-		<div id="layout">
-			<h3 [if]>[[heading]]</h3>
-			<div id="content">
+		<div #layout>
+			<h3 [if]>{{heading}}</h3>
+			<div #content>
 				<content></content>
 			</div>
-			<div id="actions">
-				<gt-button [repeat]="[[actions]]" class="collapse" on-tap="handle-action" disabled="[[locked]]">
-					<i [if]>[[item.1]]</i>
-					<b>[[item.0]]</b>
+			<div #actions>
+				<gt-button [repeat]="actions" collapse (tap)="handle-action" [disabled]="locked">
+					<i [if]>{{item.1}}</i>
+					<b>{{item.0}}</b>
 				</gt-button>
 			</div>
 		</div>

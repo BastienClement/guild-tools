@@ -78,4 +78,15 @@ export class Queue<T> {
 		}
 		return this;
 	}
+	
+	/**
+	 * Check if the element is present inside the queue
+	 */
+	contains(item: T): boolean {
+		const length = this.queue.length;
+		for (let i = this.offset; i < length; i++) {
+			if (this.queue[i] === item) return true;
+		}
+		return false;
+	}
 }

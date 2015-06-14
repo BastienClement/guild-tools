@@ -39,6 +39,19 @@ export class GtLogin extends PolymerElement {
 	}
 	
 	/**
+	 * Close the login dialog
+	 * Return a promise that will be completed once the dialog is hidden
+	 */
+	close(): Promise<void> {
+		return new Promise<void>((res, rej) => {
+			console.log(performance.now());
+			const dialog: GtDialog = this.$.dialog;
+			dialog.hide();
+			dialog.addEventListener("animationend", () => res());
+		});
+	}
+	
+	/**
 	 * Automatically focus the correct field when the dialog is shown
 	 */
 	@Listener("dialog.show")
@@ -51,16 +64,16 @@ export class GtLogin extends PolymerElement {
 	/**
 	 * Save the username to local storage
 	 */
-	@Listener("username.change")
-	private "save-username"(e: Event, username: string) {
-		localStorage.setItem("login.username", username);
+	@Listener("username.value-changed")
+	private "save-username"() {
+		localStorage.setItem("login.username", this.$.username.value);
 	}
 	
 	/**
-	 * Handle dialog-button clicks
+	 * Handle form submit
 	 */
-	@Listener("dialog.action", "form.submit")
-	private "on-submit"(e: Event) {
+	@Listener("form.submit")
+	private "on-submit"() {
 		this.credentials.resolve([this.$.username.value, this.$.password.value]);
 		this.credentials = null;
 	}

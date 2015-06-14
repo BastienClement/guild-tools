@@ -20,9 +20,9 @@ interface ShadyDOMContructor {
 }
 
 interface ShadyDOM {
-	appendChild<T extends Node>(node: T | PolymerElement): T;
-	insertBefore<T extends Node>(node: T | PolymerElement, beforeNode: Node | PolymerElement): T;
-	removeChild<T extends Node>(node: T | PolymerElement): T;
+	appendChild<T extends Node|PolymerElement>(node: T): T;
+	insertBefore<T extends Node|PolymerElement>(node: T, beforeNode: Node | PolymerElement): T;
+	removeChild<T extends Node|PolymerElement>(node: T): T;
 	
 	childNodes: Node[];
 	parentNode: Node;
@@ -35,8 +35,8 @@ interface ShadyDOM {
 	textContent: string;
 	innerHTML: string;
 	
-	querySelector<T extends Node>(selector: string): T;
-	querySelectorAll<T extends Node>(selector: string): T[];
+	querySelector<T extends Node|PolymerElement>(selector: string): T;
+	querySelectorAll<T extends Node|PolymerElement>(selector: string): T[];
 	
 	getDistributedNodes(): Node[];
 	getDestinationInsertionPoints(): Node[];

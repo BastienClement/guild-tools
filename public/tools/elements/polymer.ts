@@ -182,6 +182,11 @@ export class PolymerElement {
 	 * Prevent further event propagation
 	 */
 	protected stopEvent: (e: Event) => boolean;
+	
+	/**
+	 * Add an event listener to this element
+	 */
+	public addEventListener: (event: string, handler: (e: Event) => void) => void;
 }
 
 /**

@@ -74,10 +74,10 @@
 				<h3>GuildTools Login</h3>
 				<gt-form id="form">
 					<gt-input id="username" label="From Scratch ID" required></gt-input>
-					<gt-input id="password" type="password" label="Password" error="[[error]]" required></gt-input>
+					<gt-input id="password" type="password" label="Password" [error]="error" required></gt-input>
 				</gt-form>
 			</div>
-			<gt-dialog-action>Login</gt-dialog-action>
+			<gt-dialog-action submit>Login</gt-dialog-action>
 		</gt-dialog>
 	</template>
 </dom-module>

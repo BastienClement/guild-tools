@@ -17,7 +17,7 @@
 			transition: opacity 0.2s ease;
 		}
 		
-		:host(.collapse:not(:first-child)) {
+		:host([collapse]:not(:first-child)) {
 			margin-right: 0;
 		}
 		
@@ -114,12 +114,12 @@
 		}
 	</style>
 	<template>
-		<label id="outer" data-valid$="{{!error}}">
-			<span id="label" [if]>{{label}}</span>
-			<span id="wrapper">
-				<input id="input" type="{{type}}">
+		<label #outer {data-valid}="!error">
+			<span #label [if]>{{label}}</span>
+			<span #wrapper>
+				<input #input [type] [value]="value::change">
 			</span>
-			<div id="error">{{error}}</div>
+			<div #error>{{error}}</div>
 		</label>
 	</template>
 </dom-module>

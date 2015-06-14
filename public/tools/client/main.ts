@@ -40,7 +40,15 @@ export class Application {
 			(url: string) => this.server.connect(url),
 			() => this.loader.loadLess("/assets/less/guildtools.less"),
 			() => new AuthenticationDriver(this).start(),
-			() => this.spinner_enabled ? this.stopSpinner() : null
+			() => this.spinner_enabled ? this.stopSpinner() : null,
+			() => {
+				document.body.classList.add("no-loader");
+				document.body.classList.add("with-background");
+				return Deferred.delay(1100);
+			},
+			() => {
+				document.body.classList.add("app-loader");
+			}
 		]);
 		
 		init_pipeline.then(() => {
@@ -105,11 +113,14 @@ class AuthenticationDriver {
 			this.channel = channel;
 			return this.auth();
 		}).then(success => {
-			console.log(success);	
 			if (success) return;
 			this.session = null;
 			localStorage.removeItem(KEY_AUTH_SESSION);
-			return this.login();	
+			return this.login();
+		}).then(() => {
+			if (this.gt_login) {
+				return this.gt_login.close();
+			}
 		});
 		
 		Deferred.finally(auth, () => {
