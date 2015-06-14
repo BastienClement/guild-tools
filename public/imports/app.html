@@ -41,6 +41,14 @@
 			flex: 1;
 		}
 		
+		#chat {
+			font-size: 15px;
+			
+			& > div {
+				display: inline-block;
+			}
+		}
+		
 		#status {
 			margin-right: 8px;
 		}
@@ -72,14 +80,16 @@
 			<gt-button collapse-left>Absences</gt-button>
 			<gt-button collapse-left>Composer</gt-button>
 		</div>
-		<div #status>
-			<b>Blash</b>
-			<i>arrow_drop_down</i>
-		</div>
-		<div #online>
-			<i>person_outline</i>
-			<b>25</b>
-		</div>
+		<div #chat>
+			<div #status>
+				<b>Blash</b>
+				<i>arrow_drop_down</i>
+			</div>
+			<div #online>
+				<i>person_outline</i>
+				<b>25</b>
+			</div>
+		<div>
 	</template>
 </dom-module>
 
