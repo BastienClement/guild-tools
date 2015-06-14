@@ -1,6 +1,7 @@
 import { Component, Injector } from "utils/di";
 import { Deferred } from "utils/deferred";
 import { Server } from "client/server"
+import { Router } from "client/router"
 import { Channel } from "gtp3/channel";
 import { Loader } from "client/loader";
 import { GtLogin } from "elements/loading";
@@ -24,6 +25,7 @@ export class Application {
     constructor(
         public server: Server,
 		public loader: Loader,
+		public router: Router,
 		public injector: Injector) { }
 	
 	/**

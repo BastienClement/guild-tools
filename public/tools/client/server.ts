@@ -2,7 +2,6 @@ import { Component, Injector } from "utils/di";
 import { Socket, SocketDelegate } from "gtp3/socket";
 import { Deferred } from "utils/deferred";
 import { EventEmitter } from "utils/eventemitter";
-import { error, status } from "client/dialog";
 
 @Component
 export class Server extends EventEmitter {
@@ -36,7 +35,8 @@ export class Server extends EventEmitter {
 	private "connected"(version: string) {
 		// Check if the server was updated
 		if (this.version && this.version != version) {
-			error("Server updated", "test");
+			/**** FIXME ****/
+			//error("Server updated", "test");
 		}
 		
 		this.version = version;
@@ -46,14 +46,16 @@ export class Server extends EventEmitter {
 			this.connect_deferred = null;
 		}
 		
-		status(null);
+		/**** FIXME ****/
+		//status(null);
 	}
 
 	/**
 	 * Connection to the server was interrupted
 	 */	
-	private "reconnecting" () {
-		status("Reconnecting...", true);
+	private "reconnecting"() {
+		/**** FIXME ****/
+		//status("Reconnecting...", true);
 	}
 
 	/**
@@ -64,7 +66,8 @@ export class Server extends EventEmitter {
 			this.connect_deferred.reject(new Error(`[${code}] ${reason}`));
 		}
 		
-		error("Disconnected", "You were disconnected from the server.");
+		/**** FIXME ****/
+		//error("Disconnected", "You were disconnected from the server.");
 	}
 
 	/**

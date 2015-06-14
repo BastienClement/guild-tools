@@ -17,8 +17,12 @@
 			transition: opacity 0.2s ease;
 		}
 		
-		:host([collapse]:not(:first-child)) {
+		:host([collapse-right]:not(:first-child)) {
 			margin-right: 0;
+		}
+		
+		:host([collapse-left]:not(:first-child)) {
+			margin-left: 0;
 		}
 		
 		:host([disabled]) {

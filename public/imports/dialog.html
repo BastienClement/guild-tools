@@ -83,7 +83,7 @@
 				<content></content>
 			</div>
 			<div #actions>
-				<gt-button [repeat]="actions" collapse (tap)="handle-action" [disabled]="locked">
+				<gt-button [repeat]="actions" collapse-right (tap)="handle-action" [disabled]="locked">
 					<i [if]>{{item.1}}</i>
 					<b>{{item.0}}</b>
 				</gt-button>

@@ -23,18 +23,63 @@
 			height: 56px;
 			padding: 12px;
 			box-sizing: border-box;
-			background: rgba(99, 180, 255, 0.1);
 			animation: slide 0.5s ease-out;
 			animation-fill-mode: both;
+			
+			/*background: rgba(99, 180, 255, 0.1);*/
+			display: flex;
+			align-items: center;
+		}
+		
+		#logo {
+			height: 32px;
+			width: 32px;
+			margin-right: 8px;
+		}
+		
+		#tabs {
+			flex: 1;
+		}
+		
+		#status {
+			margin-right: 8px;
+		}
+		
+		i {
+			font-size: 20px;
+		}
+		
+		#online {
+			margin-right: 4px;
+		}
+		
+		gt-button {
+			transition: color .25s ease-out;
+			&:hover, &.active {
+				color: @fs-blue;
+			}
 		}
 		
 		@keyframes slide {
-			0% { transform: translateY(-56px); opacity: 0; }
+			0% { transform: translateY(-5px); opacity: 0; }
 			100% { transform: translateY(0); opacity: 1; }
 		}
 	</style>
 	<template>
-		
+		<img #logo src="/assets/images/logo_small2.png">
+		<div #tabs>
+			<gt-button collapse-left>Calendar</gt-button>
+			<gt-button collapse-left>Absences</gt-button>
+			<gt-button collapse-left>Composer</gt-button>
+		</div>
+		<div #status>
+			<b>Blash</b>
+			<i>arrow_drop_down</i>
+		</div>
+		<div #online>
+			<i>person_outline</i>
+			<b>25</b>
+		</div>
 	</template>
 </dom-module>
 
@@ -47,8 +92,62 @@
 			bottom: 0;
 			width: 56px;
 		}
+		
+		.generate-icn-delay(@nth) when (@nth < 20) {
+			.icon:nth-child(@{nth}) { animation-delay: unit((@nth - 1) * 0.1, s); }
+			.generate-icn-delay(@nth + 1);
+		}
+		
+		.generate-icn-delay(1);
+		
+		.icon {
+			font-size: 32px;
+			padding: 8px 12px;
+			color: @fs-blue;
+			position: relative;
+			cursor: default;
+			
+			animation: slide-in 0.4s ease-out;
+			animation-fill-mode: both;
+			
+			&:after {
+				content: " ";
+				display: block;
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				z-index: -1;
+				background: linear-gradient(to right, rgba(99, 180, 255, 0.15) 0%, rgba(99, 180, 255, 0.10) 20%, rgba(99, 180, 255, 0) 100%);
+				opacity: 0;
+				transition: opacity .25s ease;
+			}
+				
+			&:hover:after {
+				opacity: .75;
+			}
+			
+			&.active:after {
+				opacity: 1;
+			}
+		}
+		
+		@keyframes slide-in {
+			0% { transform: translateX(-10px); opacity: 0; }
+			100% { transform: translateX(0px); opacity: 1; }
+		}
 	</style>
 	<template>
-		
+		<div .icon link="/" .active><i>dashboard</i></div>
+		<div .icon link="/profile"><i>account_circle</i></div>
+		<div .icon link="/inbox"><i>mail</i></div>
+		<div .icon link="/calendar"><i>today</i></div>
+		<div .icon link="/roster"><i>group_work</i></div>
+		<div .icon link="/forum"><i>forum</i></div>
+		<div .icon link="/apply"><i>assignment_ind</i></div>
+		<div .icon link="/stream"><i>ondemand_video</i></div>
+		<div .icon link="/whiteboard"><i>brush</i></div>
+		<div .icon link="/drive"><i>backup</i></div>
 	</template>
 </dom-module>

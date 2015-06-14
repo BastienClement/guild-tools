@@ -11,6 +11,7 @@
   },
   "files": [
     "defs/defs.d.ts",
-    "client/boot.ts"
+    "client/boot.ts",
+		"views/defs.ts"
   ]
 }

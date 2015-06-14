@@ -327,6 +327,9 @@ export class Loader {
 			} else if (name[0] == "#") {
 				node.removeAttribute(name);
 				node.setAttribute("id", name.slice(1));
+			} else if (name[0] == ".") {
+				node.removeAttribute(name);
+				node.classList.add(name.slice(1));
 			}
 		}
 		
