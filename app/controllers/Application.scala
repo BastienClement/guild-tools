@@ -7,12 +7,7 @@ import play.api.libs.json.JsValue
 import play.api.mvc.{Action, Controller, WebSocket}
 
 object Application extends Controller {
-	def catchall(path: String) = index()
-
-	def index() = Action {
-		//Ok(views.html.index.render())
-		Ok("")
-	}
+	def catchall(path: String) = client()
 
 	def client() = Action {
 		Ok(views.html.client.render())

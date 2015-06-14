@@ -16,6 +16,5 @@ GET         /api/*path                  controllers.Api.catchall(path)
 
 GET         /ping/dashboard/feed        controllers.Ping.dashboardFeed
 
-GET         /                           controllers.Application.index
-GET         /client                     controllers.Application.client
+GET         /                           controllers.Application.client
 GET         /*path                      controllers.Application.catchall(path)
