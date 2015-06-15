@@ -58,6 +58,11 @@ export class Injector {
 }
 
 /**
+ * A default, global, injector
+ */
+export const DefaultInjector = new Injector();
+
+/**
  * Dummy decorator to trigger type metadata
  */
 export function Component() {}

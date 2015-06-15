@@ -49,7 +49,7 @@ function boot() {
 	}).then(() => new Promise((resolve, reject) => {
 		require(["utils/deferred"], (mod: any) => resolve(DeferredLazy = mod.Deferred));
 	})).then(() => {
-		return DeferredLazy.require<Constructor<Injector>>("utils/di", "Injector").then(Injector => new Injector);
+		return DeferredLazy.require<Injector>("utils/di", "DefaultInjector");
 	}).then((injector: Injector) => {
 		return DeferredLazy.require<Constructor<Application>>("client/main", "Application").then(Application => injector.get(Application));
 	}).then((app: Application) => {
