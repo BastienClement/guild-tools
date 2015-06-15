@@ -29,7 +29,7 @@ class Auth extends ChannelHandler {
 	}
 
 	def prepare(payload: Payload): Future[Payload] = utils.atLeast(250.milliseconds) {
-		val user = payload.value.as[String].toLowerCase
+		val user = payload.value.as[String]
 		AuthService.setting(user) map { setting => Json.obj("salt" -> salt, "setting" -> setting) }
 	}
 

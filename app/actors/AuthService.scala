@@ -30,7 +30,7 @@ class AuthServiceImpl extends AuthService {
 	}
 
 	private val settingCache = LazyCollection(1.minute) { (user: String) =>
-		val password = for (u <- Users if u.name === user || u.name_clean === user) yield u.pass
+		val password = for (u <- Users if u.name === user || u.name_clean === user.toLowerCase) yield u.pass
 		password.head map { pass =>
 			pass.substring(0, 12)
 		} fallbackTo {
@@ -52,7 +52,7 @@ class AuthServiceImpl extends AuthService {
 	 *
 	 */
 	def login(name: String, password: String, salt: String): Future[String] = {
-		val user_credentials = for (u <- Users if (u.name === name || u.name_clean === name) && (u.group inSet allowedGroups)) yield (u.pass, u.id)
+		val user_credentials = for (u <- Users if (u.name === name || u.name_clean === name.toLowerCase) && (u.group inSet allowedGroups)) yield (u.pass, u.id)
 		user_credentials.head collect {
 			case (pass_ref, user_id) if password == utils.sha1(pass_ref + salt) =>
 				def createSession(attempt: Int = 1): Option[String] = {
