@@ -18,6 +18,8 @@ export class GtForm extends PolymerElement {
 				input.focus();
 				this.failed = true;
 				return;
+			} else {
+				input.error = null;
 			}
 		}
 		this.failed = false;
