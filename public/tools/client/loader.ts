@@ -170,7 +170,7 @@ export class Loader {
 		}
 		
 		// Read Polymer metadata
-		const meta = element.__polymer;
+		const meta = Reflect.getMetadata<PolymerMetadata<T>>("polymer:meta", element);
 		
 		// Check if the element was already loaded once
 		if (meta.loaded) {

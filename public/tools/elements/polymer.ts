@@ -216,8 +216,6 @@ interface PolymerAsyncHandler {}
  */
 export interface PolymerConstructor<T extends PolymerElement> extends Function {
 	new (): T;
-	__polymer?: PolymerMetadata<T>;
-	__polymer_dependencies?: PolymerConstructor<any>[];
 }
 
 /**
@@ -275,14 +273,15 @@ export function Element(selector: string, template?: string) {
 			return meta.constructor.apply(Object.create(meta.constructor.prototype), arguments);
 		};
 		
-		// Create the metadata objet
-		meta = proxy.__polymer = {
-			selector: selector,
-			template: template,
-			proto: target.prototype,
-			dependencies: target.__polymer_dependencies,
-			loaded: false
-		};
+		// Get metadata object or create it
+		meta = Reflect.getMetadata("polymer:meta", target) || <any> {};
+		meta.selector = selector;
+		meta.template = template;
+		meta.proto = target.prototype;
+		meta.loaded = false;
+		
+		// Copy it on the proxy
+		Reflect.defineMetadata("polymer:meta", meta, proxy);
 		
 		// Transpose static members on the proxy function
 		for (let key in target) {
@@ -300,9 +299,9 @@ export function Element(selector: string, template?: string) {
  */
 export function Dependencies(...dependencies: PolymerConstructor<any>[]) {
 	return <T extends PolymerElement>(target: PolymerConstructor<T>) => {
-		const meta = target.__polymer;
-		if (!meta) (<any> target).__polymer_dependencies = dependencies
-		else meta.dependencies = dependencies;
+		const meta: PolymerMetadata<T> = Reflect.getMetadata("polymer:meta", target) || <any> {};
+		meta.dependencies = dependencies;
+		Reflect.defineMetadata("polymer:meta", meta, target);
 	}
 }
 
@@ -334,7 +333,8 @@ export function apply_polymer_fns() {
 	 * Check if an Node is an instance of the given Polymer element
 	 */
 	Polymer.is = <T extends PolymerElement>(node: Node, ctor: PolymerConstructor<T>) => {
-		return Object.getPrototypeOf(node) === Polymer.Base.getNativePrototype(ctor.__polymer.selector);
+		const selector = Reflect.getMetadata<{ selector: string; }>("polymer:meta", ctor).selector;
+		return Object.getPrototypeOf(node) === Polymer.Base.getNativePrototype(selector);
 	};
 	
 	/**
@@ -344,7 +344,8 @@ export function apply_polymer_fns() {
 		if (Polymer.is(node, ctor)) {
 			return node;
 		} else {
-			throw new TypeError(`Node <${node.nodeName}> is not castable to <${ctor.__polymer.selector}>`);
+			const selector = Reflect.getMetadata<{ selector: string; }>("polymer:meta", ctor).selector;
+			throw new TypeError(`Node <${node.nodeName}> is not castable to <${selector}>`);
 		}
 	};
 	
