@@ -14,7 +14,7 @@
 <dom-module id="gt-title-bar">
 	<style type="text/less">
 		@titlebar-height: 64px;
-		
+
 		:host {
 			position: absolute;
 			top: 0;
@@ -25,49 +25,49 @@
 			box-sizing: border-box;
 			animation: slide 0.5s ease-out;
 			animation-fill-mode: both;
-			
+
 			/*background: rgba(99, 180, 255, 0.1);*/
 			display: flex;
 			align-items: center;
 		}
-		
+
 		#logo {
 			height: 32px;
 			width: 32px;
 			margin-right: 8px;
 		}
-		
+
 		#tabs {
 			flex: 1;
 		}
-		
+
 		#chat {
 			font-size: 15px;
-			
+
 			& > div {
 				display: inline-block;
 			}
 		}
-		
+
 		#status {
 			margin-right: 8px;
 		}
-		
+
 		i {
 			font-size: 20px;
 		}
-		
+
 		#online {
 			margin-right: 4px;
 		}
-		
+
 		gt-button {
 			transition: color .25s ease-out;
 			&:hover, &.active {
 				color: @fs-blue;
 			}
 		}
-		
+
 		@keyframes slide {
 			0% { transform: translateY(-5px); opacity: 0; }
 			100% { transform: translateY(0); opacity: 1; }
@@ -102,24 +102,24 @@
 			bottom: 0;
 			width: 56px;
 		}
-		
+
 		.generate-icn-delay(@nth) when (@nth < 20) {
 			.icon:nth-child(@{nth}) { animation-delay: unit((@nth - 1) * 0.1, s); }
 			.generate-icn-delay(@nth + 1);
 		}
-		
+
 		.generate-icn-delay(1);
-		
+
 		.icon {
 			font-size: 32px;
 			padding: 8px 12px;
 			color: @fs-blue;
 			position: relative;
 			cursor: default;
-			
+
 			animation: slide-in 0.4s ease-out;
 			animation-fill-mode: both;
-			
+
 			&:after {
 				content: " ";
 				display: block;
@@ -133,31 +133,22 @@
 				opacity: 0;
 				transition: opacity .25s ease;
 			}
-				
+
 			&:hover:after {
 				opacity: .75;
 			}
-			
-			&.active:after {
+
+			&[active]:after {
 				opacity: 1;
 			}
 		}
-		
+
 		@keyframes slide-in {
 			0% { transform: translateX(-10px); opacity: 0; }
 			100% { transform: translateX(0px); opacity: 1; }
 		}
 	</style>
 	<template>
-		<div .icon link="/" .active><i>dashboard</i></div>
-		<div .icon link="/profile"><i>account_circle</i></div>
-		<div .icon link="/inbox"><i>mail</i></div>
-		<div .icon link="/calendar"><i>today</i></div>
-		<div .icon link="/roster"><i>group_work</i></div>
-		<div .icon link="/forum"><i>forum</i></div>
-		<div .icon link="/apply"><i>assignment_ind</i></div>
-		<div .icon link="/stream"><i>ondemand_video</i></div>
-		<div .icon link="/whiteboard"><i>brush</i></div>
-		<div .icon link="/drive"><i>backup</i></div>
+		<div .icon [repeat]="icons" {active}="isActive(item.key)"><i>{{item.icon}}</i></div>
 	</template>
 </dom-module>

@@ -27,17 +27,17 @@ export class Application {
 		public loader: Loader,
 		public router: Router,
 		public injector: Injector) { }
-	
+
 	/**
 	 * Information about the current user
 	 */
 	public user: UserInformations = null;
-	
+
 	/**
 	 * The root Application Node
 	 */
 	public root: GtApp = null;
-	
+
 	/**
 	 * Initialize the GuildTools application
 	 */
@@ -63,19 +63,20 @@ export class Application {
 				body.appendChild(this.root = new GtApp());
 			}
 		]);
-		
+
 		init_pipeline.then(() => {
 			console.log("Loading done");
+			this.router.start();
 		}, (e) => {
 			console.error("Loading failed", e);
 		});
 	}
-	
+
 	/**
 	 * Track loading spinner state
 	 */
 	private spinner_enabled = true;
-	
+
 	/**
 	 * Return a promise that will be resolved when the next iteration
 	 * of the loadind spinner annimation is completed. Also stop the
@@ -83,12 +84,12 @@ export class Application {
 	 */
 	stopSpinner() {
 		this.spinner_enabled = false;
-		
+
 		const last_dot = document.querySelector<HTMLSpanElement>("#loader .spinner b:last-child");
 		if (!last_dot) return Deferred.resolved(null);
-		
+
 		const trigger = new Deferred<void>();
-		
+
 		const listener = () => {
 			trigger.resolve(null);
 			last_dot.removeEventListener("animationiteration", listener);
@@ -97,12 +98,12 @@ export class Application {
 				dots[i].style.animationIterationCount = "1";
 			}
 		};
-		
+
 		last_dot.addEventListener("animationiteration", listener);
-		
+
 		// Bypass the synchronization if loading.fast is set
 		if (localStorage.getItem("loading.fast") == "1") return null;
-		
+
 		return trigger.promise;
 	}
 }
@@ -115,9 +116,9 @@ class AuthenticationDriver {
 	private channel: Channel;
 	private gt_login: GtLogin;
 	private loader: Loader = this.app.loader;
-	
+
 	constructor(public app: Application) {}
-	
+
 	/**
 	 * Begin the authentication process
 	 */
@@ -129,21 +130,21 @@ class AuthenticationDriver {
 			if (success) return;
 			this.session = null;
 			localStorage.removeItem(KEY_AUTH_SESSION);
-			return this.login();
+			return this.login(null);
 		}).then(() => {
 			if (this.gt_login) {
 				return this.gt_login.close();
 			}
 		});
-		
+
 		Deferred.finally(auth, () => {
 			if (this.channel) this.channel.close();
 			if (this.gt_login) document.body.removeChild(this.gt_login);
 		});
-		
+
 		return auth;
 	}
-	
+
 	/**
 	 * Send the session token to the server and return if
 	 * the authentication was successful
@@ -155,11 +156,11 @@ class AuthenticationDriver {
 			return !!user;
 		});
 	}
-	
+
 	/**
 	 * Perform the login request
 	 */
-	private login(error?: string): Promise<void> {
+	private login(error: string): Promise<void> {
 		if (error) console.error(error);
 		let user: string;
 		let pass: string;
@@ -178,17 +179,17 @@ class AuthenticationDriver {
 			if (!success) throw new Error("Auth failed after a successful login");
 		}).catch(e => this.login(e.message));
 	}
-	
+
 	/**
 	 * Request user credentials
 	 */
-	private requestCredentials(error?: string): Promise<[string, string]> {
-		if (!this.gt_login) return this.constructForm().then(() => this.requestCredentials());
+	private requestCredentials(error: string): Promise<[string, string]> {
+		if (!this.gt_login) return this.constructForm().then(() => this.requestCredentials(null));
 		this.gt_login.error = error;
 		this.gt_login.autofocus();
 		return (this.gt_login.credentials = new Deferred<[string, string]>()).promise;
 	}
-	
+
 	/**
 	 * Create the login form interface
 	 */

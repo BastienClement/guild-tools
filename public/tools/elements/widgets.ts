@@ -7,7 +7,7 @@ export class GtForm extends PolymerElement {
 	 */
 	@Property({ type: Boolean })
 	public failed: boolean;
-	
+
 	/**
 	 * Trigger the submit event
 	 */
@@ -38,45 +38,45 @@ export class GtInput extends PolymerElement {
 	 */
 	@Property({ type: Boolean, reflectToAttribute: true })
 	public disabled: boolean;
-	
+
 	/**
 	 * Prevent form submission if empty
 	 */
 	@Property({ type: Boolean, reflectToAttribute: true })
 	public required: boolean;
-	
+
 	/**
 	 * Input type "text", "password"
 	 */
 	@Property({ type: String, value: "text" })
 	public type: string;
-	
+
 	/**
 	 * Error message
 	 */
-	@Property({ type: String, value: "", reflectToAttribute: true })
+	@Property({ type: String, value: null, reflectToAttribute: true, notify: true })
 	public error: string;
-	
+
 	/**
 	 * Proxy to input value
 	 */
 	@Property({ type: String, notify: true })
 	public value: string;
-	
+
 	/**
 	 * Focus the input
 	 */
 	public focus() {
 		this.$.input.focus();
 	}
-	
+
 	/**
 	 * Blur the input
 	 */
 	public blur() {
 		this.$.input.blur();
 	}
-	
+
 	/**
 	 * Catch Enter-key presses in the input and forward to the form
 	 */
@@ -91,7 +91,7 @@ export class GtInput extends PolymerElement {
 			}
 		}
 	}
-	
+
 	/**
 	 * Reflect input focused state to the outer <label> element
 	 */
@@ -111,14 +111,14 @@ export class GtButton extends PolymerElement {
 	 */
 	@Property({ type: Boolean, reflectToAttribute: true })
 	public disabled: boolean;
-	
+
 	/**
 	 * If set, clicking the button will trigger the submit event
 	 * in the enclosing GtForm
 	 */
 	@Property({ type: Boolean })
 	public submit: boolean;
-	
+
 	/**
 	 * Filter click and tap event if the element is disabled
 	 */
@@ -128,6 +128,6 @@ export class GtButton extends PolymerElement {
 		if (this.submit) {
 			const form = this.host(GtForm);
 			if (form) form.submit();
-		}	
+		}
 	}
 }

@@ -1,17 +1,21 @@
-import { Element, Property, Listener, Dependencies, PolymerElement, PolymerEvent } from "elements/polymer";
+import { Element, Property, Listener, Dependencies, Inject, PolymerElement } from "elements/polymer";
 import { GtButton } from "elements/widgets";
+import { Router } from "client/router";
 
 @Element("gt-title-bar", "/assets/imports/app.html")
-@Dependencies(GtButton)	
+@Dependencies(GtButton)
 export class GtTitleBar extends PolymerElement {
-	
+
 }
 
 @Element("gt-sidebar", "/assets/imports/app.html")
 export class GtSidebar extends PolymerElement {
 	@Property({ type: Array, value: [] })
 	private icons: { icon: string; key: string; }[];
-	
+
+	@Inject
+	private router: Router;
+
 	private ready() {
 		this.icons = [
 			{ icon: "dashboard", key: "dashboard" },
@@ -20,16 +24,26 @@ export class GtSidebar extends PolymerElement {
 			{ icon: "today", key: "calendar" },
 			{ icon: "group_work", key: "roster" },
 			{ icon: "forum", key: "forum" },
-			{ icon: "backup", key: "drive" },
+			{ icon: "assignment_ind", key: "apply" },
 			{ icon: "ondemand_video", key: "streams" },
 			{ icon: "brush", key: "whiteboard" },
-			{ icon: "assignment_ind", key: "apply" },
+			{ icon: "backup", key: "drive" }
 		];
+	}
+
+	private isActive(key: string) {
+		return false;
 	}
 }
 
 @Element("gt-app", "/assets/imports/app.html")
-@Dependencies(GtTitleBar, GtSidebar)	
+@Dependencies(GtTitleBar, GtSidebar)
 export class GtApp extends PolymerElement {
-	
+	public titlebar: GtTitleBar;
+	public sidebar: GtSidebar;
+
+	private ready() {
+		this.titlebar = this.$.titlebar;
+		this.sidebar = this.$.side;
+	}
 }

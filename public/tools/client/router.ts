@@ -10,14 +10,20 @@ interface RoutePattern {
 @Component
 export class Router extends EventEmitter {
 	private routes: RoutePattern[] = [];
-	
+
+	public id = Math.random();
+
 	public config(pattern: string, view: PolymerConstructor<any>) {
-		
+
 	}
-	
+
 	public static compilePath(path: string): [RegExp, string[]]{
 		console.log(path.split(/:[a-z]+\b/));
 		return null;
+	}
+
+	public start() {
+		console.log("start routing");
 	}
 }
 

@@ -7,7 +7,8 @@
     "outDir": "../modules",
     "sourceMap": true,
     "emitDecoratorMetadata": true,
-    "target": "ES5"
+    "target": "ES5",
+    "experimentalDecorators": true
   },
   "files": [
     "defs/defs.d.ts",

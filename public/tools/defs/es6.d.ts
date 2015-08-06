@@ -781,9 +781,6 @@ interface ArrayBufferConstructor {
 declare var ArrayBuffer: ArrayBufferConstructor;
 
 interface DataView {
-	buffer: ArrayBuffer;
-	byteLength: number;
-	byteOffset: number;
 	/**
 	 * Gets the Float32 value at the specified byte offset from the start of the view. There is
 	 * no alignment constraint; multi-byte values may be fetched from any offset.

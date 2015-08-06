@@ -7,20 +7,20 @@ import { Deferred } from "utils/deferred";
  * Handle the user login credentials request
  */
 @Element("gt-login", "/assets/imports/loading.html")
-@Dependencies(GtDialog, Widget.GtInput)	
+@Dependencies(GtDialog, Widget.GtInput)
 export class GtLogin extends PolymerElement {
 	/**
 	 * Deferred to resolve with user credentials
 	 */
 	@Property({ observer: "credentials-updated" })
 	credentials: Deferred<[string, string]>;
-	
+
 	/**
 	 * Deferred to resolve with user credentials
 	 */
-	@Property({ type: String, value: "" })
+	@Property({ type: String, value: null })
 	error: string;
-	
+
 	/**
 	 * Auto show dialog when attached
 	 */
@@ -29,7 +29,7 @@ export class GtLogin extends PolymerElement {
 		const dialog: GtDialog = this.$.dialog;
 		dialog.show();
 	}
-	
+
 	/**
 	 * Toggle dialog locked state based on credentials deferred availability
 	 */
@@ -37,7 +37,7 @@ export class GtLogin extends PolymerElement {
 		const dialog: GtDialog = this.$.dialog;
 		dialog.locked = !this.credentials;
 	}
-	
+
 	/**
 	 * Close the login dialog
 	 * Return a promise that will be completed once the dialog is hidden
@@ -50,7 +50,7 @@ export class GtLogin extends PolymerElement {
 			dialog.addEventListener("animationend", () => res());
 		});
 	}
-	
+
 	/**
 	 * Automatically focus the correct field when the dialog is shown
 	 */
@@ -60,7 +60,7 @@ export class GtLogin extends PolymerElement {
 		input.focus();
 		input.value = "";
 	}
-	
+
 	/**
 	 * Save the username to local storage
 	 */
@@ -68,7 +68,7 @@ export class GtLogin extends PolymerElement {
 	private "save-username"() {
 		localStorage.setItem("login.username", this.$.username.value);
 	}
-	
+
 	/**
 	 * Handle form submit
 	 */
