@@ -11,7 +11,7 @@ interface RoutePattern {
 export class Router extends EventEmitter {
 	private routes: RoutePattern[] = [];
 
-	public id = Math.random();
+	public currentModule: string;
 
 	public config(pattern: string, view: PolymerConstructor<any>) {
 
@@ -23,6 +23,7 @@ export class Router extends EventEmitter {
 	}
 
 	public start() {
+		this.currentModule = "dashboard";
 		console.log("start routing");
 	}
 }

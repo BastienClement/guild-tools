@@ -3,7 +3,7 @@ interface Polymer {
 	Class(prototype: any): any;
 	Base: PolymerBase;
 	dom: ShadyDOMContructor;
-	
+
 	is<T extends PolymerElement>(el: Node | PolymerElement, ctor: { new (): T; }): boolean;
 	cast<T extends PolymerElement>(el: Node | PolymerElement, ctor: { new (): T; }): T;
 	enclosing<T extends PolymerElement>(el: Node | PolymerElement, ctor: { new (): T; }): T;
@@ -11,6 +11,9 @@ interface Polymer {
 
 interface PolymerBase {
 	createdCallback: Function;
+	attachedCallback: Function;
+	detachedCallback: Function;
+	attributeChanged: Function;
 	getNativePrototype(tag: string): any;
 }
 
@@ -23,7 +26,7 @@ interface ShadyDOM {
 	appendChild<T extends Node|PolymerElement>(node: T): T;
 	insertBefore<T extends Node|PolymerElement>(node: T, beforeNode: Node | PolymerElement): T;
 	removeChild<T extends Node|PolymerElement>(node: T): T;
-	
+
 	childNodes: Node[];
 	parentNode: Node;
 	firstChild: Node;
@@ -34,13 +37,13 @@ interface ShadyDOM {
 	nextSibling: Node;
 	textContent: string;
 	innerHTML: string;
-	
+
 	querySelector<T extends Node|PolymerElement>(selector: string): T;
 	querySelectorAll<T extends Node|PolymerElement>(selector: string): T[];
-	
+
 	getDistributedNodes(): Node[];
 	getDestinationInsertionPoints(): Node[];
-	
+
 	setAttribute(attribute: string, value: string): void;
 	removeAttribute(attribute: string): void;
 	classList: DOMTokenList;

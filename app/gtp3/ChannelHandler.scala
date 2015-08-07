@@ -22,11 +22,13 @@ trait ChannelHandler {
 	implicit def ImplicitFuturePayload[T](value: T)(implicit ev: T => Payload): Future[Payload] = Future.successful[Payload](value)
 	implicit def ImplicitFuturePayload[T](future: Future[T])(implicit ev: T => Payload): Future[Payload] = future.map(ev(_))
 
-	type Handlers =  PartialFunction[String, (Payload) => Any]
-	def handlers: Handlers
+	type Handler = (Payload) => Any
+	type Handlers = Map[String, Handler]
+
+	val handlers: Handlers
 
 	def request(req: String, payload: Payload): Future[Payload] = {
-		handlers.lift.apply(req) match {
+		handlers.get(req) match {
 			case Some(handler) => handler(payload) match {
 				case p: Future[_] => p.asInstanceOf[Future[Payload]]
 				case p: Payload => Future.successful(p)

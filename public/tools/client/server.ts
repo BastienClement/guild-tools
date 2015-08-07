@@ -20,7 +20,7 @@ export class Server extends EventEmitter {
 	connect(url: string): Promise<void> {
 		const defer = this.connect_deferred = new Deferred<void>();
 		const socket = this.socket = new Socket(url);
-		
+
 		socket.verbose = true;
 		socket.pipe(this);
 		socket.bind(this, "connected", "reconnecting", "disconnected", "reset", "channel-request");
@@ -31,28 +31,28 @@ export class Server extends EventEmitter {
 
 	/**
 	 * The socket is connected to the server
-	 */	
+	 */
 	private "connected"(version: string) {
 		// Check if the server was updated
 		if (this.version && this.version != version) {
 			/**** FIXME ****/
 			//error("Server updated", "test");
 		}
-		
+
 		this.version = version;
 
 		if (this.connect_deferred) {
 			this.connect_deferred.resolve();
 			this.connect_deferred = null;
 		}
-		
+
 		/**** FIXME ****/
 		//status(null);
 	}
 
 	/**
 	 * Connection to the server was interrupted
-	 */	
+	 */
 	private "reconnecting"() {
 		/**** FIXME ****/
 		//status("Reconnecting...", true);
@@ -60,26 +60,27 @@ export class Server extends EventEmitter {
 
 	/**
 	 * The socket is definitively closed
-	 */	
+	 */
 	private "disconnected" (code: number, reason: string) {
 		if (this.connect_deferred) {
 			this.connect_deferred.reject(new Error(`[${code}] ${reason}`));
 		}
-		
+
 		/**** FIXME ****/
 		//error("Disconnected", "You were disconnected from the server.");
 	}
 
 	/**
 	 * Connection with the server was re-established but the session was lost
-	 */	
-	private "reset" () {
+	 */
+	private "reset"() {
+		// There is no way to do that properly on GT6, we'll need to reload the whole app
 	}
 
 	/**
 	 * Incomming channel request
-	 */	
-	private "channel-request" () {
+	 */
+	private "channel-request"() {
 		// Todo
 		throw new Error("Unimplemented")
 	}
@@ -90,18 +91,25 @@ export class Server extends EventEmitter {
 	get latency(): number {
 		return this.socket ? this.socket.latency : 0;
 	}
-	
+
+	/**
+	 * Mesure the latency with the server
+	 */
+	public ping() {
+		this.socket.ping();
+	}
+
 	/**
 	 * Request a channel from the server
 	 */
-	openChannel(ctype: string) {
+	public openChannel(ctype: string) {
 		return this.socket.openChannel(ctype);
 	}
-	
+
 	/**
 	 * Close the server connection
 	 */
-	disconnect() {
+	public disconnect() {
 		this.socket && this.socket.close();
 	}
 }

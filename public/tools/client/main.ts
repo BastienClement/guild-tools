@@ -39,6 +39,11 @@ export class Application {
 	public root: GtApp = null;
 
 	/**
+	 * The master channel
+	 */
+	public masterChannel: Channel = null;
+
+	/**
 	 * Initialize the GuildTools application
 	 */
 	main(): void {
@@ -57,15 +62,23 @@ export class Application {
 			},
 			() => {
 				body.classList.add("app-loader");
+				return this.server.openChannel("master");
+			},
+			(master: Channel) => {
+				this.masterChannel = master;
+				// TODO: reimplement wizard on login
 				return this.loader.loadElement(GtApp);
 			},
 			() => {
 				body.appendChild(this.root = new GtApp());
-			}
+			},
 		]);
 
 		init_pipeline.then(() => {
 			console.log("Loading done");
+			setInterval(() => {
+				this.server.ping();
+			}, 30000);
 			this.router.start();
 		}, (e) => {
 			console.error("Loading failed", e);

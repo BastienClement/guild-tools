@@ -1,11 +1,21 @@
-import { Element, Property, Listener, Dependencies, Inject, PolymerElement } from "elements/polymer";
+import { Element, Property, Listener, Dependencies, Inject, On, PolymerElement } from "elements/polymer";
 import { GtButton } from "elements/widgets";
 import { Router } from "client/router";
+import { Server } from "client/server";
 
 @Element("gt-title-bar", "/assets/imports/app.html")
 @Dependencies(GtButton)
 export class GtTitleBar extends PolymerElement {
+	@Inject
+	@On({ "update-latency": "late" })
+	private server: Server;
 
+	@Property({ value: "0ms" })
+	private latency: string;
+
+	private late() {
+		this.latency = Math.floor(this.server.latency * 100) / 100 + "ms";
+	}
 }
 
 @Element("gt-sidebar", "/assets/imports/app.html")
@@ -43,7 +53,7 @@ export class GtApp extends PolymerElement {
 	public sidebar: GtSidebar;
 
 	private ready() {
-		this.titlebar = this.$.titlebar;
+		this.titlebar = this.$.title;
 		this.sidebar = this.$.side;
 	}
 }

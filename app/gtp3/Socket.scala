@@ -1,19 +1,11 @@
 package gtp3
 
+import gt.Global
 import models.User
-import utils.Timeout
 
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.Future
-import scala.util.Success
-import akka.actor.{ActorPath, ActorRef}
-import gt.Global
-import scodec.Attempt.Successful
-import scodec.DecodeResult
-import scala.concurrent.duration._
-import scodec.bits.BitVector
-import actors.Actors._
 
 class DuplicatedFrame extends Exception
 

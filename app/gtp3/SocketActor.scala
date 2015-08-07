@@ -55,7 +55,6 @@ class SocketActor(val out: ActorRef, val remote: String) extends Actor {
 				case Success(s) =>
 					kill.cancel()
 					socket = s
-					socket.handshake()
 
 				case Failure(_) =>
 					kill.trigger()

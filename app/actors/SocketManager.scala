@@ -79,6 +79,7 @@ class SocketManagerImpl extends SocketManager {
 		val id = nextSocketID
 		val socket = new Socket(id, actor)
 		sockets += (id -> socket)
+		socket.handshake()
 		socket
 	}
 

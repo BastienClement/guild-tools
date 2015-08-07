@@ -8,16 +8,12 @@ import gtp3._
 import reactive._
 import models._
 
-object Auth extends ChannelAcceptor {
+object Master extends ChannelAcceptor {
 	def open(request: ChannelRequest) = request.accept(new Auth)
 }
 
-class Auth extends ChannelHandler {
-	val handlers = Map[String, Handler](
-		"auth" -> auth,
-		"prepare" -> prepare,
-		"login" -> login
-	)
+class Master extends ChannelHandler {
+	val handlers = Map[String, Handler]()
 
 	var salt = utils.randomToken()
 

@@ -49,15 +49,15 @@
 			}
 		}
 
-		#status {
-			margin-right: 8px;
-		}
-
 		i {
 			font-size: 20px;
 		}
 
-		#online {
+		#status, #online {
+			margin-right: 8px;
+		}
+
+		#latency {
 			margin-right: 4px;
 		}
 
@@ -88,6 +88,10 @@
 			<div #online>
 				<i>person_outline</i>
 				<b>25</b>
+			</div>
+			<div #latency>
+				<i>settings_ethernet</i>
+				<b>{{latency}}</b>
 			</div>
 		<div>
 	</template>

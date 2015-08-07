@@ -1,6 +1,7 @@
 import { Deferred, LazyThen } from "utils/deferred";
 import { Queue } from "utils/queue";
 import { Constructor, DefaultInjector } from "utils/di";
+import { EventEmitter } from "utils/eventemitter";
 
 /**
  * Dummy class to expose Polymer functions on elements
@@ -255,6 +256,14 @@ interface InjectionBinding {
 	property: string;
 }
 
+interface EventMapping {
+	[event: string]: string | boolean;
+}
+
+interface ElementBindings {
+	[property: string]: EventMapping;
+}
+
 /**
  * Declare a Polymer Element
  */
@@ -269,6 +278,7 @@ export function Element(selector: string, template?: string) {
 		// TODO: comment
 		target.prototype.createdCallback = function() {
 			Polymer.Base.createdCallback.apply(this, arguments);
+
 			this.node = Polymer.dom(this);
 			this.shadow = Polymer.dom(this.root);
 
@@ -276,6 +286,52 @@ export function Element(selector: string, template?: string) {
 			if (injects) {
 				for (let binding of injects) {
 					this[binding.property] = DefaultInjector.get(binding.ctor);
+				}
+			}
+		};
+
+		target.prototype.attachedCallback = function() {
+			Polymer.Base.attachedCallback.apply(this, arguments);
+
+			// Attach events
+			const bindings = Reflect.getMetadata<ElementBindings>("polymer:bindings", target.prototype);
+			if (bindings) {
+				for (let property in bindings) {
+					// Get the EventEmitter object and ensure it is the correct type
+					const emitter = <EventEmitter> this[property];
+					if (!(emitter instanceof EventEmitter)) continue;
+
+					const mapping = bindings[property];
+					for (let event in mapping) {
+						const handler: string = mapping[event] === true ? event : mapping[event];
+						const fn = this[handler];
+						if (typeof fn == "function") {
+							emitter.on(event, fn, this);
+						}
+					}
+				}
+			}
+		};
+
+		target.prototype.detachedCallback = function() {
+			Polymer.Base.detachedCallback.apply(this, arguments);
+
+			// Detach events
+			const bindings = Reflect.getMetadata<ElementBindings>("polymer:bindings", target.prototype);
+			if (bindings) {
+				for (let property in bindings) {
+					// Get the EventEmitter object and ensure it is the correct type
+					const emitter = <EventEmitter> this[property];
+					if (!(emitter instanceof EventEmitter)) continue;
+
+					const mapping = bindings[property];
+					for (let event in mapping) {
+						const handler = mapping[event] === true ? event : mapping[event];
+						const fn = this[handler];
+						if (typeof fn == "function") {
+							emitter.off(event, fn, this);
+						}
+					}
 				}
 			}
 		};
@@ -352,6 +408,17 @@ export function Inject<T>(target: any, property: string) {
 	let injects = Reflect.getMetadata<InjectionBinding[]>("polymer:injects", target) || [];
 	injects.push({ ctor, property });
 	Reflect.defineMetadata("polymer:injects", injects, target);
+}
+
+/**
+ * Declare event biding with externals modules
+ */
+export function On(mapping: EventMapping) {
+	return (target: any, property: string) => {
+		let bindings = Reflect.getMetadata<ElementBindings>("polymer:bindings", target) || {};
+		bindings[property] = mapping
+		Reflect.defineMetadata("polymer:bindings", bindings, target);
+	};
 }
 
 /**
