@@ -1,4 +1,4 @@
-import { Deferred, LazyThen } from "utils/deferred";
+import { Deferred, LazyThen, defer } from "utils/deferred";
 import { Queue } from "utils/queue";
 import { Constructor, DefaultInjector } from "utils/di";
 import { EventEmitter } from "utils/eventemitter";
@@ -244,8 +244,8 @@ export interface PolymerMetadata<T extends PolymerElement> {
 /**
  * Polymer powered events
  */
-export interface PolymerEvent<T> extends Event {
-	model: T;
+export interface PolymerModelEvent<T> extends Event {
+	model: { item: T };
 }
 
 /**
@@ -269,15 +269,26 @@ interface ElementBindings {
  */
 export function Element(selector: string, template?: string) {
 	return <T extends PolymerElement>(target: PolymerConstructor<T>) => {
-		// Transpose instance variables on prototype
-		//target.call(target.prototype);
-
+		// Register the element selector
 		target.prototype.is = selector;
-		target.prototype.factoryImpl = target;
 
-		// TODO: comment
+		// Proxy to constructor function
+		target.prototype.factoryImpl = function() {
+			Reflect.defineMetadata("polymer:initialized", true, this);
+			target.apply(this, arguments);
+		};
+
+		// Define custom sugars and perform dependency injection
 		target.prototype.createdCallback = function() {
 			Polymer.Base.createdCallback.apply(this, arguments);
+
+			// If the element wasn't created using the new operator, call the constructor
+			defer(() => {
+				if (!Reflect.getMetadata<boolean>("polymer:initialized", this)) {
+					Reflect.defineMetadata("polymer:initialized", true, this);
+					target.call(this);
+				}
+			});
 
 			this.node = Polymer.dom(this);
 			this.shadow = Polymer.dom(this.root);
@@ -290,8 +301,23 @@ export function Element(selector: string, template?: string) {
 			}
 		};
 
+		// When the element is attached, register every listener defined using
+		// the @On annotation. Also call the constructor if not yet done.
 		target.prototype.attachedCallback = function() {
 			Polymer.Base.attachedCallback.apply(this, arguments);
+
+			// If the element wasn't created using the new operator, call the constructor
+			if (!Reflect.getMetadata<boolean>("polymer:initialized", this)) {
+				Reflect.defineMetadata("polymer:initialized", true, this);
+				target.call(this);
+			}
+
+			// Handler for binding property
+			const create_bind_handler = (property: string, emitter: any) => {
+				const parts = property.match(/^(.*)\|(.*)$/);
+				this[parts[2]] = emitter[parts[1]];
+				return function(value: any) { this[parts[2]] = value; };
+			}
 
 			// Attach events
 			const bindings = Reflect.getMetadata<ElementBindings>("polymer:bindings", target.prototype);
@@ -304,7 +330,7 @@ export function Element(selector: string, template?: string) {
 					const mapping = bindings[property];
 					for (let event in mapping) {
 						const handler: string = mapping[event] === true ? event : mapping[event];
-						const fn = this[handler];
+						const fn = (handler.slice(0, 5) == "bind@") ? create_bind_handler(handler.slice(5), emitter) : this[handler];
 						if (typeof fn == "function") {
 							emitter.on(event, fn, this);
 						}
@@ -416,9 +442,34 @@ export function Inject<T>(target: any, property: string) {
 export function On(mapping: EventMapping) {
 	return (target: any, property: string) => {
 		let bindings = Reflect.getMetadata<ElementBindings>("polymer:bindings", target) || {};
-		bindings[property] = mapping
+		bindings[property] = bindings[property] || {};
+		for (let key in mapping) {
+			bindings[property][key] = mapping[key];
+		}
 		Reflect.defineMetadata("polymer:bindings", bindings, target);
 	};
+}
+
+/**
+ * Same as @On but automatically adjust for @Notify naming convention
+ */
+export function Watch(mapping: EventMapping) {
+	const ajusted_mapping: { [key: string]: any } = {}
+	for (let key in mapping) {
+		ajusted_mapping[`${key}-updated`] = mapping[key];
+	}
+	return On(ajusted_mapping);
+}
+
+/**
+ * Same as @Watch but additionally automatically set own property
+ */
+export function Bind(mapping: EventMapping) {
+	const ajusted_mapping: { [key: string]: any } = {}
+	for (let key in mapping) {
+		ajusted_mapping[`${key}-updated`] = `bind@${key}|${mapping[key]}`;
+	}
+	return On(ajusted_mapping);
 }
 
 /**
@@ -458,7 +509,6 @@ export function apply_polymer_fns() {
 		//if (!node) throw new SyntaxError(`<${initial_name}> is not enclosed by a <${ctor.__polymer.selector}>`);
 		return node;
 	};
-
 
 	const Base: any = Polymer.Base;
 

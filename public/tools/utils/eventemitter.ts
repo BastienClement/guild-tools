@@ -1,3 +1,5 @@
+import { defer } from "utils/deferred";
+
 /**
  * Handler registration object
  */
@@ -29,6 +31,30 @@ export class EventEmitter {
 
 	// Registered pipes
 	private pipes: Set<PipedEmitter> = new Set<PipedEmitter>();
+
+	/**
+	 * Create notification proxy
+	 */
+	constructor() {
+		const notify = Reflect.getMetadata<{ [prop: string]: boolean }>("eventemitter:notify", this);
+		if (notify) {
+			const define_property = (prop: string) => {
+				let value: any;
+				Object.defineProperty(this, prop, {
+					get: () => value,
+					set: (new_value: any) => {
+						const old_value = value;
+						value = new_value;
+						defer(() => this.emit(`${prop}-updated`, value, old_value));
+					}
+				});
+			};
+
+			for (let property in notify) {
+				define_property(property);
+			}
+		}
+	}
 
 	/**
 	 * Register an event handler to be called when the event is dispatched
@@ -166,4 +192,13 @@ export class EventEmitter {
 		// Return the results array
 		return results;
 	}
+}
+
+/**
+ * Automatically emits event when a property is updated
+ */
+export function Notify(target: EventEmitter, property: string) {
+	const notify = Reflect.getMetadata<{ [prop: string]: boolean }>("eventemitter:notify", target) || {};
+	notify[property] = true;
+	Reflect.defineMetadata("eventemitter:notify", notify, target);
 }

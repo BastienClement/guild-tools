@@ -153,6 +153,6 @@
 		}
 	</style>
 	<template>
-		<div .icon [repeat]="icons" {active}="isActive(item.key)"><i>{{item.icon}}</i></div>
+		<div .icon [repeat]="icons" (click)="icon-click" {active}="equals(item.key, module)"><i>{{item.icon}}</i></div>
 	</template>
 </dom-module>

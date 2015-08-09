@@ -1,4 +1,4 @@
-import { Element, Property, Listener, Dependencies, PolymerElement, PolymerEvent } from "elements/polymer";
+import { Element, Property, Listener, Dependencies, PolymerElement } from "elements/polymer";
 
 @Element("gt-form")
 export class GtForm extends PolymerElement {

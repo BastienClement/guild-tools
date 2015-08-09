@@ -1,1 +1,1 @@
-import "views/dashboard.ts";
+import "views/dashboard";

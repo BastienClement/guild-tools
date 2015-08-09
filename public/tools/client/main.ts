@@ -71,17 +71,17 @@ export class Application {
 			},
 			() => {
 				body.appendChild(this.root = new GtApp());
-			},
+				return this.router.loadViews("views/defs");
+			}
 		]);
 
 		init_pipeline.then(() => {
-			console.log("Loading done");
-			setInterval(() => {
-				this.server.ping();
-			}, 30000);
-			this.router.start();
+			console.log("loading done");
+			setInterval(() => this.server.ping(), 10000);
+			this.router.fallback = "/dashboard";
+			this.router.update();
 		}, (e) => {
-			console.error("Loading failed", e);
+			console.error("loading failed", e);
 		});
 	}
 
