@@ -4,10 +4,35 @@
 			.cover;
 			z-index: 500;
 		}
+
+		#title {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 56px;
+		}
+
+		#side {
+			position: absolute;
+			top: 56px + 12px;
+			left: 0;
+			bottom: 0;
+			width: 56px;
+		}
+
+		#view {
+			position: absolute;
+			top: 56px;
+			left: 56px + 12px;
+			bottom: 0;
+			right: 0;
+		}
 	</style>
 	<template>
 		<gt-title-bar #title></gt-title-bar>
 		<gt-sidebar #side></gt-sidebar>
+		<gt-view #view (scroll)="view-scroll"></gt-view>
 	</template>
 </dom-module>
 
@@ -16,29 +41,48 @@
 		@titlebar-height: 64px;
 
 		:host {
-			position: absolute;
-			top: 0;
-			left: 0;
-			right: 0;
-			height: 56px;
 			padding: 12px;
 			box-sizing: border-box;
 			animation: slide 0.5s ease-out;
 			animation-fill-mode: both;
 
-			/*background: rgba(99, 180, 255, 0.1);*/
+			background: fade(@fs-blue, 15%);
+			box-shadow: 0px 1px 2px rgba(17, 17, 17, 0.15);
+
 			display: flex;
 			align-items: center;
 		}
 
 		#logo {
-			height: 32px;
-			width: 32px;
-			margin-right: 8px;
+			height: 54px;
+			width: 54px;
+
+			padding: 12px;
+			margin: -12px 4px -12px -12px;
+
+			background-color: fade(@fs-blue, 15%);
+			transition: background .25s ease-out;
+
+			&:hover {
+				background-color: fade(@fs-blue, 25%);
+			}
 		}
 
 		#tabs {
 			flex: 1;
+		}
+
+		gt-button {
+			transition: opacity .25s ease-out, color .25s ease-out;
+			height: 56px;
+
+			opacity: 0.75;
+			color: mix(@light-blue, white, 50%);
+
+			&:hover, &[active] {
+				opacity: 1;
+				color: white;
+			}
 		}
 
 		#chat {
@@ -61,10 +105,11 @@
 			margin-right: 4px;
 		}
 
-		gt-button {
-			transition: color .25s ease-out;
-			&:hover, &.active {
-				color: @fs-blue;
+		#window-controls {
+			margin-left: 16px;
+
+			i {
+				margin-left: 8px;
 			}
 		}
 
@@ -76,9 +121,7 @@
 	<template>
 		<img #logo src="/assets/images/logo_small2.png">
 		<div #tabs>
-			<gt-button collapse-left>Calendar</gt-button>
-			<gt-button collapse-left>Absences</gt-button>
-			<gt-button collapse-left>Composer</gt-button>
+			<gt-button [repeat]="tabs" collapse-left {active}="tabActive(item, path)" {hidden}="!tabVisible(item)" (click)="activateTab">{{item.title}}</gt-button>
 		</div>
 		<div #chat>
 			<div #status>
@@ -87,26 +130,22 @@
 			</div>
 			<div #online>
 				<i>person_outline</i>
-				<b>25</b>
+				<b>{{online_users}}</b>
 			</div>
 			<div #latency>
 				<i>settings_ethernet</i>
 				<b>{{latency}}</b>
 			</div>
 		<div>
+		<div #window-controls>
+			<i>remove</i>
+			<i>close</i>
+		</div>
 	</template>
 </dom-module>
 
 <dom-module id="gt-sidebar">
 	<style type="text/less">
-		:host {
-			position: absolute;
-			top: 56px;
-			left: 0;
-			bottom: 0;
-			width: 56px;
-		}
-
 		.generate-icn-delay(@nth) when (@nth < 20) {
 			.icon:nth-child(@{nth}) { animation-delay: unit((@nth - 1) * 0.1, s); }
 			.generate-icn-delay(@nth + 1);
@@ -133,7 +172,7 @@
 				right: 0;
 				bottom: 0;
 				z-index: -1;
-				background: linear-gradient(to right, rgba(99, 180, 255, 0.15) 0%, rgba(99, 180, 255, 0.10) 20%, rgba(99, 180, 255, 0) 100%);
+				background: linear-gradient(to right, fade(@fs-blue, 15%) 0%, fade(@fs-blue, 0%) 100%);
 				opacity: 0;
 				transition: opacity .25s ease;
 			}
@@ -154,5 +193,38 @@
 	</style>
 	<template>
 		<div .icon [repeat]="icons" (click)="icon-click" {active}="equals(item.key, module)"><i>{{item.icon}}</i></div>
+	</template>
+</dom-module>
+
+<dom-module id="gt-view">
+	<style type="text/less">
+		:host {
+			overflow-y: auto;
+			overflow-x: hidden;
+		}
+
+		#wrapper {
+			.pos(absolute, 12px, 12px, 12px, 0);
+		}
+
+		#wrapper ::content > * {
+			position: absolute;
+			top: 0px;
+			right: 0px;
+			bottom: 0px;
+			left: 0px;
+
+			opacity: 0;
+			transition: opacity 0.3s ease-in;
+
+			&.active {
+				opacity: 1;
+			}
+		}
+	</style>
+	<template>
+		<div #wrapper>
+			<content></content>
+		</div>
 	</template>
 </dom-module>

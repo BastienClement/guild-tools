@@ -1,25 +1,16 @@
 package models
 
 import java.sql.Timestamp
-import actors.Actors.Dispatcher
-import models.simple._
+import models.mysql._
 
-/**
- * One answer for one event for one user
- */
 case class CalendarAnswer(user: Int, event: Int, date: Timestamp, answer: Int, note: Option[String], char: Option[Int], promote: Boolean) {
 	if (answer < 0 || answer > 2) {
 		throw new Exception("Invalid answer value")
 	}
 
-	lazy val fullEvent: CalendarEvent = DB.withSession { implicit s =>
-		CalendarEvents.filter(_.id === event).first
-	}
+	lazy val fullEvent = CalendarEvents.filter(_.id === event).head
 }
 
-/**
- * Answers database
- */
 class CalendarAnswers(tag: Tag) extends Table[CalendarAnswer](tag, "gt_answers") {
 	def user = column[Int]("user", O.PrimaryKey)
 	def event = column[Int]("event", O.PrimaryKey)
@@ -32,9 +23,4 @@ class CalendarAnswers(tag: Tag) extends Table[CalendarAnswer](tag, "gt_answers")
 	def * = (user, event, date, answer, note, char, promote) <> (CalendarAnswer.tupled, CalendarAnswer.unapply)
 }
 
-/**
- * Helpers
- */
-object CalendarAnswers extends TableQuery(new CalendarAnswers(_)) {
-
-}
+object CalendarAnswers extends TableQuery(new CalendarAnswers(_))

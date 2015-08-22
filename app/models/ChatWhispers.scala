@@ -1,7 +1,7 @@
 package models
 
 import java.sql.Timestamp
-import models.simple._
+import models.mysql._
 
 case class ChatWhisper(id: Int, from: Int, to: Int, date: Timestamp, text: String)
 

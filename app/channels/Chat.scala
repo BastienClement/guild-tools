@@ -8,11 +8,11 @@ import gtp3._
 import reactive._
 import models._
 
-object Master extends ChannelValidator {
-	def open(request: ChannelRequest) = request.accept(new Master)
+object Chat extends ChannelValidator {
+	def open(request: ChannelRequest) = request.accept(new Chat)
 }
 
-class Master extends ChannelHandler {
+class Chat extends ChannelHandler {
 	val handlers = Map[String, Handler]()
 
 	def init() = {}

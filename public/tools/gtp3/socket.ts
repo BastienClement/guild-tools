@@ -93,7 +93,7 @@ export class Socket extends EventEmitter {
 	// Last ping time
 	private ping_time: number = 0;
 	public latency: number = 0;
-	
+
 	// Tracing mode
 	public verbose: Boolean = false;
 
@@ -183,7 +183,7 @@ export class Socket extends EventEmitter {
 		// Transition from Ready to Reconnecting
 		if (this.state == SocketState.Ready) {
 			this.state = SocketState.Reconnecting;
-			this.emit("reconnecting");
+			this.emit("reconnect");
 		}
 
 		// Check retry count and current state
@@ -207,12 +207,12 @@ export class Socket extends EventEmitter {
 		this.state = SocketState.Closed;
 
 		// Emit event
-		this.emit("disconnected");
+		this.emit("disconnect");
 
 		// Actually close the WebSocket
 		this.ws.close();
 		this.ws = null;
-		
+
 		// Close open channels
 		this.channels.forEach(chan => chan.close(-1, "Socket closed"));
 	}
@@ -247,14 +247,14 @@ export class Socket extends EventEmitter {
 		// Send the open message to the server
 		this._send(Frame.encode(OpenFrame, 0, id, channel_type, token, parent), true);
 
-		// Create the channel once the remote_id is received		
+		// Create the channel once the remote_id is received
 		const promise = deferred.promise.then(remote_id => {
 			const channel = new Channel(this, id, remote_id);
 			this.channels_pending.delete(id);
 			this.channels.set(id, channel);
 			return channel;
 		});
-		
+
 		// Release channel ID if open fail
 		promise.then(null, () => this.channelid_pool.release(id));
 
@@ -594,21 +594,21 @@ export class Socket extends EventEmitter {
 		// Emit reset event
 		this.emit("reset");
 	}
-	
+
 	/**
 	 * Print the socket activity
 	 */
 	private trace(direction: string, frame: Frame): void {
 		// Get the frame constructor function name
 		let frame_name = frame.constructor.name;
-		
+
 		// IE doesn't support Function.name and does logging really badly anyway...
 		if (!frame_name) return;
-		
+
 		// Remove the "Frame" prefix and construct the padding
 		frame_name = frame_name.replace(/Frame$/, "");
 		const padding = " ".repeat(15 - frame_name.length);
-		
+
 		console.debug(direction, frame_name + padding, frame)
 	}
 }

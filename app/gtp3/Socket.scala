@@ -166,6 +166,11 @@ class Socket(val id: Long, var actor: SocketActor) {
 				channels += (id -> channel)
 				out ! OpenSuccessFrame(0, frame.sender_channel, id)
 
+				handler match {
+					case c: InitHandler => c.init()
+					case _ => /* noop */
+				}
+
 				channel
 			}
 
@@ -180,11 +185,11 @@ class Socket(val id: Long, var actor: SocketActor) {
 		if (user == null && frame.channel_type != "auth") {
 			request.reject(103, "Non-authenticated socket cannot request channel")
 		} else {
-			ChannelAcceptors.get(frame.channel_type) match {
-				case Some(acceptor) =>
-					acceptor.open(request)
+			ChannelValidators.get(frame.channel_type) match {
+				case Some(validator) =>
+					validator.open(request)
 					if (!request.replied) {
-						request.reject(201, "Channel acceptor did not accept or reject the request")
+						request.reject(201, "Channel validator did not accept or reject the request")
 					}
 
 				case None => request.reject(104, "Unknown channel type")
@@ -227,5 +232,8 @@ class Socket(val id: Long, var actor: SocketActor) {
 	}
 
 	def closed() = {
+		for (channel <- channels.values) {
+			channel.closed()
+		}
 	}
 }

@@ -1,13 +1,10 @@
 package models
 
 import java.sql.Timestamp
-import models.simple._
+import models.mysql._
 
 case class BugReport(key: String, user: Int, date: Timestamp, rev: String, error: String, stack: String, navigator: String)
 
-/**
- * Bug reports database
- */
 class BugSack(tag: Tag) extends Table[BugReport](tag, "gt_bugsack") {
 	def key = column[String]("key", O.PrimaryKey)
 	def user = column[Int]("user")

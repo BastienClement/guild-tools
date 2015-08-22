@@ -1,5 +1,6 @@
 package controllers
 
+import channels.NewsFeed
 import play.api.Play._
 import play.api.mvc.{Action, Controller}
 
@@ -18,6 +19,6 @@ object Ping extends Controller {
 	}
 
 	def dashboardFeed = PingAction {
-		//DashboardHandler.Feed.refresh()
+		NewsFeed.ping()
 	}
 }

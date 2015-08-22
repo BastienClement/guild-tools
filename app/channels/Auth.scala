@@ -8,7 +8,7 @@ import gtp3._
 import reactive._
 import models._
 
-object Auth extends ChannelAcceptor {
+object Auth extends ChannelValidator {
 	def open(request: ChannelRequest) = request.accept(new Auth)
 }
 
@@ -18,6 +18,8 @@ class Auth extends ChannelHandler {
 		"prepare" -> prepare,
 		"login" -> login
 	)
+
+	def init() = {}
 
 	var salt = utils.randomToken()
 

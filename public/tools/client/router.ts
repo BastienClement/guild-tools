@@ -1,6 +1,8 @@
 import { Component, Injector } from "utils/di";
 import { EventEmitter, Notify } from "utils/eventemitter";
 import { PolymerConstructor, PolymerElement, Element } from "elements/polymer";
+import { GtApp } from "elements/app";
+import { UserInformations } from "client/server";
 
 /**
  * One specific route configuration
@@ -14,6 +16,13 @@ interface RoutePattern {
 
 interface ArgumentsObject {
 	[arg: string]: string;
+}
+
+export interface ModuleTab {
+	title: string;
+	link: string;
+	pattern?: RegExp;
+	visible?: (user: UserInformations) => boolean;
 }
 
 /**
@@ -57,6 +66,7 @@ export class Router extends EventEmitter {
 	 * Routes definitions
 	 */
 	private routes: RoutePattern[] = [];
+	private tabs: { [module: string]: ModuleTab[] } = {};
 
 	/**
 	 * Register a new route
@@ -77,12 +87,22 @@ export class Router extends EventEmitter {
 		}));
 	}
 
+	public static declareTabs(module: string, tabs: ModuleTab[]) {
+		if (Router.context) {
+			Router.context.tabs[module] = tabs;
+		} else {
+			throw new Error("Cannot declare tabs outside of a loadView() call");
+		}
+	}
+
 	/**
 	 * Current main-view informations
 	 */
 	@Notify public activeModule: string;
+	@Notify public activeTabs: ModuleTab[];
 	@Notify public activeView: PolymerConstructor<any>;
 	@Notify public activeArguments: ArgumentsObject;
+	@Notify public activePath: string;
 
 	/**
 	 * User will be redirected to this path if no view matches the current path
@@ -121,6 +141,7 @@ export class Router extends EventEmitter {
 			if (matches) {
 				// Module and view constructor
 				this.activeModule = route.module;
+				this.activeTabs = this.tabs[route.module] || [];
 				this.activeView = route.view;
 
 				// Construct argument object
@@ -131,6 +152,7 @@ export class Router extends EventEmitter {
 
 				// Success
 				this.last_path = path;
+				this.activePath = path;
 				return;
 			}
 		}
@@ -140,8 +162,10 @@ export class Router extends EventEmitter {
 			return this.goto(this.fallback, true);
 		} else {
 			this.activeModule = null;
+			this.activeTabs = [];
 			this.activeView = null;
 			this.activeArguments = null;
+			this.activePath = null;
 		}
 	}
 
@@ -165,4 +189,11 @@ export function View(module: string, selector: string, path: string) {
 		Router.getCurrent().register(path, module, element);
 		return element;
 	}
+}
+
+/**
+ * Dummy annotation to trigger type metadata
+ */
+export function Arg() {
+
 }

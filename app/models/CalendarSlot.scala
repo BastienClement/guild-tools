@@ -1,7 +1,7 @@
 package models
 
 import actors.Actors.Dispatcher
-import models.simple._
+import models.mysql._
 
 case class CalendarSlot(tab: Int, slot: Int, owner: Int, name: String, `class`: Int, role: String) {
 	if (!Chars.validateRole(role)) {

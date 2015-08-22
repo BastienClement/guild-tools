@@ -1,15 +1,16 @@
 package models
 
-import models.simple._
+import gt.Global.ExecutionContext
+import models.mysql._
+
+import scala.concurrent.Future
 
 case class User(id: Int, name: String, group: Int, color: String) {
 	val developer = Users.developer_users.contains(id)
 	val officer = Users.officier_groups.contains(group)
 	val promoted = developer || officer
 
-	def ready: Boolean = DB.withSession { implicit s =>
-		Chars.filter(_.owner === id).firstOption.isDefined
-	}
+	def ready: Future[Boolean] = Chars.filter(_.owner === id).headOption.map(_.isDefined)
 }
 
 class Users(tag: Tag) extends Table[User](tag, "phpbb_users") {
@@ -21,7 +22,7 @@ class Users(tag: Tag) extends Table[User](tag, "phpbb_users") {
 	def pass = column[String]("user_password")
 	def name_clean = column[String]("username_clean")
 
-	def * = (id, name, group, color) <> (User.tupled, User.unapply)
+	def * = (id, name, group, color) <>(User.tupled, User.unapply)
 }
 
 object Users extends TableQuery(new Users(_)) {

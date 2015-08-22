@@ -20,7 +20,7 @@ const enum ChannelState { Open, Closed }
 const enum PayloadFlags {
 	COMPRESS = 0x01,
 	UTF8DATA = 0x02,
-	JSONDATA = 0x06, // Require UTF8DATA
+	JSONDATA = 0x04, // Require UTF8DATA
 	IGNORE = 0x80
 }
 
@@ -115,7 +115,7 @@ export class Channel extends EventEmitter {
 
 		// Send close message to remote and local listeners
 		this.socket._send(Frame.encode(CloseFrame, 0, this.remote_id, code, reason), true);
-		this.emit("closed", code, reason);
+		this.emit("close", code, reason);
 
 		this.socket._channelClosed(this);
 	}
@@ -238,7 +238,7 @@ export class Channel extends EventEmitter {
 		} else if (data !== null && data !== void 0) {
 			// Any other type will simply be JSON-encoded
 			data = UTF8Encoder.encode(JSON.stringify(data)).buffer;
-			flags |= PayloadFlags.JSONDATA;
+			flags |= PayloadFlags.JSONDATA | PayloadFlags.UTF8DATA;
 		}
 
 		if (!data) {
@@ -270,7 +270,7 @@ export class Channel extends EventEmitter {
 	 */
 	_reset(): void {
 		this.emit("reset");
-		this.emit("closed", 0, "Channel reset");
+		this.emit("close", 0, "Channel reset");
 		this.state = ChannelState.Closed;
 	}
 

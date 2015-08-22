@@ -1,14 +1,15 @@
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
-import scala.concurrent.Future
-import scala.concurrent.{Awaitable, Await}
-import scala.language.implicitConversions
+
 import play.api.Play
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.json._
 import slick.driver.JdbcProfile
-import slick.lifted.{QueryBase, Query}
+import slick.lifted.Query
+
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.language.implicitConversions
 
 package object models {
 	val DB = DatabaseConfigProvider.get[JdbcProfile](Play.current).db
@@ -22,11 +23,16 @@ package object models {
 		def writes(ts: Timestamp) = JsString(format.format(ts))
 	}
 
-	implicit class QueryExecutor[A](query: Query[_, A, Seq]) {
+	implicit class QueryExecutor[A](val q: Query[_, A, Seq]) extends AnyVal {
 		import mysql._
-		def run = DB.run(query.result)
-		def head = DB.run(query.result.head)
-		def headOption = DB.run(query.result.headOption)
+		def run = DB.run(q.result)
+		def head = DB.run(q.result.head)
+		def headOption = DB.run(q.result.headOption)
+	}
+
+	implicit class AwaitableFuture[A](val f: Future[A]) extends AnyVal {
+		def await: A = await(30.seconds)
+		def await(limit: Duration): A = Await.result(f, limit)
 	}
 
 	implicit val userJsonWriter = new Writes[User] {

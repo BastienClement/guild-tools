@@ -1,6 +1,6 @@
 package models
 
-import models.simple._
+import models.mysql._
 import java.sql.Timestamp
 import utils.SmartTimestamp
 

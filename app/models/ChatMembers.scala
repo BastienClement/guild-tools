@@ -1,6 +1,6 @@
 package models
 
-import models.simple._
+import models.mysql._
 
 case class ChatMembership(channel: Int, user: Int, unread: Boolean)
 

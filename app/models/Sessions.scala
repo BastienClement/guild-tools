@@ -1,7 +1,7 @@
 package models
 
 import java.sql.Timestamp
-import models.simple._
+import models.mysql._
 
 case class Session(token: String, user: Int, ip: String, created: Timestamp, last_access: Timestamp)
 

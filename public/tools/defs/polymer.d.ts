@@ -28,6 +28,7 @@ interface ShadyDOM {
 	removeChild<T extends Node|PolymerElement>(node: T): T;
 
 	childNodes: Node[];
+	children: Element[];
 	parentNode: Node;
 	firstChild: Node;
 	lastChild: Node;

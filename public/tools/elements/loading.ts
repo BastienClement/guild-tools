@@ -44,7 +44,6 @@ export class GtLogin extends PolymerElement {
 	 */
 	close(): Promise<void> {
 		return new Promise<void>((res, rej) => {
-			console.log(performance.now());
 			const dialog: GtDialog = this.$.dialog;
 			dialog.hide();
 			dialog.addEventListener("animationend", () => res());

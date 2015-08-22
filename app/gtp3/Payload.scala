@@ -10,12 +10,9 @@ import scala.language.implicitConversions
 object Payload {
 	def apply(buf: ByteVector, flags: Int) = new Payload(buf, flags)
 
-	def apply(value: JsValue) = new Payload(Json.stringify(value), 0x06)
-	def apply(value: String) = new Payload(value, 0x02)
-	def apply(buffer: Array[Byte]) = new Payload(buffer, 0x00)
-
-	implicit def ImplicitByteVector(string: String): ByteVector = ByteVector(string.getBytes(StandardCharsets.UTF_8))
-	implicit def ImplicitByteVector(arr: Array[Byte]): ByteVector = ByteVector(arr)
+	def apply(value: String) = new Payload(ByteVector(value.getBytes(StandardCharsets.UTF_8)), 0x02)
+	def apply(value: JsValue) = new Payload(ByteVector(Json.stringify(value).getBytes(StandardCharsets.UTF_8)), 0x06)
+	def apply(buffer: Array[Byte]) = new Payload(ByteVector(buffer), 0x00)
 }
 
 class Payload(val byteVector: ByteVector, val flags: Int) {

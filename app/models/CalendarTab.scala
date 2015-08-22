@@ -1,12 +1,10 @@
 package models
 
 import actors.Actors.Dispatcher
-import models.simple._
+import models.mysql._
 
 case class CalendarTab(id: Int, event: Int, title: String, note: Option[String], order: Int, locked: Boolean, undeletable: Boolean) {
-	lazy val expandEvent = DB.withSession { implicit s =>
-		CalendarEvents.filter(_.id === event).first
-	}
+	lazy val expandEvent = CalendarEvents.filter(_.id === event).head
 }
 
 /**

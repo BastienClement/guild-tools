@@ -12,21 +12,21 @@
 	background: url(/assets/loading/logo.png) no-repeat center 20px;
 	background-size: contain;
 	z-index: 500;
-	
+
 	.no-loader & {
 		transition: all 0.75s ease-in;
 		transform: translateY(-50px);
 		opacity: 0;
 		transition-delay: 0.4s;
 	}
-	
+
 	.spinner {
 		position: absolute;
 		top: 150px;
 		left: 0;
 		right: 0;
 		text-align: center;
-		
+
 		.no-loader & {
 			transition: opacity .3s ease-out;
 			transition-delay: .1s;
@@ -47,7 +47,7 @@
 		animation: spinner 3s infinite;
 		animation-timing-function: cubic-bezier(0.030, 0.615, 0.995, 0.415);
 		animation-fill-mode: both;
-		
+
 		&:nth-child(6) { animation-delay: 0.0s; }
 		&:nth-child(5) { animation-delay: 0.15s; }
 		&:nth-child(4) { animation-delay: 0.30s; }
@@ -76,14 +76,14 @@
 	height: 50px;
 	z-index: 1500;
 	opacity: 0;
-	transition: opacity 2s ease;
-	
+	transition: opacity 0.5s ease;
+
 	img {
 		width: 50px;
 		height: 50px;
 	}
-	
+
 	.app-loader & {
-		opacity: 0.99;
+		opacity: 0.8;
 	}
 }

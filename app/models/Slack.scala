@@ -2,7 +2,7 @@ package models
 
 import java.sql.Timestamp
 import actors.Actors._
-import models.simple._
+import models.mysql._
 
 case class Slack(id: Int, user: Int, from: Timestamp, to: Timestamp, reason: Option[String]) {
 	lazy val conceal = this.copy(reason = None)

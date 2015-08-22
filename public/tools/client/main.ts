@@ -1,7 +1,7 @@
 import { Component, Injector } from "utils/di";
 import { Deferred } from "utils/deferred";
-import { Server } from "client/server"
-import { Router } from "client/router"
+import { Server, UserInformations } from "client/server";
+import { Router } from "client/router";
 import { Channel } from "gtp3/channel";
 import { Loader } from "client/loader";
 import { GtLogin } from "elements/loading";
@@ -9,13 +9,6 @@ import { GtApp } from "elements/app";
 
 // LocalStorage key storing user's session
 const KEY_AUTH_SESSION = "auth.session";
-
-interface UserInformations {
-	id: number;
-	name: string;
-	group: number;
-	color: string;
-}
 
 /**
  * GuildTools
@@ -27,11 +20,6 @@ export class Application {
 		public loader: Loader,
 		public router: Router,
 		public injector: Injector) { }
-
-	/**
-	 * Information about the current user
-	 */
-	public user: UserInformations = null;
 
 	/**
 	 * The root Application Node
@@ -77,7 +65,7 @@ export class Application {
 
 		init_pipeline.then(() => {
 			console.log("loading done");
-			setInterval(() => this.server.ping(), 10000);
+			//setInterval(() => this.server.ping(), 10000);
 			this.router.fallback = "/dashboard";
 			this.router.update();
 		}, (e) => {
@@ -165,7 +153,7 @@ class AuthenticationDriver {
 	private auth(): Promise<boolean> {
 		if (!this.session) return Deferred.resolved(null);
 		return this.channel.request<UserInformations>("auth", this.session).then(user => {
-			this.app.user = user;
+			this.app.server.user = user;
 			return !!user;
 		});
 	}

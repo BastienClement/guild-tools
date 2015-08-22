@@ -11,7 +11,7 @@ body {
 	z-index: -1;
 	background: url("/assets/images/background_welcome.jpg") center top;
 	opacity: 0;
-	
+
 	.with-background & {
 		opacity: 1;
 		transition: opacity 1s ease-out;
@@ -25,14 +25,24 @@ body {
 	display: none;
 	opacity: 0;
 	z-index: -2;
-	
+
 	.no-loader & {
 		display: block;
 		transition: opacity .5s ease-out;
 	}
-	
+
 	.with-modal & {
 		opacity: 1;
 		z-index: 1000;
 	}
+}
+
+@keyframes fade-in {
+	0% { opacity: 0; }
+	100% { opacity: 1; }
+}
+
+@keyframes fade-out {
+	0% { opacity: 1; }
+	100% { opacity: 0; }
 }

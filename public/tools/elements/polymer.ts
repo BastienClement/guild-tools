@@ -1,13 +1,13 @@
 import { Deferred, LazyThen, defer } from "utils/deferred";
 import { Queue } from "utils/queue";
 import { Constructor, DefaultInjector } from "utils/di";
-import { EventEmitter } from "utils/eventemitter";
+import { EventEmitter, PausableEventEmitter } from "utils/eventemitter";
 
 /**
  * Dummy class to expose Polymer functions on elements
  */
 export class PolymerElement {
-	protected root: DocumentFragment;
+	//protected root: DocumentFragment;
 	protected node: ShadyDOM;
 	protected shadow: ShadyDOM;
 
@@ -239,6 +239,7 @@ export interface PolymerMetadata<T extends PolymerElement> {
 	loaded: boolean;
 	domModule?: HTMLElement;
 	constructor?: Function;
+	base?: Function;
 }
 
 /**
@@ -272,10 +273,19 @@ export function Element(selector: string, template?: string) {
 		// Register the element selector
 		target.prototype.is = selector;
 
+		const initialize = (that: any, args?: any) => {
+			if (!Reflect.getMetadata<boolean>("polymer:initialized", that)) {
+				Reflect.defineMetadata("polymer:initialized", true, that);
+				target.apply(that, args);
+				if (that.init) {
+					that.init.apply(that, args);
+				}
+			}
+		}
+
 		// Proxy to constructor function
 		target.prototype.factoryImpl = function() {
-			Reflect.defineMetadata("polymer:initialized", true, this);
-			target.apply(this, arguments);
+			initialize(this, arguments);
 		};
 
 		// Define custom sugars and perform dependency injection
@@ -283,12 +293,7 @@ export function Element(selector: string, template?: string) {
 			Polymer.Base.createdCallback.apply(this, arguments);
 
 			// If the element wasn't created using the new operator, call the constructor
-			defer(() => {
-				if (!Reflect.getMetadata<boolean>("polymer:initialized", this)) {
-					Reflect.defineMetadata("polymer:initialized", true, this);
-					target.call(this);
-				}
-			});
+			defer(() => initialize(this));
 
 			this.node = Polymer.dom(this);
 			this.shadow = Polymer.dom(this.root);
@@ -307,10 +312,7 @@ export function Element(selector: string, template?: string) {
 			Polymer.Base.attachedCallback.apply(this, arguments);
 
 			// If the element wasn't created using the new operator, call the constructor
-			if (!Reflect.getMetadata<boolean>("polymer:initialized", this)) {
-				Reflect.defineMetadata("polymer:initialized", true, this);
-				target.call(this);
-			}
+			initialize(this);
 
 			// Handler for binding property
 			const create_bind_handler = (property: string, emitter: any) => {
@@ -337,10 +339,32 @@ export function Element(selector: string, template?: string) {
 					}
 				}
 			}
+
+			// Attach to pausable emitters
+			const injects = Reflect.getMetadata<InjectionBinding[]>("polymer:injects", target.prototype);
+			if (injects) {
+				for (let binding of injects) {
+					const injected: PausableEventEmitter = this[binding.property]
+					if (injected instanceof PausableEventEmitter) {
+						injected.attachListener(this);
+					}
+				}
+			}
 		};
 
 		target.prototype.detachedCallback = function() {
 			Polymer.Base.detachedCallback.apply(this, arguments);
+
+			// Detach from pausable emitters
+			const injects = Reflect.getMetadata<InjectionBinding[]>("polymer:injects", target.prototype);
+			if (injects) {
+				for (let binding of injects) {
+					const injected: PausableEventEmitter = this[binding.property]
+					if (injected instanceof PausableEventEmitter) {
+						injected.detachListener(this);
+					}
+				}
+			}
 
 			// Detach events
 			const bindings = Reflect.getMetadata<ElementBindings>("polymer:bindings", target.prototype);
@@ -375,6 +399,7 @@ export function Element(selector: string, template?: string) {
 		meta = Reflect.getMetadata("polymer:meta", target) || <any> {};
 		meta.selector = selector;
 		meta.template = template;
+		meta.base = target;
 		meta.proto = target.prototype;
 		meta.loaded = false;
 
@@ -406,9 +431,23 @@ export function Dependencies(...dependencies: PolymerConstructor<any>[]) {
 /**
  * Declare a Polymer Property
  */
-export function Property(config: Object) {
+export function Property(config: any = {}) {
 	return (target: any, property: string) => {
 		if (!target.properties) target.properties = {};
+
+		if (config.computed) {
+			try {
+				const generator = Object.getOwnPropertyDescriptor(target, property).get;
+				const updater_key = `_${property.replace(/\W/g, "_")}`;
+				target[updater_key] = generator;
+				delete target[property];
+				config.computed = `${updater_key}(${config.computed.replace(/\s+/g, ",")})`;
+			} catch (e) {
+				console.error(`Failed to generate computed property '${property}'`);
+				throw e;
+			}
+		}
+
 		target.properties[property] = config;
 	};
 }
@@ -523,7 +562,6 @@ export function apply_polymer_fns() {
 	 * Prevent further event propagation
 	 */
 	Base.stopEvent = function(e: Event) {
-		e.stopPropagation();
 		e.stopImmediatePropagation();
 		e.preventDefault();
 		return false;

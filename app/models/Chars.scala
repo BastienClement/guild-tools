@@ -2,7 +2,7 @@ package models
 
 import scala.compat.Platform
 import actors.Actors.RosterService
-import models.simple._
+import models.mysql._
 
 case class Char(
 		id: Int,

@@ -1,22 +1,32 @@
 package gtp3
 
-import play.api.libs.json.{JsString, JsBoolean, JsValue}
-import play.api.libs.json.Json.JsValueWrapper
+import play.api.libs.json.{JsBoolean, JsValue, Writes}
+import reactive._
 
 import scala.concurrent.Future
 import scala.language.implicitConversions
-import reactive._
 
-trait ChannelAcceptor {
+trait ChannelValidator {
 	def open(request: ChannelRequest): Unit
+}
+
+trait InitHandler { this: ChannelHandler =>
+	def init()
+}
+
+trait CloseHandler { this: ChannelHandler =>
+	def close()
 }
 
 trait ChannelHandler {
 	var socket: Socket = null
 	var channel: Channel = null
 
+	def user = socket.user
+
 	implicit def ImplicitPayload(value: JsValue): Payload = Payload(value)
-	implicit def ImplicitPayload(value: String): Payload = Payload(JsString(value))
+	implicit def ImplicitPayload[T](value: T)(implicit w: Writes[T]): Payload = Payload(w.writes(value))
+	implicit def ImplicitPayload(value: String): Payload = Payload(value)
 	implicit def ImplicitPayload(value: Boolean): Payload = Payload(JsBoolean(value))
 
 	implicit def ImplicitFuturePayload[T](value: T)(implicit ev: T => Payload): Future[Payload] = Future.successful[Payload](value)
@@ -32,7 +42,7 @@ trait ChannelHandler {
 			case Some(handler) => handler(payload) match {
 				case p: Future[_] => p.asInstanceOf[Future[Payload]]
 				case p: Payload => Future.successful(p)
-				case _ =>  Future.failed(new Exception("Invalid result type"))
+				case _ => Future.failed(new Exception("Invalid result type"))
 			}
 			case None => Future.failed(new Exception("Undefined handler"))
 		}

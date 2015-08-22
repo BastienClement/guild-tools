@@ -1,8 +1,9 @@
 package models
 
 import java.sql.Timestamp
-import actors.Actors.Dispatcher
-import models.simple._
+
+import gt.Global.ExecutionContext
+import models.mysql._
 
 object CalendarVisibility {
 	val Roster = 1
@@ -33,27 +34,21 @@ case class CalendarEvent(id: Int, title: String, desc: String, owner: Int, date:
 	/**
 	 * Expand this event to include tabs and slots data
 	 */
-	lazy val expand = {
-		DB.withSession { implicit s =>
-			// Fetch tabs
-			val tabs = CalendarTabs.filter(_.event === this.id).list
-
-			// Fetch slots
-			val slots = CalendarSlots.filter(_.tab inSet tabs.map(_.id).toSet).list.groupBy(_.tab.toString).mapValues {
+	lazy val expand =
+		for {
+			tabs <- CalendarTabs.filter(_.event === this.id).run
+			slots <- CalendarSlots.filter(_.tab inSet tabs.map(_.id).toSet).run
+		} yield {
+			val slots_map = slots.groupBy(_.tab.toString).mapValues {
 				_.map(s => (s.slot.toString, s)).toMap
 			}
-
-			// Build full object
-			CalendarEventFull(this, tabs, slots)
+			CalendarEventFull(this, tabs.toList, slots_map)
 		}
-	}
 
 	/**
 	 * Create a partially visible expanded version of this event
 	 */
-	lazy val partial = {
-		val expanded = this.expand
-
+	lazy val partial = for (expanded <- this.expand) yield {
 		// Remove note from hidden tab
 		var visibles_tabs = Set[String]()
 		val tabs = expanded.tabs map { tab =>
@@ -85,7 +80,7 @@ class CalendarEvents(tag: Tag) extends Table[CalendarEvent](tag, "gt_events_visi
 	def state = column[Int]("state")
 	def garbage = column[Boolean]("garbage")
 
-	def * = (id, title, desc, owner, date, time, visibility, state) <> (CalendarEvent.tupled, CalendarEvent.unapply)
+	def * = (id, title, desc, owner, date, time, visibility, state) <>(CalendarEvent.tupled, CalendarEvent.unapply)
 }
 
 object CalendarEvents extends TableQuery(new CalendarEvents(_)) {

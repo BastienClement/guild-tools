@@ -4,6 +4,7 @@
 ///<reference path="less.d.ts" />
 ///<reference path="pako.d.ts" />
 ///<reference path="polymer.d.ts" />
+///<reference path="moment.d.ts" />
 
 declare var require: Function;
 

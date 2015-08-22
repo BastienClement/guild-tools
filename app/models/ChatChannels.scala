@@ -1,6 +1,6 @@
 package models
 
-import models.simple._
+import models.mysql._
 
 case class ChatChannel(id: Int, title: String)
 

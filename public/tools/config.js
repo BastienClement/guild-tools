@@ -5,7 +5,8 @@ requirejs.config({
 		"less": "/assets/javascripts/less",
 		"encoding": "/assets/javascripts/encoding",
 		"phpbb_hash": "/assets/javascripts/phpbb_hash",
-		"cryptojs": "/assets/javascripts/crypto"
+		"cryptojs": "/assets/javascripts/crypto",
+		"moment": "/assets/javascripts/moment",
 	},
 	shim: {
 		"pako": { exports: "pako" },

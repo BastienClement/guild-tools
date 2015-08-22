@@ -1,7 +1,15 @@
 import { Component, Injector } from "utils/di";
 import { Socket, SocketDelegate } from "gtp3/socket";
+import { Channel } from "gtp3/channel";
 import { Deferred } from "utils/deferred";
 import { EventEmitter } from "utils/eventemitter";
+
+export interface UserInformations {
+	id: number;
+	name: string;
+	group: number;
+	color: string;
+}
 
 @Component
 export class Server extends EventEmitter {
@@ -13,6 +21,9 @@ export class Server extends EventEmitter {
 
 	// Server versions string
 	private version: string = null;
+
+	// Information about the current user
+	public user: UserInformations = null;
 
 	/**
 	 * Boostrap the server connection
@@ -95,21 +106,21 @@ export class Server extends EventEmitter {
 	/**
 	 * Mesure the latency with the server
 	 */
-	public ping() {
+	public ping(): void {
 		this.socket.ping();
 	}
 
 	/**
 	 * Request a channel from the server
 	 */
-	public openChannel(ctype: string) {
+	public openChannel(ctype: string): Promise<Channel> {
 		return this.socket.openChannel(ctype);
 	}
 
 	/**
 	 * Close the server connection
 	 */
-	public disconnect() {
+	public disconnect(): void {
 		this.socket && this.socket.close();
 	}
 }

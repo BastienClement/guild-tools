@@ -1,8 +1,166 @@
 <dom-module id="gt-dashboard">
 	<style type="text/less">
-		:host {}
+		:host {
+			display: flex;
+		}
+
+		.col {
+			display: flex;
+			flex-direction: column;
+			height: 100%;
+
+			gt-box:not(:last-child) {
+				margin-bottom: 6px;
+			}
+		}
+
+		#col1 {
+			flex: 1;
+			margin-right: 6px;
+
+			dashboard-news {
+				height: 100%;
+			}
+		}
+
+		#col2 {
+			flex: 1.7;
+
+			#shoutbox {
+				flex: 1;
+			}
+		}
+
+		#col3 {
+			width: 300px;
+			margin-left: 6px;
+
+			#online {
+				flex: 1;
+			}
+		}
 	</style>
 	<template>
-		Hello Dashboard !
+		<div .col #col1>
+			<dashboard-news></dashboard-news>
+		</div>
+		<div .col #col2>
+			<gt-box #activity heading="Guild activity" scrollable></gt-box>
+			<gt-box #shoutbox heading="Shoutbox" scrollable></gt-box>
+		</div>
+		<div .col #col3>
+			<gt-box #profile>Blash</gt-box>
+			<gt-box #informations heading="Informations"></gt-box>
+			<gt-box #online heading="Online" scrollable></gt-box>
+		</div>
+	</template>
+</dom-module>
+
+<dom-module id="dashboard-news">
+	<style type="text/less">
+		:host {
+			display: block;
+		}
+
+		#feed {
+			height: 100%;
+		}
+
+		#actions {
+			position: absolute;
+			top: 16px;
+			right: 16px;
+			line-height: 24px;
+		}
+
+		#list {
+			margin-bottom: -6px;
+		}
+
+		.news {
+			height: 0px;
+			opacity: 0;
+
+			display: flex;
+			transition: all .2s ease-out;
+
+			&:hover {
+				background-color: fade(@fs-blue, 10%);
+			}
+
+			&[visible] {
+				height: 25px;
+				opacity: 1;
+
+				padding: 3px 5px;
+				margin: 0 -10px 0 -5px;
+			}
+
+			img {
+				height: 15px;
+				margin-right: 10px;
+			}
+
+			b {
+				flex: 1;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+
+				&[source=MMO] {
+					color: #90E055;
+				}
+
+				&[tags*=BLIZZ] {
+					color: #00B4FF;
+				}
+			}
+
+			gt-timeago {
+				color: @light-blue;
+				margin-left: 12px;
+			}
+		}
+	</style>
+	<template>
+		<gt-box #feed heading="News Feed" scrollable>
+			<div #actions>
+				<dashboard-news-filter key="MMO" [active]="filters.MMO"></dashboard-news-filter>
+				<dashboard-news-filter key="BLUE" [active]="filters.BLUE"></dashboard-news-filter>
+				<dashboard-news-filter key="WOW" [active]="filters.WOW"></dashboard-news-filter>
+			</div>
+			<gt-alert #none {hidden}="!noVisible" icon="cloud_off">
+				No news to display.<br>
+				The news feed may be temporarily unavailable.
+			</gt-alert>
+			<div #list>
+				<div .news [repeat]="news" {visible}="visible(item.source, filters.*)" (click)="open">
+					<img [src]="icon(item)">
+					<b {tags}="item.tags" {source}="item.source">{{item.title}}</b>
+					<gt-timeago [date]="item.time"></gt-timeago>
+				</div>
+			</div>
+		</gt-box>
+	</template>
+</dom-module>
+
+<dom-module id="dashboard-news-filter">
+	<style type="text/less">
+		gt-button {
+			padding: 0;
+			height: auto;
+			padding-bottom: 4px;
+			border-bottom: 2px solid transparent;
+			opacity: .5;
+			transition: border .2s ease-out, opacity .2s ease-out;
+
+			&[active] {
+				opacity: 1;
+				border-bottom-color: @fs-blue;
+			}
+		}
+	</style>
+	<template>
+		<gt-button {active}><img [src]="icon"></gt-button>
 	</template>
 </dom-module>

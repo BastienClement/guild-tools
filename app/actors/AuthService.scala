@@ -53,8 +53,8 @@ class AuthServiceImpl extends AuthService {
 	 */
 	def login(name: String, password: String, salt: String): Future[String] = {
 		val user_credentials = for (u <- Users if (u.name === name || u.name_clean === name.toLowerCase) && (u.group inSet allowedGroups)) yield (u.pass, u.id)
-		user_credentials.head collect {
-			case (pass_ref, user_id) if password == utils.sha1(pass_ref + salt) =>
+		user_credentials.headOption collect {
+			case Some((pass_ref, user_id)) if password == utils.sha1(pass_ref + salt) =>
 				def createSession(attempt: Int = 1): Option[String] = {
 					val token = utils.randomToken()
 					Try {

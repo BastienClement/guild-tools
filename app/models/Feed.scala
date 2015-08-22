@@ -1,7 +1,7 @@
 package models
 
 import java.sql.Timestamp
-import models.simple._
+import models.mysql._
 
 case class Feed(guid: String, source: String, title: String, link: String, time: Timestamp, tags: String)
 

@@ -2,7 +2,7 @@
 <dom-module id="gt-dialog">
 	<style type="text/less">
 		@box-padding: 24px;
-	
+
 		:host {
 			display: none;
 			position: fixed;
@@ -12,20 +12,20 @@
 			justify-content: center;
 			align-items: center;
 		}
-		
+
 		:host(.slide-in) {
 			display: flex;
 			animation: slide 0.5s ease-out;
 			animation-delay: 0.25s;
 			animation-fill-mode: both;
 		}
-		
+
 		:host(.slide-out) {
 			display: flex;
 			animation: slide-out 0.2s ease;
 			animation-fill-mode: both;
 		}
-		
+
 		#layout {
 			position: relative;
 			box-sizing: border-box;
@@ -36,7 +36,7 @@
 			overflow: hidden;
 			padding: @box-padding;
 		}
-	
+
 		h3 {
 			font: 500 20px Roboto;
 			margin: -@box-padding;
@@ -44,33 +44,33 @@
 			padding: @box-padding;
 			padding-bottom: 20px;
 		}
-		
+
 		#content {
 			overflow: auto;
 			overflow-x: hidden;
 		}
-		
+
 		#actions {
 			display: flex;
-			height: 36px;
+			height: 52px;
 			margin: 0 -@box-padding -@box-padding;
 			padding: 8px;
 			justify-content: flex-end;
 		}
-		
+
 		i {
 			margin-right: 4px;
 		}
-		
+
 		:host ::content p {
 			margin: 0;
 		}
-		
+
 		@keyframes slide {
 			0%   { opacity: 0; transform: translateY(40px); }
 			100% { opacity: 1; transform: translateY(0px); }
 		}
-		
+
 		@keyframes slide-out {
 			0%   { opacity: 1; }
 			100% { opacity: 0; }
