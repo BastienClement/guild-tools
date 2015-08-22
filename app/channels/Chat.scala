@@ -1,20 +1,28 @@
 package channels
 
-import scala.concurrent.Future
-import scala.concurrent.duration._
-import play.api.libs.json.{JsNull, JsValue, Json}
 import actors.Actors._
 import gtp3._
-import reactive._
-import models._
+import play.api.libs.json.Json
 
 object Chat extends ChannelValidator {
 	def open(request: ChannelRequest) = request.accept(new Chat)
 }
 
-class Chat extends ChannelHandler {
-	val handlers = Map[String, Handler]()
+class Chat extends ChannelHandler with InitHandler with CloseHandler {
+	val handlers = Map[String, Handler](
+		"away" -> away
+	)
 
-	def init() = {}
-	def login(payload: Payload): Future[Payload] = ???
+	def init() = {
+		ChatService.connect(channel)
+		channel.send("onlines", ChatService.onlines.map { case (k, v) => Json.arr(k, v) })
+	}
+
+	def close() = {
+		ChatService.disconnect(channel)
+	}
+
+	def away(payload: Payload): Unit = {
+		ChatService.setAway(channel, payload.value.as[Boolean])
+	}
 }

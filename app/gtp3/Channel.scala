@@ -6,6 +6,9 @@ import scala.util.{Failure, Success}
 
 class Channel(val socket: Socket, val id: Int, val sender_channel: Int, val handler: ChannelHandler) {
 	def receive(frame: ChannelFrame) = frame match {
+		case MessageFrame(seq, channel, message, flags, payload) =>
+			handler.message(message, Payload(payload, flags))
+
 		case RequestFrame(seq, channel, req, rid, flags, payload) =>
 			handler.request(req, Payload(payload, flags)) onComplete {
 				case Success(res_payload) =>

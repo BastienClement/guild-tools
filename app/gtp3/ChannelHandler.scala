@@ -1,6 +1,5 @@
 package gtp3
 
-import play.api.libs.json.{JsBoolean, JsValue, Writes}
 import reactive._
 
 import scala.concurrent.Future
@@ -10,11 +9,13 @@ trait ChannelValidator {
 	def open(request: ChannelRequest): Unit
 }
 
-trait InitHandler { this: ChannelHandler =>
+trait InitHandler {
+	this: ChannelHandler =>
 	def init()
 }
 
-trait CloseHandler { this: ChannelHandler =>
+trait CloseHandler {
+	this: ChannelHandler =>
 	def close()
 }
 
@@ -23,11 +24,6 @@ trait ChannelHandler {
 	var channel: Channel = null
 
 	def user = socket.user
-
-	implicit def ImplicitPayload(value: JsValue): Payload = Payload(value)
-	implicit def ImplicitPayload[T](value: T)(implicit w: Writes[T]): Payload = Payload(w.writes(value))
-	implicit def ImplicitPayload(value: String): Payload = Payload(value)
-	implicit def ImplicitPayload(value: Boolean): Payload = Payload(JsBoolean(value))
 
 	implicit def ImplicitFuturePayload[T](value: T)(implicit ev: T => Payload): Future[Payload] = Future.successful[Payload](value)
 	implicit def ImplicitFuturePayload[T](future: Future[T])(implicit ev: T => Payload): Future[Payload] = future.map(ev(_))

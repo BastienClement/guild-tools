@@ -2,7 +2,7 @@ package gtp3
 
 import java.nio.charset.StandardCharsets
 
-import play.api.libs.json.{JsString, JsValue, Json}
+import play.api.libs.json._
 import scodec.bits.ByteVector
 
 import scala.language.implicitConversions
@@ -13,6 +13,11 @@ object Payload {
 	def apply(value: String) = new Payload(ByteVector(value.getBytes(StandardCharsets.UTF_8)), 0x02)
 	def apply(value: JsValue) = new Payload(ByteVector(Json.stringify(value).getBytes(StandardCharsets.UTF_8)), 0x06)
 	def apply(buffer: Array[Byte]) = new Payload(ByteVector(buffer), 0x00)
+
+	implicit def ImplicitPayload(value: JsValue): Payload = Payload(value)
+	implicit def ImplicitPayload[T](value: T)(implicit w: Writes[T]): Payload = Payload(w.writes(value))
+	implicit def ImplicitPayload(value: String): Payload = Payload(value)
+	implicit def ImplicitPayload(value: Boolean): Payload = Payload(JsBoolean(value))
 }
 
 class Payload(val byteVector: ByteVector, val flags: Int) {
