@@ -44,7 +44,5 @@ trait ChannelHandler {
 		}
 	}
 
-	def message(msg: String, payload: Payload): Unit = {
-		request(msg, payload)
-	}
+	def message(msg: String, payload: Payload): Unit = request(msg, payload)
 }

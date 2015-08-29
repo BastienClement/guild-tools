@@ -51,7 +51,7 @@ class ChatServiceImpl extends ChatService {
 		val away = session.channels.values.forall(v => v)
 		if (away != session.away) {
 			session.away = away
-			broadcast("away", Json.arr(session.user.id, away))
+			broadcast("away-updated", Json.arr(session.user.id, away))
 		}
 	}
 
@@ -65,7 +65,7 @@ class ChatServiceImpl extends ChatService {
 
 			case None =>
 				sessions += user.id -> ChatSession(user, false, Map(chan))
-				broadcast("connect", user.id)
+				broadcast("connected", user.id)
 		}
 	}
 
@@ -78,7 +78,7 @@ class ChatServiceImpl extends ChatService {
 				if (session.channels.size < 1) {
 					sessions -= user
 					updateAway(session)
-					broadcast("disconnect", user)
+					broadcast("disconnected", user)
 				}
 		}
 	}

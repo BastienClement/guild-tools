@@ -10,19 +10,21 @@ object Chat extends ChannelValidator {
 
 class Chat extends ChannelHandler with InitHandler with CloseHandler {
 	val handlers = Map[String, Handler](
-		"away" -> away
+		"set-away" -> setAway
 	)
 
 	def init() = {
 		ChatService.connect(channel)
-		channel.send("onlines", ChatService.onlines.map { case (k, v) => Json.arr(k, v) })
+
+		val onlines = for ((user, away) <- ChatService.onlines) yield Json.arr(user, away)
+		channel.send("onlines", onlines)
 	}
 
 	def close() = {
 		ChatService.disconnect(channel)
 	}
 
-	def away(payload: Payload): Unit = {
+	def setAway(payload: Payload): Unit = {
 		ChatService.setAway(channel, payload.value.as[Boolean])
 	}
 }

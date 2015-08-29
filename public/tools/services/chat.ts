@@ -24,8 +24,7 @@ export class Chat extends PausableEventEmitter {
 	/**
 	 * List of onlines user
 	 */
-	@Notify
-	public onlines: ChatUser[] = [];
+	private onlines = new Map<number, boolean>();
 
 	constructor(private server: Server) {
 		super();
@@ -39,7 +38,13 @@ export class Chat extends PausableEventEmitter {
 				this.channel = chan;
 
 				chan.on("message", (type: string, payload: any) => {
-					console.log(type, payload);
+					switch (type) {
+						case "onlines": return this.updateOnlines(payload);
+						case "connected": return this.userConnected(payload);
+						case "disconnected": return this.userDisconnected(payload);
+						default:
+							console.info("Unknown message received on chat channel", payload);
+					}
 				});
 
 				chan.on("close", () => this.disconnected());
@@ -55,7 +60,43 @@ export class Chat extends PausableEventEmitter {
 		setTimeout(() => this.connect(), 3000);
 	}
 
-	private message(news: any) {
+	private updateOnlines(users: [number, boolean][]) {
+		const onlines = this.onlines;
+		const users_set = new Set<number>();
 
+		for (let [user, away] of users) {
+			users_set.add(user);
+			if (onlines.has(user)) {
+				const old_status = onlines.get(user);
+				if (old_status != away) {
+					onlines.set(user, away);
+					this.emit("away-changed", user, away);
+				}
+			} else {
+				onlines.set(user, away);
+				this.emit("connected", user);
+			}
+		}
+
+		for (let user of Array.from(onlines.keys())) {
+			if (!users_set.has(user)) {
+				onlines.delete(user);
+				this.emit("disconnected", user);
+			}
+		}
+	}
+
+	private userConnected(user: number) {
+		this.onlines.set(user, false);
+		this.emit("connected", user);
+	}
+
+	private userDisconnected(user: number) {
+		this.onlines.delete(user);
+		this.emit("disconnected", user);
+	}
+
+	public getOnlinesUsers(): number[] {
+		return Array.from(this.onlines.keys());
 	}
 }
