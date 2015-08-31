@@ -3,6 +3,7 @@ package actors
 import gtp3.{Channel, Payload}
 import models._
 import play.api.libs.json._
+import utils.ChannelList
 
 import scala.language.implicitConversions
 
@@ -25,46 +26,35 @@ trait ChatService {
 	def sendWhisper(from: User, to: Int, message: String): Try[ChatWhisper]*/
 }
 
-class ChatServiceImpl extends ChatService {
+class ChatServiceImpl extends ChatService with ChannelList[ChatSession] {
 	private var sessions = Map[Int, ChatSession]()
 
 	def onlines: Map[Int, Boolean] = sessions.map {
 		case (user, session) => user -> session.away
 	}
 
-	private def broadcast(msg: String, pyld: Payload) = {
-		for {
-			session <- sessions.values.par
-			(chan, _) <- session.channels
-		} chan.send(msg, pyld)
-	}
-
-	private def multicast(targets: Iterable[Int], msg: String, pyld: Payload) = {
-		for {
-			target <- targets.par
-			session <- sessions.get(target)
-			(chan, _) <- session.channels
-		} chan.send(msg, pyld)
-	}
-
 	private def updateAway(session: ChatSession) = {
-		val away = session.channels.values.forall(v => v)
+		val away = session.channels.values.forall(away => away)
 		if (away != session.away) {
 			session.away = away
-			broadcast("away-updated", Json.arr(session.user.id, away))
+			broadcast("away-state-changed", Json.arr(session.user.id, away))
 		}
 	}
 
 	def connect(channel: Channel): Unit = {
-		val user = channel.socket.user;
+		val user = channel.socket.user
 		val chan = channel -> false
+
 		sessions.get(user.id) match {
 			case Some(session) =>
+				registerChannel(channel, session)
 				session.channels += chan
 				updateAway(session)
 
 			case None =>
-				sessions += user.id -> ChatSession(user, false, Map(chan))
+				val session = ChatSession(user, false, Map(chan))
+				registerChannel(channel, session)
+				sessions += user.id -> session
 				broadcast("connected", user.id)
 		}
 	}
@@ -77,6 +67,7 @@ class ChatServiceImpl extends ChatService {
 				session.channels -= channel
 				if (session.channels.size < 1) {
 					sessions -= user
+					unregisterChannel(channel)
 					updateAway(session)
 					broadcast("disconnected", user)
 				}
@@ -84,8 +75,7 @@ class ChatServiceImpl extends ChatService {
 	}
 
 	def setAway(channel: gtp3.Channel, away: Boolean) = {
-		val user_id = channel.socket.user.id
-		for (session <- sessions.get(user_id)) {
+		for (session <- sessions.get(channel.socket.user.id)) {
 			session.channels = session.channels.updated(channel, away)
 			updateAway(session)
 		}

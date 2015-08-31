@@ -35,7 +35,7 @@
 			width: 300px;
 			margin-left: 6px;
 
-			#online {
+			#onlines {
 				flex: 1;
 			}
 		}
@@ -46,12 +46,12 @@
 		</div>
 		<div .col #col2>
 			<gt-box #activity heading="Guild activity" scrollable></gt-box>
-			<gt-box #shoutbox heading="Shoutbox" scrollable></gt-box>
+			<dashboard-shoutbox #shoutbox></dashboard-shoutbox>
 		</div>
 		<div .col #col3>
 			<gt-box #profile>Blash</gt-box>
 			<gt-box #informations heading="Informations"></gt-box>
-			<gt-box #online heading="Online" scrollable></gt-box>
+			<dashboard-onlines #onlines></dashboard-onlines>
 		</div>
 	</template>
 </dom-module>
@@ -162,5 +162,27 @@
 	</style>
 	<template>
 		<gt-button {active}><img [src]="icon"></gt-button>
+	</template>
+</dom-module>
+
+<dom-module id="dashboard-shoutbox">
+	<template>
+		<gt-box #shoutbox heading="Shoutbox" scrollable>
+			<div .message [repeat]="messages">
+				<span .left>
+					<gt-timeago .time [date]="item.date"></gt-timeago>
+					<span .actions>
+					</span>
+				</span>
+				<span .author>{{item.author}}</span>
+				<span .message>{{item.message}}</span>
+			</div>
+		</gt-box>
+	</template>
+</dom-module>
+
+<dom-module id="dashboard-onlines">
+	<template>
+		<gt-box #onlines heading="Onlines" scrollable></gt-box>
 	</template>
 </dom-module>

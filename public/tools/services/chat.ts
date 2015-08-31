@@ -11,13 +11,17 @@ export interface ChatUser {
 	status: number;
 }
 
+export interface ChatMessage {
+	room: number;
+}
+
 /**
- * News feed data client
+ * Chat data client
  */
 @Component
 export class Chat extends PausableEventEmitter {
 	/**
-	 * The newsfeed channel
+	 * The chat channel
 	 */
 	private channel: Channel;
 
@@ -98,5 +102,27 @@ export class Chat extends PausableEventEmitter {
 
 	public getOnlinesUsers(): number[] {
 		return Array.from(this.onlines.keys());
+	}
+	
+	public requestBacklog(room: number): Promise<ChatMessage[]> {
+		return this.channel.request("room-backlog", room);
+	}
+	
+	private interests = new Map<number, Set<any>>();
+	
+	public setInterest(room: number, owner: any, interest: boolean) {
+		let bindings = this.interests.get(room);
+		if (!bindings) {
+			bindings = new Set<any>();
+			this.interests.set(room, bindings);
+		}
+		
+		if (interest) {
+			bindings.add(owner);
+		} else {
+			bindings.delete(owner);
+		}
+
+		this.channel.send("set-interest", { room, interest: bindings.size > 0 });    
 	}
 }

@@ -1,13 +1,16 @@
 import { Element, Property, Listener, Dependencies, Inject, On, Watch, Bind, PolymerElement, PolymerModelEvent } from "elements/polymer";
 import { Router, View } from "client/router";
 import { NewsFeed, NewsData } from "services/newsfeed";
+import { Chat, ChatMessage } from "services/chat";
 import { GtBox, GtAlert, GtTimeago } from "elements/defs";
 
 Router.declareTabs("dashboard", [
 	{ title: "Dashboard", link: "/dashboard" }
 ]);
 
-interface Filters {
+const SHOUTBOX_ROOM = 0;
+
+interface NewsFilters {
 	[key: string]: boolean;
 }
 
@@ -43,7 +46,7 @@ class DashboardNews extends PolymerElement {
 		this.unshift("news", news);
 	}
 
-	private filters: Filters = {
+	private filters: NewsFilters = {
 		BLUE: true,
 		MMO: true,
 		WOW: true
@@ -87,7 +90,102 @@ class DashboardNews extends PolymerElement {
 	}
 }
 
+
+@Element("dashboard-shoutbox", "/assets/views/dashboard.html")
+@Dependencies()
+class DashboardShoutbox extends PolymerElement {
+	/**
+	 * The chat service 
+	 */
+	@Inject
+	private chat: Chat;
+	
+	/**
+	 * Shoutbox backlog
+	 */
+	private messages: ChatMessage[];
+	
+	/**
+	 * Track the readiness of the shoutbox data
+	 */
+	@Property({ type: Boolean, reflectToAttribute: true})
+	private loading: boolean;
+	
+	private attached() {
+		// Display loading indicator
+		this.loading = true;
+		
+		// Register the interest for this room
+		this.chat.setInterest(SHOUTBOX_ROOM, this, true);
+		
+		// Request the shoutbox messages backlog
+		this.chat.requestBacklog(SHOUTBOX_ROOM).then(msgs => {
+			this.messages = msgs;
+			this.loading = false;
+		});
+	}
+	
+	private detached() {
+		this.chat.setInterest(SHOUTBOX_ROOM, this, false);
+	}
+}
+
+interface OnlineUser {
+	user: number;
+	away: boolean;
+}
+
+@Element("dashboard-onlines", "/assets/views/dashboard.html")
+@Dependencies()
+class DashboardOnlines extends PolymerElement {
+	@Inject
+	@Bind({
+		"connected": true,
+		"disconnected": true,
+		"away-changed": "awayChanged"
+	})
+	private chat: Chat;
+	
+	/**
+	 * The sorted list of users used for display
+	 */
+	private onlines: OnlineUser[] = [];
+	
+	/**
+	 * A new user is now connected to GT
+	 */
+	private connected(user: number) {
+		let i = 0, l = this.onlines.length;
+		while (i < l && this.onlines[i].user < user) i++;
+		this.splice("onlines", i, 0, { user, away: false });
+	}
+	
+	/**
+	 * A previously connected user just disconnected
+	 */
+	private disconnected(user: number) {
+		for (let i = 0; i < this.onlines.length; i++) {
+			if (this.onlines[i].user == user) {
+				this.splice("onlines", i, 1);
+				break;
+			}
+		}
+	}
+	
+	/**
+	 * The away status of an user was changed
+	 */
+	private awayChanged(user: number, away: boolean) {
+		for (let i = 0; i < this.onlines.length; i++) {
+			if (this.onlines[i].user == user) {
+				this.set(`onlines.${i}.away`, away);
+				break;
+			}
+		}
+	}
+}
+
 @View("dashboard", "gt-dashboard", "/dashboard")
-@Dependencies(DashboardNews)
+@Dependencies(DashboardNews, DashboardShoutbox, DashboardOnlines)
 export class Dashboard extends PolymerElement {
 }
