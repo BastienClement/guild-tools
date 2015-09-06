@@ -10,17 +10,17 @@ import { Chat } from "services/chat";
 @Dependencies(GtButton)
 export class GtTitleBar extends PolymerElement {
 	@Inject
-	@On({ "update-latency": true })
+	@On({
+		"update-latency": "updateLatency"
+	})
 	private server: Server;
 
 	@Property({ value: "0ms" })
 	public latency: string;
 	private latency_history: number[] = [];
 
-	/**
-	 * Update the latency indicator
-	 */
-	private "update-latency"() {
+	// Update the latency indicator
+	private updateLatency() {
 		// Push the latency in the history array
 		const history = this.latency_history;
 		history.push(this.server.latency);
@@ -41,13 +41,17 @@ export class GtTitleBar extends PolymerElement {
 	}
 
 	@Inject
-	@Watch({ onlines: "update-onlines" })
+	@On({
+		"connected": "updateOnlineCount",
+		"disconnected": "updateOnlineCount"
+	})
 	private chat: Chat;
 
 	@Property({ value: 0 })
 	public online_users: number;
-	private "update-onlines"() {
-		this.online_users = this.chat.onlines.length;
+	
+	private updateOnlineCount() {
+		this.debounce("update-count", () => this.online_users = this.chat.onlinesUsers.length);
 	}
 
 	@Inject

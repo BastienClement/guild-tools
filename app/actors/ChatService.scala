@@ -7,7 +7,7 @@ import utils.ChannelList
 
 import scala.language.implicitConversions
 
-private case class ChatSession(user: User, var away: Boolean, var channels: Map[gtp3.Channel, Boolean])
+case class ChatSession(user: User, var away: Boolean, var channels: Map[gtp3.Channel, Boolean])
 
 trait ChatService {
 	def onlines: Map[Int, Boolean]
