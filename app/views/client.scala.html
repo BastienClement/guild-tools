@@ -3,28 +3,31 @@
 <title>Guild Tools</title>
 <style>body{background-color:#2e3740}.cloak{opacity:0;}</style>
 <script>
-	var loading_less = null;
-	function fetch_loading_less() {
-		loading_less = new Promise(function(resolve) {
-			var xhr = new XMLHttpRequest();
-			xhr.open("GET", '@routes.Assets.versioned("/public", "less/loading.less")', true);
-			xhr.responseType = "text";
-			xhr.onload = function() { resolve(this.response); };
-			xhr.send();
-		});
-	}
-	if (window.Promise) fetch_loading_less();
+	(function() {
+		var xhr = new XMLHttpRequest();
+		xhr.open("GET", '@routes.Assets.versioned("/public", "less/loading.css")', true);
+		xhr.responseType = "text";
+		xhr.onload = function() {
+			var style = document.createElement("style");
+			style.type = "text/css";
+			style.appendChild(document.createTextNode(this.response));
+			document.head.appendChild(style);
+		};
+		xhr.send();
+	})();
 </script>
-<script data-async="true" data-env="production" src='@routes.Assets.versioned("/public", "javascripts/less.js")'></script>
-<script src='@routes.Assets.versioned("/public", "javascripts/reflect.js")'></script>
-<script src='@routes.Assets.versioned("/public", "javascripts/traceur.js")'></script>
-<script src='@routes.Assets.versioned("/public", "javascripts/system.js")'></script>
-<script src='@routes.Assets.versioned("/public", "javascripts/system-polyfills.js")'></script>
-<script src='@routes.Assets.versioned("/public", "tools/config.js")'></script>
-<script src='@routes.Assets.versioned("/public", "javascripts/webcomponents-lite.js")'></script>
-<script type="prefetch/javascript" src='@routes.Assets.versioned("/public", "modules/client/boot.js")'></script>
-<script>if (!loading_less) fetch_loading_less();</script>
-<script>System.import("client/boot").then(function(boot){boot.default();});</script>
+<script defer data-async="true" data-env="production" src='@routes.Assets.versioned("/public", "javascripts/less.js")'></script>
+<script defer src='@routes.Assets.versioned("/public", "javascripts/reflect.js")'></script>
+<script defer src='@routes.Assets.versioned("/public", "javascripts/traceur.js")'></script>
+<script defer src='@routes.Assets.versioned("/public", "javascripts/system.js")'></script>
+<script defer src='@routes.Assets.versioned("/public", "javascripts/system-polyfills.js")'></script>
+<script defer src='@routes.Assets.versioned("/public", "tools/config.js")'></script>
+<script defer id="wc-lite" src='@routes.Assets.versioned("/public", "javascripts/webcomponents-lite.js")'></script>
+<script>
+	document.getElementById("wc-lite").onload = function() {
+		System.import("client/boot").then(function(boot){boot.default();});
+	};
+</script>
 <div id="loader" class="cloak"><div class="spinner"><b></b><b></b><b></b><b></b><b></b><b></b></div></div>
 <div id="background"></div>
 <div id="fader"></div>
