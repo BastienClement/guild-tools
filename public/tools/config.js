@@ -11,6 +11,7 @@ System.config({
 		"phpbb_hash": "/assets/javascripts/phpbb_hash.js",
 		"cryptojs": "/assets/javascripts/crypto.js",
 		"moment": "/assets/javascripts/moment.js",
+		"*": "/assets/modules/*.js"
 	},
 	shim: {
 		"pako": { exports: "pako" },
@@ -19,5 +20,3 @@ System.config({
 		"cryptojs": { exports: "CryptoJS" }
 	}
 });
-
-System.paths["*"] = "/assets/modules/*.js";

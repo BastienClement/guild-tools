@@ -34,26 +34,32 @@ function fix_imports_shim() {
 /**
  * Load and initialize Guild Tools
  */
-export default function boot() {
+export default async function boot() {
 	// Fix the html imports shim
 	fix_imports_shim();
 	
 	let DeferredLazy: typeof Deferred = null;
-	loading_less.then((source: string) => {
-		return less.render(source);
-	}).then((res: LessRenderResults) => {
-		const style = document.createElement("style");
-		style.type = "text/css";
-		style.appendChild(document.createTextNode(res.css));
-		document.head.appendChild(style);
-	}).then(() => new Promise((resolve, reject) => {
-		System.import("utils/deferred").then((mod: any) => resolve(DeferredLazy = mod.Deferred));
-	})).then(() => {
-		return DeferredLazy.require<Injector>("utils/di", "DefaultInjector");
-	}).then((injector: Injector) => {
-		return DeferredLazy.require<Constructor<Application>>("client/main", "Application").then(Application => injector.get(Application));
-	}).then((app: Application) => {
-		(<any> window).GuildTools = app;
-		app.main();
-	});
+	
+	// Wait for loading.less to be loaded and then compile it
+	const loading_less_res = await less.render(await loading_less);
+	
+	// Insert loading styles in document
+	const style = document.createElement("style");
+	style.type = "text/css";
+	style.appendChild(document.createTextNode(loading_less_res.css));
+	document.head.appendChild(style);
+	
+	// Load the deferred module
+	DeferredLazy = (await System.import<{ Deferred: typeof Deferred }>("utils/deferred")).Deferred;
+	
+	// Load the default injector and the Application constructor
+	const injector = await DeferredLazy.require<Injector>("utils/di", "DefaultInjector");
+	const app_constructor = await DeferredLazy.require<Constructor<Application>>("client/main", "Application");
+	
+	// Construct the Application
+	const app = injector.get(app_constructor);
+	
+	// Assign to global object and call main()
+	(<any> window).GuildTools = app;
+	app.main();
 }
