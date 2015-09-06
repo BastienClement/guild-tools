@@ -100,7 +100,7 @@ export class GtDialog extends PolymerElement {
 		Polymer.dom.flush();
 		Polymer.dom(this).classList.add("slide-out");
 		this.fire("hide");
-
+		
 		if (GtDialog.queue.length() > 0) {
 			GtDialog.queue.dequeue().show(true);
 		} else {

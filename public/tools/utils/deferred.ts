@@ -122,15 +122,13 @@ export class Deferred<T> {
 	 * Promise interface to Require.js
 	 */
 	static require<T>(module_name: string, symbole?: string): Promise<T> {
-		const deferred = new Deferred<T>();
-		require([module_name], (mod: any) => deferred.resolve(symbole ? mod[symbole] : mod))
-		return deferred.promise;
+		return System.import<any>(module_name).then(mod => symbole ? mod[symbole] : mod);
 	}
 
 	/**
 	 * Construct a lazy promise
 	 */
-	static lazy<T>(init: () => T | Promise<T>): LazyThen<T> {
+	/*static lazy<T>(init: () => T | Promise<T>): LazyThen<T> {
 		let promise: Promise<T> = null;
 		return (fn?: (value: T) => any) => {
 			if (!promise) {
@@ -139,7 +137,7 @@ export class Deferred<T> {
 			}
 			return fn ? promise.then(fn) : promise;
 		};
-	}
+	}*/
 }
 
 // ------------

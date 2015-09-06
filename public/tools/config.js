@@ -1,12 +1,16 @@
-requirejs.config({
-	baseUrl: "/assets/modules",
+System.config({
+	transpiler: "traceur",
+	traceurOptions: {
+		experimental: true,
+		sourceMaps: "inline"
+	},
 	paths: {
-		"pako": "/assets/javascripts/pako",
-		"less": "/assets/javascripts/less",
-		"encoding": "/assets/javascripts/encoding",
-		"phpbb_hash": "/assets/javascripts/phpbb_hash",
-		"cryptojs": "/assets/javascripts/crypto",
-		"moment": "/assets/javascripts/moment",
+		"pako": "/assets/javascripts/pako.js",
+		"less": "/assets/javascripts/less.js",
+		"encoding": "/assets/javascripts/encoding.js",
+		"phpbb_hash": "/assets/javascripts/phpbb_hash.js",
+		"cryptojs": "/assets/javascripts/crypto.js",
+		"moment": "/assets/javascripts/moment.js",
 	},
 	shim: {
 		"pako": { exports: "pako" },
@@ -15,3 +19,5 @@ requirejs.config({
 		"cryptojs": { exports: "CryptoJS" }
 	}
 });
+
+System.paths["*"] = "/assets/modules/*.js";

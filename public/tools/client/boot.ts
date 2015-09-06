@@ -34,7 +34,7 @@ function fix_imports_shim() {
 /**
  * Load and initialize Guild Tools
  */
-function boot() {
+export default function boot() {
 	// Fix the html imports shim
 	fix_imports_shim();
 	
@@ -47,15 +47,13 @@ function boot() {
 		style.appendChild(document.createTextNode(res.css));
 		document.head.appendChild(style);
 	}).then(() => new Promise((resolve, reject) => {
-		require(["utils/deferred"], (mod: any) => resolve(DeferredLazy = mod.Deferred));
+		System.import("utils/deferred").then((mod: any) => resolve(DeferredLazy = mod.Deferred));
 	})).then(() => {
 		return DeferredLazy.require<Injector>("utils/di", "DefaultInjector");
 	}).then((injector: Injector) => {
 		return DeferredLazy.require<Constructor<Application>>("client/main", "Application").then(Application => injector.get(Application));
 	}).then((app: Application) => {
-		GuildTools = app;
+		(<any> window).GuildTools = app;
 		app.main();
 	});
 }
-
-export = boot;

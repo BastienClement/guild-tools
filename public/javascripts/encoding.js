@@ -17,11 +17,6 @@
  * @fileoverview Global |this| required for resolving indexes in node.
  * @suppress {globalThis}
  */
-if (typeof module !== "undefined" && module.exports) {
-	this["encoding-indexes"] =
-		require("./encoding-indexes.js")["encoding-indexes"];
-}
-
 (function(global) {
 	'use strict';
 

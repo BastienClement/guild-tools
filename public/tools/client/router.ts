@@ -81,10 +81,7 @@ export class Router extends EventEmitter {
 	 */
 	public loadViews(module: string | string[]) {
 		Router.context = this;
-		return new Promise<void>(resolve => require([].concat(module), () => {
-			Router.context = null;
-			resolve();
-		}));
+		return System.import(module).then(m => void 0);
 	}
 
 	public static declareTabs(module: string, tabs: ModuleTab[]) {

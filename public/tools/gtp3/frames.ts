@@ -31,6 +31,7 @@ export class Frame {
 
 	// The frame type
 	frame_type: number;
+	frame_name: string;
 
 	// Sequence number
 	sequenced: boolean;
@@ -153,9 +154,10 @@ export class Frame {
 /**
  * The frame annotation, register the constructor for later decoding and define the Frame#frame_type
  */
-function frame(ftype: number) {
+function frame(ftype: number, fname: string) {
 	return (target: FrameConstructor) => {
 		target.prototype.frame_type = ftype;
+		target.prototype.frame_name = fname;
 		Frame.constructors.set(ftype, target);
 	};
 }
@@ -228,48 +230,48 @@ function channel(target: Frame, key: string) {
 /* Frames Definitions                                                                                                 */
 /* ================================================================================================================== */
 
-@frame(FrameType.HELLO)
+@frame(FrameType.HELLO, "Hello")
 export class HelloFrame extends Frame {
 	@uint32  magic: number;
 	@str     version: string;
 }
 
-@frame(FrameType.HANDSHAKE)
+@frame(FrameType.HANDSHAKE, "Handshake")
 export class HandshakeFrame extends Frame {
 	@uint32  magic: number;
 	@str     version: string;
 	@uint64  sockid: UInt64;
 }
 
-@frame(FrameType.RESUME)
+@frame(FrameType.RESUME, "Resume")
 export class ResumeFrame extends Frame {
 	@uint64  sockid: number;
 	@uint16  last_seq: number;
 }
 
-@frame(FrameType.SYNC)
+@frame(FrameType.SYNC, "Sync")
 export class SyncFrame extends Frame {
 	@uint16  last_seq: number;
 }
 
-@frame(FrameType.ACK)
+@frame(FrameType.ACK, "Ack")
 export class AckFrame extends Frame {
 	@uint16  last_seq: number;
 }
 
-@frame(FrameType.IGNORE)
+@frame(FrameType.IGNORE, "Ignore")
 export class IgnoreFrame extends Frame {}
 
-@frame(FrameType.PING)
+@frame(FrameType.PING, "Ping")
 export class PingFrame extends Frame {}
 
-@frame(FrameType.PONG)
+@frame(FrameType.PONG, "Pong")
 export class PongFrame extends Frame {}
 
-@frame(FrameType.REQUEST_ACK)
+@frame(FrameType.REQUEST_ACK, "RequestAck")
 export class RequestAckFrame extends Frame {}
 
-@frame(FrameType.OPEN)
+@frame(FrameType.OPEN, "Open")
 export class OpenFrame extends Frame {
 	@seq     seq: number;
 	@uint16  sender_channel: number;
@@ -278,14 +280,14 @@ export class OpenFrame extends Frame {
 	@uint16  parent_channel: number;
 }
 
-@frame(FrameType.OPEN_SUCCESS)
+@frame(FrameType.OPEN_SUCCESS, "OpenSuccess")
 export class OpenSuccessFrame extends Frame {
 	@seq     seq: number;
 	@uint16  recipient_channel: number;
 	@uint16  sender_channel: number;
 }
 
-@frame(FrameType.OPEN_FAILURE)
+@frame(FrameType.OPEN_FAILURE, "OpenFailure")
 export class OpenFailureFrame extends Frame {
 	@seq     seq: number;
 	@uint16  recipient_channel: number;
@@ -293,12 +295,12 @@ export class OpenFailureFrame extends Frame {
 	@str     message: string;
 }
 
-@frame(FrameType.RESET)
+@frame(FrameType.RESET, "Reset")
 export class ResetFrame extends Frame {
 	@uint16  sender_channel: number;
 }
 
-@frame(FrameType.MESSAGE)
+@frame(FrameType.MESSAGE, "Message")
 export class MessageFrame extends Frame {
 	@seq      seq: number;
 	@channel  channel: number;
@@ -307,7 +309,7 @@ export class MessageFrame extends Frame {
 	@buf      payload: ArrayBuffer;
 }
 
-@frame(FrameType.REQUEST)
+@frame(FrameType.REQUEST, "Request")
 export class RequestFrame extends Frame {
 	@seq      seq: number;
 	@channel  channel: number;
@@ -317,7 +319,7 @@ export class RequestFrame extends Frame {
 	@buf      payload: ArrayBuffer;
 }
 
-@frame(FrameType.SUCCESS)
+@frame(FrameType.SUCCESS, "Success")
 export class SuccessFrame extends Frame {
 	@seq      seq: number;
 	@channel  channel: number;
@@ -326,7 +328,7 @@ export class SuccessFrame extends Frame {
 	@buf      payload: ArrayBuffer;
 }
 
-@frame(FrameType.FAILURE)
+@frame(FrameType.FAILURE, "Failure")
 export class FailureFrame extends Frame {
 	@seq      seq: number;
 	@channel  channel: number;
@@ -335,7 +337,7 @@ export class FailureFrame extends Frame {
 	@str      message: string;
 }
 
-@frame(FrameType.CLOSE)
+@frame(FrameType.CLOSE, "Close")
 export class CloseFrame extends Frame {
 	@seq      seq: number;
 	@channel  channel: number;

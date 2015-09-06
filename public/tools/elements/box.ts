@@ -9,7 +9,7 @@ export class GtBox extends PolymerElement {
 	public scrollable: string;
 
 	@Property({ computed: "heading" })
-	private get "has-heading"() {
+	private get "has-heading"(): boolean {
 		return !!this.heading;
 	}
 }

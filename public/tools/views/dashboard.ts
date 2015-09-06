@@ -16,19 +16,19 @@ interface NewsFilters {
 
 @Element("dashboard-news-filter", "/assets/views/dashboard.html")
 class DashboardNewsFilter extends PolymerElement {
-	@Property
+	@Property()
 	public key: string;
 
 	@Property(Boolean)
 	public active: boolean;
 
 	@Property({ computed: "key" })
-	private get icon() {
+	private get icon(): string {
 		return `/assets/images/feed/${this.key}.png`;
 	}
 
 	@Listener("tap")
-	private click() {
+	private click(): void {
 		this.fire("toggle-filter", this.key);
 	}
 }
@@ -63,7 +63,7 @@ class DashboardNews extends PolymerElement {
 	}
 
 	@Property({ computed: "news.* filters.*" })
-	private get noVisible() {
+	private get noVisible(): boolean {
 		return this.news.every(n => !this.filters[n.source]);
 	}
 

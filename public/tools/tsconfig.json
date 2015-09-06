@@ -1,18 +1,18 @@
 {
-  "compilerOptions": {
-    "module": "amd",
-    "noImplicitAny": true,
-    "removeComments": false,
-    "preserveConstEnums": true,
-    "outDir": "../modules",
-    "sourceMap": true,
-    "emitDecoratorMetadata": true,
-    "target": "ES5",
-    "experimentalDecorators": true
-  },
-  "files": [
-    "defs/defs.d.ts",
-    "client/boot.ts",
+	"compilerOptions": {
+		"noImplicitAny": true,
+		"removeComments": false,
+		"preserveConstEnums": true,
+		"outDir": "../modules",
+		"sourceMap": true,
+		"emitDecoratorMetadata": true,
+		"target": "ES6",
+		"experimentalDecorators": true,
+		"experimentalAsyncFunctions": true
+	},
+	"files": [
+		"defs/defs.d.ts",
+		"client/boot.ts",
 		"views/defs.ts"
-  ]
+	]
 }

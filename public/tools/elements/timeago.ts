@@ -1,5 +1,5 @@
 import { Element, Property, Listener, Dependencies, Inject, On, Watch, Bind, PolymerElement, PolymerModelEvent, PolymerMetadata } from "elements/polymer";
-import moment = require("moment");
+import moment from "moment";
 
 @Element("gt-timeago")
 export class GtTimeago extends PolymerElement {

@@ -1,12 +1,9 @@
 ///<reference path="encoding.d.ts" />
-///<reference path="es6.d.ts" />
 ///<reference path="jquery.d.ts" />
 ///<reference path="less.d.ts" />
 ///<reference path="pako.d.ts" />
 ///<reference path="polymer.d.ts" />
 ///<reference path="moment.d.ts" />
-
-declare var require: Function;
 
 declare module Reflect {
 	function getMetadata<T>(metadataKey: string, target: any, propertyKey?: string): T;
@@ -18,3 +15,9 @@ declare module Reflect {
 	function getMetadataKeys(target: any, propertyKey?: string): string[];
 	function getOwnMetadataKeys(target: any, propertyKey?: string): string[];
 }
+
+interface System {
+	import<T>(...modules: any[]): Promise<T>;
+}
+
+declare var System: System;
