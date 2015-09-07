@@ -28,7 +28,7 @@ export class Server extends EventEmitter {
 	// Boostrap the server connection
 	connect(url: string): Promise<void> {
 		const defer = this.connect_deferred = new Deferred<void>();
-		const socket = this.socket = new Socket(url);
+		const socket = this.socket = new Socket(this.normalizeURL(url));
 
 		socket.verbose = true;
 		socket.pipe(this);
@@ -36,6 +36,14 @@ export class Server extends EventEmitter {
 		socket.connect();
 
 		return defer.promise;
+	}
+	
+	// Transform placeholder token in the WS host
+	private normalizeURL(url: string): string {
+		for (let key of ["hostname", "port", "host"]) {
+			url = url.replace(`$${key}`, (<any> location)[key]);
+		}
+		return url;
 	}
 
 	// The socket is connected to the server
