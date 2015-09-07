@@ -42,5 +42,9 @@ export default async function boot() {
 	
 	// Assign to global object and call main()
 	(<any> window).GuildTools = app;
-	app.main();
+	try {
+		await app.main();
+	} catch (e) {
+		console.error("loading failed", e);
+	}
 }

@@ -34,43 +34,44 @@ export class Application {
 	/**
 	 * Initialize the GuildTools application
 	 */
-	main(): void {
+	async main(): Promise<void> {
 		const socket_endpoint = this.loader.fetch("/api/socket_url");
 		const body = document.body;
 
-		const init_pipeline = Deferred.pipeline(socket_endpoint, [
-			(url: string) => this.server.connect(url),
-			() => this.loader.loadLess("/assets/less/guildtools.less"),
-			() => new AuthenticationDriver(this).start(),
-			() => this.spinner_enabled ? this.stopSpinner() : null,
-			() => {
-				body.classList.add("no-loader");
-				body.classList.add("with-background");
-				return Deferred.delay(1100);
-			},
-			() => {
-				body.classList.add("app-loader");
-				return this.server.openChannel("master");
-			},
-			(master: Channel) => {
-				this.masterChannel = master;
-				// TODO: reimplement wizard on login
-				return this.loader.loadElement(GtApp);
-			},
-			() => {
-				body.appendChild(this.root = new GtApp());
-				return this.router.loadViews("views/defs");
-			}
+		// Connect to server and load main less file        
+		await Promise.all([
+			this.loader.loadLess("/assets/less/guildtools.less"),
+			this.server.connect(await socket_endpoint)
 		]);
-
-		init_pipeline.then(() => {
-			console.log("loading done");
-			//setInterval(() => this.server.ping(), 10000);
-			this.router.fallback = "/dashboard";
-			this.router.update();
-		}, (e) => {
-			console.error("loading failed", e);
-		});
+		
+		// Start the authentication process
+		await new AuthenticationDriver(this).start();
+		
+		// Disable spinner if it is enabled
+		if (this.spinner_enabled) {
+			await this.stopSpinner();
+		}
+		
+		// Login transition
+		body.classList.add("no-loader");
+		body.classList.add("with-background");
+		await Deferred.delay(1100);
+		body.classList.add("app-loader");
+		
+		// Open master channel
+		this.masterChannel = await this.server.openChannel("master");
+		
+		// Load the main container element
+		await this.loader.loadElement(GtApp);
+		body.appendChild(this.root = new GtApp());
+		
+		await this.router.loadViews("views/defs")
+		
+		console.log("loading done");
+		//setInterval(() => this.server.ping(), 10000);
+		
+		this.router.fallback = "/dashboard";
+		this.router.update();
 	}
 
 	/**
@@ -113,79 +114,80 @@ export class Application {
  * Authentication procedure driver
  */
 class AuthenticationDriver {
-	private session: string = localStorage.getItem(KEY_AUTH_SESSION);
+	private loader: Loader = this.app.loader;
 	private channel: Channel;
 	private gt_login: GtLogin;
-	private loader: Loader = this.app.loader;
 
 	constructor(public app: Application) {}
 
 	/**
 	 * Begin the authentication process
 	 */
-	start(): Promise<void> {
-		const auth = this.app.server.openChannel("auth").then(channel => {
-			this.channel = channel;
-			return this.auth();
-		}).then(success => {
-			if (success) return;
-			this.session = null;
-			localStorage.removeItem(KEY_AUTH_SESSION);
-			return this.login(null);
-		}).then(() => {
-			if (this.gt_login) {
-				return this.gt_login.close();
+	async start(): Promise<void> {
+		this.channel = await this.app.server.openChannel("auth");
+		let session = localStorage.getItem(KEY_AUTH_SESSION);
+		
+		// Authentication loop
+		while (true) {
+			// Check session if available
+			if (session) {
+				if (await this.auth(session)) {
+					localStorage.setItem(KEY_AUTH_SESSION, session);
+					break;
+				} else {
+					session = null;
+				}    
 			}
-		});
-
-		Deferred.finally(auth, () => {
-			if (this.channel) this.channel.close();
-			if (this.gt_login) document.body.removeChild(this.gt_login);
-		});
-
-		return auth;
+			
+			session = await this.login();
+		}
+		
+		this.channel.close();
+		if (this.gt_login) {
+			await this.gt_login.close();
+			document.body.removeChild(this.gt_login);
+		}
 	}
 
 	/**
 	 * Send the session token to the server and return if
 	 * the authentication was successful
 	 */
-	private auth(): Promise<boolean> {
-		if (!this.session) return Deferred.resolved(null);
-		return this.channel.request<UserInformations>("auth", this.session).then(user => {
-			this.app.server.user = user;
-			return !!user;
-		});
+	private async auth(session: string): Promise<boolean> {
+		const user = await this.channel.request<UserInformations>("auth", session);
+		this.app.server.user = user;
+		return !!user;
 	}
 
 	/**
 	 * Perform the login request
 	 */
-	private login(error: string): Promise<void> {
-		if (error) console.error(error);
-		let user: string;
-		let pass: string;
-		return this.requestCredentials(error).then(credentials => {
-			[user, pass] = credentials;
-			return Deferred.all([this.channel.request("prepare", user), Deferred.require("phpbb_hash"), Deferred.require("cryptojs")]);
-		}).then((res: any[]) => {
-			const [prepare, phpbb_hash, crypto] = res;
-			pass = crypto.SHA1(phpbb_hash(pass, prepare.setting) + prepare.salt).toString();
-			return this.channel.request<string>("login", { user: user, pass: pass });
-		}).then(sid => {
-			this.session = sid;
-			localStorage.setItem(KEY_AUTH_SESSION, sid);
-			return this.auth();
-		}).then(success => {
-			if (!success) throw new Error("Auth failed after a successful login");
-		}).catch(e => this.login(e.message));
+	private async login(): Promise<string> {
+		let error: string = null
+		while (true) {
+			const [user, raw_pass] = await this.requestCredentials(error);
+
+			const [prepare, phpbb_hash, crypto] = await Deferred.all<any>([
+				this.channel.request("prepare", user),
+				Deferred.require("phpbb_hash"),
+				Deferred.require("cryptojs")
+			]);
+
+			const pass = crypto.SHA1(phpbb_hash(raw_pass, prepare.setting) + prepare.salt).toString();
+
+			try {
+				return await this.channel.request<string>("login", { user, pass });
+			} catch (e) {
+				error = e.message;
+			}
+		}    
 	}
 
 	/**
 	 * Request user credentials
 	 */
-	private requestCredentials(error: string): Promise<[string, string]> {
-		if (!this.gt_login) return this.constructForm().then(() => this.requestCredentials(null));
+	private async requestCredentials(error: string): Promise<[string, string]> {
+		if (!this.gt_login) await this.constructForm();
 		this.gt_login.error = error;
 		this.gt_login.autofocus();
 		return (this.gt_login.credentials = new Deferred<[string, string]>()).promise;
@@ -194,12 +196,13 @@ class AuthenticationDriver {
 	/**
 	 * Create the login form interface
 	 */
-	private constructForm(): Promise<void> {
-		return this.loader.loadElement(GtLogin).then(() => this.app.stopSpinner()).then(() => {
-			this.gt_login = new GtLogin();
-			document.body.classList.add("with-background");
-			document.body.classList.add("no-loader");
-			document.body.appendChild(this.gt_login);
-		});
+	private async constructForm(): Promise<void> {
+		await this.loader.loadElement(GtLogin);
+		await this.app.stopSpinner();
+		
+		this.gt_login = new GtLogin();
+		document.body.classList.add("with-background");
+		document.body.classList.add("no-loader");
+		document.body.appendChild(this.gt_login);
 	}
 }
