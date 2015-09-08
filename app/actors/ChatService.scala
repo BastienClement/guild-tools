@@ -14,7 +14,7 @@ case class ChatException(msg: String) extends Exception(msg)
 
 private case class Session(user: User, var sockets: Set[ActorRef])
 
-private case class Channel(var channel: ChatChannel, var members: Set[Int])
+private case class Channel(var channel: ChatRoom, var members: Set[Int])
 
 trait ChatService {
 	def onlines: Set[Int]
@@ -63,7 +63,7 @@ class ChatServiceImpl extends ChatService {
 
 	private val shoutbox_backlog = LazyCache[List[ChatMessage]](1.minute) {
 		DB.withSession { implicit s =>
-			ChatMessages.filter(_.channel.isEmpty).sortBy(_.id.desc).take(100).list
+			ChatMessages.filter(_.room === 0).sortBy(_.id.desc).take(100).list
 		}
 	}
 
@@ -71,7 +71,7 @@ class ChatServiceImpl extends ChatService {
 
 	def sendShoutbox(from: User, msg: String): Unit = {
 		val message = DB.withSession { implicit s =>
-			val template = ChatMessage(0, None, from.id, from.name, msg)
+			val template = ChatMessage(0, 0, from.id, from.name, msg)
 			val id = (ChatMessages returning ChatMessages.map(_.id)).insert(template)
 			template.copy(id = id)
 		}
@@ -97,8 +97,8 @@ class ChatServiceImpl extends ChatService {
 		DB.withSession { implicit s =>
 			var query = select.toQuery
 			channel match {
-				case Some(cid) => query = query.filter(_.channel === cid)
-				case None => query = query.filter(_.channel.isEmpty)
+				case Some(cid) => query = query.filter(_.room === cid)
+				case None => query = query.filter(_.room === 0)
 			}
 			query.list
 		}
