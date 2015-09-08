@@ -2,9 +2,12 @@ package actors
 
 import gtp3.{Channel, Payload}
 import models._
+import models.mysql._
 import play.api.libs.json._
 import utils.ChannelList
+import gt.Global.ExecutionContext
 
+import scala.concurrent.Future
 import scala.language.implicitConversions
 
 case class ChatSession(user: User, var away: Boolean, var channels: Map[gtp3.Channel, Boolean])
@@ -15,6 +18,8 @@ trait ChatService {
 	def connect(channel: gtp3.Channel): Unit
 	def disconnect(channel: gtp3.Channel): Unit
 	def setAway(channel: gtp3.Channel, away: Boolean): Unit
+
+	def roomBacklog(room: Int, user: User, count: Option[Int], limit: Option[Int] = None): Future[Seq[ChatMessage]]
 
 	/*def loadShoutbox(): List[ChatMessage]
 	def sendShoutbox(from: User, message: String): Unit
@@ -79,6 +84,15 @@ class ChatServiceImpl extends ChatService with ChannelList[ChatSession] {
 			session.channels = session.channels.updated(channel, away)
 			updateAway(session)
 		}
+	}
+
+	def roomBacklog(room: Int, user: User, count: Option[Int], limit: Option[Int] = None): Future[Seq[ChatMessage]] = {
+		var query = ChatMessages.filter(_.room === room)
+		for (l <- limit)
+			query = query.filter(_.id < l)
+
+		val actual_count = count.filter(v => v > 0 && v <= 100).getOrElse(50)
+		query.sortBy(_.id.asc).take(actual_count).run
 	}
 
 	/*

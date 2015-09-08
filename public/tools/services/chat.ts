@@ -130,7 +130,7 @@ export class Chat extends PausableEventEmitter {
 	private interests = new Map<number, Set<any>>();
 	
 	// Define the interesting chat rooms
-	public setInterest(room: number, owner: any, interest: boolean) {
+	public setInterest(room: number, owner: any, interested: boolean) {
 		// Local binding cache for this room
 		let bindings = this.interests.get(room);
 		
@@ -141,7 +141,7 @@ export class Chat extends PausableEventEmitter {
 		}
 		
 		// Set or reset interest
-		if (interest) {
+		if (interested) {
 			bindings.add(owner);
 		} else {
 			bindings.delete(owner);
@@ -150,7 +150,7 @@ export class Chat extends PausableEventEmitter {
 		// We only send a message to the server if the number of bindings is 1 or 0
 		// In every other cases, the interest state for this room cannot have changed
 		if (bindings.size < 2) {
-			this.channel.send("set-interest", { room, interest: bindings.size > 0 });
+			this.channel.send("set-interest", { room, interested: bindings.size > 0 });
 		}
 	}
 }

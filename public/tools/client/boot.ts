@@ -28,6 +28,8 @@ function fix_imports_shim() {
 
 /**
  * Load and initialize Guild Tools
+ * Create the default injector and use it
+ * to construct the main Application object
  */
 export default async function boot() {
 	// Fix the html imports shim

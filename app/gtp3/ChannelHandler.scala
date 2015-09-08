@@ -40,7 +40,7 @@ trait ChannelHandler {
 				case p: Payload => Future.successful(p)
 				case _ => Future.failed(new Exception("Invalid result type"))
 			}
-			case None => Future.failed(new Exception("Undefined handler"))
+			case None => Future.failed(new Exception(s"Undefined handler ($req)"))
 		}
 	}
 

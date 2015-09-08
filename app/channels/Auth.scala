@@ -38,6 +38,6 @@ class Auth extends ChannelHandler {
 	def login(payload: Payload): Future[Payload] = utils.atLeast(500.milliseconds) {
 		val cur_salt = salt
 		salt = utils.randomToken()
-		AuthService.login(payload.get("user").as[String], payload.get("pass").as[String], cur_salt)
+		AuthService.login(payload("user").as[String], payload("pass").as[String], cur_salt)
 	}
 }

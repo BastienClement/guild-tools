@@ -111,7 +111,7 @@ class DashboardShoutbox extends PolymerElement {
 	@Property({ type: Boolean, reflectToAttribute: true})
 	private loading: boolean;
 	
-	private attached() {
+	private async attached() {
 		// Display loading indicator
 		this.loading = true;
 		
@@ -119,10 +119,11 @@ class DashboardShoutbox extends PolymerElement {
 		this.chat.setInterest(SHOUTBOX_ROOM, this, true);
 		
 		// Request the shoutbox messages backlog
-		this.chat.requestBacklog(SHOUTBOX_ROOM).then(msgs => {
-			this.messages = msgs;
-			this.loading = false;
-		});
+		const msgs = await this.chat.requestBacklog(SHOUTBOX_ROOM);
+		
+		console.log(msgs);
+		this.messages = msgs;
+		this.loading = false;
 	}
 	
 	private detached() {
