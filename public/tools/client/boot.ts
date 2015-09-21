@@ -3,11 +3,6 @@ import { Injector, Constructor } from "utils/di";
 import { Application } from "client/main";
 
 /**
- * The global reference to the Application instance
- */
-declare var GuildTools: Application;
-
-/**
  * Fix the mess made by the HTMLImports shim
  */
 function fix_imports_shim() {

@@ -31,6 +31,7 @@ class Socket(val id: Long, var actor: SocketActor) {
 	private var request_ack_cooldown = 0
 
 	// Socket is authenticated
+	var auth_open: Boolean = false
 	var user: User = null
 
 	/**

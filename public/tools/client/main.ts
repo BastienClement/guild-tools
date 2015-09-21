@@ -44,13 +44,23 @@ export class Application {
 			this.server.connect(await socket_endpoint)
 		]);
 		
+		// Display the title bar
+		const loader_title = document.getElementById("loader-titlebar");
+		if (APP) {
+			loader_title.style.opacity = "1";
+		} else {
+			loader_title.remove();
+		}
+		
 		// Start the authentication process
+		await Deferred.delay(500);
 		await new AuthenticationDriver(this).start();
 		
-		// Disable spinner if it is enabled
-		if (this.spinner_enabled) {
-			await this.stopSpinner();
-		}
+		// Ensure spinner is disabled
+		await this.stopSpinner();
+		
+		// Hide the loading title bar
+		if (GtApp) loader_title.style.opacity = "0";
 		
 		// Login transition
 		body.classList.add("no-loader");
@@ -66,6 +76,9 @@ export class Application {
 		body.appendChild(this.root = new GtApp());
 		
 		await this.router.loadViews("views/defs")
+		
+		// Remove the loading title bar
+		if (GtApp) loader_title.remove();
 		
 		console.log("loading done");
 		//setInterval(() => this.server.ping(), 10000);
@@ -84,12 +97,11 @@ export class Application {
 	 * of the loadind spinner annimation is completed. Also stop the
 	 * spinner annimation.
 	 */
-	stopSpinner() {
+	stopSpinner(): Promise<void> {
+		if (!this.spinner_enabled) return Promise.resolve(null);
 		this.spinner_enabled = false;
 
 		const last_dot = document.querySelector<HTMLSpanElement>("#loader .spinner b:last-child");
-		if (!last_dot) return Deferred.resolved(null);
-
 		const trigger = new Deferred<void>();
 
 		const listener = () => {
@@ -104,9 +116,9 @@ export class Application {
 		last_dot.addEventListener("animationiteration", listener);
 
 		// Bypass the synchronization if loading.fast is set
-		if (localStorage.getItem("loading.fast") == "1") return null;
+		if (localStorage.getItem("loading.fast") == "1") return Promise.resolve(null);
 
-		return trigger.promise;
+		return trigger.promise.then(() => Deferred.delay(500));
 	}
 }
 

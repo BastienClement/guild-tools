@@ -163,7 +163,8 @@ export class Loader {
 		// Ensure that Polymer is loaded
 		if (!polymer_loaded) {
 			polymer_loaded = true;
-			if (localStorage.getItem("polymer.useShadowDOM") == "1") Polymer = <any> { dom: "shadow" };
+			//if (localStorage.getItem("polymer.useShadowDOM") == "1")
+			(<any>window).Polymer = { dom: "shadow" };
 			return this.loadDocument(POLYMER_PATH).then(() => this.loadElement(element));
 		} else if (!Polymer.is) {
 			apply_polymer_fns();
@@ -353,7 +354,8 @@ export class Loader {
 		attrs = attrs.filter(attr => attr[0][0] == "{");
 
 		// Construct the new tag
-		const tag_limit = node.outerHTML.indexOf(node.innerHTML);
+		// -> Special case for empty tag
+		const tag_limit = node.innerHTML != "" ? node.outerHTML.indexOf(node.innerHTML) : node.outerHTML.indexOf(">") + 1;
 		let tag = node.outerHTML.slice(0, tag_limit);
 		for (let attr of attrs) {
 			tag = tag.replace(attr[0], `${attr[2]}$`);

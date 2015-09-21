@@ -9,6 +9,12 @@ import { Chat } from "services/chat";
 @Element("gt-title-bar", "/assets/imports/app.html")
 @Dependencies(GtButton)
 export class GtTitleBar extends PolymerElement {
+	private init() {
+		if (!APP) {
+			this.$["window-controls"].remove();
+		}
+	}
+	
 	@Inject
 	@On({
 		"update-latency": "updateLatency"
@@ -187,6 +193,9 @@ export class GtView extends PolymerElement {
 @Element("gt-app", "/assets/imports/app.html")
 @Dependencies(GtTitleBar, GtSidebar, GtView)
 export class GtApp extends PolymerElement {
+	@Property()
+	public app: boolean = APP;
+	
 	public titlebar: GtTitleBar = this.$.title;
 	public sidebar: GtSidebar = this.$.side;
 	public view: GtView = this.$.view;

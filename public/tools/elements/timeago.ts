@@ -6,7 +6,7 @@ export class GtTimeago extends PolymerElement {
 	@Property({ observer: "update" })
 	public date: string;
 
-	private ticker: number;
+	private ticker: any;
 
 	attached() {
 		clearInterval(this.ticker);

@@ -9,7 +9,14 @@ import reactive._
 import models._
 
 object Auth extends ChannelValidator {
-	def open(request: ChannelRequest) = request.accept(new Auth)
+	def open(request: ChannelRequest) = {
+		if (request.socket.auth_open) {
+			request.reject(105, "Cannot open more than one auth channel per socket")
+		} else {
+			request.socket.auth_open = true
+			request.accept(new Auth)
+		}
+	}
 }
 
 class Auth extends ChannelHandler {
@@ -23,14 +30,14 @@ class Auth extends ChannelHandler {
 
 	var salt = utils.randomToken()
 
-	def auth(payload: Payload): Future[Payload] = {
+	def auth(payload: Payload): Future[Payload] = utils.atLeast(500.milliseconds) {
 		AuthService.auth(payload.string).map(user => {
 			socket.user = user
 			Json.toJson(user)
 		}).fallbackTo[JsValue](JsNull)
 	}
 
-	def prepare(payload: Payload): Future[Payload] = utils.atLeast(250.milliseconds) {
+	def prepare(payload: Payload): Future[Payload] = utils.atLeast(500.milliseconds) {
 		val user = payload.value.as[String]
 		AuthService.setting(user) map { setting => Json.obj("salt" -> salt, "setting" -> setting) }
 	}

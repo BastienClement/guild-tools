@@ -431,9 +431,24 @@ export function Dependencies(...dependencies: PolymerConstructor<any>[]) {
 /**
  * Declare a Polymer Property
  */
-export function Property(config: any = {}) {
+interface PolymerPropertyConfig<T> {
+	type?: { new (): T };
+	value?: T;
+	reflect?: boolean;
+	reflectToAttribute?: boolean;
+	readOnly?: boolean;
+	notify?: boolean;
+	computed?: string;
+	observer?: string;
+}
+
+export function Property<T>(config: PolymerPropertyConfig<T> = {}) {
 	return (target: any, property: string) => {
 		if (!target.properties) target.properties = {};
+		
+		if (config.reflect) {
+			config.reflectToAttribute = true;
+		}
 
 		if (config.computed) {
 			try {

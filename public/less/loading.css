@@ -27,6 +27,7 @@
 	left: 0;
 	right: 0;
 	text-align: center;
+	line-height: 16px;
 }
 
 .no-loader #loader .spinner {
@@ -83,4 +84,30 @@
 
 .app-loader #app-loader {
 	opacity: 0.8;
+}
+
+#loader-titlebar {
+	z-index: 5000;
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 56px;
+	-webkit-app-region: drag;
+	font-size: 20px;
+	padding: 12px;
+	text-align: right;
+	transition: opacity .3s ease-out;
+	opacity: 0;
+}
+
+#loader-titlebar i {
+	-webkit-app-region: no-drag;
+	transition: text-shadow .2s ease-out;
+	display: inline-block;
+	margin: 5px;
+}
+
+#loader-titlebar i:hover {
+	text-shadow: 0px 0px 5px rgba(255, 255, 255, 0.5);
 }

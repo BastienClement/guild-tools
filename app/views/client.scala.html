@@ -1,8 +1,42 @@
 <!DOCTYPE html>
 <meta charset="UTF-8">
 <title>Guild Tools</title>
-<style>body{background-color:#2e3740}.cloak{opacity:0;}</style>
+
+<!-- Background and nothing else -->
+<style>
+	body {
+		overflow: hidden;
+		background-color: #2e3740;
+	}
+
+	.cloak {
+		opacity: 0;
+	}
+
+	#borders {
+		position: absolute;
+		z-index: -1;
+		top: 0; left: 0; right: 0; bottom: 0;
+		display: none;
+	}
+
+	.app #borders {
+		border: 1px solid rgb(17, 17, 17);
+		display: block;
+	}
+
+	.app #borders::after {
+		content: "";
+		position: absolute;
+		top: 0; left: 0; right: 0; bottom: 0;
+		border: 1px solid rgba(200, 200, 200, 0.20);
+	}
+</style>
+
+<!-- Load the loading stylesheet -->
 <script>
+	var APP = typeof require == "function";
+	if (APP) document.querySelector("html").classList.add("app");
 	(function() {
 		var xhr = new XMLHttpRequest();
 		xhr.open("GET", '@routes.Assets.versioned("/public", "less/loading.css")', true);
@@ -16,18 +50,35 @@
 		xhr.send();
 	})();
 </script>
+
+<!-- Base framework -->
 <script defer data-async="true" data-env="production" src='@routes.Assets.versioned("/public", "javascripts/less.js")'></script>
 <script defer src='@routes.Assets.versioned("/public", "javascripts/reflect.js")'></script>
 <script defer src='@routes.Assets.versioned("/public", "javascripts/traceur.js")'></script>
 <script defer src='@routes.Assets.versioned("/public", "javascripts/system.js")'></script>
 <script defer src='@routes.Assets.versioned("/public", "tools/config.js")'></script>
 <script defer id="wc-lite" src='@routes.Assets.versioned("/public", "javascripts/webcomponents-lite.js")'></script>
+
+<!-- Load application -->
 <script>
 	document.getElementById("wc-lite").onload = function() {
-		System.import("client/boot").then(function(boot){boot.default();});
+		System.import("client/boot").then(function(boot) {
+			boot.default();
+		});
 	};
 </script>
-<div id="loader" class="cloak"><div class="spinner"><b></b><b></b><b></b><b></b><b></b><b></b></div></div>
+
+<!-- Loading cover spinner -->
+<div id="loader" class="cloak">
+	<div class="spinner"><b></b><b></b><b></b><b></b><b></b><b></b></div>
+</div>
+<div id="loader-titlebar" class="cloak">
+	<i onclick="window.close();">close</i>
+</div>
+
+<!-- Application utility divs -->
+<div id="borders"></div>
 <div id="background"></div>
 <div id="fader"></div>
 <div id="app-loader" class="cloak"><img src="/assets/images/spinner.svg"></div>
+

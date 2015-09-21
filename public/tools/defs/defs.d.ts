@@ -4,6 +4,7 @@
 ///<reference path="pako.d.ts" />
 ///<reference path="polymer.d.ts" />
 ///<reference path="moment.d.ts" />
+///<reference path="node.d.ts" />
 
 declare module Reflect {
 	function getMetadata<T>(metadataKey: string, target: any, propertyKey?: string): T;
@@ -21,3 +22,4 @@ interface System {
 }
 
 declare var System: System;
+declare var APP: boolean;
