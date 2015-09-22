@@ -1,22 +1,23 @@
 <dom-module id="gt-dashboard">
 	<style type="text/less">
-		:host {
-			display: flex;
+		#layout {
+			height: 100%;
+			width: 100%;
+			display: grid;
+			grid-template-columns: 1fr 6px 1.7fr 6px 300px;
+			grid-template-rows: 100%;
 		}
 
 		.col {
-			display: flex;
-			flex-direction: column;
+			width: 100%;
 			height: 100%;
-
 			gt-box:not(:last-child) {
 				margin-bottom: 6px;
 			}
 		}
 
 		#col1 {
-			flex: 1;
-			margin-right: 6px;
+			grid-column: 1;
 
 			dashboard-news {
 				height: 100%;
@@ -24,34 +25,67 @@
 		}
 
 		#col2 {
-			flex: 1.7;
+			grid-column: 3;
+			
+			display: grid;
+			grid-template-columns: 100%;
+			grid-template-rows: 200px 6px 1fr;
+			
+			& > * {
+				height: 100%;
+			}
 
+			#activity {
+				grid-row: 1;
+			}
+			
 			#shoutbox {
-				flex: 1;
+				grid-row: 3;
 			}
 		}
 
 		#col3 {
-			width: 300px;
-			margin-left: 6px;
+			grid-column: 5;
+			
+			display: grid;
+			grid-template-columns: 100%;
+			grid-template-rows: auto 6px auto 6px 1fr;
+			
+			& > * {
+				height: 100%;
+			}
+
+			#profile {
+				grid-row: 1;
+			}
+			
+			#informations {
+				grid-row: 3;
+			}
 
 			#onlines {
-				flex: 1;
+				grid-row: 5;
 			}
 		}
 	</style>
 	<template>
-		<div .col #col1>
-			<dashboard-news></dashboard-news>
-		</div>
-		<div .col #col2>
-			<gt-box #activity heading="Guild activity" scrollable></gt-box>
-			<dashboard-shoutbox #shoutbox></dashboard-shoutbox>
-		</div>
-		<div .col #col3>
-			<gt-box #profile>Blash</gt-box>
-			<gt-box #informations heading="Informations"></gt-box>
-			<dashboard-onlines #onlines></dashboard-onlines>
+		<div #layout>
+			<div .col #col1>
+				<dashboard-news></dashboard-news>
+			</div>
+			<div .col #col2>
+				<gt-box #activity heading="Guild activity" scrollable>
+					<div style="position: absolute; top: 60px; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; font-size: 60px;">
+						<i>build</i>
+					</div>
+				</gt-box>
+				<dashboard-shoutbox #shoutbox></dashboard-shoutbox>
+			</div>
+			<div .col #col3>
+				<gt-box #profile>Blash</gt-box>
+				<gt-box #informations heading="Informations"></gt-box>
+				<dashboard-onlines #onlines></dashboard-onlines>
+			</div>
 		</div>
 	</template>
 </dom-module>
@@ -166,9 +200,17 @@
 </dom-module>
 
 <dom-module id="dashboard-shoutbox">
+	<style type="text/less">
+		gt-box {
+			height: 100%;
+		}
+	</style>
 	<template>
 		<gt-box #shoutbox heading="Shoutbox" scrollable>
-			<div .message [repeat]="messages">
+			<div style="position: absolute; top: 60px; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; font-size: 80px;">
+				<i>build</i>
+			</div>
+			<!--<div .message [repeat]="messages">
 				<span .left>
 					<gt-timeago .time [date]="item.date"></gt-timeago>
 					<span .actions>
@@ -176,13 +218,22 @@
 				</span>
 				<span .author>{{item.author}}</span>
 				<span .message>{{item.message}}</span>
-			</div>
+			</div>-->
 		</gt-box>
 	</template>
 </dom-module>
 
 <dom-module id="dashboard-onlines">
+	<style type="text/less">
+		gt-box {
+			height: 100%;
+		}
+	</style>
 	<template>
-		<gt-box #onlines heading="Onlines" scrollable></gt-box>
+		<gt-box #onlines heading="Onlines" scrollable>
+			<div style="position: absolute; top: 60px; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; font-size: 80px;">
+				<i>build</i>
+			</div>
+		</gt-box>
 	</template>
 </dom-module>
