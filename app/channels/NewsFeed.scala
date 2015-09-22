@@ -25,16 +25,11 @@ object NewsFeed extends ChannelValidator {
 }
 
 class NewsFeed extends ChannelHandler with InitHandler with CloseHandler {
-	val handlers = Map[String, Handler]()
-
 	def init() = {
 		NewsFeed.open += this
 		update()
 	}
 
 	def update() = channel.send("update", NewsFeed.cache.value)
-
-	def close() = {
-		NewsFeed.open -= this
-	}
+	def close() = NewsFeed.open -= this
 }

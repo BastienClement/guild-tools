@@ -20,31 +20,32 @@ object Auth extends ChannelValidator {
 }
 
 class Auth extends ChannelHandler {
-	val handlers = Map[String, Handler](
-		"auth" -> auth,
-		"prepare" -> prepare,
-		"login" -> login
-	)
-
-	def init() = {}
-
 	var salt = utils.randomToken()
 
-	def auth(payload: Payload): Future[Payload] = utils.atLeast(500.milliseconds) {
-		AuthService.auth(payload.string).map(user => {
-			socket.user = user
-			Json.toJson(user)
-		}).fallbackTo[JsValue](JsNull)
+	request("auth") { payload =>
+		utils.atLeast(500.milliseconds) {
+			val res: Future[JsValue] = AuthService.auth(payload.string) map { user =>
+				socket.user = user
+				Json.toJson(user)
+			} recover {
+				case _ => JsNull
+			}
+			res
+		}
 	}
 
-	def prepare(payload: Payload): Future[Payload] = utils.atLeast(500.milliseconds) {
-		val user = payload.value.as[String]
-		AuthService.setting(user) map { setting => Json.obj("salt" -> salt, "setting" -> setting) }
+	request("prepare") { payload =>
+		utils.atLeast(500.milliseconds) {
+			val user = payload.value.as[String]
+			AuthService.setting(user) map { setting => Json.obj("salt" -> salt, "setting" -> setting) }
+		}
 	}
 
-	def login(payload: Payload): Future[Payload] = utils.atLeast(500.milliseconds) {
-		val cur_salt = salt
-		salt = utils.randomToken()
-		AuthService.login(payload("user").as[String], payload("pass").as[String], cur_salt)
+	request("login") { payload =>
+		utils.atLeast(500.milliseconds) {
+			val cur_salt = salt
+			salt = utils.randomToken()
+			AuthService.login(payload("user").as[String], payload("pass").as[String], cur_salt)
+		}
 	}
 }

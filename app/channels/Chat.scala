@@ -12,12 +12,6 @@ object Chat extends ChannelValidator {
 }
 
 class Chat extends ChannelHandler with InitHandler with CloseHandler {
-	val handlers = Map[String, Handler](
-		"set-away" -> setAway,
-		"set-interest" -> setInterest,
-		"room-backlog" -> roomBacklog
-	)
-
 	var interests = Set[Int]()
 
 	def init() = {
@@ -31,11 +25,11 @@ class Chat extends ChannelHandler with InitHandler with CloseHandler {
 		ChatService.disconnect(channel)
 	}
 
-	def setAway(payload: Payload): Unit = {
+	message("set-away") { payload =>
 		ChatService.setAway(channel, payload.value.as[Boolean])
 	}
 
-	def setInterest(payload: Payload): Unit = {
+	message("set-interest") { payload =>
 		val room = payload("room").as[Int]
 		if (payload("interested").as[Boolean]) {
 			interests += room
@@ -44,11 +38,11 @@ class Chat extends ChannelHandler with InitHandler with CloseHandler {
 		}
 	}
 
-	def roomBacklog(payload: Payload): Future[Payload] = {
+	request("room-backlog") { payload =>
 		val room = payload("room").as[Int]
 		val count = payload("count").asOpt[Int]
 		val limit = payload("limit").asOpt[Int]
 
-		ImplicitFuturePayload(ChatService.roomBacklog(room, user, count, limit))
+		ChatService.roomBacklog(room, user, count, limit)
 	}
 }
