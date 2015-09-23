@@ -1,26 +1,48 @@
 package channels
 
-import scala.concurrent.Future
-import scala.concurrent.duration._
-import play.api.libs.json.{JsNull, JsValue, Json}
+import java.util.concurrent.atomic.AtomicInteger
+
 import actors.Actors._
 import gtp3._
-import reactive._
 import models._
+import play.api.libs.json.{JsNull, JsValue, Json}
+import reactive._
+
+import scala.collection.mutable
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 object Auth extends ChannelValidator {
+	// Keep track of socket for which an authenticated channel has already been opened
+	private val already_open = mutable.WeakHashMap[Socket, Boolean]() withDefaultValue false
+
 	def open(request: ChannelRequest) = {
-		if (request.socket.auth_open) {
+		if (already_open(request.socket)) {
 			request.reject(105, "Cannot open more than one auth channel per socket")
 		} else {
-			request.socket.auth_open = true
+			already_open.update(request.socket, true)
 			request.accept(new Auth)
 		}
 	}
 }
 
 class Auth extends ChannelHandler {
-	var salt = utils.randomToken()
+	// Count parallel requests
+	private val count = new AtomicInteger(0)
+	private val concurrent = Future.failed[Payload](new Exception("Concurrent requests on auth channel are forbidden"))
+
+	// Break the multiplexing feature of GTP3 for the auth channel
+	// This prevents running multiple login attempts in parallel
+	override def request(req: String, payload: Payload): Future[Payload] = {
+		val res =
+			if (count.incrementAndGet() != 1) concurrent
+			else super.request(req, payload)
+
+		res andThen { case _ => count.decrementAndGet() }
+	}
+
+	// Salt used for authentication
+	private var salt = utils.randomToken()
 
 	request("auth") { payload =>
 		utils.atLeast(500.milliseconds) {
