@@ -16,6 +16,9 @@ object Payload {
 
 	// Implicitly convert anything with a PayloadBuilder to a Payload
 	implicit def ImplicitPayload[T: PayloadBuilder](value: T): Payload = Payload(value)
+
+	// Empty dummy payload
+	val empty = Payload(ByteVector.empty, 0x80)
 }
 
 class Payload(val byteVector: ByteVector, val flags: Int) {
@@ -23,30 +26,40 @@ class Payload(val byteVector: ByteVector, val flags: Int) {
 	// TODO
 	private def inflate(byteVector: Array[Byte]): Array[Byte] = ???
 
+	// Flags
+	final val compressed = (flags & 0x01) != 0
+	final val utf8_data = (flags & 0x02) != 0
+	final val json_data = (flags & 0x04) != 0
+	final val ignore = (flags & 0x80) != 0
+
 	// Direct access to raw byte data
 	lazy val buffer: Array[Byte] =
-		if ((flags & 0x01) != 0) inflate(byteVector.toArray)
+		if (ignore) Array.empty[Byte]
+		else if (compressed) inflate(byteVector.toArray)
 		else byteVector.toArray
 
 	// Simply convert the buffer data to String
 	lazy val string: String =
-		if ((flags & 0x02) != 0) new String(buffer, StandardCharsets.UTF_8)
+		if (ignore) ""
+		else if (utf8_data) new String(buffer, StandardCharsets.UTF_8)
 		else throw new Exception("Attempt to read a binary frame as text")
 
 	// Access complex JsValue from a JSON-encoded string
 	lazy val value: JsValue =
-		if ((flags & 0x04) != 0) Json.parse(buffer)
+		if (ignore) JsNull
+		else if (json_data) Json.parse(buffer)
 		else JsString(string) // Not JSON, fake a JsString
 
 	// Access sub-properties of a JS object
 	def apply(selector: String) = value \ selector
-	def apply[T](selector: (JsValue) => T) = selector(value)
 
 	// Access items of a JS array
 	def apply(idx: Int) = value(idx)
 
 	// Convert the JS value to type T
 	def as[T: Reads] = value.as[T]
+
+	// Same but to Option[T]
 	def asOpt[T: Reads] = value.asOpt[T]
 }
 
@@ -57,6 +70,7 @@ trait PayloadBuilder[-T] {
 
 // Builder steps are responsible for translating data to ByteVector
 trait PayloadBuilderSteps {
+
 	// Compress and convert to ByteVector
 	trait BufferStep[-T] extends PayloadBuilder[T] {
 		def buffer(buf: Array[Byte], flags: Int = 0, compress: Boolean = true): Payload = {
@@ -79,6 +93,7 @@ trait PayloadBuilderSteps {
 			string(Json.stringify(js), flags | 0x04)
 		}
 	}
+
 }
 
 // Low priority builders
@@ -89,17 +104,27 @@ trait PayloadBuilderLowPriority extends PayloadBuilderSteps {
 	}
 }
 
+trait PayloadBuilderMiddlePriority extends PayloadBuilderLowPriority {
+
+	implicit object PayloadBuilderJsValue extends JsonStep[JsValue] {
+		def build(js: JsValue): Payload = json(js)
+	}
+
+}
+
 // High priority builders
-object PayloadBuilder extends PayloadBuilderLowPriority {
-	implicit object BufferBuilder extends BufferStep[Array[Byte]] {
+object PayloadBuilder extends PayloadBuilderMiddlePriority {
+
+	implicit object PayloadBuilderBuffer extends BufferStep[Array[Byte]] {
 		def build(buf: Array[Byte]): Payload = buffer(buf)
 	}
 
-	implicit object StringBuilder extends StringStep[String] {
+	implicit object PayloadBuilderString extends StringStep[String] {
 		def build(str: String): Payload = string(str)
 	}
 
-	implicit object JsValueBuilder extends JsonStep[JsValue] {
-		def build(js: JsValue): Payload = json(js)
+	implicit object PayloadBuilderJsNull extends PayloadBuilder[JsNull.type] {
+		def build(jsNull: JsNull.type): Payload = Payload.empty
 	}
+
 }

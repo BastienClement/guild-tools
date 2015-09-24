@@ -1,5 +1,6 @@
 package gtp3
 
+import org.apache.commons.lang3.exception.ExceptionUtils
 import play.api.libs.json.JsNull
 import reactive._
 
@@ -50,17 +51,19 @@ trait ChannelHandler {
 	def request(name: String)(fn: RequestHandler) = handlers += name -> fn
 
 	// Handle a request
-	def request(req: String, payload: Payload): Future[Payload] = {
+	def request(req: String, payload: Payload): Future[Payload] = try {
 		handlers.get(req) match {
-			case Some(handler) => handler(payload) match {
-				case p: Future[_] => p.asInstanceOf[Future[Payload]]
-				case p: Payload => Future.successful(p)
-				case _ => empty
-			}
+			case Some(handler) => handler(payload)
 			case None => Future.failed(new Exception(s"Undefined handler ($req)"))
 		}
+	} catch {
+		case e: Throwable => Future.failed(e)
 	}
 
 	// Handle a message (same as request but without result)
-	def message(msg: String, payload: Payload): Unit = request(msg, payload)
+	def message(msg: String, payload: Payload): Unit = request(msg, payload) onFailure { case e =>
+		// Catch Exception on message processing. Since there is no way to reply to a message, we
+		// send a special $error message back.
+		channel.send("$error", ExceptionUtils.getStackTrace(e))
+	}
 }

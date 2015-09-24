@@ -1,6 +1,7 @@
 package gtp3
 
 import gt.Global.ExecutionContext
+import org.apache.commons.lang3.exception.ExceptionUtils
 
 import scala.util.{Failure, Success}
 
@@ -16,7 +17,7 @@ class Channel(val socket: Socket, val id: Int, val sender_channel: Int, val hand
 
 				case Failure(fail) =>
 					//println(fail.printStackTrace())
-					socket.out ! FailureFrame(0, sender_channel, rid, 0, fail.getMessage)
+					socket.out ! FailureFrame(0, sender_channel, rid, 0, ExceptionUtils.getStackTrace(fail))
 			}
 
 		case SuccessFrame(seq, channel, req, flags, payload) => ???

@@ -37,7 +37,7 @@ class Socket(val id: Long, var actor: SocketActor) {
 	 * Overloaded output helper
 	 */
 	object out {
-		def !(frame: Frame): Unit = {
+		def !(frame: Frame): Unit = Socket.this.synchronized {
 			// Special handling for sequenced frames
 			// Automatic tagging
 			frame.ifSequenced { seq_frame =>
@@ -77,34 +77,36 @@ class Socket(val id: Long, var actor: SocketActor) {
 	/**
 	 * Receive a frame
 	 */
-	def receive(buffer: Array[Byte]) = try {
-		// Decode the frame buffer
-		val frame = Frame.decode(buffer)
+	def receive(buffer: Array[Byte]) = synchronized {
+		try {
+			// Decode the frame buffer
+			val frame = Frame.decode(buffer)
 
-		// Handle sequenced frame acks
-		frame.ifSequenced(handleSequenced)
+			// Handle sequenced frame acks
+			frame.ifSequenced(handleSequenced)
 
-		// Dispatch
-		frame match {
-			case AckFrame(last_seq) => ack(last_seq)
+			// Dispatch
+			frame match {
+				case AckFrame(last_seq) => ack(last_seq)
 
-			case PingFrame() => out ! PongFrame()
-			case PongFrame() =>
-			case RequestAckFrame() => out ! AckFrame(in_seq)
+				case PingFrame() => out ! PongFrame()
+				case PongFrame() =>
+				case RequestAckFrame() => out ! AckFrame(in_seq)
 
-			case f: IgnoreFrame => /* ignore */
+				case f: IgnoreFrame => /* ignore */
 
-			case f: OpenFrame => receiveOpen(f)
-			case f: OpenSuccessFrame => receiveOpenSuccess(f)
-			case f: OpenFailureFrame => receiveOpenFailure(f)
-			case f: ResetFrame => receiveReset(f)
+				case f: OpenFrame => receiveOpen(f)
+				case f: OpenSuccessFrame => receiveOpenSuccess(f)
+				case f: OpenFailureFrame => receiveOpenFailure(f)
+				case f: ResetFrame => receiveReset(f)
 
-			case f: ChannelFrame => receiveChannelFrame(f)
+				case f: ChannelFrame => receiveChannelFrame(f)
 
-			case _ => println("Unknown frame", frame)
+				case _ => println("Unknown frame", frame)
+			}
+		} catch {
+			case e: DuplicatedFrame => /* ignore duplicated frames */
 		}
-	} catch {
-		case e: DuplicatedFrame => /* ignore duplicated frames */
 	}
 
 	/**
@@ -131,7 +133,7 @@ class Socket(val id: Long, var actor: SocketActor) {
 	/**
 	 * Handle received acknowledgments
 	 */
-	private def ack(seq: Int) = {
+	private def ack(seq: Int) = out_buffer.synchronized {
 		// Dequeue while the frame sequence id is less or equal to the acknowledged one
 		// Also dequeue if the frame is simply greater than the last acknowledgment, this handle
 		// the wrap-around case

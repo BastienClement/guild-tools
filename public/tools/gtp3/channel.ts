@@ -159,7 +159,11 @@ export class Channel extends EventEmitter {
 				this.sendSuccess(req_id, result);
 			}
 		} else {
-			this.emit("message", frame.message, payload);
+			if (frame.message == "$error") {
+				console.error(new Error(payload));
+			} else {
+				this.emit("message", frame.message, payload);
+			}
 		}
 	}
 
@@ -173,10 +177,20 @@ export class Channel extends EventEmitter {
 		const frame = Frame.encode(FailureFrame, 0, this.remote_id, request, 0, error);
 		this.socket._send(frame);
 	}
+	
+	private getRequestDeferred(request_id: number) {
+		const deferred = this.requests.get(request_id);
+		if (!deferred) return;
+		
+		this.requests.delete(request_id);
+		this.requestid_pool.release(request_id);
+		
+		return deferred;
+	}
 
 	private receiveSuccess(frame: SuccessFrame): void {
 		// Fetch deferred
-		const deferred = this.requests.get(frame.request);
+		const deferred = this.getRequestDeferred(frame.request);
 		if (!deferred) return;
 
 		// Successful resolved
@@ -185,7 +199,7 @@ export class Channel extends EventEmitter {
 
 	private receiveFailure(frame: FailureFrame): void {
 		// Fetch deferred
-		const deferred = this.requests.get(frame.request);
+		const deferred = this.getRequestDeferred(frame.request);
 		if (!deferred) return;
 
 		// Failure
