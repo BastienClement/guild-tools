@@ -3,7 +3,6 @@ package gtp3
 import play.api.libs.json.JsNull
 import reactive._
 
-import scala.annotation.StaticAnnotation
 import scala.concurrent.Future
 import scala.language.implicitConversions
 
@@ -30,8 +29,8 @@ trait ChannelHandler {
 	def user = socket.user
 
 	// Implicitly converts to Future[Payload]
-	implicit def ImplicitFuturePayload[T](value: T)(implicit ev: T => Payload): Future[Payload] = Future.successful[Payload](value)
-	implicit def ImplicitFuturePayload[T](future: Future[T])(implicit ev: T => Payload): Future[Payload] = future.map(ev(_))
+	implicit def ImplicitFuturePayload[T: PayloadBuilder](value: T): Future[Payload] = Future.successful(value)
+	implicit def ImplicitFuturePayload[T: PayloadBuilder](future: Future[T]): Future[Payload] = future.map(Payload(_))
 
 	// The generic empty-result future
 	private val empty = Future.successful[Payload](JsNull)

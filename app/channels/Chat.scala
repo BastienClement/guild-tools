@@ -2,9 +2,8 @@ package channels
 
 import actors.Actors._
 import gtp3._
-import play.api.libs.json.{JsNull, Json}
+import play.api.libs.json.Json
 
-import scala.concurrent.Future
 import scala.language.postfixOps
 
 object Chat extends ChannelValidator {

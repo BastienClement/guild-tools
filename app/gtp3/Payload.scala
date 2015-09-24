@@ -8,38 +8,19 @@ import scodec.bits.ByteVector
 import scala.language.{higherKinds, implicitConversions}
 
 object Payload {
-	// Construct a payload from a received buffer and flags (incoming payload)
+	// Construct a Payload from a received buffer and flags (incoming payloads)
 	def apply(buf: ByteVector, flags: Int) = new Payload(buf, flags)
 
-	// Construct a payload built from server data (outgoing payload)
-	private def construct(buf: ByteVector, flags: Int) = {
-		// TODO: implement deflate
-		new Payload(buf, flags)
-	}
+	// Construct a Payload from anything that have a corresponding PayloadBuilder (outgoing payloads)
+	def apply[T](value: T)(implicit builder: PayloadBuilder[T]): Payload = builder.build(value)
 
-	// Wrap a string inside a payload by encoding it as UTF8
-	def apply(value: String) = construct(ByteVector(value.getBytes(StandardCharsets.UTF_8)), 0x02)
-
-	// Wrap a JsValue inside a payload
-	def apply(value: JsValue) = construct(ByteVector(Json.stringify(value).getBytes(StandardCharsets.UTF_8)), 0x06)
-
-	// Wrap a buffer inside a payload
-	def apply(buffer: Array[Byte]) = construct(ByteVector(buffer), 0x00)
-
-	// Construct a payload from anything that can be used
-	implicit def ImplicitPayload(value: JsValue): Payload = Payload(value)
-	implicit def ImplicitPayload[T](value: T)(implicit w: Writes[T]): Payload = Payload(w.writes(value))
-	implicit def ImplicitPayload(value: String): Payload = Payload(value)
-	implicit def ImplicitPayload(value: Boolean): Payload = Payload(JsBoolean(value))
-
-	// Construct a payload from any Iterable[T] with T convertible to JsValue
-	implicit def ImplicitHigherKindPayload[T, U[_] <: Iterable[T]](value: U[T])(implicit w: Writes[T], iw: Writes[Iterable[JsValue]]): Payload = {
-		Payload(iw.writes(value.map(w.writes)))
-	}
+	// Implicitly convert anything with a PayloadBuilder to a Payload
+	implicit def ImplicitPayload[T: PayloadBuilder](value: T): Payload = Payload(value)
 }
 
 class Payload(val byteVector: ByteVector, val flags: Int) {
 	// Inflate a compressed buffer
+	// TODO
 	private def inflate(byteVector: Array[Byte]): Array[Byte] = ???
 
 	// Direct access to raw byte data
@@ -57,6 +38,68 @@ class Payload(val byteVector: ByteVector, val flags: Int) {
 		if ((flags & 0x04) != 0) Json.parse(buffer)
 		else JsString(string) // Not JSON, fake a JsString
 
+	// Access sub-properties of a JS object
 	def apply(selector: String) = value \ selector
 	def apply[T](selector: (JsValue) => T) = selector(value)
+
+	// Access items of a JS array
+	def apply(idx: Int) = value(idx)
+
+	// Convert the JS value to type T
+	def as[T: Reads] = value.as[T]
+	def asOpt[T: Reads] = value.asOpt[T]
+}
+
+// A PayloadBuilder construct a Payload from an object of type T
+trait PayloadBuilder[-T] {
+	def build(o: T): Payload
+}
+
+// Builder steps are responsible for translating data to ByteVector
+trait PayloadBuilderSteps {
+	// Compress and convert to ByteVector
+	trait BufferStep[-T] extends PayloadBuilder[T] {
+		def buffer(buf: Array[Byte], flags: Int = 0, compress: Boolean = true): Payload = {
+			val bv = ByteVector(buf)
+			new Payload(bv, flags)
+		}
+	}
+
+	// Encode string as UTF-8
+	trait StringStep[-T] extends BufferStep[T] {
+		def string(str: String, flags: Int = 0): Payload = {
+			val bytes = str.getBytes(StandardCharsets.UTF_8)
+			buffer(bytes, flags | 0x02)
+		}
+	}
+
+	// Stringify JsValue to JSON
+	trait JsonStep[-T] extends StringStep[T] {
+		def json(js: JsValue, flags: Int = 0): Payload = {
+			string(Json.stringify(js), flags | 0x04)
+		}
+	}
+}
+
+// Low priority builders
+trait PayloadBuilderLowPriority extends PayloadBuilderSteps {
+	// Any type T with a corresponding Write[T] is encoded: T -> JsValue -> JSON -> Payload
+	implicit def WritesBuilder[T: Writes] = new JsonStep[T] {
+		def build(value: T): Payload = json(implicitly[Writes[T]].writes(value))
+	}
+}
+
+// High priority builders
+object PayloadBuilder extends PayloadBuilderLowPriority {
+	implicit object BufferBuilder extends BufferStep[Array[Byte]] {
+		def build(buf: Array[Byte]): Payload = buffer(buf)
+	}
+
+	implicit object StringBuilder extends StringStep[String] {
+		def build(str: String): Payload = string(str)
+	}
+
+	implicit object JsValueBuilder extends JsonStep[JsValue] {
+		def build(js: JsValue): Payload = json(js)
+	}
 }
