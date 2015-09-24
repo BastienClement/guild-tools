@@ -44,17 +44,17 @@ class Payload(val byteVector: ByteVector, val flags: Int) {
 
 	// Direct access to raw byte data
 	lazy val buffer: Array[Byte] =
-		if ((flags & 0x01) == 1) inflate(byteVector.toArray)
+		if ((flags & 0x01) != 0) inflate(byteVector.toArray)
 		else byteVector.toArray
 
 	// Simply convert the buffer data to String
 	lazy val string: String =
-		if ((flags & 0x02) == 1) new String(buffer, StandardCharsets.UTF_8)
+		if ((flags & 0x02) != 0) new String(buffer, StandardCharsets.UTF_8)
 		else throw new Exception("Attempt to read a binary frame as text")
 
 	// Access complex JsValue from a JSON-encoded string
 	lazy val value: JsValue =
-		if ((flags & 0x04) == 1) Json.parse(buffer)
+		if ((flags & 0x04) != 0) Json.parse(buffer)
 		else JsString(string) // Not JSON, fake a JsString
 
 	def apply(selector: String) = value \ selector
