@@ -371,10 +371,10 @@ export class Socket extends EventEmitter {
 		// SyncFrame is compatible with AckFrame
 		this.receiveAck(frame);
 
-		// Now, what's left in the buffer is only unreceived frame
-		this.out_buffer.foreach(f => this.ws.send(f));
-
 		this.ready();
+
+		// Now, what's left in the buffer is only unreceived frame
+		this.out_buffer.foreach(f => this._send(f.frame, false));
 	}
 
 	/**
@@ -388,7 +388,7 @@ export class Socket extends EventEmitter {
 		// the wrap-around case
 		while (!this.out_buffer.empty()) {
 			const f = this.out_buffer.peek();
-			if (f.seq <= seq || f.seq > this.out_ack) {
+			if (f.seq <= seq || (f.seq > this.out_ack && seq < this.out_ack)) {
 				this.out_buffer.dequeue();
 			} else {
 				break;

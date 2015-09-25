@@ -14,13 +14,6 @@ object AuthService {
 }
 
 trait AuthService {
-	def auth(session: String): Future[User]
-	def setting(user: String): Future[String]
-	def login(name: String, password: String, salt: String): Future[String]
-	def logout(session: String): Unit
-}
-
-class AuthServiceImpl extends AuthService {
 	private val sessionCache = LazyCollection(1.minute) { (session: String) =>
 		val sess_query = Sessions.filter(_.token === session)
 		sess_query.map(_.user).head flatMap { user_id =>
@@ -87,3 +80,5 @@ class AuthServiceImpl extends AuthService {
 		sessionCache.clear(session)
 	}
 }
+
+class AuthServiceImpl extends AuthService

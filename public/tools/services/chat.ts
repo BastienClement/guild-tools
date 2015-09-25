@@ -20,48 +20,31 @@ export interface ChatMessage {
  */
 @Component
 export class Chat extends PausableEventEmitter {
-	// The chat channel
-	private channel: Channel;
-
 	// List of onlines user
 	private onlines = new Map<number, boolean>();
+	private channel = this.server.openServiceChannel("chat");
+	
+	@Notify
+	public available: boolean = false;    
 
 	constructor(private server: Server) {
 		super();
-		this.connect();
-	}
-
-	// Open the channel to the server and bind
-	// handlers to push messages
-	private connect() {
-		if (this.channel) return;
-		this.server.openChannel("chat").then(
-			(chan) => {
-				this.channel = chan;
-
-				chan.on("message", (type: string, payload: any) => {
-					switch (type) {
-						case "onlines": return this.updateOnlines(payload);
-						case "connected": return this.userConnected(payload);
-						case "disconnected": return this.userDisconnected(payload);
-						default:
-							console.info("Unknown message received on chat channel", payload);
-					}
-				});
-
-				chan.on("close", () => this.disconnected());
-			},
-			(e) => {
-				console.error("Unable to open Chat channel");
+		
+		this.channel.on("message", (type: string, payload: any) => {
+			switch (type) {
+				case "onlines": return this.updateOnlines(payload);
+				case "connected": return this.userConnected(payload);
+				case "disconnected": return this.userDisconnected(payload);
+				default:
+					console.info("Unknown message received on chat channel", payload);
 			}
-		);
-	}
-
-	// Called when the chat channel is closed, this should never
-	// be the case in normal situations, so we just open it again
-	private disconnected() {
-		this.channel = null;
-		setTimeout(() => this.connect(), 3000);
+		});
+		
+		this.channel.on("reset", () => {
+			// TODO: sync interested flags
+		});
+		
+		this.channel.on("state", (s: boolean) => this.available = s);
 	}
 
 	// Full update of the online user list
@@ -149,7 +132,7 @@ export class Chat extends PausableEventEmitter {
 
 		// We only send a message to the server if the number of bindings is 1 or 0
 		// In every other cases, the interest state for this room cannot have changed
-		if (bindings.size < 2) {
+		if (bindings.size < 2 && this.channel) {
 			this.channel.send("set-interest", { room, interested: bindings.size > 0 });
 		}
 	}

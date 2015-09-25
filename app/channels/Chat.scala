@@ -3,6 +3,7 @@ package channels
 import actors.Actors._
 import gtp3._
 import play.api.libs.json.Json
+import gt.Global.ExecutionContext
 
 import scala.language.postfixOps
 
@@ -13,14 +14,16 @@ object Chat extends ChannelValidator {
 class Chat extends ChannelHandler with InitHandler with CloseHandler {
 	var interests = Set[Int]()
 
-	def init() = {
+	def init(): Unit = {
 		ChatService.connect(channel)
-
-		val onlines = for ((user, away) <- ChatService.onlines) yield Json.arr(user, away)
-		channel.send("onlines", onlines)
+		ChatService.onlines map { list =>
+			for ((user, away) <- list) yield Json.arr(user, away)
+		} foreach { onlines =>
+			channel.send("onlines", onlines)
+		}
 	}
 
-	def close() = {
+	def close(): Unit = {
 		ChatService.disconnect(channel)
 	}
 

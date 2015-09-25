@@ -2,6 +2,7 @@ import { Component, Injector } from "utils/di";
 import { Socket, SocketDelegate } from "gtp3/socket";
 import { Channel } from "gtp3/channel";
 import { Deferred } from "utils/deferred";
+import { Queue } from "utils/queue";
 import { EventEmitter } from "utils/eventemitter";
 
 export interface UserInformations {
@@ -106,9 +107,116 @@ export class Server extends EventEmitter {
 	public openChannel(ctype: string): Promise<Channel> {
 		return this.socket.openChannel(ctype);
 	}
+	
+	// Open a service channel
+	public openServiceChannel(ctype: string): ServiceChannel {
+		return new ServiceChannel(this, ctype);
+	}
 
 	// Close the server connection
 	public disconnect(): void {
 		this.socket && this.socket.close();
+	}
+}
+
+interface QueuedMessage<T> {
+	key: string;
+	data: any;
+	flags: number;
+	deferred: Deferred<T>
+}
+
+class ServiceChannel extends EventEmitter {
+	// Outgoing queue
+	private queue = new Queue<QueuedMessage<any>>();
+	
+	// Channel status
+	private first_open: boolean = true;
+	private open_pending: boolean = false;
+	private closed: boolean = true;
+	
+	// Channel object
+	private channel: Channel;
+	
+	constructor(private server: Server, private name: string, lazy: boolean = false) {
+		super();
+		if (!lazy) {
+			this.open();
+		}
+	}
+	
+	public async open() {
+		if (this.channel || this.open_pending) return;
+		this.closed = false;
+		this.open_pending = true;
+		
+		try {
+			// Open the actual channel
+			const chan = await this.server.openChannel(this.name);
+			this.channel = chan;
+			
+			// Emit a reset event if this is not the first time this channel is opened
+			if (this.first_open) {
+				this.first_open = false;
+			} else {
+				this.emit("reset");
+			}
+			
+			this.emit("state", true);
+			
+			// Pipe every event to this emitter except reset and close
+			chan.pipe(this, "!", "reset", "close");
+			
+			// Handle close
+			chan.on("close", () => {
+				this.channel = null;
+				this.emit("state", false);
+				if (this.closed) return;
+				this.open();
+			});
+			
+			// Flush queue
+			while (!this.queue.empty()) {
+				const item = this.queue.dequeue();
+				if (item.deferred) {
+					this.channel.request(item.key, item.data, item.flags).then(
+						(success) => item.deferred.resolve(success),
+						(failure) => item.deferred.reject(failure)
+					);
+				} else {
+					this.channel.send(item.key, item.data, item.flags);
+				}
+			}
+		} catch (e) {
+			throw new Error(`Failed to open ${this.name} channel: ${e}`);
+		} finally {
+			this.open_pending = false;
+		}
+	}
+	
+	public close(code?: number, reason?: string) {
+		this.closed = true;
+		if (this.channel)
+			this.channel.close(code, reason);
+	}
+	
+	public request<T>(key: string, data?: any, flags?: number): Promise<T> {
+		if (this.channel) {
+			return this.channel.request<T>(key, data, flags);
+		} else {
+			const deferred = new Deferred<T>();
+			this.queue.enqueue({ key, data, flags, deferred });
+			this.open();
+			return deferred.promise;
+		}
+	}
+	
+	public send(key: string, data?: any, flags?: number) {
+		if (this.channel) {
+			return this.channel.send(key, data, flags);
+		} else {
+			this.queue.enqueue({ key, data, flags, deferred: null });
+			this.open();
+		}
 	}
 }

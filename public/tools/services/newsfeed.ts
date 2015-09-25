@@ -24,7 +24,7 @@ export class NewsFeed extends PausableEventEmitter {
 	/**
 	 * The newsfeed channel
 	 */
-	private channel: Channel;
+	private channel = this.server.openServiceChannel("newsfeed");
 
 	/**
 	 * News data array
@@ -33,34 +33,23 @@ export class NewsFeed extends PausableEventEmitter {
 	private cache = new Set<string>();
 
 	/**
-	 * Failure flag
-	 * This is set to true if the news channel cannot be opened
+	 * Availability flag
+	 * This is set to false if the news channel cannot be opened
 	 */
 	@Notify
-	public unavailable: boolean = false;
+	public available: boolean = false;
 
 	constructor(private server: Server) {
 		super();
-		this.resume();
+		this.channel.on("message", (type: string, payload: NewsData[]) => this.update(payload));
+		this.channel.on("state", (s: boolean) => this.available = s);
 	}
 
 	/**
 	 * Resume push notifications by opening a push channel with the server
 	 */
 	private resume(): void {
-		if (this.channel) return;
-		this.unavailable = false;
-		this.server.openChannel("newsfeed").then(
-			(chan) => {
-				this.channel = chan;
-				chan.on("message", (type: string, payload: NewsData[]) => this.update(payload));
-				chan.on("close", () => this.pause());
-			},
-			(e) => {
-				console.error("Unable to open NewsFeed channel");
-				this.unavailable = true;
-			}
-		);
+		this.channel.open();
 	}
 
 	/**
@@ -69,8 +58,7 @@ export class NewsFeed extends PausableEventEmitter {
 	 * push notification to the client
 	 */
 	private pause(): void {
-		if (this.channel) this.channel.close();
-		this.channel = null;
+		this.channel.close();
 	}
 
 	/**

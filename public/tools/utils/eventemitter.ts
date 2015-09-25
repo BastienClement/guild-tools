@@ -158,7 +158,7 @@ export class EventEmitter {
 	protected emit(event: string, ...args: any[]): any[] {
 		// Pipe to others
 		this.pipes.forEach(pipe => {
-			if (pipe.filters && pipe.filters.has(event) !== pipe.blacklist) return;
+			if (pipe.filters && pipe.filters.has(event) === pipe.blacklist) return;
 			pipe.emitter.emit(event, ...args);
 		});
 

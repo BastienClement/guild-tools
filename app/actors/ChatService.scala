@@ -1,6 +1,7 @@
 package actors
 
 import gtp3.{Channel, Payload}
+import actors.Actors.Implicits._
 import models._
 import models.mysql._
 import play.api.libs.json._
@@ -12,29 +13,10 @@ import scala.language.implicitConversions
 
 case class ChatSession(user: User, var away: Boolean, var channels: Map[gtp3.Channel, Boolean])
 
-trait ChatService {
-	def onlines: Map[Int, Boolean]
-
-	def connect(channel: gtp3.Channel): Unit
-	def disconnect(channel: gtp3.Channel): Unit
-	def setAway(channel: gtp3.Channel, away: Boolean): Unit
-
-	def roomBacklog(room: Int, user: User, count: Option[Int], limit: Option[Int] = None): Future[Seq[ChatMessage]]
-
-	/*def loadShoutbox(): List[ChatMessage]
-	def sendShoutbox(from: User, message: String): Unit
-
-	def userInChannel(user: User, channel: Option[Int]): Boolean
-	def fetchMessages(channel: Option[Int], select: Option[ChatSelect] = None): List[ChatMessage]
-
-	def sendMessage(channel: Int, from: User, message: String): Try[ChatMessage]
-	def sendWhisper(from: User, to: Int, message: String): Try[ChatWhisper]*/
-}
-
-class ChatServiceImpl extends ChatService with ChannelList[ChatSession] {
+trait ChatService extends ChannelList[ChatSession] {
 	private var sessions = Map[Int, ChatSession]()
 
-	def onlines: Map[Int, Boolean] = sessions.map {
+	def onlines: Future[Map[Int, Boolean]] = sessions map {
 		case (user, session) => user -> session.away
 	}
 
@@ -94,6 +76,19 @@ class ChatServiceImpl extends ChatService with ChannelList[ChatSession] {
 		val actual_count = count.filter(v => v > 0 && v <= 100).getOrElse(50)
 		query.sortBy(_.id.asc).take(actual_count).run
 	}
+
+	/*def loadShoutbox(): List[ChatMessage]
+	def sendShoutbox(from: User, message: String): Unit
+
+	def userInChannel(user: User, channel: Option[Int]): Boolean
+	def fetchMessages(channel: Option[Int], select: Option[ChatSelect] = None): List[ChatMessage]
+
+	def sendMessage(channel: Int, from: User, message: String): Try[ChatMessage]
+	def sendWhisper(from: User, to: Int, message: String): Try[ChatWhisper]*/
+}
+
+class ChatServiceImpl extends ChatService {
+
 
 	/*
 		private val shoutbox_backlog = LazyCache[List[ChatMessage]](1.minute) {

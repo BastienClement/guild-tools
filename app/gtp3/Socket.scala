@@ -133,15 +133,15 @@ class Socket(val id: Long, var actor: SocketActor) {
 	/**
 	 * Handle received acknowledgments
 	 */
-	private def ack(seq: Int) = out_buffer.synchronized {
+	private def ack(seq: Int) = synchronized {
 		// Dequeue while the frame sequence id is less or equal to the acknowledged one
 		// Also dequeue if the frame is simply greater than the last acknowledgment, this handle
 		// the wrap-around case
 		@tailrec def purge(): Unit = {
 			if (out_buffer.isEmpty) return
 			val f = out_buffer.head
-			if (f.seq <= seq || f.seq > this.out_ack) {
-				this.out_buffer.dequeue()
+			if (f.seq <= seq || (f.seq > out_ack && seq < out_ack)) {
+				out_buffer.dequeue()
 				purge()
 			}
 		}
@@ -172,7 +172,6 @@ class Socket(val id: Long, var actor: SocketActor) {
 					case c: InitHandler => c.init()
 					case _ => /* noop */
 				}
-
 				channel
 			}
 
@@ -219,9 +218,15 @@ class Socket(val id: Long, var actor: SocketActor) {
 	/**
 	 * Rebind a detached socket
 	 */
-	def rebind(a: SocketActor, last_seq: Int) = {
+	def rebind(a: SocketActor, last_seq: Int) = out_buffer.synchronized {
 		attached = true
 		actor = a
+
+		ack(last_seq)
+		while (out_buffer.nonEmpty) {
+			out ! out_buffer.dequeue()
+		}
+
 		out ! SyncFrame(in_seq)
 	}
 
