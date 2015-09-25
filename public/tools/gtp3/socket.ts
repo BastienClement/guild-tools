@@ -89,6 +89,7 @@ export class Socket extends EventEmitter {
 
 	// Limit the number of REQUEST_ACK commands
 	private request_ack_cooldown: number = 0;
+	private paused: boolean = false;
 
 	// Last ping time
 	private ping_time: number = 0;
@@ -393,6 +394,14 @@ export class Socket extends EventEmitter {
 				break;
 			}
 		}
+		
+		// Check if we can emit a resume event
+		const out_buffer_len = this.out_buffer.length();
+		
+		if (this.paused && out_buffer_len < Protocol.BufferPauseLimit) {
+			this.channels.forEach(chan => chan._receive(out_buffer_len));
+			this.paused = false;
+		}
 
 		// Save the sequence number as the last one received
 		this.out_ack = seq;
@@ -526,7 +535,7 @@ export class Socket extends EventEmitter {
 	/**
 	 * Send a complete frame
 	 */
-	_send(frame: ArrayBuffer, seq: boolean = false): void {
+	_send(frame: ArrayBuffer, seq?: boolean): void {
 		// Ensure a maximum frame size
 		if (frame.byteLength > Protocol.FrameLimit) {
 			throw new Error("Frame size limit exceeded");
@@ -544,6 +553,7 @@ export class Socket extends EventEmitter {
 					this.request_ack_cooldown = Protocol.RequestAckCooldown;
 					if (out_buffer_len >= Protocol.BufferPauseLimit) {
 						this.channels.forEach(chan => chan._pause(out_buffer_len));
+						this.paused = true;
 					}
 				}
 			}

@@ -45,9 +45,9 @@ class Socket(val id: Long, var actor: SocketActor) {
 				val buf_len = out_buffer.length
 
 				// Check limits
-				if (buf_len >= 128) {
+				if (buf_len >= 256) {
 					throw new Exception("Output buffer is full")
-				} else if (buf_len > 16) {
+				} else if (buf_len > 32) {
 					if (request_ack_cooldown <= 0) {
 						this ! RequestAckFrame()
 						request_ack_cooldown = 3

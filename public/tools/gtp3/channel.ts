@@ -306,4 +306,11 @@ export class Channel extends EventEmitter {
 	_pause(buffer_size: number): void {
 		this.emit("pause", buffer_size);
 	}
+	
+	/**
+	 * Emit the Pause event when buffer grow
+	 */
+	_resume(buffer_size: number): void {
+		this.emit("resume", buffer_size);
+	}
 }
