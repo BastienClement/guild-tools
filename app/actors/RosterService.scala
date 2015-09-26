@@ -7,7 +7,7 @@ import scala.util.{Failure, Success, Try}
 import actors.Actors.{Dispatcher, _}
 import gt.Global.ExecutionContext
 import models._
-import models.simple._
+import models.mysql._
 import play.api.libs.json._
 import utils.{LazyCollection, LazyCache}
 
@@ -18,7 +18,6 @@ trait RosterService {
 	def user(id: Int): Option[User]
 	def char(id: Int): Option[Char]
 
-	def compositeRoster: JsObject
 	def compositeUser(id: Int): JsObject
 
 	def updateChar(char: Char): Unit
@@ -32,52 +31,39 @@ class RosterServiceImpl extends RosterService {
 	 * List of every users
 	 */
 	val roster_users = LazyCache(1.minute) {
-		DB.withSession { implicit s =>
-			Users.filter(_.group inSet AuthService.allowedGroups).list.map(u => u.id -> u).toMap
-		}
+		val q = Users filter (_.group inSet AuthService.allowedGroups)
+		val l = q.run.await map (u => u.id -> u)
+		l.toMap
 	}
 
 	/**
 	 * List of every chars
 	 */
 	val roster_chars = LazyCache(1.minute) {
-		DB.withSession { implicit s =>
-			Chars.filter(_.owner inSet roster_users.keySet).list.map(c => c.id -> c).toMap
-		}
-	}
-
-	/**
-	 * The composite (users ++ chars)
-	 */
-	def roster_composite = LazyCache(1.minute) {
-		Json.obj("users" -> roster_users.values.toList, "chars" -> roster_chars.values.toList)
+		val q = Chars filter (_.owner inSet roster_users.keySet)
+		val l = q.run.await map (c => c.id -> c)
+		l.toMap
 	}
 
 	/**
 	 * Allow query of out-roster users as fallback
 	 */
 	def outroster_user = LazyCollection[Int, Option[User]](15.minutes) { id =>
-		DB.withSession { implicit s =>
-			Users.filter(_.id === id).firstOption
-		}
+		Users.filter(_.id === id).headOption.await
 	}
 
 	/**
 	 * Allow query of out-roster chars as fallback
 	 */
 	def outroster_chars = LazyCollection[Int, Set[Char]](15.minutes) { owner =>
-		DB.withSession { implicit s =>
-			Chars.filter(_.owner === owner).list.toSet
-		}
+		Chars.filter(_.owner === owner).run.await.toSet
 	}
 
 	/**
 	 * Allow query of a specific out-roster char
 	 */
 	def outroster_char = LazyCollection[Int, Option[Char]](15.minutes) { id =>
-		DB.withSession { implicit s =>
-			Chars.filter(_.id === id).firstOption
-		}
+		Chars.filter(_.id === id).headOption.await
 	}
 
 	/**
@@ -90,8 +76,6 @@ class RosterServiceImpl extends RosterService {
 
 	def user(id: Int): Option[User] = roster_users.get(id) orElse outroster_user(id)
 	def char(id: Int): Option[Char] = roster_chars.get(id) orElse outroster_char(id)
-
-	def compositeRoster: JsObject = roster_composite
 
 	def compositeUser(id: Int): JsObject = {
 		roster_users.get(id) map { user =>
@@ -117,14 +101,12 @@ class RosterServiceImpl extends RosterService {
 		else
 			roster_chars := (_ + (char.id -> char))
 
-		roster_composite.clear()
 		inflightUpdates -= char.id
 		//Dispatcher !# RosterCharUpdate(char)
 	}
 
 	def deleteChar(id: Int): Unit = {
 		roster_chars := roster_chars - id
-		roster_composite.clear()
 		//Dispatcher !# RosterCharDelete(id)
 	}
 
@@ -135,27 +117,23 @@ class RosterServiceImpl extends RosterService {
 		if (inflightUpdates.contains(id)) return
 		val char_query = Chars.filter(_.id === id)
 
-		DB.withSession { implicit s =>
-			for (char <- char_query.firstOption if Platform.currentTime - char.last_update > 1800000) {
-				inflightUpdates += char.id
-				BattleNet.fetchChar(char.server, char.name) onComplete handleResult(char)
-			}
+		for (char <- char_query.headOption.await if Platform.currentTime - char.last_update > 1800000) {
+			inflightUpdates += char.id
+			BattleNet.fetchChar(char.server, char.name) onComplete handleResult(char)
 		}
 
 		// Handle Battle.net response, both success and failure
 		def handleResult(char: Char)(res: Try[Char]): Unit = {
-			DB.withSession { implicit s =>
-				res match {
-					case Success(new_char) => handleSuccess(new_char, char)
-					case Failure(e) => handleFailure(e, char)
-				}
-
-				RosterService.updateChar(char_query.first)
+			res match {
+				case Success(new_char) => handleSuccess(new_char, char)
+				case Failure(e) => handleFailure(e, char)
 			}
+
+			RosterService.updateChar(char_query.head.await)
 		}
 
 		// Handle a sucessful char retrieval
-		def handleSuccess(nc: Char, char: Char)(implicit s: JdbcBackend#SessionDef): Unit = {
+		def handleSuccess(nc: Char, char: Char): Unit = {
 			char_query.map { c =>
 				(c.klass, c.race, c.gender, c.level, c.achievements, c.thumbnail, c.ilvl, c.failures, c.invalid, c.last_update)
 			} update {
@@ -164,10 +142,10 @@ class RosterServiceImpl extends RosterService {
 		}
 
 		// Handle an error on char retrieval
-		def handleFailure(e: Throwable, char: Char)(implicit s: JdbcBackend#SessionDef): Unit = e match {
+		def handleFailure(e: Throwable, char: Char): Unit = e match {
 			// The character is not found on Battle.net, increment failures counter
 			case BattleNetFailure(response) if response.status == 404 =>
-				val failures = char_query.map(_.failures).first + 1
+				val failures = char_query.map(_.failures).head.await + 1
 				val invalid = failures >= 3
 
 				char_query.map { c =>

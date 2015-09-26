@@ -10,15 +10,10 @@ libraryDependencies ++= Seq(
 	jdbc,
 	cache,
 	ws,
-	"mysql" % "mysql-connector-java" % "5.1.34",
-	"com.typesafe.play" %% "play-slick" % "1.0.0",
-	//"org.webjars" %% "webjars-play" % "2.3.0",
-	"org.scodec" %% "scodec-core" % "1.7.1",
-	"org.scodec" %% "scodec-bits" % "1.0.6"
+	"mysql" % "mysql-connector-java" % "5.1.36",
+	"com.typesafe.play" %% "play-slick" % "1.0.1",
+	"org.scodec" %% "scodec-core" % "1.8.2",
+	"org.scodec" %% "scodec-bits" % "1.0.10"
 )
 
-//pipelineStages := Seq(uglify, digest, gzip)
 pipelineStages := Seq(digest, gzip)
-
-//TraceurKeys.sourceFileNames := Seq("javascripts/manifest.js", "javascripts/loader.js")
-//TraceurKeys.outputFileName  := "guildtools.js"

@@ -18,16 +18,12 @@ class Chat(val user: User) extends ChannelHandler {
 	var interests = Set[Int]()
 
 	init {
-		ChatService.connect(self, user)
+		ChatService.subscribe(user)
 		ChatService.getOnlines() map { list =>
 			for ((user, away) <- list) yield Json.arr(user, away)
 		} foreach { onlines =>
 			send("onlines", onlines)
 		}
-	}
-
-	stop {
-		ChatService.disconnect(self)
 	}
 
 	akka {

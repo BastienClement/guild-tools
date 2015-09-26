@@ -58,6 +58,7 @@ trait ChannelHandler extends Actor with Stash {
 	var akka_handler: Receive = PartialFunction.empty
 	def akka(pf: Receive) = akka_handler = pf
 
+	// Output message
 	def send(msg: String, payload: Payload) = channel ! SendMessage(msg, payload)
 
 	final def receive = {
@@ -84,9 +85,6 @@ trait ChannelHandler extends Actor with Stash {
 				case TSuccess(payload) => channel ! Success(rid, payload)
 				case TFailure(fail) => channel ! Failure(rid, fail)
 			}
-
-		case sm: SendMessage =>
-			channel ! sm
 
 		case Close(code, reason) =>
 			self ! PoisonPill

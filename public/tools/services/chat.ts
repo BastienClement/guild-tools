@@ -36,7 +36,7 @@ export class Chat extends PausableEventEmitter {
 				case "connected": return this.userConnected(payload);
 				case "disconnected": return this.userDisconnected(payload);
 				default:
-					console.info("Unknown message received on chat channel", payload);
+					console.info("Unknown message received on chat channel:", type, payload);
 			}
 		});
 		

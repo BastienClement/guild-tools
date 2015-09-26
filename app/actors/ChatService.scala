@@ -1,46 +1,26 @@
 package actors
 
-import actors.ChatService.{UserDisconnect, UserConnect, UserAway}
-import akka.actor.ActorRef
-import gtp3.ChannelHandler.SendMessage
-import gtp3.{Channel, Payload}
 import actors.Actors.Implicits._
+import actors.ChatService._
+import akka.actor.ActorRef
 import models._
 import models.mysql._
-import play.api.libs.json._
-import gt.Global.ExecutionContext
+import utils.PubSub
 
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.language.implicitConversions
 
-case class ChatSession(user: User, var away: Boolean, val actors: mutable.Map[ActorRef, Boolean])
-
 object ChatService {
 	case class UserConnect(user: User)
 	case class UserAway(user: User, away: Boolean)
 	case class UserDisconnect(user: User)
+
+	private case class ChatSession(user: User, var away: Boolean, val actors: mutable.Map[ActorRef, Boolean])
 }
 
-trait ChatService extends {
-	def connect(actor: ActorRef, user: User): Unit
-	def disconnect(actor: ActorRef): Unit
-
-	def getOnlines(): Future[Map[Int, Boolean]]
-	def setAway(actor: ActorRef, away: Boolean): Unit
-
-	def roomBacklog(room: Int, user: Option[User] = None, count: Option[Int] = None, limit: Option[Int] = None): Future[Seq[ChatMessage]]
-}
-
-class ChatServiceImpl extends ChatService {
+trait ChatService extends PubSub[User] {
 	private var sessions = Map[Int, ChatSession]()
-
-	private def broadcast(message: Any, filter: (User) => Boolean = (_) => true) = {
-		for {
-			session <- sessions.values if filter(session.user)
-			handler <- session.actors.keys
-		} handler ! message
-	}
 
 	def getOnlines(): Future[Map[Int, Boolean]] = sessions map {
 		case (user, session) => user -> session.away
@@ -50,11 +30,12 @@ class ChatServiceImpl extends ChatService {
 		val away = session.actors.values.forall(away => away)
 		if (away != session.away) {
 			session.away = away
-			broadcast(UserAway(session.user, away))
+			this !# UserAway(session.user, away)
 		}
 	}
 
-	def connect(actor: ActorRef, user: User): Unit = {
+	override def subscribe(actor: ActorRef, user: User) = {
+		super.subscribe(actor, user)
 		val act = actor -> false
 
 		sessions.get(user.id) match {
@@ -65,11 +46,12 @@ class ChatServiceImpl extends ChatService {
 			case None =>
 				val session = ChatSession(user, false, mutable.Map(act))
 				sessions += user.id -> session
-				broadcast(UserConnect(session.user))
+				this !# UserConnect(session.user)
 		}
 	}
 
-	def disconnect(actor: ActorRef): Unit = {
+	override def unsubscribe(actor: ActorRef) = {
+		super.unsubscribe(actor)
 		sessions.find {
 			case (user, session) => session.actors.contains(actor)
 		} foreach {
@@ -77,7 +59,7 @@ class ChatServiceImpl extends ChatService {
 				session.actors -= actor
 				if (session.actors.size < 1) {
 					sessions -= user
-					broadcast(UserDisconnect(session.user))
+					this !# UserDisconnect(session.user)
 				}
 		}
 	}
@@ -98,3 +80,5 @@ class ChatServiceImpl extends ChatService {
 		query.sortBy(_.id.asc).take(actual_count).run
 	}
 }
+
+class ChatServiceImpl extends ChatService
