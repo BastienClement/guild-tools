@@ -27,6 +27,9 @@ trait ChannelHandler extends Actor with Stash {
 	implicit def ImplicitFuturePayload[T: PayloadBuilder](value: T): Future[Payload] = Future.successful(value)
 	implicit def ImplicitFuturePayload[T: PayloadBuilder](future: Future[T]): Future[Payload] = future.map(Payload(_))
 
+	// Implicitly converts to Option[T]
+	implicit def ImplicitOption[T](value: T): Option[T] = Some(value)
+
 	// Reference to the channel actor
 	private var channel: ActorRef = context.system.deadLetters
 

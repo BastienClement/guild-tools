@@ -3,13 +3,12 @@ package gtp3
 import actors.SocketManager
 import akka.actor.{Terminated, Props, Actor, ActorRef}
 import gt.Global
+import gtp3.Socket.DuplicatedFrame
 import models.User
 
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.Future
-
-class DuplicatedFrame extends Exception
 
 object Socket {
 	def props(id: Long, out: ActorRef) = Props(new Socket(id, out))
@@ -17,6 +16,8 @@ object Socket {
 	case class SetUser(user: User)
 	private case class ChannelAccept(open: OpenFrame, handler: Props)
 	private case class ChannelReject(open: OpenFrame, code: Int, message: String)
+
+	private case object DuplicatedFrame extends Exception
 }
 
 class Socket(val id: Long, val out: ActorRef) extends Actor{
@@ -75,7 +76,7 @@ class Socket(val id: Long, val out: ActorRef) extends Actor{
 					case _ => println("Unknown frame", frame)
 				}
 			} catch {
-				case e: DuplicatedFrame => /* ignore duplicated frames */
+				case DuplicatedFrame => /* ignore duplicated frames */
 			}
 
 		case frame: Frame =>
@@ -133,7 +134,7 @@ class Socket(val id: Long, val out: ActorRef) extends Actor{
 		val seq = frame.seq
 
 		// Ensure the frame was not already received
-		if (seq <= in_seq && (seq != 0 || in_seq == 0)) throw new DuplicatedFrame
+		if (seq <= in_seq && (seq != 0 || in_seq == 0)) throw DuplicatedFrame
 
 		// Store the sequence number as the last received one
 		in_seq = seq

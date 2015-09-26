@@ -1,6 +1,8 @@
 package actors
 
 import java.security.SecureRandom
+import java.util.concurrent.atomic.AtomicReference
+import actors.SocketManagerImpl.{SetTarget, SocketProxy}
 import akka.actor._
 
 import scala.annotation.tailrec
@@ -25,12 +27,23 @@ trait SocketManager extends TypedActor.Receiver {
 
 object SocketManagerImpl {
 	private case class CloseSocket(socket: ActorRef)
+	private case class SetTarget(target: ActorRef)
+
+	private class SocketProxy extends Actor {
+		private var target: ActorRef = context.system.deadLetters
+		def receive = {
+			case SetTarget(t) => target = t
+			case m => target ! m
+		}
+	}
+
 }
 
 class SocketManagerImpl extends SocketManager {
 	// Open sockets
 	private val sockets = Bindings[Long, ActorRef]()
 	private val bindings = Bindings[ActorRef, ActorRef]()
+	private val proxies = mutable.Map[ActorRef, ActorRef]()
 
 	// Close timeouts
 	private val timeouts = mutable.Map[ActorRef, Timeout]()
@@ -79,6 +92,9 @@ class SocketManagerImpl extends SocketManager {
 
 		bindings.getTarget(actor) match {
 			case Some(socket) =>
+				for (proxy <- proxies.get(socket))
+					proxy ! SetTarget(context.system.deadLetters)
+
 				val timeout = Timeout(15.seconds) {
 					self ! SocketManagerImpl.CloseSocket(socket)
 				}
@@ -98,11 +114,15 @@ class SocketManagerImpl extends SocketManager {
 	def allocate(actor: ActorRef): Future[ActorRef] = {
 		val id = nextSocketID
 
-		val socket = context.actorOf(Socket.props(id, self))
+		val proxy = context.actorOf(Props(new SocketProxy))
+		proxy ! SetTarget(actor)
+
+		val socket = context.actorOf(Socket.props(id, proxy))
 		context.watch(socket)
 
 		sockets.add(id, socket)
 		bindings.add(actor, socket)
+		proxies += socket -> proxy
 
 		socket ! SocketManager.Handshake()
 		socket
@@ -114,10 +134,14 @@ class SocketManagerImpl extends SocketManager {
 	def rebind(actor: ActorRef, id: Long, seq: Int): Future[ActorRef] = {
 		sockets.getTarget(id) match {
 			case Some(socket) =>
+				for (proxy <- proxies.get(socket))
+					proxy ! SetTarget(actor)
+
 				for (timeout <- timeouts.get(socket)) {
 					timeout.cancel()
 					timeouts.remove(socket)
 				}
+
 				socket ! SocketManager.Resume(seq)
 				socket
 
@@ -126,17 +150,18 @@ class SocketManagerImpl extends SocketManager {
 	}
 
 	def onReceive(message: Any, sender: ActorRef) = message match {
-		case frame: Frame =>
-			for (ws <- bindings.getSource(sender)) ws ! frame
-
 		case SocketManagerImpl.CloseSocket(socket) =>
 			if (!bindings.containsTarget(socket)) {
 				context.stop(socket)
 			}
 
 		case Terminated(actor) =>
-			for (ws <- bindings.getSource(sender)) ws ! Kill
+			for (ws <- bindings.getSource(sender))
+				ws ! Kill
+			for (proxy <- proxies.get(actor))
+				context.stop(proxy)
 			bindings.removeTarget(actor)
 			sockets.removeTarget(actor)
+			proxies.remove(actor)
 	}
 }

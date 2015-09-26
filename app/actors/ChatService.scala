@@ -1,5 +1,6 @@
 package actors
 
+import actors.ChatService.{UserDisconnect, UserConnect, UserAway}
 import akka.actor.ActorRef
 import gtp3.ChannelHandler.SendMessage
 import gtp3.{Channel, Payload}
@@ -15,6 +16,12 @@ import scala.language.implicitConversions
 
 case class ChatSession(user: User, var away: Boolean, val actors: mutable.Map[ActorRef, Boolean])
 
+object ChatService {
+	case class UserConnect(user: User)
+	case class UserAway(user: User, away: Boolean)
+	case class UserDisconnect(user: User)
+}
+
 trait ChatService extends {
 	def connect(actor: ActorRef, user: User): Unit
 	def disconnect(actor: ActorRef): Unit
@@ -22,17 +29,17 @@ trait ChatService extends {
 	def getOnlines(): Future[Map[Int, Boolean]]
 	def setAway(actor: ActorRef, away: Boolean): Unit
 
-	def roomBacklog(room: Int, user: User, count: Option[Int], limit: Option[Int] = None): Future[Seq[ChatMessage]]
+	def roomBacklog(room: Int, user: Option[User] = None, count: Option[Int] = None, limit: Option[Int] = None): Future[Seq[ChatMessage]]
 }
 
 class ChatServiceImpl extends ChatService {
 	private var sessions = Map[Int, ChatSession]()
 
-	private def broadcast(msg: String, payload: Payload, filter: (User) => Boolean = (_) => true) = {
+	private def broadcast(message: Any, filter: (User) => Boolean = (_) => true) = {
 		for {
 			session <- sessions.values if filter(session.user)
 			handler <- session.actors.keys
-		} handler ! SendMessage(msg, payload)
+		} handler ! message
 	}
 
 	def getOnlines(): Future[Map[Int, Boolean]] = sessions map {
@@ -43,7 +50,7 @@ class ChatServiceImpl extends ChatService {
 		val away = session.actors.values.forall(away => away)
 		if (away != session.away) {
 			session.away = away
-			broadcast("away-state-changed", Json.arr(session.user.id, away))
+			broadcast(UserAway(session.user, away))
 		}
 	}
 
@@ -58,7 +65,7 @@ class ChatServiceImpl extends ChatService {
 			case None =>
 				val session = ChatSession(user, false, mutable.Map(act))
 				sessions += user.id -> session
-				broadcast("connected", user.id)
+				broadcast(UserConnect(session.user))
 		}
 	}
 
@@ -70,7 +77,7 @@ class ChatServiceImpl extends ChatService {
 				session.actors -= actor
 				if (session.actors.size < 1) {
 					sessions -= user
-					broadcast("disconnected", user)
+					broadcast(UserDisconnect(session.user))
 				}
 		}
 	}
@@ -82,7 +89,7 @@ class ChatServiceImpl extends ChatService {
 		}
 	}
 
-	def roomBacklog(room: Int, user: User, count: Option[Int], limit: Option[Int] = None): Future[Seq[ChatMessage]] = {
+	def roomBacklog(room: Int, user: Option[User] = None, count: Option[Int] = None, limit: Option[Int] = None): Future[Seq[ChatMessage]] = {
 		var query = ChatMessages.filter(_.room === room)
 		for (l <- limit)
 			query = query.filter(_.id < l)

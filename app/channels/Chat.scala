@@ -1,6 +1,7 @@
 package channels
 
 import actors.Actors._
+import actors.ChatService.{UserDisconnect, UserConnect, UserAway}
 import akka.actor.Props
 import gtp3._
 import models.User
@@ -27,6 +28,12 @@ class Chat(val user: User) extends ChannelHandler {
 
 	stop {
 		ChatService.disconnect(self)
+	}
+
+	akka {
+		case UserConnect(user) => send("connected", user.id)
+		case UserAway(user, away) => send("update-away-state", Json.arr(user.id, away))
+		case UserDisconnect(user) => send("disconnected", user.id)
 	}
 
 	message("set-away") { payload =>

@@ -17,12 +17,6 @@ package object models {
 	val mysql = slick.driver.MySQLDriver.api
 	val sql = slick.jdbc.StaticQuery
 
-	implicit object timestampFormat extends Format[Timestamp] {
-		val format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-		def reads(json: JsValue) = JsSuccess(new Timestamp(format.parse(json.as[String]).getTime))
-		def writes(ts: Timestamp) = JsString(format.format(ts))
-	}
-
 	implicit class QueryExecutor[A](val q: Query[_, A, Seq]) extends AnyVal {
 		import mysql._
 		def run = DB.run(q.result)
@@ -33,6 +27,12 @@ package object models {
 	implicit class AwaitableFuture[A](val f: Future[A]) extends AnyVal {
 		def await: A = await(30.seconds)
 		def await(limit: Duration): A = Await.result(f, limit)
+	}
+
+	implicit val timestampFormat = new Format[Timestamp] {
+		val format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+		def reads(json: JsValue) = JsSuccess(new Timestamp(format.parse(json.as[String]).getTime))
+		def writes(ts: Timestamp) = JsString(format.format(ts))
 	}
 
 	implicit val userJsonWriter = new Writes[User] {
