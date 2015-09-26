@@ -16,10 +16,10 @@ object SocketActor {
 
 class SocketActor(val out: ActorRef, val remote: String) extends Actor {
 	// The attached socket object
-	var socket: Socket = null
+	var socket: ActorRef = null
 
 	// Instantly kill socket if too many are being created from one IP address
-	if (!SocketManager.accept(this)) {
+	if (!SocketManager.accept(remote)) {
 		self ! PoisonPill
 	}
 
@@ -32,11 +32,11 @@ class SocketActor(val out: ActorRef, val remote: String) extends Actor {
 			val status = Frame.decode(buffer) match {
 				// Create a new socket for this client
 				case HelloFrame(magic, version) =>
-					if (magic == GTP3Magic) SocketManager.allocate(this)
+					if (magic == GTP3Magic) SocketManager.allocate(self)
 					else BindingFailed
 
 				// Rebind an existing socket
-				case ResumeFrame(sockid, seq) => SocketManager.rebind(this, sockid, seq)
+				case ResumeFrame(sockid, seq) => SocketManager.rebind(self, sockid, seq)
 
 				// Bad stuff
 				case _ => BindingFailed
@@ -47,14 +47,13 @@ class SocketActor(val out: ActorRef, val remote: String) extends Actor {
 				self ! PoisonPill
 			}
 
-			val ctx = context
-			ctx.become(bound)
+			context.become(bound)
 			kill.start()
 
 			status onComplete {
 				case Success(s) =>
 					kill.cancel()
-					socket = s
+					self ! s
 
 				case Failure(_) =>
 					kill.trigger()
@@ -66,15 +65,13 @@ class SocketActor(val out: ActorRef, val remote: String) extends Actor {
 	 * Simply forward messages to the Socket object
 	 */
 	def bound: Receive = {
-		case buffer: Array[Byte] =>
-			if (socket != null) socket.receive(buffer)
+		case s: ActorRef => socket = s
+		case buffer: Array[Byte] => if (socket != null) socket ! buffer
+		case frame: Frame => out ! Frame.encode(frame).toByteArray
 	}
 
 	/**
 	 * Called when the Websocket is closed
 	 */
-	override def postStop(): Unit = {
-		if (socket != null) socket.detach()
-		SocketManager.disconnected(this)
-	}
+	override def postStop(): Unit = SocketManager.disconnected(self, remote)
 }

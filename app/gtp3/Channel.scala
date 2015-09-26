@@ -1,45 +1,59 @@
 package gtp3
 
+import akka.actor._
+import akka.pattern.ask
 import gt.Global.ExecutionContext
+import gtp3.Channel._
+import gtp3.ChannelHandler.SendMessage
 import org.apache.commons.lang3.exception.ExceptionUtils
 
-import scala.util.{Failure, Success}
+object Channel {
+	case class Init(channel: ActorRef)
+	case class Close(code: Int = 0, reason: String = "Channel closed")
+	case class Message(message: String, payload: Payload)
+	case class Request(rid: Int, request: String, payload: Payload)
+	case class Success(rid: Int, payload: Payload)
+	case class Failure(rid: Int, fail: Throwable)
 
-class Channel(val socket: Socket, val id: Int, val sender_channel: Int, val handler: ChannelHandler) {
-	def receive(frame: ChannelFrame) = frame match {
+	def props(socket: ActorRef, id: Int, sender_channel: Int, handler: Props) =
+		Props(new Channel(socket, id, sender_channel, handler))
+}
+
+class Channel(val socket: ActorRef, val id: Int, val sender_channel: Int, val handler_props: Props) extends Actor {
+	// Create channel handler
+	val handler = context.actorOf(handler_props, "handler")
+	context.watch(handler)
+
+	// Initialize handler
+	handler ! Init(self)
+
+	def receive = {
 		case MessageFrame(seq, channel, message, flags, payload) =>
-			handler.message(message, Payload(payload, flags))
+			handler ! Message(message, Payload(payload, flags))
 
 		case RequestFrame(seq, channel, req, rid, flags, payload) =>
-			handler.request(req, Payload(payload, flags)) onComplete {
-				case Success(res_payload) =>
-					socket.out ! SuccessFrame(0, sender_channel, rid, res_payload.flags, res_payload.byteVector)
-
-				case Failure(fail) =>
-					//println(fail.printStackTrace())
-					socket.out ! FailureFrame(0, sender_channel, rid, 0, ExceptionUtils.getStackTrace(fail))
-			}
+			handler ! Request(rid, req, Payload(payload, flags))
 
 		case SuccessFrame(seq, channel, req, flags, payload) => ???
 		case FailureFrame(seq, channel, req, code, message) => ???
 
 		case CloseFrame(seq, channel, code, reason) =>
-			this.closed()
-	}
+			handler ! Close(code, reason)
 
-	def send(msg: String, payload: Payload) = {
-		socket.out ! MessageFrame(0, sender_channel, msg, payload.flags, payload.byteVector)
-	}
+		case Success(rid, payload) =>
+			socket ! SuccessFrame(0, sender_channel, rid, payload.flags, payload.byteVector)
 
-	/*def close(code: Int, reason: String) = {
+		case Failure(rid, fail) =>
+			socket ! FailureFrame(0, sender_channel, rid, 0, ExceptionUtils.getStackTrace(fail))
 
-	}*/
+		case SendMessage(msg, payload) =>
+			socket ! MessageFrame(0, sender_channel, msg, payload.flags, payload.byteVector)
 
-	def closed() = {
-		handler match {
-			case c: CloseHandler => c.close()
-			case _ => /* noop */
-		}
-		socket.channelClosed(this)
+		case Close(code, reason) =>
+			socket ! CloseFrame(0, sender_channel, code, reason)
+			handler ! Close(code, reason)
+
+		case Terminated(actor) if actor == handler =>
+			self ! PoisonPill
 	}
 }

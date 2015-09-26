@@ -491,9 +491,26 @@ export function Inject<T>(target: any, property: string) {
 }
 
 /**
+ * Normalize mapping
+ */
+type ExtendedMapping = EventMapping | string[] | string;
+function normalize_mapping(mapping: ExtendedMapping): EventMapping {
+	if (typeof mapping === "string") {
+		return { [mapping]: true };
+	} else if (Array.isArray(mapping)) {
+		const norm: EventMapping = {};
+		mapping.forEach(k => norm[k] = true);
+		return norm;
+	} else {
+		return mapping;
+	}    
+}
+
+/**
  * Declare event biding with externals modules
  */
-export function On(mapping: EventMapping) {
+export function On(m: ExtendedMapping) {
+	const mapping = normalize_mapping(m);
 	return (target: any, property: string) => {
 		let bindings = Reflect.getMetadata<ElementBindings>("polymer:bindings", target) || {};
 		bindings[property] = bindings[property] || {};
@@ -507,7 +524,8 @@ export function On(mapping: EventMapping) {
 /**
  * Same as @On but automatically adjust for @Notify naming convention
  */
-export function Watch(mapping: EventMapping) {
+export function Watch(m: ExtendedMapping) {
+	const mapping = normalize_mapping(m);
 	const ajusted_mapping: { [key: string]: any } = {}
 	for (let key in mapping) {
 		ajusted_mapping[`${key}-updated`] = mapping[key];
@@ -518,9 +536,11 @@ export function Watch(mapping: EventMapping) {
 /**
  * Same as @Watch but additionally automatically set own property
  */
-export function Bind(mapping: EventMapping) {
+export function Bind(m: ExtendedMapping) {
+	const mapping = normalize_mapping(m);
 	const ajusted_mapping: { [key: string]: any } = {}
 	for (let key in mapping) {
+		if (typeof mapping[key] == "boolean") mapping[key] = key;
 		ajusted_mapping[`${key}-updated`] = `bind@${key}|${mapping[key]}`;
 	}
 	return On(ajusted_mapping);

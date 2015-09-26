@@ -1,5 +1,7 @@
 package gtp3
 
+import actors.SocketManager
+import akka.actor.{Terminated, Props, Actor, ActorRef}
 import gt.Global
 import models.User
 
@@ -9,11 +11,15 @@ import scala.concurrent.Future
 
 class DuplicatedFrame extends Exception
 
-class Socket(val id: Long, var actor: SocketActor) {
-	// Socket state
-	private var attached = true
-	def isAttached = attached
+object Socket {
+	def props(id: Long, out: ActorRef) = Props(new Socket(id, out))
 
+	case class SetUser(user: User)
+	private case class ChannelAccept(open: OpenFrame, handler: Props)
+	private case class ChannelReject(open: OpenFrame, code: Int, message: String)
+}
+
+class Socket(val id: Long, val out: ActorRef) extends Actor{
 	// Incoming sequence id
 	private var in_seq = 0
 
@@ -23,8 +29,7 @@ class Socket(val id: Long, var actor: SocketActor) {
 	private val out_buffer = mutable.Queue[SequencedFrame]()
 
 	// Channels
-	private val channels = mutable.Map[Int, Channel]()
-	private val channels_pending = mutable.Map[Int, Future[Channel]]()
+	private val channels = mutable.Map[Int, ActorRef]()
 	private val channelid_pool = new NumberPool()
 
 	// Limit the number of emitter REQUEST_ACK commands
@@ -33,11 +38,47 @@ class Socket(val id: Long, var actor: SocketActor) {
 	// Socket is authenticated
 	var user: User = null
 
-	/**
-	 * Overloaded output helper
-	 */
-	object out {
-		def !(frame: Frame): Unit = Socket.this.synchronized {
+	def receive = {
+		case SocketManager.Handshake() =>
+			self ! HandshakeFrame(GTP3Magic, Global.serverVersion, id)
+
+		case SocketManager.Resume(seq) =>
+			ack(seq)
+			while (out_buffer.nonEmpty) self ! out_buffer.dequeue()
+			self ! SyncFrame(in_seq)
+
+		case buffer: Array[Byte] =>
+			try {
+				// Decode the frame buffer
+				val frame = Frame.decode(buffer)
+
+				// Handle sequenced frame acks
+				frame.ifSequenced(handleSequenced)
+
+				// Dispatch
+				frame match {
+					case AckFrame(last_seq) => ack(last_seq)
+
+					case PingFrame() => self ! PongFrame()
+					case PongFrame() =>
+					case RequestAckFrame() => self ! AckFrame(in_seq)
+
+					case f: IgnoreFrame => /* ignore */
+
+					case f: OpenFrame => receiveOpen(f)
+					case f: OpenSuccessFrame => receiveOpenSuccess(f)
+					case f: OpenFailureFrame => receiveOpenFailure(f)
+					case f: ResetFrame => receiveReset(f)
+
+					case f: ChannelFrame => receiveChannelFrame(f)
+
+					case _ => println("Unknown frame", frame)
+				}
+			} catch {
+				case e: DuplicatedFrame => /* ignore duplicated frames */
+			}
+
+		case frame: Frame =>
 			// Special handling for sequenced frames
 			// Automatic tagging
 			frame.ifSequenced { seq_frame =>
@@ -49,7 +90,7 @@ class Socket(val id: Long, var actor: SocketActor) {
 					throw new Exception("Output buffer is full")
 				} else if (buf_len > 32) {
 					if (request_ack_cooldown <= 0) {
-						this ! RequestAckFrame()
+						self ! RequestAckFrame()
 						request_ack_cooldown = 3
 					} else {
 						request_ack_cooldown -= 1
@@ -64,49 +105,24 @@ class Socket(val id: Long, var actor: SocketActor) {
 				out_buffer.enqueue(seq_frame)
 			}
 
-			// Send the frame if the socket is open
-			if (attached) actor.out ! Frame.encode(frame).toByteArray
-		}
-	}
+			// Send the frame
+			out ! frame
 
-	/**
-	 * Send the Handshake frame to the client
-	 */
-	def handshake() = out ! HandshakeFrame(GTP3Magic, Global.serverVersion, id)
+		case Socket.ChannelAccept(open, handler_props) =>
+			val id = channelid_pool.next
+			val channel = context.actorOf(Channel.props(self, id, open.sender_channel, handler_props))
+			context.watch(channel)
+			channels += id -> channel
+			self ! OpenSuccessFrame(0, open.sender_channel, id)
 
-	/**
-	 * Receive a frame
-	 */
-	def receive(buffer: Array[Byte]) = synchronized {
-		try {
-			// Decode the frame buffer
-			val frame = Frame.decode(buffer)
+		case Socket.SetUser(u) =>
+			user = u
 
-			// Handle sequenced frame acks
-			frame.ifSequenced(handleSequenced)
-
-			// Dispatch
-			frame match {
-				case AckFrame(last_seq) => ack(last_seq)
-
-				case PingFrame() => out ! PongFrame()
-				case PongFrame() =>
-				case RequestAckFrame() => out ! AckFrame(in_seq)
-
-				case f: IgnoreFrame => /* ignore */
-
-				case f: OpenFrame => receiveOpen(f)
-				case f: OpenSuccessFrame => receiveOpenSuccess(f)
-				case f: OpenFailureFrame => receiveOpenFailure(f)
-				case f: ResetFrame => receiveReset(f)
-
-				case f: ChannelFrame => receiveChannelFrame(f)
-
-				case _ => println("Unknown frame", frame)
+		case Terminated(channel) =>
+			for ((id, chan) <- channels if chan == channel) {
+				channels.remove(id)
+				channelid_pool.release(id)
 			}
-		} catch {
-			case e: DuplicatedFrame => /* ignore duplicated frames */
-		}
 	}
 
 	/**
@@ -117,23 +133,19 @@ class Socket(val id: Long, var actor: SocketActor) {
 		val seq = frame.seq
 
 		// Ensure the frame was not already received
-		if (seq <= in_seq && (seq != 0 || in_seq == 0)) {
-			throw new DuplicatedFrame
-		}
+		if (seq <= in_seq && (seq != 0 || in_seq == 0)) throw new DuplicatedFrame
 
 		// Store the sequence number as the last received one
 		in_seq = seq
 
 		// Only send an actual ACK if multiple of 4
-		if (seq % 4 == 0) {
-			out ! AckFrame(seq)
-		}
+		if (seq % 4 == 0) self ! AckFrame(seq)
 	}
 
 	/**
 	 * Handle received acknowledgments
 	 */
-	private def ack(seq: Int) = synchronized {
+	private def ack(seq: Int) = {
 		// Dequeue while the frame sequence id is less or equal to the acknowledged one
 		// Also dequeue if the frame is simply greater than the last acknowledgment, this handle
 		// the wrap-around case
@@ -154,32 +166,17 @@ class Socket(val id: Long, var actor: SocketActor) {
 	}
 
 	private def receiveOpen(frame: OpenFrame) = {
-		val request = new ChannelRequest(frame.channel_type, frame.token, this) {
-			def accept(handler: ChannelHandler): Channel = {
+		val request = new ChannelRequest(self, frame.channel_type, frame.token, user) {
+			def accept(handler: Props): Unit = {
 				if (replied) throw new Exception("Request already responded to")
 				_replied = true
-
-				val id = channelid_pool.next
-				val channel = new Channel(Socket.this, id, frame.sender_channel, handler)
-
-				handler.socket = Socket.this
-				handler.channel = channel
-
-				channels += (id -> channel)
-				out ! OpenSuccessFrame(0, frame.sender_channel, id)
-
-				handler match {
-					case c: InitHandler => c.init()
-					case _ => /* noop */
-				}
-				channel
+				self ! Socket.ChannelAccept(frame, handler)
 			}
 
 			def reject(code: Int, message: String): Unit = {
 				if (replied) throw new Exception("Request already responded to")
 				_replied = true
-
-				out ! OpenFailureFrame(0, frame.sender_channel, code, message)
+				self ! OpenFailureFrame(0, frame.sender_channel, code, message)
 			}
 		}
 
@@ -187,12 +184,7 @@ class Socket(val id: Long, var actor: SocketActor) {
 			request.reject(103, "Non-authenticated socket cannot request channel")
 		} else {
 			ChannelValidators.get(frame.channel_type) match {
-				case Some(validator) =>
-					validator.open(request)
-					if (!request.replied) {
-						request.reject(201, "Channel validator did not accept or reject the request")
-					}
-
+				case Some(validator) => validator.open(request)
 				case None => request.reject(104, "Unknown channel type")
 			}
 		}
@@ -204,43 +196,8 @@ class Socket(val id: Long, var actor: SocketActor) {
 
 	private def receiveChannelFrame(frame: ChannelFrame) = {
 		channels.get(frame.channel) match {
-			case Some(channel) => channel.receive(frame)
-			case None => out ! ResetFrame(frame.channel)
-		}
-	}
-
-	private[gtp3] def channelClosed(channel: Channel) = {
-		val id = channel.id
-		channels.remove(id)
-		channelid_pool.release(id)
-	}
-
-	/**
-	 * Rebind a detached socket
-	 */
-	def rebind(a: SocketActor, last_seq: Int) = out_buffer.synchronized {
-		attached = true
-		actor = a
-
-		ack(last_seq)
-		while (out_buffer.nonEmpty) {
-			out ! out_buffer.dequeue()
-		}
-
-		out ! SyncFrame(in_seq)
-	}
-
-	/**
-	 * Detach a socket if the backing WebSocket is closed
-    */
-	def detach() = {
-		attached = false
-		actor = null
-	}
-
-	def closed() = {
-		for (channel <- channels.values) {
-			channel.closed()
+			case Some(channel) => channel ! frame
+			case None => self ! ResetFrame(frame.channel)
 		}
 	}
 }

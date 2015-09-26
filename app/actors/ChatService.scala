@@ -1,69 +1,83 @@
 package actors
 
+import akka.actor.ActorRef
+import gtp3.ChannelHandler.SendMessage
 import gtp3.{Channel, Payload}
 import actors.Actors.Implicits._
 import models._
 import models.mysql._
 import play.api.libs.json._
-import utils.ChannelList
 import gt.Global.ExecutionContext
 
+import scala.collection.mutable
 import scala.concurrent.Future
 import scala.language.implicitConversions
 
-case class ChatSession(user: User, var away: Boolean, var channels: Map[gtp3.Channel, Boolean])
+case class ChatSession(user: User, var away: Boolean, val actors: mutable.Map[ActorRef, Boolean])
 
-trait ChatService extends ChannelList[ChatSession] {
+trait ChatService extends {
+	def connect(actor: ActorRef, user: User): Unit
+	def disconnect(actor: ActorRef): Unit
+
+	def getOnlines(): Future[Map[Int, Boolean]]
+	def setAway(actor: ActorRef, away: Boolean): Unit
+
+	def roomBacklog(room: Int, user: User, count: Option[Int], limit: Option[Int] = None): Future[Seq[ChatMessage]]
+}
+
+class ChatServiceImpl extends ChatService {
 	private var sessions = Map[Int, ChatSession]()
 
-	def onlines: Future[Map[Int, Boolean]] = sessions map {
+	private def broadcast(msg: String, payload: Payload, filter: (User) => Boolean = (_) => true) = {
+		for {
+			session <- sessions.values if filter(session.user)
+			handler <- session.actors.keys
+		} handler ! SendMessage(msg, payload)
+	}
+
+	def getOnlines(): Future[Map[Int, Boolean]] = sessions map {
 		case (user, session) => user -> session.away
 	}
 
 	private def updateAway(session: ChatSession) = {
-		val away = session.channels.values.forall(away => away)
+		val away = session.actors.values.forall(away => away)
 		if (away != session.away) {
 			session.away = away
 			broadcast("away-state-changed", Json.arr(session.user.id, away))
 		}
 	}
 
-	def connect(channel: Channel): Unit = {
-		val user = channel.socket.user
-		val chan = channel -> false
+	def connect(actor: ActorRef, user: User): Unit = {
+		val act = actor -> false
 
 		sessions.get(user.id) match {
 			case Some(session) =>
-				registerChannel(channel, session)
-				session.channels += chan
+				session.actors += act
 				updateAway(session)
 
 			case None =>
-				val session = ChatSession(user, false, Map(chan))
-				registerChannel(channel, session)
+				val session = ChatSession(user, false, mutable.Map(act))
 				sessions += user.id -> session
 				broadcast("connected", user.id)
 		}
 	}
 
-	def disconnect(channel: gtp3.Channel): Unit = {
+	def disconnect(actor: ActorRef): Unit = {
 		sessions.find {
-			case (user, session) => session.channels.contains(channel)
+			case (user, session) => session.actors.contains(actor)
 		} foreach {
 			case (user, session) =>
-				session.channels -= channel
-				if (session.channels.size < 1) {
+				session.actors -= actor
+				if (session.actors.size < 1) {
 					sessions -= user
-					unregisterChannel(channel)
-					updateAway(session)
 					broadcast("disconnected", user)
 				}
 		}
 	}
 
-	def setAway(channel: gtp3.Channel, away: Boolean) = {
-		for (session <- sessions.get(channel.socket.user.id)) {
-			session.channels = session.channels.updated(channel, away)
+	def setAway(actor: ActorRef, away: Boolean) = {
+		for (session <- sessions.values find (_.actors.contains(actor))) {
+			session.actors.update(actor, away)
 			updateAway(session)
 		}
 	}
@@ -76,66 +90,4 @@ trait ChatService extends ChannelList[ChatSession] {
 		val actual_count = count.filter(v => v > 0 && v <= 100).getOrElse(50)
 		query.sortBy(_.id.asc).take(actual_count).run
 	}
-
-	/*def loadShoutbox(): List[ChatMessage]
-	def sendShoutbox(from: User, message: String): Unit
-
-	def userInChannel(user: User, channel: Option[Int]): Boolean
-	def fetchMessages(channel: Option[Int], select: Option[ChatSelect] = None): List[ChatMessage]
-
-	def sendMessage(channel: Int, from: User, message: String): Try[ChatMessage]
-	def sendWhisper(from: User, to: Int, message: String): Try[ChatWhisper]*/
-}
-
-class ChatServiceImpl extends ChatService {
-
-
-	/*
-		private val shoutbox_backlog = LazyCache[List[ChatMessage]](1.minute) {
-			DB.withSession { implicit s =>
-				ChatMessages.filter(_.channel.isEmpty).sortBy(_.id.desc).take(100).list
-			}
-		}
-
-		def loadShoutbox(): List[ChatMessage] = shoutbox_backlog
-
-		def sendShoutbox(from: User, msg: String): Unit = {
-			val message = DB.withSession { implicit s =>
-				val template = ChatMessage(0, None, from.id, from.name, msg)
-				val id = (ChatMessages returning ChatMessages.map(_.id)).insert(template)
-				template.copy(id = id)
-			}
-
-			shoutbox_backlog := (message :: _)
-			//Dispatcher !# ChatShoutboxMsg(message)
-		}
-
-		private val memberships = LazyCollection[Int, Set[Int]](1.minute) { channel =>
-			DB.withSession { implicit s =>
-				ChatMembers.filter(_.channel === channel).map(_.user).list.toSet
-			}
-		}
-
-		private implicit def unpackSelect(s: Option[ChatSelect]): ChatSelect = s.getOrElse(ChatSelect.all)
-
-		def userInChannel(user: User, channel: Option[Int]): Boolean = channel match {
-			case Some(cid) => memberships(cid).contains(user.id)
-			case None => true
-		}
-
-		def fetchMessages(channel: Option[Int], select: Option[ChatSelect] = None): List[ChatMessage] = {
-			DB.withSession { implicit s =>
-				var query = select.toQuery
-				channel match {
-					case Some(cid) => query = query.filter(_.channel === cid)
-					case None => query = query.filter(_.channel.isEmpty)
-				}
-				query.list
-			}
-		}
-
-		def sendMessage(chanid: Int, from: User, message: String): Try[ChatMessage] = ???
-
-		def sendWhisper(from: User, to: Int, message: String): Try[ChatWhisper] = ???
-		*/
 }

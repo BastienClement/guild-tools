@@ -103,6 +103,10 @@ export class Chat extends PausableEventEmitter {
 		return Array.from(this.onlines.keys());
 	}
 	
+	public isAway(user: number): boolean {
+		return this.onlines.get(user);
+	}
+	
 	// Request a backlog of messages from a chat room
 	public requestBacklog(room: number, upper?: number): Promise<ChatMessage[]> {
 		return this.channel.request("room-backlog", { room, upper });

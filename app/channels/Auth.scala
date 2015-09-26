@@ -3,6 +3,8 @@ package channels
 import java.util.concurrent.atomic.AtomicInteger
 
 import actors.Actors._
+import akka.actor.{ActorRef, Props}
+import gtp3.Socket.SetUser
 import gtp3._
 import models._
 import play.api.libs.json.{JsNull, JsValue, Json}
@@ -14,29 +16,30 @@ import scala.concurrent.duration._
 
 object Auth extends ChannelValidator {
 	// Keep track of socket for which an authenticated channel has already been opened
-	private val already_open = mutable.WeakHashMap[Socket, Boolean]() withDefaultValue false
+	private val already_open = mutable.WeakHashMap[ActorRef, Boolean]() withDefaultValue false
 
 	def open(request: ChannelRequest) = {
 		if (already_open(request.socket)) {
 			request.reject(105, "Cannot open more than one auth channel per socket")
 		} else {
 			already_open.update(request.socket, true)
-			request.accept(new Auth)
+			request.accept(Props(new Auth(request.socket)))
 		}
 	}
+
+	private val concurrent = Future.failed[Payload](new Exception("Concurrent requests on auth channel are forbidden"))
 }
 
-class Auth extends ChannelHandler {
+class Auth(val socket: ActorRef) extends ChannelHandler {
 	// Count parallel requests
 	private val count = new AtomicInteger(0)
-	private val concurrent = Future.failed[Payload](new Exception("Concurrent requests on auth channel are forbidden"))
 
 	// Break the multiplexing feature of GTP3 for the auth channel
 	// This prevents running multiple login attempts in parallel
-	override def request(req: String, payload: Payload): Future[Payload] = {
+	override def handle_request(req: String, payload: Payload): Future[Payload] = {
 		val res =
-			if (count.incrementAndGet() != 1) concurrent
-			else super.request(req, payload)
+			if (count.incrementAndGet() != 1) Auth.concurrent
+			else super.handle_request(req, payload)
 
 		res andThen { case _ => count.decrementAndGet() }
 	}
@@ -47,7 +50,7 @@ class Auth extends ChannelHandler {
 	request("auth") { payload =>
 		utils.atLeast(500.milliseconds) {
 			val res: Future[JsValue] = AuthService.auth(payload.string) map { user =>
-				socket.user = user
+				socket ! Socket.SetUser(user)
 				Json.toJson(user)
 			} recover {
 				case _ => JsNull

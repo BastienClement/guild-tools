@@ -106,6 +106,15 @@
 			right: 16px;
 			line-height: 24px;
 		}
+		
+		#disconnected {
+			position: absolute;
+			top: 16px;
+			left: 130px;
+			line-height: 24px;
+			font-size: 18px;
+			color: @light-blue;
+		}
 
 		#list {
 			margin-bottom: -6px;
@@ -158,6 +167,9 @@
 	</style>
 	<template>
 		<gt-box #feed heading="News Feed" scrollable>
+			<div #disconnected {hidden}="available">
+				<i>cloud_off</i>
+			</div>
 			<div #actions>
 				<dashboard-news-filter key="MMO" [active]="filters.MMO"></dashboard-news-filter>
 				<dashboard-news-filter key="BLUE" [active]="filters.BLUE"></dashboard-news-filter>
@@ -231,9 +243,17 @@
 	</style>
 	<template>
 		<gt-box #onlines heading="Onlines" scrollable>
-			<div style="position: absolute; top: 60px; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; font-size: 80px;">
-				<i>build</i>
+			<div [repeat]="onlines">
+				<dashboard-onlines-user [user]="item"></dashboard-onlines-user>
 			</div>
 		</gt-box>
+	</template>
+</dom-module>
+
+<dom-module id="dashboard-onlines-user">
+	<style type="text/less">
+	</style>
+	<template>
+		<b>{{user}}</b>
 	</template>
 </dom-module>

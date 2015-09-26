@@ -1,34 +1,36 @@
 package channels
 
 import actors.Actors._
+import akka.actor.Props
 import gtp3._
+import models.User
 import play.api.libs.json.Json
 import gt.Global.ExecutionContext
 
 import scala.language.postfixOps
 
 object Chat extends ChannelValidator {
-	def open(request: ChannelRequest) = request.accept(new Chat)
+	def open(request: ChannelRequest) = request.accept(Props(new Chat(request.user)))
 }
 
-class Chat extends ChannelHandler with InitHandler with CloseHandler {
+class Chat(val user: User) extends ChannelHandler {
 	var interests = Set[Int]()
 
-	def init(): Unit = {
-		ChatService.connect(channel)
-		ChatService.onlines map { list =>
+	init {
+		ChatService.connect(self, user)
+		ChatService.getOnlines() map { list =>
 			for ((user, away) <- list) yield Json.arr(user, away)
 		} foreach { onlines =>
-			channel.send("onlines", onlines)
+			send("onlines", onlines)
 		}
 	}
 
-	def close(): Unit = {
-		ChatService.disconnect(channel)
+	stop {
+		ChatService.disconnect(self)
 	}
 
 	message("set-away") { payload =>
-		ChatService.setAway(channel, payload.value.as[Boolean])
+		ChatService.setAway(self, payload.value.as[Boolean])
 	}
 
 	message("set-interest") { payload =>

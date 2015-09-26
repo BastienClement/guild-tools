@@ -99,14 +99,14 @@ export class GtSidebar extends PolymerElement {
 	private icons: SidebarIcon[] = [
 		{ icon: "widgets", key: "dashboard", link: "/dashboard" },
 		{ icon: "account_circle", key: "profile", link: "/profile" },
-		{ icon: "mail", key: "messages", link: "/messages" },
+		//{ icon: "mail", key: "messages", link: "/messages" },
 		{ icon: "today", key: "calendar", link: "/calendar" },
 		{ icon: "group_work", key: "roster", link: "/roster" },
-		{ icon: "forum", key: "forum", link: "/forum" },
+		//{ icon: "forum", key: "forum", link: "/forum" },
 		{ icon: "assignment_ind", key: "apply", link: "/apply" },
-		{ icon: "ondemand_video", key: "streams", link: "/streams" },
-		{ icon: "brush", key: "whiteboard", link: "/whiteboard" },
-		{ icon: "backup", key: "drive", link: "/drive" }
+		//{ icon: "ondemand_video", key: "streams", link: "/streams" },
+		//{ icon: "brush", key: "whiteboard", link: "/whiteboard" },
+		//{ icon: "backup", key: "drive", link: "/drive" }
 	];
 
 	/**

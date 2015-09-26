@@ -2,6 +2,7 @@ import { Element, Property, Listener, Dependencies, Inject, On, Watch, Bind, Pol
 import { Router, View } from "client/router";
 import { NewsFeed, NewsData } from "services/newsfeed";
 import { Chat, ChatMessage } from "services/chat";
+import { Roster } from "services/roster";
 import { GtBox, GtAlert, GtTimeago } from "elements/defs";
 
 Router.declareTabs("dashboard", [
@@ -38,8 +39,10 @@ class DashboardNewsFilter extends PolymerElement {
 class DashboardNews extends PolymerElement {
 	@Inject
 	@On({ "news-available": "update" })
+	@Bind({ "available": true })
 	private newsfeed: NewsFeed;
-
+	
+	public available: boolean;
 	private news: NewsData[] = this.newsfeed.getNews();
 
 	private update(news: NewsData) {
@@ -131,34 +134,49 @@ class DashboardShoutbox extends PolymerElement {
 	}
 }
 
-interface OnlineUser {
-	user: number;
-	away: boolean;
+@Element("dashboard-onlines-user", "/assets/views/dashboard.html")
+class DashboardOnlinesUser extends PolymerElement {
+	@Property({ type: Number })
+	public user: number;
+	
+	@Property({ type: Boolean })
+	public away: boolean = this.chat.isAway(this.user);
+
+	@Inject
+	@On({ "away-changed": "updateAway" })
+	private chat: Chat;
+	
+	constructor() {
+		super();
+		console.log(this.user, this.away);
+	}
+	
+	private updateAway(user: number, away: boolean) {
+		if (user == this.user) {
+			this.away = away;
+		}
+	}
 }
 
 @Element("dashboard-onlines", "/assets/views/dashboard.html")
-@Dependencies()
+@Dependencies(DashboardOnlinesUser)
 class DashboardOnlines extends PolymerElement {
 	@Inject
-	@Bind({
-		"connected": true,
-		"disconnected": true,
-		"away-changed": "awayChanged"
-	})
+	@On(["connected", "disconnected"])
 	private chat: Chat;
 	
 	/**
 	 * The sorted list of users used for display
 	 */
-	private onlines: OnlineUser[] = [];
+	private onlines: number[] = this.chat.onlinesUsers;
 	
 	/**
 	 * A new user is now connected to GT
 	 */
 	private connected(user: number) {
 		let i = 0, l = this.onlines.length;
-		while (i < l && this.onlines[i].user < user) i++;
-		this.splice("onlines", i, 0, { user, away: false });
+		while (i < l && this.onlines[i] < user) i++;
+		this.splice("onlines", i, 0, user);
 	}
 	
 	/**
@@ -166,20 +184,8 @@ class DashboardOnlines extends PolymerElement {
 	 */
 	private disconnected(user: number) {
 		for (let i = 0; i < this.onlines.length; i++) {
-			if (this.onlines[i].user == user) {
+			if (this.onlines[i] == user) {
 				this.splice("onlines", i, 1);
-				break;
-			}
-		}
-	}
-	
-	/**
-	 * The away status of an user was changed
-	 */
-	private awayChanged(user: number, away: boolean) {
-		for (let i = 0; i < this.onlines.length; i++) {
-			if (this.onlines[i].user == user) {
-				this.set(`onlines.${i}.away`, away);
 				break;
 			}
 		}
@@ -188,5 +194,4 @@ class DashboardOnlines extends PolymerElement {
 
 @View("dashboard", "gt-dashboard", "/dashboard")
 @Dependencies(DashboardNews, DashboardShoutbox, DashboardOnlines)
-export class Dashboard extends PolymerElement {
-}
+export class Dashboard extends PolymerElement {}

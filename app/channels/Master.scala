@@ -1,5 +1,6 @@
 package channels
 
+import akka.actor.Props
 import gt.Global.ExecutionContext
 import gtp3._
 import models._
@@ -9,10 +10,10 @@ import play.api.libs.json.Json
 import scala.concurrent.Future
 
 object Master extends ChannelValidator {
-	def open(request: ChannelRequest) = request.accept(new Master)
+	def open(request: ChannelRequest) = request.accept(Props(new Master(request.user)))
 }
 
-class Master extends ChannelHandler {
+class Master(val user: User) extends ChannelHandler {
 	// Request the previously saved configuration object
 	request("get-config") { payload =>
 		val q = Configs filter (_.user === user.id) take 1
