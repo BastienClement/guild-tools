@@ -185,12 +185,17 @@ export class Roster extends Service {
 		// Update all chars
 		for (let char of chars) {
 			let id = char.id;
-			let old = record.chars.get(id);
-			if (!old || this.update(old, char)) {
-				this.emit("char-updated", this.lock(char));
-			}
-			this.owners.set(id, char.owner);
 			seen.add(id);
+			
+			let old = record.chars.get(id);
+			if (!old) {
+				record.chars.set(id, char);
+				this.owners.set(id, char.owner);
+			} else if (!this.update(old, char)) {
+				continue;
+			}
+			
+			this.emit("char-updated", this.lock(char));
 		}
 		
 		// Prune removed characters
