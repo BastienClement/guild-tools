@@ -1,7 +1,8 @@
 import { Deferred, LazyThen, defer } from "utils/deferred";
 import { Queue } from "utils/queue";
 import { Constructor, DefaultInjector } from "utils/di";
-import { EventEmitter, PausableEventEmitter } from "utils/eventemitter";
+import { EventEmitter } from "utils/eventemitter";
+import { Service } from "utils/service";
 
 /**
  * Dummy class to expose Polymer functions on elements
@@ -344,8 +345,8 @@ export function Element(selector: string, template?: string) {
 			const injects = Reflect.getMetadata<InjectionBinding[]>("polymer:injects", target.prototype);
 			if (injects) {
 				for (let binding of injects) {
-					const injected: PausableEventEmitter = this[binding.property]
-					if (injected instanceof PausableEventEmitter) {
+					const injected: Service = this[binding.property]
+					if (injected instanceof Service) {
 						injected.attachListener(this);
 					}
 				}
@@ -359,8 +360,8 @@ export function Element(selector: string, template?: string) {
 			const injects = Reflect.getMetadata<InjectionBinding[]>("polymer:injects", target.prototype);
 			if (injects) {
 				for (let binding of injects) {
-					const injected: PausableEventEmitter = this[binding.property]
-					if (injected instanceof PausableEventEmitter) {
+					const injected: Service = this[binding.property]
+					if (injected instanceof Service) {
 						injected.detachListener(this);
 					}
 				}

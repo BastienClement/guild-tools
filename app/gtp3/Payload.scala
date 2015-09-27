@@ -70,7 +70,6 @@ trait PayloadBuilder[-T] {
 
 // Builder steps are responsible for translating data to ByteVector
 trait PayloadBuilderSteps {
-
 	// Compress and convert to ByteVector
 	trait BufferStep[-T] extends PayloadBuilder[T] {
 		def buffer(buf: Array[Byte], flags: Int = 0, compress: Boolean = true): Payload = {
@@ -93,28 +92,40 @@ trait PayloadBuilderSteps {
 			string(Json.stringify(js), flags | 0x04)
 		}
 	}
-
 }
 
 // Low priority builders
 trait PayloadBuilderLowPriority extends PayloadBuilderSteps {
 	// Any type T with a corresponding Write[T] is encoded: T -> JsValue -> JSON -> Payload
-	implicit def WritesBuilder[T: Writes] = new JsonStep[T] {
+	implicit def PayloadBuilderWrites[T: Writes] = new JsonStep[T] {
 		def build(value: T): Payload = json(implicitly[Writes[T]].writes(value))
+	}
+
+	implicit def PayloadBuilderProduct2[A: Writes, B: Writes] = new JsonStep[(A, B)] {
+		def build(prod: (A, B)): Payload = json(Json.arr(prod._1, prod._2))
+	}
+
+	implicit def PayloadBuilderProduct3[A: Writes, B: Writes, C: Writes] = new JsonStep[(A, B, C)] {
+		def build(prod: (A, B, C)): Payload = json(Json.arr(prod._1, prod._2, prod._3))
+	}
+
+	implicit def PayloadBuilderProduct4[A: Writes, B: Writes, C: Writes, D:Writes] = new JsonStep[(A, B, C, D)] {
+		def build(prod: (A, B, C, D)): Payload = json(Json.arr(prod._1, prod._2, prod._3, prod._4))
+	}
+
+	implicit def PayloadBuilderProduct4[A: Writes, B: Writes, C: Writes, D: Writes, E: Writes] = new JsonStep[(A, B, C, D, E)] {
+		def build(prod: (A, B, C, D, E)): Payload = json(Json.arr(prod._1, prod._2, prod._3, prod._4, prod._5))
 	}
 }
 
 trait PayloadBuilderMiddlePriority extends PayloadBuilderLowPriority {
-
 	implicit object PayloadBuilderJsValue extends JsonStep[JsValue] {
 		def build(js: JsValue): Payload = json(js)
 	}
-
 }
 
 // High priority builders
 object PayloadBuilder extends PayloadBuilderMiddlePriority {
-
 	implicit object PayloadBuilderBuffer extends BufferStep[Array[Byte]] {
 		def build(buf: Array[Byte]): Payload = buffer(buf)
 	}
@@ -126,5 +137,4 @@ object PayloadBuilder extends PayloadBuilderMiddlePriority {
 	implicit object PayloadBuilderJsNull extends PayloadBuilder[JsNull.type] {
 		def build(jsNull: JsNull.type): Payload = Payload.empty
 	}
-
 }

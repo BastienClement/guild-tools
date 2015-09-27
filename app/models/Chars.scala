@@ -51,18 +51,6 @@ class Chars(tag: Tag) extends Table[Char](tag, "gt_chars") {
 }
 
 object Chars extends TableQuery(new Chars(_)) {
-	def notifyCreate(char: Char): Unit = {
-		RosterService.updateChar(char)
-	}
-
-	def notifyUpdate(char: Char): Unit = {
-		RosterService.updateChar(char)
-	}
-
-	def notifyDelete(id: Int): Unit = {
-		RosterService.deleteChar(id)
-	}
-
 	def validateRole(role: String): Boolean = role match {
 		case "TANK" | "HEALING" | "DPS" => true
 		case _ => false

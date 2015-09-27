@@ -240,20 +240,42 @@
 		gt-box {
 			height: 100%;
 		}
+		
+		dashboard-onlines-user {
+			margin: 6px 0px;
+		}
 	</style>
 	<template>
 		<gt-box #onlines heading="Onlines" scrollable>
-			<div [repeat]="onlines">
-				<dashboard-onlines-user [user]="item"></dashboard-onlines-user>
-			</div>
+			<dashboard-onlines-user [user]="item" [repeat]="onlines"></dashboard-onlines-user>
 		</gt-box>
 	</template>
 </dom-module>
 
 <dom-module id="dashboard-onlines-user">
 	<style type="text/less">
+		:host {
+			display: flex;
+			align-items: center;
+		}
+		
+		#state {
+			@r: 10px;
+			
+			height: @r;
+			width: @r;
+			border-radius: @r;
+			margin-right: 8px;
+			
+			background: #41c32b;
+			
+			&[away] {
+				background: #f4d736;
+			}
+		}
 	</style>
 	<template>
-		<b>{{user}}</b>
+		<div #state {away}></div>
+		<b>{{main.name}}</b>
 	</template>
 </dom-module>

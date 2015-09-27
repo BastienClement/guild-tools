@@ -1,5 +1,5 @@
 import { Component } from "utils/di";
-import { PausableEventEmitter, Notify } from "utils/eventemitter";
+import { Service, Notify } from "utils/service";
 import { Server } from "client/server";
 import { Channel } from "gtp3/channel";
 import { Deferred } from "utils/deferred";
@@ -20,7 +20,7 @@ export interface NewsData {
  * News feed data client
  */
 @Component
-export class NewsFeed extends PausableEventEmitter {
+export class NewsFeed extends Service {
 	/**
 	 * The newsfeed channel
 	 */

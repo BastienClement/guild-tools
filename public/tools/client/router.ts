@@ -1,5 +1,6 @@
 import { Component, Injector } from "utils/di";
-import { EventEmitter, Notify } from "utils/eventemitter";
+import { EventEmitter } from "utils/eventemitter";
+import { Notify } from "utils/service";
 import { PolymerConstructor, PolymerElement, Element } from "elements/polymer";
 import { GtApp } from "elements/app";
 import { UserInformations } from "client/server";

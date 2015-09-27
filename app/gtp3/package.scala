@@ -7,8 +7,9 @@ package object gtp3 {
 
 	val ChannelValidators = Map[String, ChannelValidator](
 		"auth" -> Auth,
-		"master" -> Master,
 		"chat" -> Chat,
-		"newsfeed" -> NewsFeed
+		"master" -> Master,
+		"newsfeed" -> NewsFeed,
+		"roster" -> Roster
 	)
 }

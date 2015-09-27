@@ -2,7 +2,7 @@ import { Element, Property, Listener, Dependencies, Inject, On, Watch, Bind, Pol
 import { Router, View } from "client/router";
 import { NewsFeed, NewsData } from "services/newsfeed";
 import { Chat, ChatMessage } from "services/chat";
-import { Roster } from "services/roster";
+import { Roster, User, Char } from "services/roster";
 import { GtBox, GtAlert, GtTimeago } from "elements/defs";
 
 Router.declareTabs("dashboard", [
@@ -143,18 +143,26 @@ class DashboardOnlinesUser extends PolymerElement {
 	public away: boolean = this.chat.isAway(this.user);
 
 	@Inject
-	@On({ "away-changed": "updateAway" })
+	@On({ "away-changed": "UpdateAway" })
 	private chat: Chat;
 	
-	constructor() {
-		super();
-		console.log(this.user, this.away);
+	@Inject
+	@On({ "char-updated": "CharUpdated", "user-updated": "UserUpdated" })
+	private roster: Roster;
+	
+	private infos: User = this.roster.getUser(this.user);
+	private main: Char = this.roster.getMainCharacter(this.user);
+	
+	private UpdateAway(user: number, away: boolean) {
+		if (user == this.user) this.away = away;
 	}
 	
-	private updateAway(user: number, away: boolean) {
-		if (user == this.user) {
-			this.away = away;
-		}
+	private CharUpdated(char: Char) {
+		if (char.id == this.main.id || (char.owner == this.user && char.main)) this.main = char;
+	}
+	
+	private UserUpdated(user: User) {
+		if (user.id == this.user) this.infos = user;
 	}
 }
 

@@ -22,7 +22,7 @@ object ChatService {
 trait ChatService extends PubSub[User] {
 	private var sessions = Map[Int, ChatSession]()
 
-	def getOnlines(): Future[Map[Int, Boolean]] = sessions map {
+	def onlines(): Future[Map[Int, Boolean]] = sessions map {
 		case (user, session) => user -> session.away
 	}
 
@@ -60,6 +60,8 @@ trait ChatService extends PubSub[User] {
 				if (session.actors.size < 1) {
 					sessions -= user
 					this !# UserDisconnect(session.user)
+				} else {
+					updateAway(session)
 				}
 		}
 	}

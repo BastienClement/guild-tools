@@ -19,7 +19,7 @@ class Chat(val user: User) extends ChannelHandler {
 
 	init {
 		ChatService.subscribe(user)
-		ChatService.getOnlines() map { list =>
+		ChatService.onlines() map { list =>
 			for ((user, away) <- list) yield Json.arr(user, away)
 		} foreach { onlines =>
 			send("onlines", onlines)
@@ -28,7 +28,7 @@ class Chat(val user: User) extends ChannelHandler {
 
 	akka {
 		case UserConnect(user) => send("connected", user.id)
-		case UserAway(user, away) => send("update-away-state", Json.arr(user.id, away))
+		case UserAway(user, away) => send("away-changed", (user.id, away))
 		case UserDisconnect(user) => send("disconnected", user.id)
 	}
 

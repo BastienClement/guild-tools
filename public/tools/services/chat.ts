@@ -1,6 +1,6 @@
 import { Component } from "utils/di";
-import { PausableEventEmitter, Notify } from "utils/eventemitter";
-import { Server } from "client/server";
+import { Service, Notify } from "utils/service";
+import { Server, ServiceChannel } from "client/server";
 import { Channel } from "gtp3/channel";
 import { Deferred } from "utils/deferred";
 
@@ -19,38 +19,28 @@ export interface ChatMessage {
  * Chat data client
  */
 @Component
-export class Chat extends PausableEventEmitter {
+export class Chat extends Service {
 	// List of onlines user
 	private onlines = new Map<number, boolean>();
 	private channel = this.server.openServiceChannel("chat");
 	
 	@Notify
+	@ServiceChannel.ReflectState("channel")
 	public available: boolean = false;    
 
 	constructor(private server: Server) {
 		super();
 		
-		this.channel.on("message", (type: string, payload: any) => {
-			switch (type) {
-				case "onlines": return this.updateOnlines(payload);
-				case "connected": return this.userConnected(payload);
-				case "disconnected": return this.userDisconnected(payload);
-				default:
-					console.info("Unknown message received on chat channel:", type, payload);
-			}
-		});
-		
 		this.channel.on("reset", () => {
 			// TODO: sync interested flags
 		});
-		
-		this.channel.on("state", (s: boolean) => this.available = s);
 	}
 
 	// Full update of the online user list
 	// Check the cached data to find who is now connected or 
 	// disconnected in order to emit appropriate events
-	private updateOnlines(users: [number, boolean][]) {
+	@ServiceChannel.Dispatch("channel", "onlines")
+	private UpdateOnlines(users: [number, boolean][]) {
 		// Currently onlines users (cached)
 		const onlines = this.onlines;
 		
@@ -87,15 +77,24 @@ export class Chat extends PausableEventEmitter {
 	}
 
 	// An user just logged in
-	private userConnected(user: number) {
+	@ServiceChannel.Dispatch("channel", "connected")
+	private UserConnected(user: number) {
 		this.onlines.set(user, false);
 		this.emit("connected", user);
 	}
 
 	// A user was just disconnected
-	private userDisconnected(user: number) {
+	@ServiceChannel.Dispatch("channel", "disconnected")
+	private UserDisconnected(user: number) {
 		this.onlines.delete(user);
 		this.emit("disconnected", user);
+	}
+	
+	// Change in the away state of a user
+	@ServiceChannel.Dispatch("channel", "away-changed", true)
+	private AwayChanged(user: number, away: boolean) {
+		this.onlines.set(user, away);
+		this.emit("away-changed", user, away);
 	}
 
 	// Generate a list of user id currently connected to the chat service

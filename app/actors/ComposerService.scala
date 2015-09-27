@@ -135,7 +135,7 @@ class ComposerServiceImpl extends ComposerService {
 	}
 
 	def exportGroups(groups: List[Int], events: Set[Int], mode: Int, locked: Boolean): Future[Unit] = Future {
-		DB.withTransaction { implicit t =>
+		/*DB.withTransaction { implicit t =>
 			val groups_and_slots = for (group <- groups) yield {
 				// Fetch every slots for this group
 				val slots_data = ComposerSlots.filter(_.group === group).list
@@ -201,6 +201,6 @@ class ComposerServiceImpl extends ComposerService {
 
 				CalendarService.optimizeEvent(event)
 			}
-		}
+		}*/
 	}
 }

@@ -4,6 +4,7 @@ import { Channel } from "gtp3/channel";
 import { Deferred } from "utils/deferred";
 import { Queue } from "utils/queue";
 import { EventEmitter } from "utils/eventemitter";
+import { Service } from "utils/service";
 
 export interface UserInformations {
 	id: number;
@@ -126,7 +127,10 @@ interface QueuedMessage<T> {
 	deferred: Deferred<T>
 }
 
-class ServiceChannel extends EventEmitter {
+export type DispatchHandler = (payload: any) => void;
+export type DispatchTable = Map<string, Map<string, DispatchHandler>>;
+
+export class ServiceChannel extends EventEmitter {
 	// Outgoing queue
 	private queue = new Queue<QueuedMessage<any>>();
 	
@@ -217,6 +221,36 @@ class ServiceChannel extends EventEmitter {
 		} else {
 			this.queue.enqueue({ key, data, flags, deferred: null });
 			this.open();
+		}
+	}
+
+	static Dispatch(source: string, message: string, splat?: boolean) {
+		return (target: Service, property: string) => {
+			let table = Reflect.getMetadata<DispatchTable>("servicechannel:dispatch", target);
+			if (!table) {
+				table = new Map();
+				Reflect.defineMetadata("servicechannel:dispatch", table, target);
+			}
+			
+			let mapping = table.get(source);
+			if (!mapping) {
+				mapping = new Map();
+				table.set(source, mapping);
+			}
+			
+			const fn = <DispatchHandler> (<any> target)[property];
+			mapping.set(message, splat ? function (p) { fn.apply(this, p); } : fn);
+		}
+	}
+	
+	static ReflectState(source: string) {
+		return (target: Service, property: string) => {
+			let list = Reflect.getMetadata<[string, string][]>("servicechannel:state", target);
+			if (!list) {
+				list = [];
+				Reflect.defineMetadata("servicechannel:state", list, target);
+			}
+			list.push([source, property]);
 		}
 	}
 }
