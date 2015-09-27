@@ -254,28 +254,70 @@
 
 <dom-module id="dashboard-onlines-user">
 	<style type="text/less">
+		@size: 40px;
+		@radius: 10px;
+	
 		:host {
+			display: block;
+		}
+		
+		#layout {
 			display: flex;
 			align-items: center;
+			background: fade(@fs-blue, 10%);
+			border: 1px solid fade(@fs-blue, 10%);
+			transition: all .2s ease-out;
+			
+			&:hover {
+				background: fade(@fs-blue, 12%);
+				border-color: fade(@fs-blue, 20%);
+			}
+		}
+		
+		#name {
+			flex: 1;
+			padding: 10px;
+		}
+		
+		#state-container {
+			background: rgba(17, 17, 17, 0.1);
+			background-clip: padding-box;
+			border: 1px solid fade(@fs-blue, 10%);
+			border-width: 0 1px 0 1px;
+			height: @size;
+			padding: (@size - @radius) / 2;
+			margin-left: 10px;
 		}
 		
 		#state {
-			@r: 10px;
-			
-			height: @r;
-			width: @r;
-			border-radius: @r;
-			margin-right: 8px;
-			
+			height: @radius;
+			width: @radius;
+			border-radius: @radius;
 			background: #41c32b;
+			transition: background .2s ease-out;
 			
-			&[away] {
+			[away] & {
 				background: #f4d736;
+			}
+		}
+		
+		bnet-thumb {
+			width: @size;
+			height: @size;
+			transition: opacity .2s ease-out;
+			
+			[away] & {
+				opacity: .5;
 			}
 		}
 	</style>
 	<template>
-		<div #state {away}></div>
-		<b>{{main.name}}</b>
+		<div #layout {away}>
+			<b #name>{{main.name}}</b>
+			<div #state-container>
+				<div #state></div>
+			</div>
+			<bnet-thumb [char]="main"></bnet-thumb>
+		</div>
 	</template>
 </dom-module>

@@ -4,3 +4,4 @@ export * from "elements/dialog";
 export * from "elements/widgets";
 export * from "elements/box";
 export * from "elements/timeago";
+export * from "elements/bnet";

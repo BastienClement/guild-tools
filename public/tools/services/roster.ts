@@ -112,7 +112,7 @@ export class Roster extends Service {
 			main: true,
 			active: true,
 			"class": 0,
-			race: 0,
+			race: 10,
 			gender: 0,
 			level: 0,
 			achievement: 0,

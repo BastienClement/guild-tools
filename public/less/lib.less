@@ -1,22 +1,6 @@
 @fs-blue: rgb(100, 180, 255);
 @light-blue: #8eafce;
 
-.cover() {
-	position: fixed;
-	top: 0;
-	right: 0;
-	bottom: 0;
-	left: 0;
-}
-
-.pos(@pos, @top: 0, @right: 0, @bottom: 0, @left: 0) {
-	position: @pos;
-	top: @top;
-	right: @right;
-	bottom: @bottom;
-	left: @left;
-}
-
 * {
 	cursor: default;
 	box-sizing: border-box;
@@ -28,7 +12,7 @@
 	-ms-user-select: none;
 }
 
-*[hidden] {
+[hidden] {
 	display: none !important;
 }
 
@@ -63,6 +47,35 @@ i {
 
 b {
 	font-weight: inherit;
+}
+
+[wow-class="0"] { color: #64B4FF; }
+[wow-class="1"] { color: #C79C6E; }
+[wow-class="2"] { color: #F58CBA; }
+[wow-class="3"] { color: #ABD473; }
+[wow-class="4"] { color: #FFF569; }
+[wow-class="5"] { color: #FFFFFF; }
+[wow-class="6"] { color: #C41F3B; }
+[wow-class="7"] { color: #0070DE; }
+[wow-class="8"] { color: #69CCF0; }
+[wow-class="9"] { color: #9482C9; }
+[wow-class="10"] { color: #00FF96; }
+[wow-class="11"] { color: #FF7D0A; }
+
+.cover() {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+}
+
+.pos(@pos, @top: 0, @right: 0, @bottom: 0, @left: 0) {
+	position: @pos;
+	top: @top;
+	right: @right;
+	bottom: @bottom;
+	left: @left;
 }
 
 .custom-scrolls() {

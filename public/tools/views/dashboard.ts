@@ -3,7 +3,7 @@ import { Router, View } from "client/router";
 import { NewsFeed, NewsData } from "services/newsfeed";
 import { Chat, ChatMessage } from "services/chat";
 import { Roster, User, Char } from "services/roster";
-import { GtBox, GtAlert, GtTimeago } from "elements/defs";
+import { GtBox, GtAlert, GtTimeago, BnetThumb } from "elements/defs";
 
 Router.declareTabs("dashboard", [
 	{ title: "Dashboard", link: "/dashboard" }
@@ -49,16 +49,28 @@ class DashboardNews extends PolymerElement {
 		this.unshift("news", news);
 	}
 
-	private filters: NewsFilters = {
-		BLUE: true,
-		MMO: true,
-		WOW: true
-	};
+	private filters: NewsFilters;
+	
+	constructor() {
+		super();
+		try {
+			let filters = localStorage.getItem("dashboard.news.filters");
+			if (!filters) throw null;
+			this.filters = JSON.parse(filters);
+		} catch (e) {
+			this.filters = {
+				BLUE: true,
+				MMO: true,
+				WOW: true
+			};
+		}
+	}
 
 	@Listener("actions.toggle-filter")
 	private toggleFilter(e: CustomEvent) {
 		const key: string = e.detail;
 		this.set(`filters.${key}`, !this.filters[key]);
+		localStorage.setItem("dashboard.news.filters", JSON.stringify(this.filters));
 	}
 
 	private visible(source: string) {
@@ -135,6 +147,7 @@ class DashboardShoutbox extends PolymerElement {
 }
 
 @Element("dashboard-onlines-user", "/assets/views/dashboard.html")
+@Dependencies(BnetThumb)    
 class DashboardOnlinesUser extends PolymerElement {
 	@Property({ type: Number })
 	public user: number;
