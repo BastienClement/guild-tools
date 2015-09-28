@@ -17,5 +17,7 @@ dist
 /.cache
 /bin
 /conf/application.conf
+/public/javascripts/compiler.jar
+/public/javascripts/compiler.sh
 
 guild-tools.eml
