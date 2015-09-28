@@ -1,12 +1,12 @@
 package actors
 
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
-import actors.Actors._
+import gt.Global.ExecutionContext
 import models._
 import models.simple._
 import utils.LazyCache
-import gt.Global.ExecutionContext
+
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 trait ComposerService {
 	def load: (List[ComposerLockout], List[ComposerGroup], List[ComposerSlot])

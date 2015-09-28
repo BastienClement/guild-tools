@@ -37,9 +37,9 @@ class NewsFeed extends ChannelHandler {
 
 	stop {
 		NewsFeed.open_feeds.synchronized {
-			NewsFeed.open_feeds -= self
-		}
+		NewsFeed.open_feeds -= self
 	}
+}
 
 	akka {
 		case NewsFeed.Update => update()

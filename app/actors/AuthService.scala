@@ -1,28 +1,20 @@
 package actors
 
-import scala.annotation.tailrec
-import scala.concurrent.duration._
-import scala.util.Try
 import actors.AuthService._
 import models._
 import models.mysql._
 import reactive._
 import utils.{LazyCollection, SmartTimestamp}
 
+import scala.concurrent.duration._
+import scala.util.Try
+
 object AuthService {
 	val allowedGroups = Set(8, 12, 9, 11, 10, 13)
 }
 
 trait AuthService {
-	private val sessionCache = LazyCollection(1.minute) { (session: String) =>
-		val sess_query = Sessions.filter(_.token === session)
-		sess_query.map(_.user).head flatMap { user_id =>
-			sess_query.map(_.last_access).update(SmartTimestamp.now)
-			Users.filter(u => u.id === user_id && u.group.inSet(allowedGroups)).head
-		}
-	}
-
-	private val settingCache = LazyCollection(1.minute) { (user: String) =>
+	private val settingCache = LazyCollection[String, Future[String]](1.minute) { user =>
 		val password = for (u <- Users if u.name === user || u.name_clean === user.toLowerCase) yield u.pass
 		password.head map { pass =>
 			pass.substring(0, 12)
@@ -34,7 +26,13 @@ trait AuthService {
 	/**
 	 * Perform user authentication based on the session token
 	 */
-	def auth(session: String): Future[User] = sessionCache(session)
+	def auth(session: String): Future[User] = {
+		val sess_query = Sessions.filter(_.token === session)
+		sess_query.map(_.user).head flatMap { user_id =>
+			sess_query.map(_.last_access).update(SmartTimestamp.now)
+			Users.filter(u => u.id === user_id && u.group.inSet(allowedGroups)).head
+		}
+	}
 
 	/**
 	 * Get hash setting for user
@@ -52,11 +50,7 @@ trait AuthService {
 					val token = utils.randomToken()
 					Try {
 						val now = SmartTimestamp.now
-						DB.run {
-							Sessions.map { s =>
-								(s.token, s.user, s.ip, s.created, s.last_access)
-							} += (token, user_id, "", now, now)
-						}
+						DB.run(Sessions.map(s => (s.token, s.user, s.ip, s.created, s.last_access)) += (token, user_id, "", now, now)).await
 						Some(token)
 					} getOrElse {
 						if (attempt < 3) createSession(attempt + 1)
@@ -76,8 +70,9 @@ trait AuthService {
 	 *
 	 */
 	def logout(session: String): Unit = {
-		DB.run { Sessions.filter(_.token === session).delete }
-		sessionCache.clear(session)
+		DB.run {
+			Sessions.filter(_.token === session).delete
+		}
 	}
 }
 

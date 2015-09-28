@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat
 import play.api.Play
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.json._
+import slick.dbio.{NoStream, DBIOAction}
 import slick.driver.JdbcProfile
 import slick.lifted.Query
 
@@ -22,6 +23,11 @@ package object models {
 		def run = DB.run(q.result)
 		def head = DB.run(q.result.head)
 		def headOption = DB.run(q.result.headOption)
+	}
+
+	implicit class DBActionExecutior[R](val q: DBIOAction[R, NoStream, Nothing]) extends AnyVal {
+		def run = DB.run(q)
+		def wait = DB.run(q).await
 	}
 
 	implicit class AwaitableFuture[A](val f: Future[A]) extends AnyVal {

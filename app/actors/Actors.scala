@@ -1,12 +1,13 @@
 package actors
 
+import akka.actor.{DeadLetter, Props, TypedActor, TypedProps}
+import play.api.Play.current
+import play.api.libs.concurrent.Akka
+
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
-import akka.actor.{DeadLetter, Props, TypedActor, TypedProps}
-import play.api.Play.current
-import play.api.libs.concurrent.Akka
 
 object Actors {
 	private def initActor[I <: AnyRef, A <: I](n: String, timeout: FiniteDuration = 15.seconds)(implicit ct: ClassTag[A]): I = {
@@ -25,10 +26,13 @@ object Actors {
 	val RosterService = initActor[RosterService, RosterServiceImpl]("RosterService")
 	val SocketManager = initActor[SocketManager, SocketManagerImpl]("SocketManager")
 
-	object Implicits {
+	trait ActorImplicits {
 		implicit def FutureBoxing[T](v: T): Future[T] = Future.successful(v)
 		implicit def FutureBoxing[T](v: Option[T]): Future[T] =
-			if (v.isDefined) Future.successful(v.get)
-			else Future.failed(new NoSuchElementException)
+			try {
+				Future.successful(v.get)
+			} catch {
+				case e: Throwable => Future.failed(e)
+			}
 	}
 }

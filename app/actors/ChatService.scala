@@ -1,6 +1,6 @@
 package actors
 
-import actors.Actors.Implicits._
+import actors.Actors.ActorImplicits
 import actors.ChatService._
 import akka.actor.ActorRef
 import models._
@@ -19,7 +19,7 @@ object ChatService {
 	private case class ChatSession(user: User, var away: Boolean, val actors: mutable.Map[ActorRef, Boolean])
 }
 
-trait ChatService extends PubSub[User] {
+trait ChatService extends PubSub[User] with ActorImplicits {
 	private var sessions = Map[Int, ChatSession]()
 
 	def onlines(): Future[Map[Int, Boolean]] = sessions map {

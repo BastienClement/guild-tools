@@ -1,14 +1,13 @@
 package actors
 
-import scala.concurrent.duration._
-import actors.Actors.Dispatcher
 import actors.CalendarServiceShr.CalendarLock
 import gt.Global.ExecutionContext
 import models.simple._
 import models.{CalendarTab, CalendarTabs, _}
-import utils.scheduler
+import utils.{scheduler, _}
+
 import scala.concurrent.Future
-import utils._
+import scala.concurrent.duration._
 
 /**
  * Public interface
@@ -56,7 +55,9 @@ object CalendarServiceShr {
 		/**
 		 * Refresh the lock to prevent garbage collection
 		 */
-		def refresh(): Unit = { deadline = LockExpireDuration.fromNow }
+		def refresh(): Unit = {
+			deadline = LockExpireDuration.fromNow
+		}
 
 		/**
 		 * Release this lock

@@ -34,7 +34,7 @@ trait Dispatcher {
 	/**
 	 * Perform event dispatch
 	 */
-	def !# (event: Dispatchable): Unit
+	def !#(event: Dispatchable): Unit
 }
 
 /**
@@ -56,7 +56,7 @@ class DispatcherImpl extends Dispatcher with TypedActor.Receiver {
 		listeners -= listener
 	}
 
-	def !# (event: Dispatchable): Unit = {
+	def !#(event: Dispatchable): Unit = {
 		listeners.par.foreach {
 			case listener: EventListener =>
 				try {

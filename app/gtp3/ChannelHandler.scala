@@ -1,15 +1,14 @@
 package gtp3
 
 import akka.actor._
+import gtp3.Channel._
 import gtp3.ChannelHandler._
 import org.apache.commons.lang3.exception.ExceptionUtils
-import play.api.libs.json.JsNull
 import reactive._
-import Channel._
 
 import scala.concurrent.Future
 import scala.language.implicitConversions
-import scala.util.{Success => TSuccess, Failure => TFailure}
+import scala.util.{Failure => TFailure, Success => TSuccess}
 
 trait ChannelValidator {
 	def open(request: ChannelRequest): Unit
@@ -17,18 +16,32 @@ trait ChannelValidator {
 
 object ChannelHandler {
 	// The generic empty-result future
-	private val empty = Future.successful[Payload](JsNull)
+	private val empty = Future.successful[Payload](Payload.empty)
 
 	case class SendMessage(message: String, payload: Payload)
+
+	trait FuturePayloadBuilder[-T] {
+		def build(o: T): Future[Payload]
+	}
+
+	implicit def FuturePayloadWrapper[T: PayloadBuilder] = new FuturePayloadBuilder[T] {
+		def build(o: T): Future[Payload] = {
+			val builder = implicitly[PayloadBuilder[T]]
+			Future.successful(builder.build(o))
+		}
+	}
+
+	implicit def FuturePayloadConverter[T: PayloadBuilder] = new FuturePayloadBuilder[Future[T]] {
+		def build(f: Future[T]): Future[Payload] = {
+			val builder = implicitly[PayloadBuilder[T]]
+			f map { q => builder.build(q) }
+		}
+	}
 }
 
 trait ChannelHandler extends Actor with Stash {
-	// Implicitly converts to Future[Payload]
-	implicit def ImplicitFuturePayload[T: PayloadBuilder](value: T): Future[Payload] = Future.successful(value)
-	implicit def ImplicitFuturePayload[T: PayloadBuilder](future: Future[T]): Future[Payload] = future.map(Payload(_))
-
 	// Implicitly converts to Option[T]
-	implicit def ImplicitOption[T](value: T): Option[T] = Some(value)
+	implicit def ImplicitOption[T](value: T): Option[T] = Option(value)
 
 	// Reference to the channel actor
 	private var channel: ActorRef = context.system.deadLetters
@@ -51,15 +64,20 @@ trait ChannelHandler extends Actor with Stash {
 		ChannelHandler.empty
 	}
 
+	private def adapter[T: FuturePayloadBuilder](fn: (Payload) => T): RequestHandler =
+		(p: Payload) => implicitly[FuturePayloadBuilder[T]].build(fn(p))
+
+	def request[T: FuturePayloadBuilder](name: String)(fn: (Payload) => T) =
+		handlers += name -> adapter(fn)
+
 	def message(name: String)(fn: MessageHandler) = request(name)(wrap(fn))
-	def request(name: String)(fn: RequestHandler) = handlers += name -> fn
 
 	// Akka message handler
 	var akka_handler: Receive = PartialFunction.empty
 	def akka(pf: Receive) = akka_handler = pf
 
 	// Output message
-	def send(msg: String, payload: Payload) = channel ! SendMessage(msg, payload)
+	def send[T: PayloadBuilder](msg: String, data: T) = channel ! SendMessage(msg, Payload(data))
 
 	final def receive = {
 		case Init(c) =>
@@ -77,7 +95,7 @@ trait ChannelHandler extends Actor with Stash {
 			handle_request(msg, payload) onFailure { case e =>
 				// Catch Exception on message processing. Since there is no way to reply to a message, we
 				// send a special $error message back.
-				channel ! Message("$error", ExceptionUtils.getStackTrace(e))
+				channel ! Message("$error", Payload(ExceptionUtils.getStackTrace(e)))
 			}
 
 		case Request(rid, req, payload) =>

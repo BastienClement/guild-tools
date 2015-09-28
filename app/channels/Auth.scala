@@ -37,11 +37,10 @@ class Auth(val socket: ActorRef) extends ChannelHandler {
 	// Break the multiplexing feature of GTP3 for the auth channel
 	// This prevents running multiple login attempts in parallel
 	override def handle_request(req: String, payload: Payload): Future[Payload] = {
-		val res =
-			if (count.incrementAndGet() != 1) Auth.concurrent
-			else super.handle_request(req, payload)
-
-		res andThen { case _ => count.decrementAndGet() }
+		if (count.incrementAndGet() != 1) Auth.concurrent
+		else super.handle_request(req, payload)
+	} andThen {
+		case _ => count.decrementAndGet()
 	}
 
 	// Salt used for authentication
@@ -49,13 +48,12 @@ class Auth(val socket: ActorRef) extends ChannelHandler {
 
 	request("auth") { payload =>
 		utils.atLeast(500.milliseconds) {
-			val res: Future[JsValue] = AuthService.auth(payload.string) map { user =>
+			AuthService.auth(payload.string) map { user =>
 				socket ! Socket.SetUser(user)
 				Json.toJson(user)
 			} recover {
-				case _ => JsNull
+				case e => JsNull
 			}
-			res
 		}
 	}
 

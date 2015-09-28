@@ -14,9 +14,6 @@ object Payload {
 	// Construct a Payload from anything that have a corresponding PayloadBuilder (outgoing payloads)
 	def apply[T](value: T)(implicit builder: PayloadBuilder[T]): Payload = builder.build(value)
 
-	// Implicitly convert anything with a PayloadBuilder to a Payload
-	implicit def ImplicitPayload[T: PayloadBuilder](value: T): Payload = Payload(value)
-
 	// Empty dummy payload
 	val empty = Payload(ByteVector.empty, 0x80)
 }
@@ -126,6 +123,10 @@ trait PayloadBuilderMiddlePriority extends PayloadBuilderLowPriority {
 
 // High priority builders
 object PayloadBuilder extends PayloadBuilderMiddlePriority {
+	implicit object PayloadBuilderPayload extends BufferStep[Payload] {
+		def build(payload: Payload): Payload = payload
+	}
+
 	implicit object PayloadBuilderBuffer extends BufferStep[Array[Byte]] {
 		def build(buf: Array[Byte]): Payload = buffer(buf)
 	}

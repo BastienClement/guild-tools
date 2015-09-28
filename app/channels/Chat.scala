@@ -38,18 +38,14 @@ class Chat(val user: User) extends ChannelHandler {
 
 	message("set-interest") { payload =>
 		val room = payload("room").as[Int]
-		if (payload("interested").as[Boolean]) {
-			interests += room
-		} else {
-			interests -= room
-		}
+		if (payload("interested").as[Boolean]) interests += room
+		else interests -= room
 	}
 
 	request("room-backlog") { payload =>
 		val room = payload("room").as[Int]
 		val count = payload("count").asOpt[Int]
 		val limit = payload("limit").asOpt[Int]
-
 		ChatService.roomBacklog(room, user, count, limit)
 	}
 }

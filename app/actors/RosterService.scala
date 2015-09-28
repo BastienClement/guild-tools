@@ -1,6 +1,6 @@
 package actors
 
-import actors.Actors.Implicits._
+import actors.Actors.ActorImplicits
 import models._
 import models.mysql._
 import utils.{LazyCache, LazyCollection, PubSub}
@@ -13,7 +13,7 @@ object RosterService {
 	case class CharDeleted(id: Int)
 }
 
-trait RosterService extends PubSub[User] {
+trait RosterService extends PubSub[User] with ActorImplicits {
 	private val users = LazyCache(1.minute) {
 		val q = Users filter (_.group inSet AuthService.allowedGroups)
 		val l = q.run.await map (u => u.id -> u)

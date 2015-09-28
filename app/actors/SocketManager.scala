@@ -1,31 +1,22 @@
 package actors
 
 import java.security.SecureRandom
-import java.util.concurrent.atomic.AtomicReference
-import actors.SocketManagerImpl.{SetTarget, SocketProxy}
+
+import actors.Actors.ActorImplicits
+import actors.SocketManager._
 import akka.actor._
+import gtp3.Socket
+import utils.{Bindings, Timeout}
 
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.Future
-import actors.Actors.Implicits._
-import gtp3.{Socket, SocketActor, Frame}
-import utils.{Bindings, Timeout}
 import scala.concurrent.duration._
 
 object SocketManager {
 	case class Handshake()
 	case class Resume(seq: Int)
-}
 
-trait SocketManager extends TypedActor.Receiver {
-	def accept(remote: String): Boolean
-	def allocate(actor: ActorRef): Future[ActorRef]
-	def rebind(actor: ActorRef, id: Long, seq: Int): Future[ActorRef]
-	def disconnected(actor: ActorRef, remote: String): Unit
-}
-
-object SocketManagerImpl {
 	private case class CloseSocket(socket: ActorRef)
 	private case class SetTarget(target: ActorRef)
 
@@ -36,10 +27,9 @@ object SocketManagerImpl {
 			case m => target ! m
 		}
 	}
-
 }
 
-class SocketManagerImpl extends SocketManager {
+trait SocketManager extends TypedActor.Receiver with ActorImplicits {
 	// Open sockets
 	private val sockets = Bindings[Long, ActorRef]()
 	private val bindings = Bindings[ActorRef, ActorRef]()
@@ -96,7 +86,7 @@ class SocketManagerImpl extends SocketManager {
 					proxy ! SetTarget(context.system.deadLetters)
 
 				val timeout = Timeout(15.seconds) {
-					self ! SocketManagerImpl.CloseSocket(socket)
+					self ! CloseSocket(socket)
 				}
 
 				timeouts += (socket -> timeout)
@@ -124,7 +114,7 @@ class SocketManagerImpl extends SocketManager {
 		bindings.add(actor, socket)
 		proxies += socket -> proxy
 
-		socket ! SocketManager.Handshake()
+		socket ! Handshake()
 		socket
 	}
 
@@ -142,7 +132,7 @@ class SocketManagerImpl extends SocketManager {
 					timeouts.remove(socket)
 				}
 
-				socket ! SocketManager.Resume(seq)
+				socket ! Resume(seq)
 				socket
 
 			case None => allocate(actor)
@@ -150,7 +140,7 @@ class SocketManagerImpl extends SocketManager {
 	}
 
 	def onReceive(message: Any, sender: ActorRef) = message match {
-		case SocketManagerImpl.CloseSocket(socket) =>
+		case SocketManager.CloseSocket(socket) =>
 			if (!bindings.containsTarget(socket)) {
 				context.stop(socket)
 			}
@@ -165,3 +155,5 @@ class SocketManagerImpl extends SocketManager {
 			proxies.remove(actor)
 	}
 }
+
+class SocketManagerImpl extends SocketManager
