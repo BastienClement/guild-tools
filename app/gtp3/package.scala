@@ -1,5 +1,4 @@
 import channels._
-import scala.collection.immutable
 
 package object gtp3 {
 	object ProtocolError extends Throwable

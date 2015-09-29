@@ -1,26 +1,28 @@
 package gtp3
 
-import actors.SocketManager
-import akka.actor.{Terminated, Props, Actor, ActorRef}
+import actors.SocketManager.{Handshake, Resume}
+import akka.actor.{Actor, ActorRef, Props, Terminated}
+import channels.Auth.SetUser
 import gt.Global
-import gtp3.Socket.DuplicatedFrame
+import gtp3.Socket._
 import models.User
 
 import scala.annotation.tailrec
 import scala.collection.mutable
-import scala.concurrent.Future
 
 object Socket {
+	// Construct Socket actors
 	def props(id: Long, out: ActorRef) = Props(new Socket(id, out))
 
-	case class SetUser(user: User)
+	// Open request responses
 	private case class ChannelAccept(open: OpenFrame, handler: Props)
 	private case class ChannelReject(open: OpenFrame, code: Int, message: String)
 
+	// Special exception used if a frame is received multiple times
 	private case object DuplicatedFrame extends Exception
 }
 
-class Socket(val id: Long, val out: ActorRef) extends Actor{
+class Socket(val id: Long, val out: ActorRef) extends Actor {
 	// Incoming sequence id
 	private var in_seq = 0
 
@@ -40,14 +42,17 @@ class Socket(val id: Long, val out: ActorRef) extends Actor{
 	var user: User = null
 
 	def receive = {
-		case SocketManager.Handshake() =>
+		// Initialize a new socket
+		case Handshake() =>
 			self ! HandshakeFrame(GTP3Magic, Global.serverVersion, id)
 
-		case SocketManager.Resume(seq) =>
+		// Resume a disconnected socket
+		case Resume(seq) =>
 			ack(seq)
 			while (out_buffer.nonEmpty) self ! out_buffer.dequeue()
 			self ! SyncFrame(in_seq)
 
+		// Received a buffer from the WebSocket
 		case buffer: Array[Byte] =>
 			try {
 				// Decode the frame buffer
@@ -79,6 +84,7 @@ class Socket(val id: Long, val out: ActorRef) extends Actor{
 				case DuplicatedFrame => /* ignore duplicated frames */
 			}
 
+		// A frame object to be encoded and sent over WebSocket
 		case frame: Frame =>
 			// Special handling for sequenced frames
 			// Automatic tagging
@@ -109,16 +115,23 @@ class Socket(val id: Long, val out: ActorRef) extends Actor{
 			// Send the frame
 			out ! frame
 
-		case Socket.ChannelAccept(open, handler_props) =>
+		// A channel open request is accepted
+		case ChannelAccept(open, handler_props) =>
 			val id = channelid_pool.next
 			val channel = context.actorOf(Channel.props(self, id, open.sender_channel, handler_props))
 			context.watch(channel)
 			channels += id -> channel
 			self ! OpenSuccessFrame(0, open.sender_channel, id)
 
-		case Socket.SetUser(u) =>
+		// A channel open request is rejected
+		case ChannelReject(open, code, message) =>
+			self ! OpenFailureFrame(0, open.sender_channel, code, message)
+
+		// Update the user attached to the socket for future open requests
+		case SetUser(u) =>
 			user = u
 
+		// A channel actor is terminated, remove the channel
 		case Terminated(channel) =>
 			for ((id, chan) <- channels if chan == channel) {
 				channels.remove(id)
@@ -171,13 +184,13 @@ class Socket(val id: Long, val out: ActorRef) extends Actor{
 			def accept(handler: Props): Unit = {
 				if (replied) throw new Exception("Request already responded to")
 				_replied = true
-				self ! Socket.ChannelAccept(frame, handler)
+				self ! ChannelAccept(frame, handler)
 			}
 
 			def reject(code: Int, message: String): Unit = {
 				if (replied) throw new Exception("Request already responded to")
 				_replied = true
-				self ! OpenFailureFrame(0, frame.sender_channel, code, message)
+				self ! ChannelReject(frame, code, message)
 			}
 		}
 

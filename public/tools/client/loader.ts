@@ -279,12 +279,12 @@ export class Loader {
 		for (let i = 0; i < repeat_nodes.length; ++i) {
 			node = repeat_nodes[i];
 			promote_attribute("[repeat]", "items", "", true);
-			promote_attribute("filter");
-			promote_attribute("sort");
-			promote_attribute("observe");
-			promote_attribute("id");
-			promote_attribute("as");
-			promote_attribute("index-as");
+			promote_attribute("$filter", "filter");
+			promote_attribute("$sort", "sort");
+			promote_attribute("$observe", "observe");
+			promote_attribute("$id", "id");
+			promote_attribute("$as", "as");
+			promote_attribute("$index-as", "index-as");
 			promote_node("dom-repeat");
 		}
 	}
