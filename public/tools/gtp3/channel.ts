@@ -1,41 +1,16 @@
-import { deflate, inflate } from "pako";
-
 import { EventEmitter } from "utils/eventemitter";
 import { Deferred } from "utils/deferred";
 import { NumberPool } from "gtp3/numberpool";
 import { FrameType, Protocol } from "gtp3/protocol";
 import { Socket, ChannelRequest } from "gtp3/socket";
 import { Stream } from "gtp3/stream";
-import { UTF8Encoder, UTF8Decoder } from "gtp3/codecs";
 import { Frame, MessageFrame, RequestFrame, SuccessFrame, FailureFrame, CloseFrame } from "gtp3/frames";
+import { Payload, PayloadFrame } from "gtp3/payload";
 
 /**
  * Channel states
  */
 const enum ChannelState { Open, Closed }
-
-/**
- * Frame flags indicating high-level encoding
- */
-const enum PayloadFlags {
-	COMPRESS = 0x01,
-	UTF8DATA = 0x02,
-	JSONDATA = 0x04, // Require UTF8DATA
-	IGNORE = 0x80
-}
-
-/**
- * The common interface for frames with payload
- */
-interface PayloadFrame {
-	flags: number;
-	payload: ArrayBuffer;
-}
-
-/**
- * A shared zero-byte array buffer
- */
-const EmptyBuffer = new ArrayBuffer(0);
 
 /**
  * Channel implementation
@@ -54,6 +29,7 @@ export class Channel extends EventEmitter {
 	private default_flags: number = 0;
 
 	constructor(public socket: Socket,
+				public name: string,
 	            public local_id: number,
 	            public remote_id: number) {
 		super();
@@ -64,7 +40,7 @@ export class Channel extends EventEmitter {
 	 */
 	send(message: string, data: any = null, initial_flags: number = this.default_flags): void {
 		// Encode payload
-		let [payload, flags] = this.encodePayload(data, initial_flags);
+		let [payload, flags] = Payload.encode(data, initial_flags);
 
 		// Build frame
 		const frame = Frame.encode(MessageFrame, 0 , this.remote_id, message, flags, payload);
@@ -79,7 +55,7 @@ export class Channel extends EventEmitter {
 		const id = this.requestid_pool.allocate();
 
 		// Encode payload
-		let [payload, flags] = this.encodePayload(data, initial_flags);
+		let [payload, flags] = Payload.encode(data, initial_flags);
 
 		// Build frame
 		const frame = Frame.encode(RequestFrame, 0 , this.remote_id, request, id, flags, payload);
@@ -142,7 +118,7 @@ export class Channel extends EventEmitter {
 
 	private receiveMessage(frame: MessageFrame | RequestFrame): void {
 		const req_id = (frame instanceof RequestFrame) ? frame.request : 0;
-		const payload = this.decodePayload(frame);
+		const payload = Payload.decode(frame);
 
 		if (frame instanceof RequestFrame) {
 			const results: any[] = this.emit("request", frame.message, payload);
@@ -168,7 +144,7 @@ export class Channel extends EventEmitter {
 	}
 
 	private sendSuccess(request: number, data: any) {
-		let [payload, flags] = this.encodePayload(data);
+		let [payload, flags] = Payload.encode(data);
 		const frame = Frame.encode(SuccessFrame, 0, this.remote_id, request, flags, payload);
 		this.socket._send(frame);
 	}
@@ -194,7 +170,7 @@ export class Channel extends EventEmitter {
 		if (!deferred) return;
 
 		// Successful resolved
-		deferred.resolve(this.decodePayload(frame));
+		deferred.resolve(Payload.decode(frame));
 	}
 
 	private receiveFailure(frame: FailureFrame): void {
@@ -206,70 +182,6 @@ export class Channel extends EventEmitter {
 		const error: any = new Error(frame.message);
 		error.code = frame.code;
 		deferred.reject(error);
-	}
-
-	/**
-	 * Decode the frame payload data
-	 */
-	private decodePayload(frame: PayloadFrame): any {
-		const flags = frame.flags;
-
-		if (flags & PayloadFlags.IGNORE) {
-			return null;
-		}
-
-		let payload: any = frame.payload;
-
-		// Inflate compressed payload
-		if (flags & PayloadFlags.COMPRESS) {
-			payload = inflate(payload);
-		}
-
-		// Decode UTF-8 data
-		if (flags & PayloadFlags.UTF8DATA) {
-			payload = UTF8Decoder.decode(payload);
-		}
-
-		// Decode JSON data
-		if (flags & PayloadFlags.JSONDATA) {
-			payload = JSON.parse(payload);
-		}
-
-		return payload;
-	}
-
-	/**
-	 * Encode payload data and flags
-	 */
-	private encodePayload(data: any, flags: number = this.default_flags): [ArrayBuffer, number] {
-		if (data && (data.buffer || data) instanceof ArrayBuffer) {
-			// Raw buffer
-			data = data.buffer || data;
-		} else if (typeof data === "string") {
-			// String
-			data = UTF8Encoder.encode(data).buffer;
-			flags |= PayloadFlags.UTF8DATA;
-		} else if (data !== null && data !== void 0) {
-			// Any other type will simply be JSON-encoded
-			data = UTF8Encoder.encode(JSON.stringify(data)).buffer;
-			flags |= PayloadFlags.JSONDATA | PayloadFlags.UTF8DATA;
-		}
-
-		if (!data) {
-			// No useful data
-			return [EmptyBuffer, PayloadFlags.IGNORE];
-		}
-
-		if (flags & PayloadFlags.COMPRESS) {
-			if (data.byteLength < Protocol.CompressLimit) {
-				flags &= ~PayloadFlags.COMPRESS;
-			} else {
-				// Deflate payload
-				data = deflate(data);
-			}
-		}
-
-		return [data, flags];
 	}
 
 	/**

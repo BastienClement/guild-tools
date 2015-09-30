@@ -8,6 +8,7 @@ import { NumberPool } from "gtp3/numberpool";
 import { UInt64 } from "gtp3/bufferstream";
 import { FrameType, Protocol } from "gtp3/protocol";
 import { UTF8Encoder, UTF8Decoder } from "gtp3/codecs";
+import { Payload } from "gtp3/payload";
 
 import { Frame, HelloFrame, ResumeFrame, HandshakeFrame, SyncFrame, AckFrame, PingFrame, PongFrame,
 	RequestAckFrame, OpenFrame, OpenSuccessFrame, OpenFailureFrame, ResetFrame } from "gtp3/frames";
@@ -250,7 +251,7 @@ export class Socket extends EventEmitter {
 
 		// Create the channel once the remote_id is received
 		const promise = deferred.promise.then(remote_id => {
-			const channel = new Channel(this, id, remote_id);
+			const channel = new Channel(this, channel_type, id, remote_id);
 			this.channels_pending.delete(id);
 			this.channels.set(id, channel);
 			return channel;
@@ -439,7 +440,7 @@ export class Socket extends EventEmitter {
 				}
 
 				// Create the channel object
-				const channel = new Channel(this, id, sender_channel);
+				const channel = new Channel(this, frame.channel_type, id, sender_channel);
 
 				request_replied = true;
 				this.channels.set(id, channel);
@@ -608,9 +609,16 @@ export class Socket extends EventEmitter {
 	/**
 	 * Print the socket activity
 	 */
-	private trace(direction: string, frame: Frame): void {
+	private trace(direction: string, frame: any): void {
 		const frame_name = frame.frame_name;
 		const padding = " ".repeat(15 - frame_name.length);
-		console.debug(direction, frame_name + padding, frame)
+		const local_frame = Object.assign({}, frame);
+		if (frame.payload) {
+			const data = Payload.decode(frame);
+			const data_display = Array.isArray(data) && data.length > 5 ? { $: data } : data;
+			console.debug(direction, frame_name + padding, frame, "::", data_display);
+		} else {
+			console.debug(direction, frame_name + padding, frame);
+		}
 	}
 }
