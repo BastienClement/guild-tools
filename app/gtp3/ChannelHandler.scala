@@ -18,6 +18,7 @@ object ChannelHandler {
 	// The generic empty-result future
 	private val empty = Future.successful[Payload](Payload.empty)
 
+	// Outgoing message
 	case class SendMessage(message: String, payload: Payload)
 
 	trait FuturePayloadBuilder[-T] {
@@ -25,17 +26,11 @@ object ChannelHandler {
 	}
 
 	implicit def FuturePayloadWrapper[T: PayloadBuilder] = new FuturePayloadBuilder[T] {
-		def build(o: T): Future[Payload] = {
-			val builder = implicitly[PayloadBuilder[T]]
-			Future.successful(builder.build(o))
-		}
+		def build(o: T): Future[Payload] = Future.successful(Payload(o))
 	}
 
 	implicit def FuturePayloadConverter[T: PayloadBuilder] = new FuturePayloadBuilder[Future[T]] {
-		def build(f: Future[T]): Future[Payload] = {
-			val builder = implicitly[PayloadBuilder[T]]
-			f map { q => builder.build(q) }
-		}
+		def build(f: Future[T]): Future[Payload] = f map { q => Payload(q) }
 	}
 }
 
@@ -64,12 +59,15 @@ trait ChannelHandler extends Actor with Stash {
 		ChannelHandler.empty
 	}
 
-	private def adapter[T: FuturePayloadBuilder](fn: (Payload) => T): RequestHandler =
-		(p: Payload) => implicitly[FuturePayloadBuilder[T]].build(fn(p))
+	private def adapter[T](fn: (Payload) => T)(implicit fpb: FuturePayloadBuilder[T]): RequestHandler =
+		(p: Payload) => fpb.build(fn(p))
 
-	def request[T: FuturePayloadBuilder](name: String)(fn: (Payload) => T) =
-		handlers += name -> adapter(fn)
+	// Register a request handler
+	// The handler can return any type convertible to Payload by a PayloadBuilder
+	// Alternatively a Future of such a type
+	def request[T: FuturePayloadBuilder](name: String)(fn: (Payload) => T) = handlers += name -> adapter(fn)
 
+	// Register a message handler
 	def message(name: String)(fn: MessageHandler) = request(name)(wrap(fn))
 
 	// Akka message handler
@@ -79,6 +77,8 @@ trait ChannelHandler extends Actor with Stash {
 	// Output message
 	def send[T: PayloadBuilder](msg: String, data: T) = channel ! SendMessage(msg, Payload(data))
 
+	// Initial message receiver
+	// Wait for the first Init message and stash everything else
 	final def receive = {
 		case Init(c) =>
 			channel = c
@@ -90,7 +90,9 @@ trait ChannelHandler extends Actor with Stash {
 		case _ => stash()
 	}
 
+	// Message receiver once the Init message is received
 	final def bound: Receive = {
+		// Incoming message
 		case Message(msg, payload) =>
 			handle_request(msg, payload) onFailure { case e =>
 				// Catch Exception on message processing. Since there is no way to reply to a message, we
@@ -98,10 +100,11 @@ trait ChannelHandler extends Actor with Stash {
 				channel ! Message("$error", Payload(ExceptionUtils.getStackTrace(e)))
 			}
 
+		// Incoming request
 		case Request(rid, req, payload) =>
 			handle_request(req, payload) onComplete {
-				case TSuccess(payload) => channel ! Success(rid, payload)
 				case TFailure(fail) => channel ! Failure(rid, fail)
+				case TSuccess(pyld) => channel ! Success(rid, pyld)
 			}
 
 		case Close(code, reason) =>

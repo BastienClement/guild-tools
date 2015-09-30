@@ -76,7 +76,7 @@ trait PayloadBuilderLowPriority extends PayloadBuilderSteps {
 	// Any type T with a corresponding Write[T] is encoded: T -> JsValue -> JSON -> Payload
 	// This is a low priority builder to allow more specific encoding first
 	implicit def BuilderWrites[T: Writes] = new JsonStep[T] {
-		def build(value: T): Payload = json(implicitly[Writes[T]].writes(value))
+		def build(value: T): Payload = json(Json.toJson(value))
 	}
 
 	// Encode (A, B) with a Writes[T] available for every element as a JS array

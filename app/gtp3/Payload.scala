@@ -44,7 +44,7 @@ class Payload(val byteVector: ByteVector, val flags: Int) {
 	// Access complex JsValue from a JSON-encoded string
 	lazy val value: JsValue =
 		if (ignore) JsNull
-		else if (json_data) Json.parse(buffer)
+		else if (json_data) Json.parse(string)
 		else JsString(string) // Not JSON, fake a JsString
 
 	// Access sub-properties of a JS object
