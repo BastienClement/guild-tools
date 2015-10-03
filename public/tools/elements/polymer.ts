@@ -4,6 +4,7 @@ import { Constructor, DefaultInjector } from "utils/di";
 import { EventEmitter } from "utils/eventemitter";
 import { Service } from "utils/service";
 import { Application } from "client/main";
+import { Loader } from "client/loader";
 
 /**
  * Dummy class to expose Polymer functions on elements
@@ -422,6 +423,11 @@ export function Element(selector: string, template?: string, ext?: string) {
 			if (target.hasOwnProperty(key)) {
 				proxy[key] = (<PolymerProxy<T>> target)[key];
 			}
+		}
+		
+		// There is no attached template, load the element as soon as polymer is loaded
+		if (!template) {
+			DefaultInjector.get<Loader>(Loader).registerPolymerAutoload(proxy);
 		}
 
 		return <any> proxy;
