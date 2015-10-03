@@ -25,7 +25,7 @@ trait RosterService extends PubSub[User] with ActorImplicits {
 	}
 
 	private val owner_chars = LazyCollection[Int, Seq[Char]](1.minutes) { owner =>
-		Chars.filter(_.owner === owner).run.await
+		Chars.filter(_.owner === owner).sortBy(c => (c.main.desc, c.active.desc, c.level.desc, c.ilvl.desc)).run.await
 	}
 
 	private var inflightUpdates = Set[Int]()
