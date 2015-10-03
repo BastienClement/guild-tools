@@ -16,6 +16,7 @@ const imported_less: Map<string, Promise<void>> = new Map<any, any>();
 
 // Track polymer status
 let polymer_loaded = false;
+let polymer_autoload: PolymerConstructor<any>[] = [];
 
 /**
  * The Response object returned by fetch()
@@ -37,7 +38,7 @@ export class Loader {
 	/**
 	 * Fetch a server-side resource as text
 	 */
-	fetch(url: string, cache: boolean = true): Promise<string> {
+	public fetch(url: string, cache: boolean = true): Promise<string> {
 		// Check the cache for the resource
 		if (this.fetch_cache.has(url)) return this.fetch_cache.get(url);
 
@@ -78,7 +79,7 @@ export class Loader {
 	/**
 	 * Import a LESS stylesheet
 	 */
-	loadLess(url: string): Promise<void> {
+	public loadLess(url: string): Promise<void> {
 		let promise = imported_less.get(url);
 		if (promise) return promise;
 
@@ -123,7 +124,7 @@ export class Loader {
 	/**
 	 * Compile LESS source to CSS
 	 */
-	compileLess(source: string): Promise<string> {
+	public compileLess(source: string): Promise<string> {
 		// Prepend the
 		source = `
 			@import (dynamic) "/assets/less/lib.less";
@@ -136,7 +137,7 @@ export class Loader {
 	/**
 	 * Perform an HTML import
 	 */
-	loadDocument(url: string): Promise<Document> {
+	public loadDocument(url: string): Promise<Document> {
 		let promise = imported_documents.get(url);
 		if (promise) return promise;
 
@@ -159,13 +160,25 @@ export class Loader {
 	/**
 	 * Load and instantiate a Polymer element
 	 */
-	loadElement<T extends PolymerElement>(element: PolymerConstructor<T>): Promise<PolymerConstructor<T>> {
+	public async loadElement<T extends PolymerElement>(element: PolymerConstructor<T>): Promise<PolymerConstructor<T>> {
 		// Ensure that Polymer is loaded
 		if (!polymer_loaded) {
 			polymer_loaded = true;
+			
 			//if (localStorage.getItem("polymer.useShadowDOM") == "1")
 			(<any>window).Polymer = { dom: "shadow" };
-			return this.loadDocument(POLYMER_PATH).then(() => this.loadElement(element));
+			
+			// Load polymer
+			await this.loadDocument(POLYMER_PATH);
+			
+			// Load auto-load elements
+			for (let i = 0; i < polymer_autoload.length; i++) {
+				await this.loadElement(polymer_autoload[i]);
+			}
+			polymer_autoload = null;
+			
+			// Load the requested element
+			return this.loadElement(element);
 		} else if (!Polymer.is) {
 			apply_polymer_fns();
 		}
@@ -175,28 +188,27 @@ export class Loader {
 
 		// Check if the element was already loaded once
 		if (meta.loaded) {
-			return Deferred.resolved(element);
+			return element;
 		} else {
 			meta.loaded = true;
 		}
 
 		// Load dependencies of the element if any
-		const load_dependencies = (meta.dependencies) ?
-			Deferred.all(meta.dependencies.map(dep => this.loadElement(dep))) :
-			Deferred.resolved(null);
+		if (meta.dependencies) {
+			await Promise.all(meta.dependencies.map(dep => this.loadElement(dep)))
+		}
 
 		// Load and compile the element template
-		const load_template = () => {
-			if (!meta.template) return null;
-			return this.loadDocument(meta.template).then(document => {
-				const domModule = document.querySelector<HTMLElement>(`dom-module[id=${meta.selector}]`);
-				if (!domModule) throw new Error(`no <dom-module> found for element <${meta.selector}> in file '${meta.template}'`);
-				return meta.domModule = domModule;
-			}).then((domModule) => {
-				// Compile LESS
-				const less_styles = <NodeListOf<HTMLStyleElement>> domModule.querySelectorAll(`style[type="text/less"]`);
-				if (less_styles.length < 1) return;
-
+		if (meta.template) {
+			let document = await this.loadDocument(meta.template);
+			
+			// Find the <dom-module> element
+			const domModule = document.querySelector<HTMLElement>(`dom-module[id=${meta.selector}]`);
+			if (!domModule) throw new Error(`no <dom-module> found for element <${meta.selector}> in file '${meta.template}'`);
+			
+			// Compile LESS
+			const less_styles = <NodeListOf<HTMLStyleElement>> domModule.querySelectorAll(`style[type="text/less"]`);
+			if (less_styles.length > 0) {
 				const job = (i: number) => {
 					const style = less_styles[i];
 					return this.compileLess(style.innerHTML).then(css => {
@@ -213,22 +225,30 @@ export class Loader {
 					jobs[i] = job(i);
 				}
 
-				return Deferred.all(jobs);
-			}).then(() => {
-				const template = meta.domModule.getElementsByTagName("template")[0];
-				if (template) {
-					this.compilePolymerSugars(template.content);
-					this.compileAngularNotation(<any> template.content);
-				}
-			});
+				await Promise.all(jobs);
+			}
+
+			// Compile template            
+			const template = domModule.getElementsByTagName("template")[0];
+			if (template) {
+				this.compilePolymerSugars(template.content);
+				this.compileAngularNotation(<any> template.content);
+			}
 		}
 
-		// Load the template file
-		return load_dependencies.then(load_template).then(() => {
-			// Polymer constructor
-			meta.constructor = Polymer(meta.proto);
-			return element;
-		});
+		meta.constructor = Polymer(meta.proto);
+		return element;
+	}
+	
+	/**
+	 * Register an element to auto load when polymer is loaded
+	 */
+	registerPolymerAutoload(ctor: PolymerConstructor<any>) {
+		if (polymer_autoload) {
+			polymer_autoload.push(ctor);
+		} else {
+			this.loadElement(ctor);
+		}
 	}
 
 	/**
