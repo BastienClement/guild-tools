@@ -11,6 +11,9 @@ export interface UserInformations {
 	name: string;
 	group: number;
 	color: string;
+	officer: boolean;
+	developer: boolean;
+	promoted: boolean;
 }
 
 @Component
@@ -23,9 +26,6 @@ export class Server extends EventEmitter {
 
 	// Server versions string
 	private version: string = null;
-
-	// Information about the current user
-	public user: UserInformations = null;
 
 	// Boostrap the server connection
 	connect(url: string): Promise<void> {

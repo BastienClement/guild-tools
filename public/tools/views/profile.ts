@@ -2,7 +2,7 @@ import { Element, Property, Listener, Dependencies, Inject, On, Watch, Bind, Pol
 import { Router, View, Arg } from "client/router";
 import { Server } from "client/server";
 import { Roster, User, Char } from "services/roster";
-import { GtBox, BnetThumb, DataMain, DataUser, DataClass, DataRace, DataRank } from "elements/defs";
+import { GtBox, GtButton, BnetThumb, DataMain, DataUser, DataClass, DataRace, DataRank } from "elements/defs";
 
 Router.declareTabs("profile", [
 	{ title: "Profile", link: "/profile" }
@@ -11,24 +11,23 @@ Router.declareTabs("profile", [
 @Element("profile-user", "/assets/views/profile.html")
 @Dependencies(GtBox, BnetThumb, DataMain, DataUser, DataClass, DataRace, DataRank)    
 export class ProfileUser extends PolymerElement {
-	@Property(Number)
-	private user: number;
+	@Property public user: number;
 }
 
-@View("profile", "gt-profile", "/profile")
-@Dependencies(ProfileUser)    
-export class Profile extends PolymerElement {
-	@Inject
-	private server: Server;
+@Element("profile-infos", "/assets/views/profile.html")
+@Dependencies(GtBox, GtButton, DataUser, DataRank)    
+export class ProfileInfos extends PolymerElement {
+	@Property public user: number;
 	
-	@Property(Number)
-	private user = this.server.user.id;
-	
-	init() {
-		console.log("profile init");
+	@Property({ computed: "user" })
+	private get editable(): boolean {
+		return this.app.user.id == this.user;
 	}
+}
 
-	detached() {
-		console.log("profile detached");
-	}
+@View("profile", "gt-profile", "/profile(/:id)?")
+@Dependencies(ProfileUser, ProfileInfos)
+export class Profile extends PolymerElement {
+	@Arg("id")
+	public user: number = this.app.user.id;
 }

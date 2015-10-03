@@ -97,7 +97,7 @@ trait ChannelHandler extends Actor with Stash {
 			handle_request(msg, payload) onFailure { case e =>
 				// Catch Exception on message processing. Since there is no way to reply to a message, we
 				// send a special $error message back.
-				channel ! Message("$error", Payload(ExceptionUtils.getStackTrace(e)))
+				channel ! SendMessage("$error", Payload(ExceptionUtils.getStackTrace(e)))
 			}
 
 		// Incoming request

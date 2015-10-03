@@ -1,7 +1,7 @@
 import { Component, Injector } from "utils/di";
 import { EventEmitter } from "utils/eventemitter";
 import { Notify } from "utils/service";
-import { PolymerConstructor, PolymerElement, Element } from "elements/polymer";
+import { PolymerConstructor, PolymerElement, Element, Inject, Bind, Property } from "elements/polymer";
 import { GtApp } from "elements/app";
 import { UserInformations } from "client/server";
 
@@ -192,6 +192,29 @@ export function View(module: string, selector: string, path: string) {
 /**
  * Dummy annotation to trigger type metadata
  */
-export function Arg() {
-
+export function Arg(key: string, value?: any) {
+	return (target: any, property: string) => {
+		// Automatically inject router
+		if (!Reflect.hasMetadata("design:type", target, "__router")) {
+			Reflect.defineMetadata("design:type", Router, target, "__router");
+			Bind({ "activeArguments": "__args" })(target, "__router");
+			Inject(target, "__router");
+			Property({ type: Object, observer: "__update_args" })(target, "__args");
+			
+			target.__update_args = function() {
+				let bindings = Reflect.getMetadata<{ [key: string]: [string, any, any] }>("router:args", target);
+				for (key in bindings) {
+					let val = this.__args[key];
+					let [prop, ctor, def] = bindings[key];
+					if (ctor && val != void 0) val = ctor(val);
+					if (val == void 0) val = def;
+					if (val != void 0) this[prop] = val;
+				}
+			};
+		}
+		
+		let bindings = Reflect.getMetadata<{ [key: string]: [string, any, any] }>("router:args", target) || {};
+		bindings[key] = [property, Reflect.getMetadata("design:type", target, property), value];
+		Reflect.defineMetadata("router:args", bindings, target);
+	};
 }

@@ -19,10 +19,10 @@ interface NewsFilters {
 
 @Element("dashboard-news-filter", "/assets/views/dashboard.html")
 class DashboardNewsFilter extends PolymerElement {
-	@Property()
+	@Property
 	public key: string;
 
-	@Property(Boolean)
+	@Property
 	public active: boolean;
 
 	@Property({ computed: "key" })
@@ -125,7 +125,7 @@ class DashboardShoutbox extends PolymerElement {
 	/**
 	 * Track the readiness of the shoutbox data
 	 */
-	@Property({ type: Boolean, reflectToAttribute: true})
+	@Property({ reflect: true})
 	private loading: boolean;
 	
 	private async attached() {
@@ -151,10 +151,10 @@ class DashboardShoutbox extends PolymerElement {
 @Element("dashboard-onlines-user", "/assets/views/dashboard.html")
 @Dependencies(BnetThumb, DataMain)    
 class DashboardOnlinesUser extends PolymerElement {
-	@Property({ type: Number })
+	@Property
 	public user: number;
 	
-	@Property({ type: Boolean })
+	@Property
 	public away: boolean = this.chat.isAway(this.user);
 
 	@Inject

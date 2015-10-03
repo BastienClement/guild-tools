@@ -6,6 +6,7 @@ import { Channel } from "gtp3/channel";
 import { Loader } from "client/loader";
 import { GtLogin } from "elements/loading";
 import { GtApp } from "elements/app";
+import { User } from "services/roster";
 
 // LocalStorage key storing user's session
 const KEY_AUTH_SESSION = "auth.session";
@@ -25,6 +26,11 @@ export class Application {
 	 * The root Application Node
 	 */
 	public root: GtApp = null;
+	
+	/**
+	 * The current user
+	 */
+	public user: User = null;
 
 	/**
 	 * The master channel
@@ -168,7 +174,7 @@ class AuthenticationDriver {
 	 */
 	private async auth(session: string): Promise<boolean> {
 		const user = await this.channel.request<UserInformations>("auth", session);
-		this.app.server.user = user;
+		this.app.user = user;
 		return !!user;
 	}
 

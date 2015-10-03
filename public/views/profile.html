@@ -72,7 +72,7 @@
 	<template>
 		<div #left>
 			<profile-user [user] #profile></profile-user>
-			<gt-box #infos heading="Informations"></gt-box>
+			<profile-infos #infos [user]></profile-infos>
 			<gt-box #stats heading="Statistics" scrollable></gt-box>
 		</div>
 		<div #middle>
@@ -142,6 +142,76 @@
 					</div>
 				</div>
 			</div>
+		</gt-box>
+	</template>
+</dom-module>
+
+<dom-module id="profile-infos">
+	<style type="text/less">
+		:host {
+			display: block;
+		}
+		
+		div {
+			margin: 4px 0;
+			
+			i {
+				margin-right: 8px;
+			}
+			
+			span {
+				display: inline-block;
+				width: 30%;
+				font-family: "Roboto Condensed";
+			}
+		}
+		
+		gt-button {
+			position: absolute;
+			top: 10px;
+			right: 0;
+			z-index: 10;
+		}
+		
+		#btag {
+			margin-top: 16px;
+		}
+	</style>
+	<template>
+		<data-user [id]="user" [user]="infos"></data-user>
+		<data-rank [id]="infos.group" [name]="rank_name"></data-rank>
+		<gt-box heading="Profile">
+			<gt-button [if]="editable"><i>edit</i> Edit</gt-button>
+			<div #username>
+				<i>face</i>
+				<span>Username</span>
+				<b>{{infos.name}}</b>
+			<div>
+			<div #rank>
+				<i>grade</i>
+				<span>Rank</span>
+				<b>{{rank_name}}</b>
+			<div>
+			<div #bday>
+				<i>cake</i>
+				<span>Birthday</span>
+				<b>&mdash;</b>
+			<div>
+			<div #btag>
+				<i>gamepad</i>
+				<span>BattleTag</span>
+				<b>&mdash;</b>
+			<div>
+			<div #mail>
+				<i>local_post_office</i>
+				<span>E-mail</span>
+				<b>&mdash;</b>
+			<div>
+			<div #phone>
+				<i>local_phone</i>
+				<span>Phone</span>
+				<b>&mdash;</b>
+			<div>
 		</gt-box>
 	</template>
 </dom-module>

@@ -610,12 +610,17 @@ export class Socket extends EventEmitter {
 	 * Print the socket activity
 	 */
 	private trace(direction: string, frame: any): void {
-		const frame_name = frame.frame_name;
-		const padding = " ".repeat(15 - frame_name.length);
-		const local_frame = Object.assign({}, frame);
+		let frame_name = frame.frame_name;
+		let padding = " ".repeat(15 - frame_name.length);
 		if (frame.payload) {
-			const data = Payload.decode(frame);
-			const data_display = Array.isArray(data) && data.length > 5 ? { $: data } : data;
+			let data = Payload.decode(frame);
+			let data_display = data;
+			
+			if ((Array.isArray(data) && data.length > 5) ||
+				(typeof data == "string" && data.length > 100)) {
+				data_display = { $: data };
+			}
+			
 			console.debug(direction, frame_name + padding, frame, "::", data_display);
 		} else {
 			console.debug(direction, frame_name + padding, frame);

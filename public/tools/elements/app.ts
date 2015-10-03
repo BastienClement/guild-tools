@@ -10,9 +10,7 @@ import { Chat } from "services/chat";
 @Dependencies(GtButton)
 export class GtTitleBar extends PolymerElement {
 	private init() {
-		if (!APP) {
-			this.$["window-controls"].remove();
-		}
+		if (!APP) this.$["window-controls"].remove();
 	}
 	
 	@Inject
@@ -80,7 +78,7 @@ export class GtTitleBar extends PolymerElement {
 	}
 
 	private tabVisible(tab: ModuleTab) {
-		return !tab.visible || tab.visible(this.server.user);
+		return !tab.visible || tab.visible(this.app.user);
 	}
 }
 
@@ -193,8 +191,8 @@ export class GtView extends PolymerElement {
 @Element("gt-app", "/assets/imports/app.html")
 @Dependencies(GtTitleBar, GtSidebar, GtView)
 export class GtApp extends PolymerElement {
-	@Property()
-	public app: boolean = APP;
+	@Property
+	public is_app: boolean = APP;
 	
 	public titlebar: GtTitleBar = this.$.title;
 	public sidebar: GtSidebar = this.$.side;

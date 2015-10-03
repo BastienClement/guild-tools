@@ -1,5 +1,6 @@
 import { Element, Property, Dependencies, PolymerElement, Inject, On } from "elements/polymer";
 import { Roster, User, Char } from "services/roster"
+import { Server } from "client/server"
 
 abstract class Provider extends PolymerElement {
 	constructor() {
@@ -65,12 +66,15 @@ export class DataUser extends Provider {
 	@Property({ type: Number, observer: "update" })
 	public id: number;
 	
+	@Property({ type: Boolean, observer: "update"})
+	public current: boolean;
+	
 	@Property({ type: Object, notify: true })
 	public user: User;
 
 	public update() {
 		this.fire("updated");
-		this.user = this.roster.getUser(this.id);
+		this.user = this.current ? this.app.user : this.roster.getUser(this.id);
 	}
 	
 	private UserUpdated(user: User) {

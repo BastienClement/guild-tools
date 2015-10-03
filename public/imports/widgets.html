@@ -14,7 +14,8 @@
 			align-items: center;
 			justify-content: center;
 			
-			transition: opacity 0.2s ease;
+			color: #fff;
+			transition: all .2s ease-out;
 		}
 		
 		:host([collapse-right]:not(:first-child)) {
@@ -28,6 +29,14 @@
 		:host([disabled]) {
 			opacity: 0.3;
 			cursor: default;
+		}
+		
+		:host(:hover) {
+			color: @fs-blue;
+		}
+		
+		::content i {
+			margin-right: 5px;
 		}
 	</style>
 	<template>
@@ -64,13 +73,13 @@
 			border-radius: 0;
 			outline: none;
 			
-			:host:hover & {
+			:host(:hover) & {
 				border-bottom-width: 2px;
 				margin-bottom: -1px;
 				border-color: rgb(66, 101, 133);
 			}
 			
-			:host:focus & {
+			#outer.focus & {
 				border-bottom-width: 2px;
 				margin-bottom: -1px;
 				border-color: rgb(100, 180, 255);

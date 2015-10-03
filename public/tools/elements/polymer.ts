@@ -3,6 +3,7 @@ import { Queue } from "utils/queue";
 import { Constructor, DefaultInjector } from "utils/di";
 import { EventEmitter } from "utils/eventemitter";
 import { Service } from "utils/service";
+import { Application } from "client/main";
 
 /**
  * Dummy class to expose Polymer functions on elements
@@ -11,6 +12,11 @@ export class PolymerElement {
 	//protected root: DocumentFragment;
 	protected node: ShadyDOM;
 	protected shadow: ShadyDOM;
+	
+	/**
+	 * Reference to the GT Application object
+	 */
+	protected app: Application;
 
 	/**
 	 * The Dollar Helper
@@ -298,6 +304,7 @@ export function Element(selector: string, template?: string) {
 
 			this.node = Polymer.dom(this);
 			this.shadow = Polymer.dom(this.root);
+			this.app = DefaultInjector.get<Application>(Application);
 
 			const injects = Reflect.getMetadata<InjectionBinding[]>("polymer:injects", target.prototype);
 			if (injects) {
@@ -443,29 +450,40 @@ interface PolymerPropertyConfig<T> {
 	observer?: string;
 }
 
-export function Property<T>(config: PolymerPropertyConfig<T> = {}) {
-	return (target: any, property: string) => {
-		if (!target.properties) target.properties = {};
-		
-		if (config.reflect) {
-			config.reflectToAttribute = true;
-		}
+export function Property<T>(config: PolymerPropertyConfig<T>): (t: any, p: string) => void;
+export function Property<T>(target: any, property: string): void;
+export function Property<T>(target: any, property: string, config: PolymerPropertyConfig<T>): void;
 
-		if (config.computed) {
-			try {
-				const generator = Object.getOwnPropertyDescriptor(target, property).get;
-				const updater_key = `_${property.replace(/\W/g, "_")}`;
-				target[updater_key] = generator;
-				delete target[property];
-				config.computed = `${updater_key}(${config.computed.replace(/\s+/g, ",")})`;
-			} catch (e) {
-				console.error(`Failed to generate computed property '${property}'`);
-				throw e;
-			}
-		}
+export function Property<T>(target?: any, property?: string, config: PolymerPropertyConfig<T> = {}): any {
+	// Called with a config object
+	if (!(target instanceof PolymerElement)) {
+		return (t: any, p: string) => Property(t, p, target);
+	}
+	
+	if (!target.properties) target.properties = {};
+	
+	if (config.reflect) {
+		config.reflectToAttribute = true;
+	}
 
-		target.properties[property] = config;
-	};
+	if (config.computed) {
+		try {
+			const generator = Object.getOwnPropertyDescriptor(target, property).get;
+			const updater_key = `_${property.replace(/\W/g, "_")}`;
+			target[updater_key] = generator;
+			delete target[property];
+			config.computed = `${updater_key}(${config.computed.replace(/\s+/g, ",")})`;
+		} catch (e) {
+			console.error(`Failed to generate computed property '${property}'`);
+			throw e;
+		}
+	}
+	
+	if (typeof config == "object" && !config.type) {
+		config.type = Reflect.getMetadata<any>("design:type", target, property);
+	}
+
+	target.properties[property] = config;
 }
 
 /**
