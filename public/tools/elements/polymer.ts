@@ -275,10 +275,13 @@ interface ElementBindings {
 /**
  * Declare a Polymer Element
  */
-export function Element(selector: string, template?: string) {
+export function Element(selector: string, template?: string, ext?: string) {
 	return <T extends PolymerElement>(target: PolymerConstructor<T>) => {
 		// Register the element selector
 		target.prototype.is = selector;
+		
+		// Register the extension of native element
+		if (ext) target.prototype.extends = ext;
 
 		const initialize = (that: any, args?: any) => {
 			if (!Reflect.getMetadata<boolean>("polymer:initialized", that)) {
