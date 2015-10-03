@@ -48,6 +48,8 @@ interface ShadyDOM {
 	setAttribute(attribute: string, value: string): void;
 	removeAttribute(attribute: string): void;
 	classList: DOMTokenList;
+	
+	node: HTMLElement;
 }
 
 declare var Polymer: Polymer;

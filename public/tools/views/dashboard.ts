@@ -1,9 +1,11 @@
 import { Element, Property, Listener, Dependencies, Inject, On, Watch, Bind, PolymerElement, PolymerModelEvent } from "elements/polymer";
 import { Router, View } from "client/router";
+import { Server } from "client/server";
 import { NewsFeed, NewsData } from "services/newsfeed";
 import { Chat, ChatMessage } from "services/chat";
 import { Roster, User, Char } from "services/roster";
-import { GtBox, GtAlert, GtTimeago, BnetThumb } from "elements/defs";
+import { GtBox, GtAlert, GtTimeago, BnetThumb, DataMain } from "elements/defs";
+import { ProfileUser } from "views/profile"
 
 Router.declareTabs("dashboard", [
 	{ title: "Dashboard", link: "/dashboard" }
@@ -147,7 +149,7 @@ class DashboardShoutbox extends PolymerElement {
 }
 
 @Element("dashboard-onlines-user", "/assets/views/dashboard.html")
-@Dependencies(BnetThumb)    
+@Dependencies(BnetThumb, DataMain)    
 class DashboardOnlinesUser extends PolymerElement {
 	@Property({ type: Number })
 	public user: number;
@@ -159,23 +161,8 @@ class DashboardOnlinesUser extends PolymerElement {
 	@On({ "away-changed": "UpdateAway" })
 	private chat: Chat;
 	
-	@Inject
-	@On({ "char-updated": "CharUpdated", "user-updated": "UserUpdated" })
-	private roster: Roster;
-	
-	private infos: User = this.roster.getUser(this.user);
-	private main: Char = this.roster.getMainCharacter(this.user);
-	
 	private UpdateAway(user: number, away: boolean) {
 		if (user == this.user) this.away = away;
-	}
-	
-	private CharUpdated(char: Char) {
-		if (char.id == this.main.id || (char.owner == this.user && char.main)) this.main = char;
-	}
-	
-	private UserUpdated(user: User) {
-		if (user.id == this.user) this.infos = user;
 	}
 }
 
@@ -214,5 +201,8 @@ class DashboardOnlines extends PolymerElement {
 }
 
 @View("dashboard", "gt-dashboard", "/dashboard")
-@Dependencies(DashboardNews, DashboardShoutbox, DashboardOnlines)
-export class Dashboard extends PolymerElement {}
+@Dependencies(DashboardNews, DashboardShoutbox, DashboardOnlines, ProfileUser)
+export class Dashboard extends PolymerElement {
+	@Inject
+	private server: Server;
+}

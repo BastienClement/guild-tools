@@ -143,12 +143,20 @@ export class Deferred<T> {
 // ------------
 // High-performance async callback
 
-const defer_queue: Function[] = [];
+const defer_queue: [Function, Deferred<any>][] = [];
 
 const defer_node = (function() {
 	const observer = new MutationObserver(() => {
-		defer_queue.forEach(fn => fn());
+		let queue = defer_queue.slice();
 		defer_queue.length = 0;
+		queue.forEach(entry => {
+			let [fn, defer] = entry;
+			try {
+				defer.resolve(fn());
+			} catch (e) {
+				defer.reject(e);
+			}
+		});
 	});
 
 	const node = document.createTextNode("");
@@ -162,9 +170,11 @@ let defer_toggle = 1;
 /**
  * Execute the given function at the end of the current microtask
  */
-export function defer(fn: () => void) {
-	if (defer_queue.push(fn) == 1) {
+export function defer<T>(fn: () => T): Promise<T> {
+	let defer = new Deferred<T>();
+	if (defer_queue.push([fn, defer]) == 1) {
 		defer_toggle = -defer_toggle
 		defer_node.data = <any> defer_toggle;
 	}
+	return defer.promise;
 }

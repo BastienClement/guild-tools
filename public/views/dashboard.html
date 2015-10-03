@@ -82,7 +82,7 @@
 				<dashboard-shoutbox #shoutbox></dashboard-shoutbox>
 			</div>
 			<div .col #col3>
-				<gt-box #profile>Blash</gt-box>
+				<profile-user #profile [user]="server.user.id"></profile-user>
 				<gt-box #informations heading="Informations"></gt-box>
 				<dashboard-onlines #onlines></dashboard-onlines>
 			</div>
@@ -312,6 +312,7 @@
 		}
 	</style>
 	<template>
+		<data-main [user] [main]></data-main>
 		<div #layout {away}>
 			<b #name>{{main.name}}</b>
 			<div #state-container>

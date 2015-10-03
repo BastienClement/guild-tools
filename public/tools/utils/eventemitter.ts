@@ -155,41 +155,43 @@ export class EventEmitter {
 	/**
 	 * Dispatch an event to all registered event handlers
 	 */
-	protected emit(event: string, ...args: any[]): any[] {
-		// Pipe to others
-		this.pipes.forEach(pipe => {
-			if (pipe.filters && pipe.filters.has(event) === pipe.blacklist) return;
-			pipe.emitter.emit(event, ...args);
-		});
-
-		// Catch-all listeners
-		let listeners = this.listeners.get("*");
-		if (listeners) {
-			const catchall_args = [event].concat(args);
-			listeners.forEach(listener => {
-				listener.handler.apply(listener.context, catchall_args);
-				if (listener.once) listeners.delete(listener);
+	protected emit(event: string, ...args: any[]): Promise<any[]> {
+		return defer(() => {
+			// Pipe to others
+			this.pipes.forEach(pipe => {
+				if (pipe.filters && pipe.filters.has(event) === pipe.blacklist) return;
+				pipe.emitter.emit(event, ...args);
 			});
-		}
-
-		// Results array
-		const results: any[] = [];
-
-		// Get registered listeners
-		listeners = this.listeners.get(event);
-		if (listeners) {
-			listeners.forEach(listener => {
-				try {
-					const result = listener.handler.apply(listener.context, args);
-					if (result !== undefined) results.push(result);
+	
+			// Catch-all listeners
+			let listeners = this.listeners.get("*");
+			if (listeners) {
+				const catchall_args = [event].concat(args);
+				listeners.forEach(listener => {
+					listener.handler.apply(listener.context, catchall_args);
 					if (listener.once) listeners.delete(listener);
-				} catch (e) {
-					console.error(e);
-				}
-			});
-		}
-
-		// Return the results array
-		return results;
+				});
+			}
+	
+			// Results array
+			const results: any[] = [];
+	
+			// Get registered listeners
+			listeners = this.listeners.get(event);
+			if (listeners) {
+				listeners.forEach(listener => {
+					try {
+						const result = listener.handler.apply(listener.context, args);
+						if (result !== undefined) results.push(result);
+						if (listener.once) listeners.delete(listener);
+					} catch (e) {
+						console.error(e);
+					}
+				});
+			}
+	
+			// Return the results array
+			return results;
+		});
 	}
 }

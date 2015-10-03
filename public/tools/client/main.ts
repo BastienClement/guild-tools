@@ -35,6 +35,7 @@ export class Application {
 	 * Initialize the GuildTools application
 	 */
 	async main(): Promise<void> {
+		const fast = localStorage.getItem("loading.fast") == "1";
 		const socket_endpoint = this.loader.fetch("/api/socket_url");
 		const body = document.body;
 
@@ -53,7 +54,7 @@ export class Application {
 		}
 		
 		// Start the authentication process
-		await Deferred.delay(500);
+		if (!fast) await Deferred.delay(500);
 		await new AuthenticationDriver(this).start();
 		
 		// Ensure spinner is disabled
@@ -65,7 +66,7 @@ export class Application {
 		// Login transition
 		body.classList.add("no-loader");
 		body.classList.add("with-background");
-		await Deferred.delay(1100);
+		if (!fast) await Deferred.delay(1100);
 		body.classList.add("app-loader");
 		
 		// Open master channel

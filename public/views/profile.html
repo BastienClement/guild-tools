@@ -1,8 +1,147 @@
 <dom-module id="gt-profile">
 	<style type="text/less">
-		:host {}
+		@left-width: 300px;
+		@right-width: 250px;
+		
+		#left, #right, #middle {
+			position: absolute;
+		}
+		
+		#left {
+			top: 0;
+			left: 0;
+			bottom: 0;
+			width: @left-width;
+			display: flex;
+			flex-direction: column;
+			
+			#stats {
+				flex: 1;
+			}
+		}
+		
+		#middle {
+			top: 0;
+			left: @left-width + 6px;
+			right: @right-width + 6px;
+			bottom: 0;
+			
+			#chars {
+				height: 100%;
+			}
+		}
+		
+		#right {
+			top: 0;
+			right: 0;
+			bottom: 0;
+			width: @right-width;
+		}
+		
+		#profile, #infos {
+			margin-bottom: 6px;
+		}
+		
+		#actions {
+			padding-bottom: 0;
+			
+			gt-button {
+				margin: 0 -16px;
+				padding: 16px;
+				border-top: 1px solid fade(@fs-blue, 10%);
+				display: block;
+				height: auto;
+				font-weight: 400;
+				transition: all 0.2s ease-out;
+				
+				&:hover {
+					background: fade(@fs-blue, 10%);
+				}
+				
+				i {
+					font-size: 18px;
+					margin: -3px 8px -3px 0;
+				}
+			}
+		}
+		
+		#actions gt-button:hover + gt-button {
+			border-top-color: fade(@fs-blue, 20%);
+		}
 	</style>
 	<template>
-		Hello Profile !
+		<div #left>
+			<profile-user [user] #profile></profile-user>
+			<gt-box #infos heading="Informations"></gt-box>
+			<gt-box #stats heading="Statistics" scrollable></gt-box>
+		</div>
+		<div #middle>
+			<gt-box #chars heading="Characters" scrollable></gt-box>
+		</div>
+		<div #right>
+			<gt-box heading="Actions" #actions>
+				<div .buttons>
+					<gt-button><i>mail</i> Send message</gt-button>
+					<gt-button><i>textsms</i> Open talk</gt-button>
+					<gt-button><i>settings</i> Settings</gt-button>
+					<gt-button><i>build</i> Manage</gt-button>
+				</div>
+			</gt-box>
+		</div>
+	</template>
+</dom-module>
+
+<dom-module id="profile-user">
+	<style type="text/less">
+		:host {
+			display: block;
+			font-weight: 300;
+		}
+		
+		#name {
+			font-family: "Roboto Condensed";
+			font-size: 24px;
+		}
+		
+		#rank {
+			color: @fs-gray;
+		}
+		
+		#layout {
+			display: flex;
+			align-items: center;
+		}
+		
+		bnet-thumb {
+			line-height: 0;
+			overflow: hidden;
+			border-right: 1px solid fade(@fs-blue, 10%);
+			margin-right: 12px;
+			height: 60px;
+			width: 60px;
+		}
+	</style>
+	<template>
+		<data-user [id]="user" [user]="infos"></data-user>
+		<data-main [user] [main]></data-main>
+		<data-race [id]="main.race" [name]="race_name"></data-race>
+		<data-class [id]="main.class" [name]="class_name"></data-class>
+		<data-rank [id]="infos.group" [name]="rank_name"></data-rank>
+		<gt-box>
+			<div #layout>
+				<bnet-thumb [char]="main"></bnet-thumb>
+				<div #infos>
+					<div #name {class-color}="main.class">{{main.name}}</div>
+					<div #main>
+						<b>{{main.level}}</b>
+						<b>{{race_name}}</b>
+						<b>{{class_name}}</b>
+					</div>
+					<div #rank>
+						<b>{{rank_name}}</b>
+					</div>
+				</div>
+			</div>
+		</gt-box>
 	</template>
 </dom-module>

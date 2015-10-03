@@ -103,7 +103,8 @@ export class Channel extends EventEmitter {
 		switch (frame.frame_type) {
 			case FrameType.MESSAGE:
 			case FrameType.REQUEST:
-				return this.receiveMessage(frame);
+				this.receiveMessage(frame);
+				return;
 
 			case FrameType.SUCCESS:
 				return this.receiveSuccess(frame);
@@ -116,12 +117,12 @@ export class Channel extends EventEmitter {
 		}
 	}
 
-	private receiveMessage(frame: MessageFrame | RequestFrame): void {
+	private async receiveMessage(frame: MessageFrame | RequestFrame) {
 		const req_id = (frame instanceof RequestFrame) ? frame.request : 0;
 		const payload = Payload.decode(frame);
 
 		if (frame instanceof RequestFrame) {
-			const results: any[] = this.emit("request", frame.message, payload);
+			const results: any[] = await this.emit("request", frame.message, payload);
 			if (results.length > 1) throw new Error("`request` listeners cannot return more than one value");
 			const result = results[0] !== undefined ? results[0] : null;
 
