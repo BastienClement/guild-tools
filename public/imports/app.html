@@ -52,7 +52,7 @@
 	<template>
 		<gt-title-bar #title {is_app}></gt-title-bar>
 		<gt-sidebar #side {is_app}></gt-sidebar>
-		<gt-view #view (scroll)="view-scroll" {is_app}></gt-view>
+		<gt-view #view (scroll)="ViewScroll" {is_app}></gt-view>
 	</template>
 </dom-module>
 
@@ -238,7 +238,7 @@
 		}
 	</style>
 	<template>
-		<div .icon [repeat]="icons" (click)="icon-click" {active}="equals(item.key, module)"><i>{{item.icon}}</i></div>
+		<div .icon [repeat]="icons" (click)="IconClicked" {active}="equals(item.key, module)"><i>{{item.icon}}</i></div>
 	</template>
 </dom-module>
 

@@ -1,5 +1,5 @@
 import { Element, Property, Listener, Dependencies, Inject, On, Watch, Bind, PolymerElement } from "elements/polymer";
-import { Router, View, Arg } from "client/router";
+import { Router, View } from "client/router";
 import { Roster, User, Char } from "services/roster";
 import { GtBox, GtButton, BnetThumb } from "elements/defs";
 import { throttle } from "utils/Deferred";
@@ -105,9 +105,9 @@ class ProfileChars extends PolymerElement {
 	}
 }
 
-@View("profile", "gt-profile", "/profile(/:id)?")
+@View("profile", "gt-profile", "/profile(/:user)?")
 @Dependencies(ProfileUser, ProfileInfos, ProfileChars)
 export class Profile extends PolymerElement {
-	@Arg("id")
+	@Property
 	public user: number = this.app.user.id;
 }

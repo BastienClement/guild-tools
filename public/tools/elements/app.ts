@@ -9,14 +9,13 @@ import { Chat } from "services/chat";
 @Element("gt-title-bar", "/assets/imports/app.html")
 @Dependencies(GtButton)
 export class GtTitleBar extends PolymerElement {
-	private init() {
+	// Remove the title bar if not launched as an app
+	private ready() {
 		if (!APP) this.$["window-controls"].remove();
 	}
 	
 	@Inject
-	@On({
-		"update-latency": "updateLatency"
-	})
+	@On({ "update-latency": "UpdateLatency" })
 	private server: Server;
 
 	@Property({ value: "0ms" })
@@ -24,14 +23,14 @@ export class GtTitleBar extends PolymerElement {
 	private latency_history: number[] = [];
 
 	// Update the latency indicator
-	private updateLatency() {
+	private UpdateLatency() {
 		// Push the latency in the history array
 		const history = this.latency_history;
 		history.push(this.server.latency);
 		if (history.length > 4) history.shift();
 
 		// Sum and count of history values
-		const acc = history.reduce((acc, l) => {
+		let acc = history.reduce((acc, l) => {
 			acc.sum += l;
 			acc.count++;
 			return acc;
@@ -46,15 +45,15 @@ export class GtTitleBar extends PolymerElement {
 
 	@Inject
 	@On({
-		"connected": "updateOnlineCount",
-		"disconnected": "updateOnlineCount"
+		"connected": "UpdateOnlineCount",
+		"disconnected": "UpdateOnlineCount"
 	})
 	private chat: Chat;
 
 	@Property({ value: 0 })
 	public online_users: number;
 	
-	private updateOnlineCount() {
+	private UpdateOnlineCount() {
 		this.debounce("update-count", () => this.online_users = this.chat.onlinesUsers.length);
 	}
 
@@ -121,7 +120,7 @@ export class GtSidebar extends PolymerElement {
 	/**
 	 * Icon click handler
 	 */
-	private "icon-click"(e: PolymerModelEvent<{ link: string }>) {
+	private IconClicked(e: PolymerModelEvent<{ link: string }>) {
 		this.router.goto(e.model.item.link)
 	}
 
@@ -149,33 +148,37 @@ export class GtView extends PolymerElement {
 		document.body.classList.add("app-loader");
 		this.current = null;
 
-		const views: Element[] = this.node.children;
-		const tasks: Promise<any>[] = views.map(e => {
+		let views: Element[] = this.node.children;
+		let tasks: Promise<any>[] = views.map(e => {
 			return new Promise((res) => {
 				e.classList.remove("active");
 				e.addEventListener("transitionend", res);
 			}).then(() => this.node.removeChild(e));
 		});
 
-		const view = this.router.activeView;
+		let view = this.router.activeView;
 		if (!view) return;
+		
 		tasks.push(this.loader.loadElement(view));
 
 		Deferred.all(tasks).then(() => {
 			document.body.classList.remove("app-loader");
 
-			const meta = Reflect.getMetadata<PolymerMetadata<any>>("polymer:meta", view);
-			const args = this.router.activeArguments;
-			const element: any = document.createElement(meta.selector);
-
+			let args = this.router.activeArguments;
+			let arg_string = "";
+			
 			for (let key in args) {
-				let arg: any = args[key];
-				if (arg !== void 0) {
-					const type = Reflect.getMetadata<Function>("design:type", meta.proto, key);
-					if (type == Boolean || type == Number || type == String) arg = type.call(null, arg);
-				}
-				element[key] = arg;
+				if (args[key] != void 0) arg_string += ` ${key}='${args[key].replace(/'/g, "&#39;")}'`;
 			}
+			
+			// Use a crazy HTML generation system to create the element since we need to have
+			// router-provided attributes defined before the createdCallback() method is called
+			let factory = document.createElement("div");
+			let meta = Reflect.getMetadata<PolymerMetadata<any>>("polymer:meta", view);
+			factory.innerHTML = `<${meta.selector}${arg_string}></${meta.selector}>`;
+			
+			// Element has been constructed by the HTML parser
+			let element = <any> factory.firstElementChild;
 
 			element.style.zIndex = ++this.layer;
 
@@ -194,16 +197,22 @@ export class GtApp extends PolymerElement {
 	@Property
 	public is_app: boolean = APP;
 	
-	public titlebar: GtTitleBar = this.$.title;
-	public sidebar: GtSidebar = this.$.side;
-	public view: GtView = this.$.view;
+	public titlebar: GtTitleBar;
+	public sidebar: GtSidebar;
+	public view: GtView;
+	
+	private ready() {
+		this.titlebar = this.$.title;
+		this.sidebar = this.$.side;
+		this.view = this.$.view;
+	}
 
 	private scrolled = false;
-	private "view-scroll"(e: Event) {
-		const scrolled = this.$.view.scrollTop > 0;
+	private ViewScroll(e: Event) {
+		let scrolled = this.$.view.scrollTop > 0;
 		if (scrolled != this.scrolled) {
 			this.scrolled = scrolled;
-			const t = <Element> this.$.title;
+			let t: Element = this.$.title;
 			if (scrolled) {
 				t.classList.add("scrolled");
 			} else {

@@ -188,34 +188,3 @@ export function View(module: string, selector: string, path: string) {
 		return element;
 	}
 }
-
-/**
- * Dummy annotation to trigger type metadata
- */
-export function Arg(key: string, value?: any) {
-	return (target: any, property: string) => {
-		// Automatically inject router
-		if (!Reflect.hasMetadata("design:type", target, "__router")) {
-			Reflect.defineMetadata("design:type", Router, target, "__router");
-			Bind({ "activeArguments": "__args" })(target, "__router");
-			Inject(target, "__router");
-			Property({ type: Object, observer: "__update_args" })(target, "__args");
-			
-			target.__update_args = function() {
-				let bindings = Reflect.getMetadata<{ [key: string]: [string, any, any] }>("router:args", target);
-				for (key in bindings) {
-					let val = this.__args[key];
-					let [prop, ctor, def] = bindings[key];
-					if (ctor && val != void 0) val = ctor(val);
-					if (val == void 0) val = def;
-					if (val != void 0) this[prop] = val;
-				}
-			};
-		}
-		
-		let bindings = Reflect.getMetadata<{ [key: string]: [string, any, any] }>("router:args", target) || {};
-		let tctor = Reflect.getMetadata("design:type", target, property);
-		bindings[key] = [property, tctor, value];
-		Reflect.defineMetadata("router:args", bindings, target);
-	};
-}

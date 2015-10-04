@@ -53,8 +53,7 @@ class DashboardNews extends PolymerElement {
 
 	private filters: NewsFilters;
 	
-	constructor() {
-		super();
+	init() {
 		try {
 			let filters = localStorage.getItem("dashboard.news.filters");
 			if (!filters) throw null;

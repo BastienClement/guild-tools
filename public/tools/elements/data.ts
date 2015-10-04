@@ -2,12 +2,7 @@ import { Element, Property, Dependencies, PolymerElement, Inject, On } from "ele
 import { Roster, User, Char } from "services/roster"
 import { Server } from "client/server"
 
-abstract class Provider extends PolymerElement {
-	constructor() {
-		super();
-		this.node.node.style.display = "none";
-	}
-}
+abstract class Provider extends PolymerElement {}
 
 @Element("data-main", null, "meta")
 export class DataMain extends Provider {

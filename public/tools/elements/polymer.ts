@@ -284,38 +284,46 @@ export function Element(selector: string, template?: string, ext?: string) {
 		// Register the extension of native element
 		if (ext) target.prototype.extends = ext;
 
-		const initialize = (that: any, args?: any) => {
-			if (!Reflect.getMetadata<boolean>("polymer:initialized", that)) {
-				Reflect.defineMetadata("polymer:initialized", true, that);
-				target.apply(that, args);
-				if (that.init) {
-					that.init.apply(that, args);
-				}
-			}
-		}
-
-		// Proxy to constructor function
-		target.prototype.factoryImpl = function() {
-			initialize(this, arguments);
-		};
-
 		// Define custom sugars and perform dependency injection
 		target.prototype.createdCallback = function() {
-			Polymer.Base.createdCallback.apply(this, arguments);
-
-			// If the element wasn't created using the new operator, call the constructor
-			defer(() => initialize(this));
-
-			this.node = Polymer.dom(this);
-			this.shadow = Polymer.dom(this.root);
-			this.app = DefaultInjector.get<Application>(Application);
-
-			const injects = Reflect.getMetadata<InjectionBinding[]>("polymer:injects", target.prototype);
+			// Temporary holder for element properties to bypass Polymer setter
+			let props = Object.create(null);
+			
+			// Perform injections
+			// Since this is the first thing done, we can be sure that injected objects are available
+			// at any moment inside the object (including Polymer own initialization)
+			let injects = Reflect.getMetadata<InjectionBinding[]>("polymer:injects", target.prototype);
 			if (injects) {
 				for (let binding of injects) {
-					this[binding.property] = DefaultInjector.get(binding.ctor);
+					props[binding.property] = DefaultInjector.get(binding.ctor);
 				}
 			}
+			
+			// Automatically inject the Application
+			props.app = DefaultInjector.get<Application>(Application);
+			
+			// Call the original constructor
+			// Element ***must not*** extends the default TypeScript constructor
+			// By default, only properties initialization is performed
+			target.call(props);
+			
+			// Call polymer constructor
+			Polymer.Base.createdCallback.apply(this, arguments);
+
+			// Define custom sugars            
+			this.node = Polymer.dom(this);
+			this.shadow = Polymer.dom(this.root);
+			
+			// Restore the work of the original constructor
+			// (only if no other value was defined in-between)
+			for (let key in props) {
+				if (this[key] === void 0) {
+					this[key] = props[key];
+				}
+			}
+			
+			// If a custom initializer is defined, call it
+			if (this.init) this.init();
 		};
 
 		// When the element is attached, register every listener defined using
@@ -323,28 +331,25 @@ export function Element(selector: string, template?: string, ext?: string) {
 		target.prototype.attachedCallback = function() {
 			Polymer.Base.attachedCallback.apply(this, arguments);
 
-			// If the element wasn't created using the new operator, call the constructor
-			initialize(this);
-
 			// Handler for binding property
 			const create_bind_handler = (property: string, emitter: any) => {
-				const parts = property.match(/^(.*)\|(.*)$/);
+				let parts = property.match(/^(.*)\|(.*)$/);
 				this[parts[2]] = emitter[parts[1]];
 				return function(value: any) { this[parts[2]] = value; };
 			}
 
 			// Attach events
-			const bindings = Reflect.getMetadata<ElementBindings>("polymer:bindings", target.prototype);
+			let bindings = Reflect.getMetadata<ElementBindings>("polymer:bindings", target.prototype);
 			if (bindings) {
 				for (let property in bindings) {
 					// Get the EventEmitter object and ensure it is the correct type
-					const emitter = <EventEmitter> this[property];
+					let emitter = <EventEmitter> this[property];
 					if (!(emitter instanceof EventEmitter)) continue;
 
-					const mapping = bindings[property];
+					let mapping = bindings[property];
 					for (let event in mapping) {
-						const handler: string = mapping[event] === true ? event : mapping[event];
-						const fn = (handler.slice(0, 5) == "bind@") ? create_bind_handler(handler.slice(5), emitter) : this[handler];
+						let handler: string = mapping[event] === true ? event : mapping[event];
+						let fn = (handler.slice(0, 5) == "bind@") ? create_bind_handler(handler.slice(5), emitter) : this[handler];
 						if (typeof fn == "function") {
 							emitter.on(event, fn, this);
 						}
@@ -352,11 +357,11 @@ export function Element(selector: string, template?: string, ext?: string) {
 				}
 			}
 
-			// Attach to pausable emitters
-			const injects = Reflect.getMetadata<InjectionBinding[]>("polymer:injects", target.prototype);
+			// Attach to services
+			let injects = Reflect.getMetadata<InjectionBinding[]>("polymer:injects", target.prototype);
 			if (injects) {
 				for (let binding of injects) {
-					const injected: Service = this[binding.property]
+					let injected: Service = this[binding.property]
 					if (injected instanceof Service) {
 						injected.attachListener(this);
 					}
@@ -367,11 +372,11 @@ export function Element(selector: string, template?: string, ext?: string) {
 		target.prototype.detachedCallback = function() {
 			Polymer.Base.detachedCallback.apply(this, arguments);
 
-			// Detach from pausable emitters
-			const injects = Reflect.getMetadata<InjectionBinding[]>("polymer:injects", target.prototype);
+			// Detach from services
+			let injects = Reflect.getMetadata<InjectionBinding[]>("polymer:injects", target.prototype);
 			if (injects) {
 				for (let binding of injects) {
-					const injected: Service = this[binding.property]
+					let injected: Service = this[binding.property]
 					if (injected instanceof Service) {
 						injected.detachListener(this);
 					}
@@ -383,13 +388,13 @@ export function Element(selector: string, template?: string, ext?: string) {
 			if (bindings) {
 				for (let property in bindings) {
 					// Get the EventEmitter object and ensure it is the correct type
-					const emitter = <EventEmitter> this[property];
+					let emitter = <EventEmitter> this[property];
 					if (!(emitter instanceof EventEmitter)) continue;
 
-					const mapping = bindings[property];
+					let mapping = bindings[property];
 					for (let event in mapping) {
-						const handler = mapping[event] === true ? event : mapping[event];
-						const fn = this[handler];
+						let handler = mapping[event] === true ? event : mapping[event];
+						let fn = this[handler];
 						if (typeof fn == "function") {
 							emitter.off(event, fn, this);
 						}
@@ -402,7 +407,7 @@ export function Element(selector: string, template?: string, ext?: string) {
 		let meta: PolymerMetadata<T>;
 
 		// The placeholder during element loading
-		const proxy: PolymerProxy<T> = <any> function() {
+		let proxy: PolymerProxy<T> = <any> function() {
 			if (!meta.constructor) throw new Error("Polymer element is not yet loaded");
 			return meta.constructor.apply(Object.create(meta.constructor.prototype), arguments);
 		};
