@@ -9,6 +9,7 @@ export class BnetThumb extends PolymerElement {
 	@Property({ computed: "char" })
 	private get src(): string {
 		let char = this.char;
+		if (!char) return;
 		let alt = `wow/static/images/2d/avatar/${char.race}-${char.gender}.jpg`;
 		if (!char.thumbnail.match(/\.jpg$/))
 			return `http://eu.battle.net/${alt}`;

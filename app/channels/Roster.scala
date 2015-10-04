@@ -13,6 +13,10 @@ object Roster extends ChannelValidator {
 }
 
 class Roster(val user: User) extends ChannelHandler {
+	init {
+		RosterService.subscribe(self, user)
+	}
+
 	akka {
 		case CharUpdate(char) => send("char-updated", char)
 		case CharDeleted(id) => send("char-deleted", id)
@@ -25,4 +29,11 @@ class Roster(val user: User) extends ChannelHandler {
 			chars <- RosterService.chars(id)
 		} send("user-data", Json.arr(user, chars))
 	}
+
+	message("promote-char") { p => RosterService.promoteChar(p.as[Int], user) }
+	message("disable-char") { p => RosterService.disableChar(p.as[Int], user) }
+	message("enable-char") { p => RosterService.enableChar(p.as[Int], user) }
+	message("remove-char") { p => RosterService.removeChar(p.as[Int], user) }
+
+	request("update-char") { p => RosterService.refreshChar(p.as[Int], user) }
 }

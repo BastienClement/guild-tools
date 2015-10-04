@@ -1,22 +1,22 @@
 import { Element, Property, Listener, Dependencies, Inject, On, Watch, Bind, PolymerElement } from "elements/polymer";
 import { Router, View, Arg } from "client/router";
-import { Server } from "client/server";
 import { Roster, User, Char } from "services/roster";
-import { GtBox, GtButton, BnetThumb, DataMain, DataUser, DataClass, DataRace, DataRank } from "elements/defs";
+import { GtBox, GtButton, BnetThumb } from "elements/defs";
+import { throttle } from "utils/Deferred";
 
 Router.declareTabs("profile", [
 	{ title: "Profile", link: "/profile" }
 ]);
 
 @Element("profile-user", "/assets/views/profile.html")
-@Dependencies(GtBox, BnetThumb, DataMain, DataUser, DataClass, DataRace, DataRank)    
+@Dependencies(GtBox, BnetThumb)    
 export class ProfileUser extends PolymerElement {
 	@Property public user: number;
 }
 
 @Element("profile-infos", "/assets/views/profile.html")
-@Dependencies(GtBox, GtButton, DataUser, DataRank)    
-export class ProfileInfos extends PolymerElement {
+@Dependencies(GtBox, GtButton)    
+class ProfileInfos extends PolymerElement {
 	@Property public user: number;
 	
 	@Property({ computed: "user" })
@@ -25,8 +25,88 @@ export class ProfileInfos extends PolymerElement {
 	}
 }
 
+@Element("profile-chars-card", "/assets/views/profile.html")
+@Dependencies(GtBox, GtButton, BnetThumb)    
+class ProfileCharsCard extends PolymerElement {
+	@Inject
+	private roster: Roster;
+	
+	@Property public id: number;
+	@Property public editable: boolean
+	@Property public char: Char;
+	
+	private update_pending = false;
+	
+	@Property({ computed: "char.last_update update_pending" })
+	public get updatable(): boolean {
+		if (this.update_pending) return false;
+		let dt = Date.now() - this.char.last_update;
+		return dt > 1000 * 60 * 15;
+	}
+	
+	@Listener("btn-disable.click")
+	public Disable() { this.roster.disableChar(this.id); }
+	
+	@Listener("btn-enable.click")
+	public Enable() { this.roster.enableChar(this.id); }
+	
+	@Listener("btn-main.click")
+	public Promote() { this.roster.promoteChar(this.id); }
+	
+	@Listener("btn-remove.click")
+	public Remove() { this.roster.removeChar(this.id); }
+	
+	@Listener("btn-update.click")
+	public async Update() {
+		this.update_pending = true;
+		try {
+			await this.roster.updateChar(this.id);
+		} finally {
+			this.update_pending = false;
+		}
+	}
+}
+
+@Element("profile-chars", "/assets/views/profile.html")
+@Dependencies(GtBox, GtButton, ProfileCharsCard)    
+class ProfileChars extends PolymerElement {
+	@Inject
+	@On({
+		"user-updated": "UserUpdated",
+		"char-updated": "CharUpdated",
+		"char-deleted": "CharDeleted"})
+	private roster: Roster;
+	
+	@Property({ observer: "update" })
+	public user: number;
+	
+	@Property public chars: number[];
+	
+	private UserUpdated(user: User) {
+		if (user.id == this.user) this.update();
+	}
+	
+	private CharUpdated(char: Char) {
+		if (char.owner == this.user) this.update();
+	}
+	
+	private CharDeleted(char: number) {
+		if (this.chars.some(n => n == char)) this.update();
+	}
+	
+	@throttle private update() {
+		if (!this.user) return;
+		this.chars = this.roster.getUserCharacters(this.user);
+	}
+	
+	@Property({ computed: "user" })
+	private get editable(): boolean {
+		return this.app.user.id == this.user;
+	}
+}
+
 @View("profile", "gt-profile", "/profile(/:id)?")
-@Dependencies(ProfileUser, ProfileInfos)
+@Dependencies(ProfileUser, ProfileInfos, ProfileChars)
 export class Profile extends PolymerElement {
 	@Arg("id")
 	public user: number = this.app.user.id;

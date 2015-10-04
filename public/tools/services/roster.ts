@@ -53,6 +53,7 @@ export class Roster extends Service {
 	// Roster data
 	private users = new Map<number, UserRecord>();
 	private owners = new Map<number, number>();
+	private chars_cache = new Map<number, number[]>();
 	
 	// Reflect the current state of the roster channel
 	@ServiceChannel.ReflectState("channel")
@@ -208,6 +209,7 @@ export class Roster extends Service {
 		}
 		
 		// Record the last update of the record
+		this.chars_cache.delete(user.id);
 		this.touch(record);
 	}
 	
@@ -228,6 +230,7 @@ export class Roster extends Service {
 			this.emit("char-updated", this.lock(char));
 		}
 		
+		this.chars_cache.delete(char.owner);
 		this.touch(record);
 	}
 	
@@ -252,6 +255,7 @@ export class Roster extends Service {
 		this.owners.delete(id);
 		this.emit("char-deleted", id);
 		
+		this.chars_cache.delete(record.infos.id);
 		this.touch(record);
 	}
 	
@@ -263,7 +267,19 @@ export class Roster extends Service {
 	}
 	
 	public getUserCharacters(user: number) {
-		return Array.from(this.getRecord(user).chars.keys());
+		if (this.chars_cache.has(user)) return this.chars_cache.get(user);
+		let chars = Array.from(this.getRecord(user).chars.keys());
+		chars.sort((a_id, b_id) => {
+			let a = this.getCharacter(a_id);
+			let b = this.getCharacter(b_id);
+			if (a.main != b.main) return a.main ? -1 : 1;
+			else if (a.active != b.active) return a.active ? -1 : 1;
+			else if (a.level != b.level) return b.level - a.level;
+			else if (a.ilvl != b.ilvl) return b.ilvl - a.ilvl;
+			return a.name.localeCompare(b.name);
+		});
+		this.chars_cache.set(user, chars);
+		return chars;
 	}
 	
 	public getMainCharacter(user: number) {
@@ -284,5 +300,27 @@ export class Roster extends Service {
 		}
 		
 		return this.fakeChar(id, `Char#${id}`, 0);
+	}
+	
+	// --- Update -------------------------------------------------------------
+	
+	public promoteChar(char: number) {
+		return this.channel.send("promote-char", char);
+	}
+	
+	public disableChar(char: number) {
+		return this.channel.send("disable-char", char);
+	}
+	
+	public enableChar(char: number) {
+		return this.channel.send("enable-char", char);
+	}
+	
+	public removeChar(char: number) {
+		return this.channel.send("remove-char", char);
+	}
+	
+	public updateChar(char: number) {
+		return this.channel.request<boolean>("update-char", char);
 	}
 }

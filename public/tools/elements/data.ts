@@ -9,7 +9,7 @@ abstract class Provider extends PolymerElement {
 	}
 }
 
-@Element("data-main")
+@Element("data-main", null, "meta")
 export class DataMain extends Provider {
 	@Inject
 	@On({ "char-updated": "CharUpdated" })
@@ -33,7 +33,7 @@ export class DataMain extends Provider {
 	}
 }
 
-@Element("data-char")
+@Element("data-char", null, "meta")
 export class DataChar extends Provider {
 	@Inject
 	@On({ "char-updated": "CharUpdated" })
@@ -57,7 +57,7 @@ export class DataChar extends Provider {
 	}
 }
 
-@Element("data-user")
+@Element("data-user", null, "meta")
 export class DataUser extends Provider {
 	@Inject
 	@On({ "user-updated": "UserUpdated" })
@@ -82,7 +82,7 @@ export class DataUser extends Provider {
 	}
 }
 
-@Element("data-class")
+@Element("data-class", null, "meta")
 export class DataClass extends Provider {
 	@Property({ type: Number, observer: "update" })
 	public id: number;
@@ -113,7 +113,7 @@ export class DataClass extends Provider {
 	}
 }
 
-@Element("data-race")
+@Element("data-race", null, "meta")
 export class DataRace extends Provider {
 	@Property({ type: Number, observer: "update" })
 	public id: number;
@@ -147,7 +147,7 @@ export class DataRace extends Provider {
 	}
 }
 
-@Element("data-rank")
+@Element("data-rank", null, "meta")
 export class DataRank extends Provider {
 	@Property({ type: Number, observer: "update" })
 	public id: number;

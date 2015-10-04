@@ -1,29 +1,19 @@
 package actors
 
-import scala.concurrent.Future
+import actors.BattleNet.BnetFailure
 import gt.Global.ExecutionContext
 import models._
 import play.api.Play._
 import play.api.libs.json.JsValue
 import play.api.libs.ws.{WS, WSResponse}
 
-/**
- * Public interface
- */
-trait BattleNet {
-	def query(api: String, user_params: (String, String)*): Future[JsValue]
-	def fetchChar(server: String, name: String): Future[Char]
+import scala.concurrent.Future
+
+object BattleNet {
+	case class BnetFailure(response: WSResponse) extends Exception
 }
 
-/**
- * An error on Battle.net side
- */
-case class BattleNetFailure(response: WSResponse) extends Exception
-
-/**
- * Actor implementation
- */
-class BattleNetImpl extends BattleNet {
+trait BattleNet {
 	private val key = current.configuration.getString("bnet.apiKey") getOrElse ""
 
 	def query(api: String, user_params: (String, String)*): Future[JsValue] = {
@@ -32,7 +22,7 @@ class BattleNetImpl extends BattleNet {
 
 		request.withHeaders("Accept" -> "application/json").get() flatMap {
 			case res if res.status == 200 => Future.successful(res.json)
-			case res => Future.failed(BattleNetFailure(res))
+			case res => Future.failed(BnetFailure(res))
 		}
 	}
 
@@ -68,3 +58,5 @@ class BattleNetImpl extends BattleNet {
 		}
 	}
 }
+
+class BattleNetImpl extends BattleNet

@@ -183,6 +183,9 @@ export class Channel extends EventEmitter {
 		const error: any = new Error(frame.message);
 		error.code = frame.code;
 		deferred.reject(error);
+		
+		// Display stack frame
+		console.error(new Error(frame.stack));
 	}
 
 	/**

@@ -161,6 +161,14 @@ export class Loader {
 	 * Load and instantiate a Polymer element
 	 */
 	public async loadElement<T extends PolymerElement>(element: PolymerConstructor<T>): Promise<PolymerConstructor<T>> {
+		// Read Polymer metadata
+		const meta = Reflect.getMetadata<PolymerMetadata<T>>("polymer:meta", element);
+		
+		// Check if the element was already loaded once
+		if (meta.loaded) {
+			return element;
+		}
+		
 		// Ensure that Polymer is loaded
 		if (!polymer_loaded) {
 			polymer_loaded = true;
@@ -183,15 +191,7 @@ export class Loader {
 			apply_polymer_fns();
 		}
 
-		// Read Polymer metadata
-		const meta = Reflect.getMetadata<PolymerMetadata<T>>("polymer:meta", element);
-
-		// Check if the element was already loaded once
-		if (meta.loaded) {
-			return element;
-		} else {
-			meta.loaded = true;
-		}
+		meta.loaded = true;
 
 		// Load dependencies of the element if any
 		if (meta.dependencies) {

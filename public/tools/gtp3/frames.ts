@@ -335,6 +335,7 @@ export class FailureFrame extends Frame {
 	@uint16   request: number;
 	@uint16   code: number;
 	@str      message: string;
+	@str      stack: string;
 }
 
 @frame(FrameType.CLOSE, "Close")

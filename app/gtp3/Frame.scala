@@ -132,10 +132,10 @@ object SuccessFrame {
 }
 
 case class FailureFrame(var seq: Int, channel: Int,
-		request: Int, code: Int, message: String) extends Frame with ChannelFrame
+		request: Int, code: Int, message: String, stack: String) extends Frame with ChannelFrame
 object FailureFrame {
 	implicit val discriminator = Discriminator[Frame, FailureFrame, Int](FrameType.FAILURE)
-	implicit val codec = (uint16 :: uint16 :: uint16 :: uint16 :: g.str).as[FailureFrame]
+	implicit val codec = (uint16 :: uint16 :: uint16 :: uint16 :: g.str:: g.str).as[FailureFrame]
 }
 
 case class CloseFrame(var seq: Int, channel: Int, code: Int, message: String) extends Frame with ChannelFrame

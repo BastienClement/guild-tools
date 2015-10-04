@@ -16,7 +16,7 @@ object ChatService {
 	case class UserAway(user: User, away: Boolean)
 	case class UserDisconnect(user: User)
 
-	private case class ChatSession(user: User, var away: Boolean, val actors: mutable.Map[ActorRef, Boolean])
+	private case class ChatSession(user: User, var away: Boolean, actors: mutable.Map[ActorRef, Boolean])
 }
 
 trait ChatService extends PubSub[User] with ActorImplicits {

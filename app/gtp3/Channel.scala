@@ -35,7 +35,7 @@ class Channel(val socket: ActorRef, val id: Int, val sender_channel: Int, val ha
 			handler ! Request(rid, req, Payload(payload, flags))
 
 		case SuccessFrame(seq, channel, req, flags, payload) => ???
-		case FailureFrame(seq, channel, req, code, message) => ???
+		case FailureFrame(seq, channel, req, code, message, stack) => ???
 
 		case CloseFrame(seq, channel, code, reason) =>
 			handler ! Close(code, reason)
@@ -43,8 +43,10 @@ class Channel(val socket: ActorRef, val id: Int, val sender_channel: Int, val ha
 		case Success(rid, payload) =>
 			socket ! SuccessFrame(0, sender_channel, rid, payload.flags, payload.byteVector)
 
-		case Failure(rid, fail) =>
-			socket ! FailureFrame(0, sender_channel, rid, 0, fail.getMessage)
+		case Failure(rid, fail) => fail match {
+			case e: Error => socket ! FailureFrame(0, sender_channel, rid, e.code, e.message, ExceptionUtils.getStackTrace(e))
+			case e: Throwable => socket ! FailureFrame(0, sender_channel, rid, 0, e.getMessage, ExceptionUtils.getStackTrace(e))
+		}
 
 		case SendMessage(msg, payload) =>
 			socket ! MessageFrame(0, sender_channel, msg, payload.flags, payload.byteVector)

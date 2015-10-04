@@ -8,6 +8,7 @@ import models.User
 import play.api.libs.json.Json
 import gt.Global.ExecutionContext
 
+import scala.concurrent.duration._
 import scala.language.postfixOps
 
 object Chat extends ChannelValidator {

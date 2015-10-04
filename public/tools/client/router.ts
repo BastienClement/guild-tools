@@ -214,7 +214,8 @@ export function Arg(key: string, value?: any) {
 		}
 		
 		let bindings = Reflect.getMetadata<{ [key: string]: [string, any, any] }>("router:args", target) || {};
-		bindings[key] = [property, Reflect.getMetadata("design:type", target, property), value];
+		let tctor = Reflect.getMetadata("design:type", target, property);
+		bindings[key] = [property, tctor, value];
 		Reflect.defineMetadata("router:args", bindings, target);
 	};
 }

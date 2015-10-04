@@ -178,3 +178,19 @@ export function defer<T>(fn: () => T): Promise<T> {
 	}
 	return defer.promise;
 }
+
+/**
+ * Micro-throttle function
+ */
+export function throttle(target: any, property: string) {
+	let throttled = false;
+	let fn = target[property];
+	return {
+		value: function() {
+			if (throttled) return
+			throttled = true;
+			defer(() => throttled = false);
+			fn.apply(this, arguments);
+		}
+	};    
+}

@@ -1,7 +1,7 @@
 <dom-module id="gt-profile">
 	<style type="text/less">
 		@left-width: 300px;
-		@right-width: 250px;
+		@right-width: 220px;
 		
 		#left, #right, #middle {
 			position: absolute;
@@ -46,16 +46,22 @@
 			padding-bottom: 0;
 			
 			gt-button {
-				margin: 0 -16px;
-				padding: 16px;
+				margin: 0 -12px;
+				padding: 12px;
 				border-top: 1px solid fade(@fs-blue, 10%);
 				display: block;
 				height: auto;
 				font-weight: 400;
 				transition: all 0.2s ease-out;
 				
+				&:first-child {
+					margin-top: -12px;
+					border-top: 0;
+				}
+				
 				&:hover {
 					background: fade(@fs-blue, 10%);
+					color: #fff;
 				}
 				
 				i {
@@ -73,18 +79,22 @@
 		<div #left>
 			<profile-user [user] #profile></profile-user>
 			<profile-infos #infos [user]></profile-infos>
-			<gt-box #stats heading="Statistics" scrollable></gt-box>
+			<gt-box #stats heading="Statistics" scrollable>
+				<div style="display: flex; align-items: center; justify-content: center; height: 100%; width: 100%; position: absolute; top: 0; left: 0;">
+					<i style="color: #64B4FF; opacity: 0.5; font-size: 60px;">build</i>
+				</div>
+			</gt-box>
 		</div>
 		<div #middle>
-			<gt-box #chars heading="Characters" scrollable></gt-box>
+			<profile-chars [user] #chars></profile-chars>
 		</div>
 		<div #right>
-			<gt-box heading="Actions" #actions>
+			<gt-box heading="Actions" #actions scrollable>
 				<div .buttons>
 					<gt-button><i>mail</i> Send message</gt-button>
 					<gt-button><i>textsms</i> Open talk</gt-button>
 					<gt-button><i>settings</i> Settings</gt-button>
-					<gt-button><i>build</i> Manage</gt-button>
+					<gt-button [if]="app.user.promoted"><i>build</i> Manage</gt-button>
 				</div>
 			</gt-box>
 		</div>
@@ -122,11 +132,11 @@
 		}
 	</style>
 	<template>
-		<data-user [id]="user" [user]="infos"></data-user>
-		<data-main [user] [main]></data-main>
-		<data-race [id]="main.race" [name]="race_name"></data-race>
-		<data-class [id]="main.class" [name]="class_name"></data-class>
-		<data-rank [id]="infos.group" [name]="rank_name"></data-rank>
+		<meta is="data-user" [id]="user" [user]="infos">
+		<meta is="data-main" [user] [main]>
+		<meta is="data-race" [id]="main.race" [name]="race_name">
+		<meta is="data-class" [id]="main.class" [name]="class_name">
+		<meta is="data-rank" [id]="infos.group" [name]="rank_name">
 		<gt-box>
 			<div #layout>
 				<bnet-thumb [char]="main"></bnet-thumb>
@@ -168,7 +178,7 @@
 		
 		gt-button {
 			position: absolute;
-			top: 10px;
+			top: 6px;
 			right: 0;
 			z-index: 10;
 		}
@@ -178,9 +188,9 @@
 		}
 	</style>
 	<template>
-		<data-user [id]="user" [user]="infos"></data-user>
-		<data-rank [id]="infos.group" [name]="rank_name"></data-rank>
-		<gt-box heading="Profile">
+		<meta is="data-user" [id]="user" [user]="infos">
+		<meta is="data-rank" [id]="infos.group" [name]="rank_name">
+		<gt-box heading="Profile" scrollable>
 			<gt-button [if]="editable"><i>edit</i> Edit</gt-button>
 			<div #username>
 				<i>face</i>
@@ -212,6 +222,162 @@
 				<span>Phone</span>
 				<b>&mdash;</b>
 			<div>
+		</gt-box>
+	</template>
+</dom-module>
+
+<dom-module id="profile-chars">
+	<style type="text/less">
+		:host {
+			display: block;
+		}
+		
+		gt-box {
+			height: 100%;
+		}
+		
+		gt-button {
+			position: absolute;
+			top: 6px;
+			right: 0;
+		}
+		
+		#layout {
+			display: flex;
+			flex-wrap: wrap;
+			margin: 0 -3px;
+			
+			profile-chars-card, .padding {
+				margin: 3px;
+				flex: 1;
+				min-width: 310px;
+				max-width: 500px;
+			}
+			
+			.padding {
+				margin: 0 3px;
+				height: 0px;
+			}
+		}
+	</style>
+	<template>
+		<gt-box heading="Characters" scrollable>
+			<gt-button [if]="editable"><i>person_add</i> Add character</gt-button>
+			<div #layout>
+				<profile-chars-card [repeat]="chars" [id]="item" [editable]></profile-chars-card>
+				<div .padding></div>
+				<div .padding></div>
+				<div .padding></div>
+			</div>
+		</gt-box>
+	</template>
+</dom-module>
+
+<dom-module id="profile-chars-card">
+	<style type="text/less">
+		:host {
+			display: block;
+		}
+		
+		gt-box {
+			background: fade(@fs-blue, 5%);
+		}
+		
+		#layout {
+			display: flex;
+			align-items: center;
+		}
+		
+		bnet-thumb {
+			height: 55px;
+			width: 55px;
+			transition: all .2s ease-out;
+			
+			[inactive] & {
+				opacity: 0;
+				width: 0px;
+				margin-right: -10px;
+			}
+		}
+		
+		#icon {
+			font-size: 20px;
+			
+			i {
+				display: none;
+				color: @light-blue;
+			}
+			
+			&[main] #main { display: block; }
+			&[active]:not([main]) #active { display: block; }
+			&:not([active]) #inactive { display: block; }
+			
+			#inactive {
+				 transform: scaleX(-1);
+			}
+		}
+		
+		#name {
+			font-size: 18px;
+			font-family: "Roboto Condensed";
+		}
+		
+		#infos {
+			flex: 1;
+			margin: 0 12px;
+		}
+		
+		#meta {
+			color: @fs-gray;
+		}
+		
+		#actions {
+			margin: 12px -12px -12px -12px;
+			padding: 2px 8px;
+			border-top: 1px solid fade(@fs-blue, 20%);
+			display: flex;
+			justify-content: flex-end;
+			
+			gt-button {
+				margin: 0;
+			}
+		}
+	</style>
+	<template>
+		<meta is="data-char" [id] [char]>
+		<meta is="data-race" [id]="char.race" [name]="race-name">
+		<meta is="data-class" [id]="char.class" [name]="class-name">
+		<gt-box {inactive}="!char.active">
+			<div #layout>
+				<bnet-thumb [char]></bnet-thumb>
+				<div #infos>
+					<div #name {class-color}="char.class">{{char.name}}</div>
+					<div>
+						<b>{{char.level}}</b>
+						<b>{{race-name}}</b>
+						<b>{{class-name}}</b>
+					</div>
+					<div #meta>
+						<gt-timeago [date]="char.last_update"></gt-timeago>
+						&ndash;
+						<b>{{char.ilvl}}</b> ilvl
+					</div>
+				</div>
+				<div #icon {main}="char.main" {active}="char.active">
+					<i #main>star</i>
+					<i #active>star_border</i>
+					<i #inactive>brightness_3</i>
+				</div>
+			</div>
+			<div #actions {hidden}="!editable">
+				<span {hidden}="!char.active">
+					<gt-button #btn-main {hidden}="char.main">Main</gt-button>
+					<gt-button #btn-disable {hidden}="char.main">Disable</gt-button>
+					<gt-button #btn-update {disabled}="!updatable">Update</gt-button>
+				</span>
+				<gt-button #btn-enable {hidden}="char.active">Enable</gt-button>
+				<gt-button #btn-remove {hidden}="char.active">Remove</gt-button>
+			</div>
 		</gt-box>
 	</template>
 </dom-module>

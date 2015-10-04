@@ -60,11 +60,13 @@ class Auth(val socket: ActorRef) extends ChannelHandler {
 		}
 	}
 
-	request("prepare") { payload =>
-		utils.atLeast(500.milliseconds) {
-			val user = payload.value.as[String]
-			AuthService.setting(user) map { setting => Json.obj("salt" -> salt, "setting" -> setting) }
-		}
+		request("prepare") { payload =>
+			utils.atLeast(500.milliseconds) {
+				val user = payload.value.as[String]
+				AuthService.setting(user) map {
+					setting => Json.obj("salt" -> salt, "setting" -> setting)
+				}
+			}
 	}
 
 	request("login") { payload =>

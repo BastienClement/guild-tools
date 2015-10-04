@@ -1,12 +1,17 @@
 package actors
 
-import actors.Actors.ActorImplicits
+import actors.Actors.{ActorImplicits, BattleNet => Bnet}
+import actors.BattleNet.BnetFailure
+import actors.RosterService.CharUpdate
+import gt.Global.ExecutionContext
 import models._
 import models.mysql._
 import utils.{LazyCache, LazyCollection, PubSub}
 
+import scala.compat.Platform
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.util.Success
 
 object RosterService {
 	case class CharUpdate(char: Char)
@@ -28,72 +33,120 @@ trait RosterService extends PubSub[User] with ActorImplicits {
 		Chars.filter(_.owner === owner).sortBy(c => (c.main.desc, c.active.desc, c.level.desc, c.ilvl.desc)).run.await
 	}
 
-	private var inflightUpdates = Set[Int]()
+	private var inflightUpdates = Map[Int, Future[Char]]()
 
 	def user(id: Int): Future[User] = users.get(id) orElse outroster_users(id)
 	def chars(owner: Int): Future[Seq[Char]] = owner_chars(owner)
 
-	/*def updateChar(char: Char): Unit = {
-		// Update the cached object
-		owner_chars.clear(char.owner)
-
-		inflightUpdates -= char.id
-		this !# CharUpdate(char)
+	def getChar(id: Int, user: Option[User]) = {
+		val char = for (c <- Chars if c.id === id) yield c
+		user match {
+			case Some(u) => char filter (_.owner === u.id)
+			case None => char
+		}
 	}
-
-	def deleteChar(id: Int): Unit = {
-		roster_chars := roster_chars - id
-		//Dispatcher !# RosterCharDelete(id)
-	}*/
 
 	/**
 	 * Fetch a character from Battle.net and update its cached value in DB
 	 */
-	def refreshChar(id: Int): Unit = {
-		/*if (inflightUpdates.contains(id)) return
-		val char_query = Chars.filter(_.id === id)
+	def refreshChar(id: Int, user: Option[User] = None): Future[Char] = {
+		// Ensure we dont start two update at the same time
+		if (inflightUpdates.contains(id)) inflightUpdates(id)
+		else {
+			// Request for the updated char
+			val char = getChar(id, user)
+			val res =
+				char.filter(c => c.last_update < Platform.currentTime - (1000 * 60 * 15)).head recover {
+					case cause => throw new Exception("Cannot refresh character at this time", cause)
+				} flatMap { oc =>
+					Bnet.fetchChar(oc.server, oc.name) recoverWith {
+						case BnetFailure(response) if response.status == 404 =>
+							char.map(_.failures).head map { f =>
+								val failures = f + 1
+								val invalid = failures >= 3
+								char map {
+									c => (c.active, c.failures, c.invalid, c.last_update)
+								} update {
+									(oc.active && (!invalid || oc.main), failures, invalid, Platform.currentTime)
+								}
+							} flatMap { query =>
+								query.run map {
+									_ => throw new Exception("Battle.net Error: " + response.body)
+								}
+							}
 
-		for (char <- char_query.headOption.await if Platform.currentTime - char.last_update > 1800000) {
-			inflightUpdates += char.id
-			BattleNet.fetchChar(char.server, char.name) onComplete handleResult(char)
-		}
-
-		// Handle Battle.net response, both success and failure
-		def handleResult(char: Char)(res: Try[Char]): Unit = {
-			res match {
-				case Success(new_char) => handleSuccess(new_char, char)
-				case Failure(e) => handleFailure(e, char)
-			}
-
-			RosterService.updateChar(char_query.head.await)
-		}
-
-		// Handle a sucessful char retrieval
-		def handleSuccess(nc: Char, char: Char): Unit = {
-			char_query.map { c =>
-				(c.klass, c.race, c.gender, c.level, c.achievements, c.thumbnail, c.ilvl, c.failures, c.invalid, c.last_update)
-			} update {
-				(nc.clazz, nc.race, nc.gender, nc.level, nc.achievements, nc.thumbnail, math.max(nc.ilvl, char.ilvl), 0, false, Platform.currentTime)
-			}
-		}
-
-		// Handle an error on char retrieval
-		def handleFailure(e: Throwable, char: Char): Unit = e match {
-			// The character is not found on Battle.net, increment failures counter
-			case BattleNetFailure(response) if response.status == 404 =>
-				val failures = char_query.map(_.failures).head.await + 1
-				val invalid = failures >= 3
-
-				char_query.map { c =>
-					(c.active, c.failures, c.invalid, c.last_update)
-				} update {
-					(char.active && (!invalid || char.main), failures, invalid, Platform.currentTime)
+						// Another error occured, just update the last_update, but don't count as failure
+						case cause =>
+							val query = char map { c => c.last_update } update (Platform.currentTime)
+							query.run map {
+								_ => throw new Exception("Error while updating character", cause)
+							}
+					} map { nc =>
+						char map {
+							c => (c.klass, c.race, c.gender, c.level, c.achievements, c.thumbnail, c.ilvl, c.failures, c.invalid, c.last_update)
+						} update {
+							(nc.clazz, nc.race, nc.gender, nc.level, nc.achievements, nc.thumbnail, math.max(nc.ilvl, oc.ilvl), 0, false, Platform.currentTime)
+						}
+					} flatMap {
+						query => query.run
+					} flatMap {
+						_ => char.head
+					}
 				}
 
-			// Another error occured, just update the update date, but don't count as failure
-			case _ =>
-				char_query.map(_.last_update).update(Platform.currentTime)
-		}*/
+			res andThen {
+				case _ => inflightUpdates -= id
+			} recoverWith {
+				case _ => char.head
+			} foreach {
+				updated =>
+					owner_chars.clear(updated.owner)
+					this !# CharUpdate(updated)
+			}
+
+			inflightUpdates += id -> res
+			res
+		}
+	}
+
+	def promoteChar(id: Int, user: Option[User] = None): Unit = {
+		for {
+			Some(new_main) <- getChar(id, user).headOption
+			Some(old_main) <- Chars.filter(char => char.main === true && char.owner === new_main.owner).headOption
+		} {
+			val a = (for {
+				new_updated <- Chars.filter(char => char.id === new_main.id && char.main === false).map(_.main).update(true) if new_updated == 1
+				old_updated <- Chars.filter(char => char.id === old_main.id && char.main === true).map(_.main).update(false) if old_updated == 1
+			} yield ()).transactionally
+
+			for {
+				res <- a.run
+				n <- Chars.filter(_.id === new_main.id).head
+				o <- Chars.filter(_.id === old_main.id).head
+			} {
+				owner_chars.clear(n.owner)
+				this !# CharUpdate(n)
+				this !# CharUpdate(o)
+			}
+		}
+	}
+
+	private def changeEnabledState(id: Int, user: Option[User], state: Boolean): Unit = {
+		for {
+			char_query <- getChar(id, user)
+			update <- char_query map (_.active) update (state)
+			updated <- update.run if updated > 0
+			char <- char_query.head
+		} {
+			owner_chars.clear(char.owner)
+			this !# CharUpdate(char)
+		}
+	}
+
+	def enableChar(id: Int, user: Option[User] = None): Unit = changeEnabledState(id, user, true)
+	def disableChar(id: Int, user: Option[User] = None): Unit = changeEnabledState(id, user, false)
+
+	def removeChar(id: Int, user: Option[User] = None): Unit = {
 	}
 }
 
