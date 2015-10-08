@@ -63,9 +63,8 @@ trait RosterService extends PubSub[User] {
 		this !# CharUpdate(char)
 	}
 
-	/**
-	 * Fetch a character from Battle.net and update its cached value in DB
-	 */
+	// Fetch a character from Battle.net and update its cached value in DB
+	// TODO: refactor
 	def refreshChar(id: Int, user: Option[User] = None): Future[Char] = {
 		// Ensure we dont start two update at the same time
 		if (inflightUpdates.contains(id)) inflightUpdates(id)
@@ -116,9 +115,7 @@ trait RosterService extends PubSub[User] {
 			} recoverWith {
 				case _ => char.head
 			} foreach {
-				updated =>
-					user_chars.clear(updated.owner)
-					this !# CharUpdate(updated)
+				updated => notifyUpdate(updated)
 			}
 
 			inflightUpdates += id -> res
@@ -146,9 +143,8 @@ trait RosterService extends PubSub[User] {
 				n <- Chars.filter(_.id === new_main.id).head
 				o <- Chars.filter(_.id === old_main.id).head
 			} yield {
-				user_chars.clear(n.owner)
-				this !# CharUpdate(n)
-				this !# CharUpdate(o)
+				notifyUpdate(n)
+				notifyUpdate(o)
 			}
 		}
 	}
@@ -161,9 +157,8 @@ trait RosterService extends PubSub[User] {
 			_ = if (updated == 1) () else throw new Exception("Failed to update character active state")
 			char <- char_query.result.head
 		} yield {
-				this.notifyUpdate(char)
-				()
-			}
+			this.notifyUpdate(char)
+		}
 
 		DB.run(update)
 	}
