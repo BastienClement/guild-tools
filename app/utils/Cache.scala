@@ -31,7 +31,7 @@ class Cache[K, T] private(expire: FiniteDuration)(generator: (K) => T) extends C
 	Cache.register(this)
 
 	// Cells from this collection
-	private var cells = Map[K, LazyCache[T]]()
+	private var cells = Map[K, CacheCell[T]]()
 
 	// Fetch or create a cell for a given key
 	// Thread-safe
@@ -39,7 +39,7 @@ class Cache[K, T] private(expire: FiniteDuration)(generator: (K) => T) extends C
 		cells.getOrElse(key, {
 			this.synchronized {
 				cells.getOrElse(key, {
-					val new_cell = LazyCache[T](expire)(generator(key))
+					val new_cell = CacheCell[T](expire)(generator(key))
 					cells = cells.updated(key, new_cell)
 					new_cell
 				})

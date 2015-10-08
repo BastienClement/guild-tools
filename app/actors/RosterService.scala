@@ -6,7 +6,7 @@ import actors.RosterService.CharUpdate
 import gt.Global.ExecutionContext
 import models._
 import models.mysql._
-import utils.{LazyCache, Cache, PubSub}
+import utils.{CacheCell, Cache, PubSub}
 
 import scala.compat.Platform
 import scala.concurrent.Future
@@ -19,7 +19,7 @@ object RosterService {
 }
 
 trait RosterService extends PubSub[User] with ActorImplicits {
-	private val users = LazyCache(1.minute) {
+	private val users = CacheCell(1.minute) {
 		val q = Users filter (_.group inSet AuthService.allowedGroups)
 		val l = q.run.await map (u => u.id -> u)
 		l.toMap

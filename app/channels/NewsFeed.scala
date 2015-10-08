@@ -5,7 +5,7 @@ import gtp3._
 import models._
 import models.mysql._
 import reactive._
-import utils.{LazyCache, SmartTimestamp}
+import utils.{CacheCell, SmartTimestamp}
 import scala.concurrent.duration._
 
 object NewsFeed extends ChannelValidator {
@@ -20,7 +20,7 @@ object NewsFeed extends ChannelValidator {
 		for (f <- open_feeds) f ! Update
 	}
 
-	def cache = LazyCache(5.minutes) {
+	def cache = CacheCell(5.minutes) {
 		Feeds.sortBy(_.time.desc).take(50).run.await
 	}
 

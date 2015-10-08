@@ -3,7 +3,7 @@ package actors
 import gt.Global.ExecutionContext
 import models._
 import models.simple._
-import utils.LazyCache
+import utils.CacheCell
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -26,15 +26,15 @@ trait ComposerService {
 }
 
 class ComposerServiceImpl extends ComposerService {
-	val composer_lockouts = LazyCache(1.minute) {
+	val composer_lockouts = CacheCell(1.minute) {
 		DB.withSession { implicit s => ComposerLockouts.list }
 	}
 
-	val composer_groups = LazyCache(1.minute) {
+	val composer_groups = CacheCell(1.minute) {
 		DB.withSession { implicit s => ComposerGroups.list }
 	}
 
-	val composer_slots = LazyCache(1.minute) {
+	val composer_slots = CacheCell(1.minute) {
 		DB.withSession { implicit s => ComposerSlots.list }
 	}
 
