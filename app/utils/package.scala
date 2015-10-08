@@ -1,9 +1,7 @@
 import java.math.BigInteger
 import java.security.{MessageDigest, SecureRandom}
-
-import gt.Global.ExecutionContext
 import play.libs.Akka
-
+import reactive.ExecutionContext
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future, Promise}
 import scala.language.{higherKinds, implicitConversions}
@@ -43,7 +41,9 @@ package object utils {
 	 * Do not return before a minimum duration
 	 */
 	def atLeast[T](d: FiniteDuration)(body: => T): T = {
-		val task = Future {body}
+		val task = Future {
+			body
+		}
 		val p = Promise[T]()
 
 		scheduler.scheduleOnce(d) {
@@ -67,14 +67,4 @@ package object utils {
 			false
 		}
 	}
-
-	/**
-	 * Automatically promote a T into a Future[T]
-    */
-	implicit def toFuture[T](value: T): Future[T] = Future.successful(value)
-
-	/**
-	 * Automatically promote a T to an Option[T]
-    */
-	implicit def toOption[T](value: T): Option[T] = Some(value)
 }

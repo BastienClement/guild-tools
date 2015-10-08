@@ -4,10 +4,10 @@ import actors.AuthService._
 import models._
 import models.mysql._
 import reactive._
-import utils.{Cache, SmartTimestamp}
-
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
+import utils.{Cache, SmartTimestamp}
 
 object AuthService {
 	val allowedGroups = Set(8, 12, 9, 11, 10, 13)
@@ -19,7 +19,7 @@ trait AuthService {
 		password.head map { pass =>
 			pass.substring(0, 12)
 		} fallbackTo {
-			"$H$9" + utils.randomToken().substring(0, 8)
+			Future.successful("$H$9" + utils.randomToken().substring(0, 8))
 		}
 	}
 
@@ -50,7 +50,7 @@ trait AuthService {
 					val token = utils.randomToken()
 					Try {
 						val now = SmartTimestamp.now
-						DB.run(Sessions.map(s => (s.token, s.user, s.ip, s.created, s.last_access)) += (token, user_id, "", now, now)).await
+						DB.run(Sessions.map(s => (s.token, s.user, s.ip, s.created, s.last_access)) +=(token, user_id, "", now, now)).await
 						Some(token)
 					} getOrElse {
 						if (attempt < 3) createSession(attempt + 1)

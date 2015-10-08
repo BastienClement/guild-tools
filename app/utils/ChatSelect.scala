@@ -2,17 +2,17 @@ package utils
 
 import models.ChatMessages
 import models.simple._
+import utils.Implicits.OptionBoxing
 
 object ChatSelect extends ChatSelect(None, None, None, None, None) {
 	val all = this
 }
 
-case class ChatSelect(
-		fromId: Option[Int],
-		toId: Option[Int],
-		fromTime: Option[SmartTimestamp],
-		toTime: Option[SmartTimestamp],
-		limitCount: Option[Int]) {
+case class ChatSelect(fromId: Option[Int],
+                      toId: Option[Int],
+                      fromTime: Option[SmartTimestamp],
+                      toTime: Option[SmartTimestamp],
+                      limitCount: Option[Int]) {
 	/** Define the lower limit for both the ID and the timestamp */
 	def from(id: Int) = this.copy(fromId = id)
 	def from(ts: SmartTimestamp) = this.copy(fromTime = ts)

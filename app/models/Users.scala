@@ -1,8 +1,7 @@
 package models
 
-import gt.Global.ExecutionContext
 import models.mysql._
-
+import reactive.ExecutionContext
 import scala.concurrent.Future
 
 case class User(id: Int, name: String, group: Int, color: String) {

@@ -1,8 +1,8 @@
 package utils
 
-import scala.concurrent.duration.FiniteDuration
 import akka.actor.Cancellable
-import gt.Global.ExecutionContext
+import reactive.ExecutionContext
+import scala.concurrent.duration.FiniteDuration
 
 object Timeout {
 	def apply(dur: FiniteDuration)(body: => Unit): Timeout = new Timeout(dur)(body)

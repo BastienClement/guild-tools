@@ -1,12 +1,12 @@
 package gtp3
 
+import actors.Actors._
+import akka.actor.{Actor, ActorRef, PoisonPill}
+import gtp3.SocketActor._
+import reactive.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
-import akka.actor.{Actor, ActorRef, PoisonPill}
-import actors.Actors._
-import gt.Global.ExecutionContext
-import gtp3.SocketActor._
 import utils.Timeout
 
 object SocketActor {

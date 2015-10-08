@@ -1,8 +1,6 @@
 package gtp3
 
 import akka.actor._
-import akka.pattern.ask
-import gt.Global.ExecutionContext
 import gtp3.Channel._
 import gtp3.ChannelHandler.SendMessage
 import org.apache.commons.lang3.exception.ExceptionUtils

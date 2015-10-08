@@ -1,9 +1,8 @@
 package models
 
 import java.sql.Timestamp
-
-import gt.Global.ExecutionContext
 import models.mysql._
+import reactive.ExecutionContext
 
 object CalendarVisibility {
 	val Roster = 1
@@ -80,9 +79,8 @@ class CalendarEvents(tag: Tag) extends Table[CalendarEvent](tag, "gt_events_visi
 	def state = column[Int]("state")
 	def garbage = column[Boolean]("garbage")
 
-	def * = (id, title, desc, owner, date, time, visibility, state) <>(CalendarEvent.tupled, CalendarEvent.unapply)
+	def * = (id, title, desc, owner, date, time, visibility, state) <> (CalendarEvent.tupled, CalendarEvent.unapply)
 }
 
 object CalendarEvents extends TableQuery(new CalendarEvents(_)) {
-
 }

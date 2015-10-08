@@ -1,14 +1,12 @@
 package channels
 
 import actors.Actors._
-import actors.ChatService.{UserDisconnect, UserConnect, UserAway}
+import actors.ChatService.{UserAway, UserConnect, UserDisconnect}
 import akka.actor.Props
 import gtp3._
 import models.User
 import play.api.libs.json.Json
-import gt.Global.ExecutionContext
-
-import scala.concurrent.duration._
+import reactive.ExecutionContext
 import scala.language.postfixOps
 
 object Chat extends ChannelValidator {

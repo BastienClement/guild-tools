@@ -1,17 +1,8 @@
 package gt
 
-import scala.compat.Platform
-import scala.concurrent.ExecutionContext
-import scala.concurrent.duration._
 import scala.sys.process._
-import actors.Actors._
-import models._
-import models.simple._
-import play.libs.Akka
-import utils._
 
 object Global {
-	implicit lazy val ExecutionContext: ExecutionContext = Akka.system.dispatchers.lookup("default-pool")
 	val serverVersion = "git rev-parse HEAD".!!.trim
 
 	// Char update job

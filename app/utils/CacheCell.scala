@@ -1,11 +1,24 @@
 package utils
 
+import reactive.ExecutionContext
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.implicitConversions
+import scala.util.Failure
 
 object CacheCell {
 	// Construct a cache cell with a given ttl and generator
 	def apply[T](ttl: FiniteDuration)(generator: => T) = new CacheCell[T](ttl)(generator)
+
+	// Async cache cell
+	def async[T](ttl: FiniteDuration)(generator: => Future[T]) = {
+		lazy val cell: CacheCell[Future[T]] = CacheCell(ttl) {
+			generator andThen {
+				case Failure(_) => cell.clear()
+			}
+		}
+		cell
+	}
 
 	// Implicit extractor converting a CacheCell[T] to a T
 	implicit def extract[T](cell: CacheCell[T]): T = cell.value

@@ -1,6 +1,5 @@
 package actors
 
-import actors.Actors.ActorImplicits
 import actors.ChatService._
 import akka.actor.ActorRef
 import models._
@@ -10,6 +9,7 @@ import utils.PubSub
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.language.implicitConversions
+import reactive.ExecutionContext
 
 object ChatService {
 	case class UserConnect(user: User)
@@ -19,11 +19,13 @@ object ChatService {
 	private case class ChatSession(user: User, var away: Boolean, actors: mutable.Map[ActorRef, Boolean])
 }
 
-trait ChatService extends PubSub[User] with ActorImplicits {
+trait ChatService extends PubSub[User] {
 	private var sessions = Map[Int, ChatSession]()
 
-	def onlines(): Future[Map[Int, Boolean]] = sessions map {
-		case (user, session) => user -> session.away
+	def onlines(): Future[Map[Int, Boolean]] = Future {
+		sessions map {
+			case (user, session) => user -> session.away
+		}
 	}
 
 	private def updateAway(session: ChatSession) = {

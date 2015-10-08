@@ -3,10 +3,10 @@ package channels
 import actors.Actors._
 import actors.RosterService.{CharDeleted, CharUpdate}
 import akka.actor.Props
-import gt.Global.ExecutionContext
 import gtp3._
 import models._
 import play.api.libs.json.Json
+import reactive.ExecutionContext
 
 object Roster extends ChannelValidator {
 	def open(request: ChannelRequest) = request.accept(Props(new Roster(request.user)))

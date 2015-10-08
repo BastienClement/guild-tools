@@ -1,8 +1,6 @@
 package actors
 
 import java.security.SecureRandom
-
-import actors.Actors.ActorImplicits
 import actors.SocketManager._
 import akka.actor._
 import gtp3.Socket
@@ -12,6 +10,7 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import reactive.AsFuture
 
 object SocketManager {
 	case class Handshake()
@@ -29,7 +28,7 @@ object SocketManager {
 	}
 }
 
-trait SocketManager extends TypedActor.Receiver with ActorImplicits {
+trait SocketManager extends TypedActor.Receiver {
 	// Open sockets
 	private val sockets = Bindings[Long, ActorRef]()
 	private val bindings = Bindings[ActorRef, ActorRef]()
@@ -101,7 +100,7 @@ trait SocketManager extends TypedActor.Receiver with ActorImplicits {
 	/**
 	 * Allocate a new socket for a given actor
 	 */
-	def allocate(actor: ActorRef): Future[ActorRef] = {
+	def allocate(actor: ActorRef): Future[ActorRef] = AsFuture {
 		val id = nextSocketID
 
 		val proxy = context.actorOf(Props(new SocketProxy))
@@ -123,7 +122,7 @@ trait SocketManager extends TypedActor.Receiver with ActorImplicits {
 	 */
 	def rebind(actor: ActorRef, id: Long, seq: Int): Future[ActorRef] = {
 		sockets.getTarget(id) match {
-			case Some(socket) =>
+			case Some(socket) => AsFuture {
 				for (proxy <- proxies.get(socket))
 					proxy ! SetTarget(actor)
 
@@ -134,6 +133,7 @@ trait SocketManager extends TypedActor.Receiver with ActorImplicits {
 
 				socket ! Resume(seq)
 				socket
+			}
 
 			case None => allocate(actor)
 		}

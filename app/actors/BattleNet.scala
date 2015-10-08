@@ -1,21 +1,19 @@
 package actors
 
-import actors.BattleNet.BnetFailure
-import gt.Global.ExecutionContext
+import actors.BattleNet._
 import models._
 import play.api.Play._
 import play.api.libs.json.JsValue
 import play.api.libs.ws.{WS, WSResponse}
-
+import reactive.ExecutionContext
 import scala.concurrent.Future
 
 object BattleNet {
+	private val key = current.configuration.getString("bnet.apiKey") getOrElse ""
 	case class BnetFailure(response: WSResponse) extends Exception
 }
 
 trait BattleNet {
-	private val key = current.configuration.getString("bnet.apiKey") getOrElse ""
-
 	def query(api: String, user_params: (String, String)*): Future[JsValue] = {
 		val params = user_params :+ ("apikey" -> key)
 		val request = WS.url(s"https://eu.api.battle.net/wow$api").withQueryString(params: _*).withRequestTimeout(10000)

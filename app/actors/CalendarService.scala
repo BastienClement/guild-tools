@@ -1,13 +1,12 @@
 package actors
 
 import actors.CalendarServiceShr.CalendarLock
-import gt.Global.ExecutionContext
 import models.simple._
 import models.{CalendarTab, CalendarTabs, _}
-import utils.{scheduler, _}
-
+import reactive.{AsFuture, ExecutionContext}
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import utils.scheduler
 
 /**
  * Public interface
@@ -87,7 +86,7 @@ class CalendarServiceImpl extends CalendarService {
 		for (lock <- locks.values if lock.deadline.isOverdue()) lock.release()
 	}
 
-	def createTab(event: Int, title: String): Future[CalendarTab] = {
+	def createTab(event: Int, title: String): Future[CalendarTab] = AsFuture {
 		DB.withSession { implicit s =>
 			val max_order = CalendarTabs.filter(_.event === event).map(_.order).max.run.get
 			val template = CalendarTab(0, event, title, None, max_order + 1, false, false)

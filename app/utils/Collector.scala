@@ -1,9 +1,9 @@
 package utils
 
+import akka.actor.Cancellable
+import reactive.ExecutionContext
 import scala.collection.mutable
 import scala.concurrent.duration._
-import akka.actor.Cancellable
-import gt.Global.ExecutionContext
 
 trait Collectable {
 	def collect(): Unit

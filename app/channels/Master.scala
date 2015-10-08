@@ -1,13 +1,11 @@
 package channels
 
 import akka.actor.Props
-import gt.Global.ExecutionContext
 import gtp3._
 import models._
 import models.mysql._
 import play.api.libs.json.Json
-
-import scala.concurrent.Future
+import reactive.ExecutionContext
 
 object Master extends ChannelValidator {
 	def open(request: ChannelRequest) = request.accept(Props(new Master(request.user)))
