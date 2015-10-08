@@ -61,6 +61,11 @@ object PayloadBuilder extends PayloadBuilderMiddlePriority {
 	implicit val BuilderJsNull = new PayloadBuilder[JsNull.type] {
 		def build(jsNull: JsNull.type): Payload = Payload.empty
 	}
+
+	// Encode Unit as the empty payload
+	implicit val BuilderUnit = new PayloadBuilder[Unit] {
+		def build(jsNull: Unit): Payload = Payload.empty
+	}
 }
 
 // Intermediate priority builders
