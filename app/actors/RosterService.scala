@@ -6,12 +6,12 @@ import actors.RosterService.CharUpdate
 import gt.Global.ExecutionContext
 import models._
 import models.mysql._
-import utils.{LazyCache, LazyCollection, PubSub}
+import utils.{LazyCache, Cache, PubSub}
 
 import scala.compat.Platform
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.util.Success
+import scala.util.{Try, Success}
 
 object RosterService {
 	case class CharUpdate(char: Char)
@@ -25,25 +25,34 @@ trait RosterService extends PubSub[User] with ActorImplicits {
 		l.toMap
 	}
 
-	private val outroster_users = LazyCollection[Int, Option[User]](15.minutes) { id =>
+	private val outroster_users = Cache[Int, Option[User]](15.minutes) { id =>
 		Users.filter(_.id === id).headOption.await
 	}
 
-	private val owner_chars = LazyCollection[Int, Seq[Char]](1.minutes) { owner =>
+	// List of chars for a specific user
+	private val owner_chars = Cache[Int, Seq[Char]](1.minutes) { owner =>
 		Chars.filter(_.owner === owner).sortBy(c => (c.main.desc, c.active.desc, c.level.desc, c.ilvl.desc)).run.await
 	}
 
+	// List of pending Battle.net update
+	// Two b.net update on the same char at the same time will produce the same shared future
+	// resolved at a later time with the same char
 	private var inflightUpdates = Map[Int, Future[Char]]()
 
 	def user(id: Int): Future[User] = users.get(id) orElse outroster_users(id)
 	def chars(owner: Int): Future[Seq[Char]] = owner_chars(owner)
 
-	def getChar(id: Int, user: Option[User]) = {
+	private def getOwnChar(id: Int, user: Option[User]) = {
 		val char = for (c <- Chars if c.id === id) yield c
 		user match {
 			case Some(u) => char filter (_.owner === u.id)
 			case None => char
 		}
+	}
+
+	private def charUpdated(char: Char): Unit = {
+		owner_chars.clear(char.owner)
+		this !# CharUpdate(char)
 	}
 
 	/**
@@ -54,7 +63,7 @@ trait RosterService extends PubSub[User] with ActorImplicits {
 		if (inflightUpdates.contains(id)) inflightUpdates(id)
 		else {
 			// Request for the updated char
-			val char = getChar(id, user)
+			val char = getOwnChar(id, user)
 			val res =
 				char.filter(c => c.last_update < Platform.currentTime - (1000 * 60 * 15)).head recover {
 					case cause => throw new Exception("Cannot refresh character at this time", cause)
@@ -109,21 +118,26 @@ trait RosterService extends PubSub[User] with ActorImplicits {
 		}
 	}
 
-	def promoteChar(id: Int, user: Option[User] = None): Unit = {
+	// Promote a new char as the main for the user
+	def promoteChar(id: Int, user: Option[User] = None): Future[Unit] = {
 		for {
-			Some(new_main) <- getChar(id, user).headOption
-			Some(old_main) <- Chars.filter(char => char.main === true && char.owner === new_main.owner).headOption
-		} {
-			val a = (for {
-				new_updated <- Chars.filter(char => char.id === new_main.id && char.main === false).map(_.main).update(true) if new_updated == 1
-				old_updated <- Chars.filter(char => char.id === old_main.id && char.main === true).map(_.main).update(false) if old_updated == 1
-			} yield ()).transactionally
+			new_main <- getOwnChar(id, user).head
+			old_main <- Chars.filter(char => char.main === true && char.owner === new_main.owner).head
+		} yield {
+			def update_char(id: Int, main: Boolean) =
+				Chars.filter(char => char.id === id && char.main === !main).map(_.main).update(main)
+
+			val update = (for {
+				new_updated <- update_char(new_main.id, true)
+				old_updated <- update_char(old_main.id, false)
+				res = if (new_updated + old_updated == 2) () else throw new Exception("Failed to update chars")
+			} yield res).transactionally
 
 			for {
-				res <- a.run
+				res <- update.run
 				n <- Chars.filter(_.id === new_main.id).head
 				o <- Chars.filter(_.id === old_main.id).head
-			} {
+			} yield {
 				owner_chars.clear(n.owner)
 				this !# CharUpdate(n)
 				this !# CharUpdate(o)
@@ -131,22 +145,25 @@ trait RosterService extends PubSub[User] with ActorImplicits {
 		}
 	}
 
-	private def changeEnabledState(id: Int, user: Option[User], state: Boolean): Unit = {
-		for {
-			char_query <- getChar(id, user)
-			update <- char_query map (_.active) update (state)
-			updated <- update.run if updated > 0
-			char <- char_query.head
-		} {
-			owner_chars.clear(char.owner)
-			this !# CharUpdate(char)
+	private def changeEnabledState(id: Int, user: Option[User], state: Boolean): Future[Unit] = {
+		val char_query = getOwnChar(id, user)
+
+		val update = for {
+			updated <- char_query.map(_.active).update(state)
+			_ = if (updated == 1) () else throw new Exception("Failed to update character active state")
+			char <- char_query.result.head
+		} yield {
+			this.charUpdated(char)
+			()
 		}
+
+		DB.run(update)
 	}
 
-	def enableChar(id: Int, user: Option[User] = None): Unit = changeEnabledState(id, user, true)
-	def disableChar(id: Int, user: Option[User] = None): Unit = changeEnabledState(id, user, false)
+	def enableChar(id: Int, user: Option[User] = None): Future[Unit] = changeEnabledState(id, user, true)
+	def disableChar(id: Int, user: Option[User] = None): Future[Unit] = changeEnabledState(id, user, false)
 
-	def removeChar(id: Int, user: Option[User] = None): Unit = {
+	def removeChar(id: Int, user: Option[User] = None): Future[Unit] = {
 	}
 }
 

@@ -30,10 +30,11 @@ class Roster(val user: User) extends ChannelHandler {
 		} send("user-data", Json.arr(user, chars))
 	}
 
-	message("promote-char") { p => RosterService.promoteChar(p.as[Int], user) }
-	message("disable-char") { p => RosterService.disableChar(p.as[Int], user) }
-	message("enable-char") { p => RosterService.enableChar(p.as[Int], user) }
-	message("remove-char") { p => RosterService.removeChar(p.as[Int], user) }
+	request("promote-char") { p => RosterService.promoteChar(p.as[Int], user) }
+
+	request("disable-char") { p => RosterService.disableChar(p.as[Int], user) }
+	request("enable-char") { p => RosterService.enableChar(p.as[Int], user) }
+	request("remove-char") { p => RosterService.removeChar(p.as[Int], user) }
 
 	request("update-char") { p => RosterService.refreshChar(p.as[Int], user) }
 }

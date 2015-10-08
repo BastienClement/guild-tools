@@ -5,10 +5,10 @@ import scala.concurrent.duration._
 import scala.util.Failure
 import reactive.ExecutionContext
 
-object LazyCollection extends Collector[LazyCollection[_, _]] {
+object Cache extends Collector[Cache[_, _]] {
 	// Constructor helper
 	def apply[K, T](expire: FiniteDuration)(generator: (K) => T) = {
-		new LazyCollection[K, T](expire)(generator)
+		new Cache[K, T](expire)(generator)
 	}
 
 	// Construct an async LazyCollection
@@ -16,18 +16,19 @@ object LazyCollection extends Collector[LazyCollection[_, _]] {
 	// In adition, if the future is resolved with a failure, the
 	// entry is deleted to recompute a new value on the next access
 	def async[K, T](expire: FiniteDuration)(generator: (K) => Future[T]) = {
-		val col: LazyCollection[K, Future[T]] = LazyCollection(expire) { key =>
+		lazy val col: Cache[K, Future[T]] = Cache(expire) { key =>
 			generator(key) andThen {
 				case Failure(_) => col.clear(key)
 			}
 		}
+		col
 	}
 }
 
-class LazyCollection[K, T] private(expire: FiniteDuration)(generator: (K) => T) extends Collectable {
+class Cache[K, T] private(expire: FiniteDuration)(generator: (K) => T) extends Collectable {
 	// Register in global registry
 	// This will allow the global collector to collect this collection
-	LazyCollection.register(this)
+	Cache.register(this)
 
 	// Cells from this collection
 	private var cells = Map[K, LazyCache[T]]()

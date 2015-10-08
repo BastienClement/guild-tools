@@ -4,7 +4,7 @@ import actors.AuthService._
 import models._
 import models.mysql._
 import reactive._
-import utils.{LazyCollection, SmartTimestamp}
+import utils.{Cache, SmartTimestamp}
 
 import scala.concurrent.duration._
 import scala.util.Try
@@ -14,7 +14,7 @@ object AuthService {
 }
 
 trait AuthService {
-	private val settingCache = LazyCollection[String, Future[String]](1.minute) { user =>
+	private val settingCache = Cache[String, Future[String]](1.minute) { user =>
 		val password = for (u <- Users if u.name === user || u.name_clean === user.toLowerCase) yield u.pass
 		password.head map { pass =>
 			pass.substring(0, 12)
