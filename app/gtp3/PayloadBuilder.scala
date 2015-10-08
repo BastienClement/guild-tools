@@ -1,7 +1,6 @@
 package gtp3
 
 import java.nio.charset.StandardCharsets
-
 import play.api.libs.json.{JsNull, JsValue, Json, Writes}
 import scodec.bits.ByteVector
 

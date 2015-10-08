@@ -1,9 +1,9 @@
 package utils
 
+import reactive.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Failure
-import reactive.ExecutionContext
 
 object Cache extends Collector[Cache[_, _]] {
 	// Constructor helper
