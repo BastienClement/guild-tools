@@ -6,6 +6,7 @@ import reactive.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import utils.CacheCell
+import utils.CacheCell.Implicit.extractor
 
 trait ComposerService {
 	def load: (List[ComposerLockout], List[ComposerGroup], List[ComposerSlot])

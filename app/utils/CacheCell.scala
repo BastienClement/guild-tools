@@ -21,7 +21,9 @@ object CacheCell {
 	}
 
 	// Implicit extractor converting a CacheCell[T] to a T
-	implicit def extract[T](cell: CacheCell[T]): T = cell.value
+	object Implicit {
+		implicit def extractor[T](cell: CacheCell[T]): T = cell.value
+	}
 }
 
 class CacheCell[T] private(ttl: FiniteDuration)(generator: => T) {
