@@ -165,17 +165,20 @@ export class GtView extends PolymerElement {
 			document.body.classList.remove("app-loader");
 
 			let args = this.router.activeArguments;
-			let arg_string = "";
+			let arg_string: string[] = [];
 			
 			for (let key in args) {
-				if (args[key] != void 0) arg_string += ` ${key}='${args[key].replace(/'/g, "&#39;")}'`;
+				if (args[key] != void 0) {
+					let arg_value = args[key].replace(/./g, (s) => `&#${s.charCodeAt(0)};`);
+					arg_string.push(` ${key}='${arg_value}'`);
+				}
 			}
 			
 			// Use a crazy HTML generation system to create the element since we need to have
 			// router-provided attributes defined before the createdCallback() method is called
 			let factory = document.createElement("div");
 			let meta = Reflect.getMetadata<PolymerMetadata<any>>("polymer:meta", view);
-			factory.innerHTML = `<${meta.selector}${arg_string}></${meta.selector}>`;
+			factory.innerHTML = `<${meta.selector}${arg_string.join()}></${meta.selector}>`;
 			
 			// Element has been constructed by the HTML parser
 			let element = <any> factory.firstElementChild;
