@@ -27,7 +27,7 @@ package object models {
 
 	implicit class DBActionExecutior[R](val q: DBIOAction[R, NoStream, Nothing]) extends AnyVal {
 		def run = DB.run(q)
-		def wait = DB.run(q).await
+		def await = DB.run(q).await
 	}
 
 	implicit class AwaitableFuture[A](val f: Future[A]) extends AnyVal {
