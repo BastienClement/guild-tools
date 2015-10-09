@@ -135,8 +135,6 @@ export class Roster extends Service {
 				infos: this.fakeUser(user),
 				chars: new Map()
 			};
-			
-			record.chars.set(0, this.fakeChar(0, `User#${user}`, user));
 			this.users.set(user, record);
 		}
 		
@@ -277,9 +275,15 @@ export class Roster extends Service {
 		for (let char of chars.values()) {
 			if (char.main) return this.lock(char);
 		}
+		
+		return this.fakeChar(-user, `User#${user}`, user);
 	}
 	
 	public getCharacter(id: number) {
+		if (id < 0) {
+			return this.fakeChar(id, `User#${-id}`, -id);
+		}
+		
 		let owner = this.owners.get(id);
 		if (owner) {
 			let record = this.getRecord(owner);
@@ -289,7 +293,7 @@ export class Roster extends Service {
 			}
 		}
 		
-		return this.fakeChar(id, `Char#${id}`, 0);
+		return this.fakeChar(id, `Char#${id}`, NaN);
 	}
 	
 	// --- Update -------------------------------------------------------------
