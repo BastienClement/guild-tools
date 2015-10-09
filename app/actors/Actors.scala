@@ -21,7 +21,6 @@ object Actors {
 	val CalendarService = initActor[CalendarService, CalendarServiceImpl]("CalendarService")
 	val ChatService = initActor[ChatService, ChatServiceImpl]("ChatService")
 	val ComposerService = initActor[ComposerService, ComposerServiceImpl]("ComposerService")
-	val Dispatcher = initActor[Dispatcher, DispatcherImpl]("Dispatcher")
 	val RosterService = initActor[RosterService, RosterServiceImpl]("RosterService")
 	val SocketManager = initActor[SocketManager, SocketManagerImpl]("SocketManager")
 }
