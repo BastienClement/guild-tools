@@ -3,12 +3,13 @@ package actors
 import akka.actor.{DeadLetter, Props, TypedActor, TypedProps}
 import play.api.Play.current
 import play.api.libs.concurrent.Akka
+
 import scala.concurrent.duration._
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 
 object Actors {
-	private def initActor[I <: AnyRef, A <: I](n: String, timeout: FiniteDuration = 1.minute)(implicit ct: ClassTag[A]): I = {
+	private def initActor[I <: AnyRef, A <: I : ClassTag](n: String, timeout: FiniteDuration = 1.minute): I = {
 		TypedActor(Akka.system).typedActorOf(TypedProps[A].withTimeout(timeout), name = n)
 	}
 

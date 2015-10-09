@@ -1,12 +1,13 @@
 package models
 
+import actors.AuthService
 import models.mysql._
 import reactive.ExecutionContext
 import scala.concurrent.Future
 
 case class User(id: Int, name: String, group: Int, color: String) {
-	val developer = Users.developer_users.contains(id)
-	val officer = Users.officier_groups.contains(group)
+	val developer = AuthService.developer_users.contains(id)
+	val officer = AuthService.officier_groups.contains(group)
 	val promoted = developer || officer
 
 	def ready: Future[Boolean] = Chars.filter(_.owner === id).headOption.map(_.isDefined)
@@ -24,7 +25,4 @@ class Users(tag: Tag) extends Table[User](tag, "phpbb_users") {
 	def * = (id, name, group, color) <>(User.tupled, User.unapply)
 }
 
-object Users extends TableQuery(new Users(_)) {
-	val developer_users = Set(1647)
-	val officier_groups = Set(11)
-}
+object Users extends TableQuery(new Users(_))
