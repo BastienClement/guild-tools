@@ -12,6 +12,7 @@
 			left: 0;
 			right: 0;
 			height: 56px;
+			z-index: 15;
 			
 			&[is_app] {
 				top: 1px;
@@ -26,6 +27,7 @@
 			left: 0;
 			bottom: 0;
 			width: 56px;
+			z-index: 10;
 			
 			&[is_app] {
 				top: 57px;
@@ -40,6 +42,7 @@
 			left: 56px + 12px;
 			right: 0;
 			bottom: 0;
+			z-index: 5;
 			
 			&[is_app] {
 				top: 57px;
@@ -82,28 +85,112 @@
 		#logo {
 			height: 56px;
 			width: 56px;
+			overflow: hidden;
+			
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			z-index: 200;
 
 			padding: 12px;
-			margin: -12px 4px -12px -12px;
 
-			background-color: fade(@fs-blue, 15%);
-			transition: background .25s ease-out;
+			background: fade(@fs-blue, 15%);
+			transition: all .25s ease-out;
 
 			&:hover {
-				background-color: fade(@fs-blue, 25%);
+				background: fade(@fs-blue, 25%);
+			}
+
+			&.open {
+				background: rgba(65, 100, 132, 0.98);
+				width: 220px;
+				height: 525px;
+				box-shadow: 1px 1px 15px rgba(17, 17, 17, 0.3);
+				border-left: 0;
+				border-top: 0;
+				top: 4px;
+				left: 4px;
+				
+				#panel {
+					opacity: 1;
+				}
+			}
+			
+			#panel {
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 220px;
+				height: 100%;
+				opacity: 0;
+				transition: all .25s ease-out;
+				display: flex;
+				flex-direction: column;
+				
+				h1 {
+					font-size: 18px;
+					font-family: "Roboto Condensed";
+					font-weight: 400;
+					margin: 0;
+					padding: 17px 8px 17px 44px;
+					text-align: center;
+					border-bottom: 2px solid fade(@fs-blue, 50%);
+				}
+				
+				gt-button {
+					padding: 0px 12px;
+					margin: 0;
+					font-weight: 400;
+					justify-content: flex-start;
+					border-bottom: 1px solid fade(@fs-blue, 20%);
+					background-clip: padding-box;
+					height: 45px;
+					color: #fff;
+					transition: all .25s ease-out;
+					
+					i {
+						margin-right: 15px;
+					}
+					
+					&:hover {
+						background-color: fade(@fs-blue, 10%);
+					}
+				}
+			}
+			
+			img {
+				height: 32px;
+				width: 32px;
+			}
+			
+			#credits {
+				position: absolute;
+				bottom: 15px;
+				left: 0px;
+				right: 0px;
+				text-align: center;
+				color: mix(@fs-blue, white, 50%);
+				text-shadow: none;
+				font-weight: 400;
+				font-size: 11px;
+				
+				em {
+					font-style: italic;
+				}
 			}
 		}
 
 		#tabs {
 			flex: 1;
 			-webkit-app-region: drag;
+			margin-left: 48px;
 			
 			& >* {
 				-webkit-app-region: no-drag;
 			}
 		}
 
-		gt-button {
+		#tabs gt-button {
 			transition: opacity .25s ease-out, color .25s ease-out;
 			height: 56px;
 
@@ -156,7 +243,23 @@
 		}
 	</style>
 	<template>
-		<img #logo src="/assets/images/logo_small2.png">
+		<div #logo>
+			<img src="/assets/images/logo_small2.png">
+			<div #panel>
+				<h1>GuildTools</h1>
+				<gt-button><i>info_outline</i> About</gt-button>
+				<gt-button><i>settings</i> Settings</gt-button>
+				<gt-button><i>refresh</i> Reload</gt-button>
+				<gt-button><i>file_download</i> Download client</gt-button>
+				<gt-button><i>build</i> Developer Tools</gt-button>
+				<gt-button><i>exit_to_app</i> Logout</gt-button>
+				<gt-button><i>close</i> Exit</gt-button>
+				<div #credits>
+					From Scratch GuildTools<br>
+					<em>Awesomeness Reloaded&trade;</em>
+				</div>
+			</div>
+		</div>
 		<div #tabs>
 			<gt-button [repeat]="tabs" collapse-left {active}="tabActive(item, path)" {hidden}="!tabVisible(item)" (click)="activateTab">{{item.title}}</gt-button>
 		</div>
