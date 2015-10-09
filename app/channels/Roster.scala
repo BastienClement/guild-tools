@@ -19,7 +19,7 @@ class Roster(val user: User) extends ChannelHandler {
 
 	akka {
 		case CharUpdate(char) => send("char-updated", char)
-		case CharDeleted(id) => send("char-deleted", id)
+		case CharDeleted(char) => send("char-deleted", char)
 	}
 
 	message("request-user") { p =>

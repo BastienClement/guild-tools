@@ -1,6 +1,5 @@
 package models
 
-import actors.Actors.Dispatcher
 import models.mysql._
 
 case class CalendarTab(id: Int, event: Int, title: String, note: Option[String], order: Int, locked: Boolean, undeletable: Boolean) {
@@ -25,6 +24,4 @@ class CalendarTabs(tag: Tag) extends Table[CalendarTab](tag, "gt_events_tabs") {
 /**
  * Helpers
  */
-object CalendarTabs extends TableQuery(new CalendarTabs(_)) {
-
-}
+object CalendarTabs extends TableQuery(new CalendarTabs(_))

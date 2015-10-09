@@ -74,7 +74,7 @@ class ProfileChars extends PolymerElement {
 	@On({
 		"user-updated": "UserUpdated",
 		"char-updated": "CharUpdated",
-		"char-deleted": "CharDeleted"})
+		"char-deleted": "CharUpdated"})
 	private roster: Roster;
 	
 	@Property({ observer: "update" })
@@ -88,10 +88,6 @@ class ProfileChars extends PolymerElement {
 	
 	private CharUpdated(char: Char) {
 		if (char.owner == this.user) this.update();
-	}
-	
-	private CharDeleted(char: number) {
-		if (this.chars.some(n => n == char)) this.update();
 	}
 	
 	@throttle private update() {

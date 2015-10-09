@@ -1,6 +1,5 @@
 package models
 
-import actors.Actors.Dispatcher
 import models.mysql._
 
 case class CalendarSlot(tab: Int, slot: Int, owner: Int, name: String, `class`: Int, role: String) {
@@ -30,6 +29,4 @@ class CalendarSlots(tag: Tag) extends Table[CalendarSlot](tag, "gt_events_slots"
 /**
  * Helpers
  */
-object CalendarSlots extends TableQuery(new CalendarSlots(_)) {
-
-}
+object CalendarSlots extends TableQuery(new CalendarSlots(_))

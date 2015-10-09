@@ -236,24 +236,14 @@ export class Roster extends Service {
 	
 	// Char removed
 	@ServiceChannel.Dispatch("channel", "char-deleted")
-	private CharRemoved(id: number) {
-		// We don't index owners so we need to scan every users to find
-		// the owner of the removed char
-		let record: UserRecord;
-		for (let r of this.users.values()) {
-			if (r.chars.has(id)) {
-				record = r;
-				break;
-			}
-		}
-		
-		// No one has it!
+	private CharRemoved(char: Char) {
+		let record = this.users.get(char.owner);
 		if (!record) return;
 		
 		// Remove the char from local cache
-		record.chars.delete(id);
-		this.owners.delete(id);
-		this.emit("char-deleted", id);
+		record.chars.delete(char.id);
+		this.owners.delete(char.id);
+		this.emit("char-deleted", char);
 		
 		this.chars_cache.delete(record.infos.id);
 		this.touch(record);

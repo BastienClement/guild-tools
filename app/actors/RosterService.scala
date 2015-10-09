@@ -13,14 +13,14 @@ import utils.{Cache, CacheCell, PubSub}
 
 object RosterService {
 	case class CharUpdate(char: Char)
-	case class CharDeleted(id: Int)
+	case class CharDeleted(char: Char)
 }
 
 trait RosterService extends PubSub[User] {
 	// Cache of in-roster users
 	private val users = CacheCell.async[Map[Int, User]](1.minute) {
 		val query = for {
-			user <- Users if user.group inSet AuthService.allowedGroups
+			user <- Users if user.group inSet AuthService.allowed_groups
 		} yield user.id -> user
 		query.run.map(s => s.toMap)
 	}
@@ -50,18 +50,16 @@ trait RosterService extends PubSub[User] {
 	// Construct a request for a char with a given id.
 	// If user is defined, also ensure that the char is owned by the user
 	private def getOwnChar(id: Int, user: Option[User]) = {
-		val char = for (c <- Chars if c.id === id) yield c
-		user match {
-			case Some(u) => char.filter(_.owner === u.id)
-			case None => char
-		}
+		val query = for (c <- Chars if c.id === id) yield c
+		user.map(u => query.filter(_.owner === u.id)).getOrElse(query)
 	}
 
 	// Notify subscriber that a char has been updated
 	// Also clear the local cache for the owner of that char
-	private def notifyUpdate(char: Char): Unit = {
+	private def notifyUpdate(char: Char): Char = {
 		user_chars.clear(char.owner)
 		this !# CharUpdate(char)
+		char
 	}
 
 	// Fetch a character from Battle.net and update its cached value in DB
@@ -125,7 +123,7 @@ trait RosterService extends PubSub[User] {
 	}
 
 	// Promote a new char as the main for the user
-	def promoteChar(id: Int, user: Option[User] = None): Future[Unit] = DB.run {
+	def promoteChar(id: Int, user: Option[User] = None): Future[(Char, Char)] = DB.run {
 		// Construct the update for a specific char
 		def update_char(id: Int, main: Boolean) =
 			Chars.filter(char => char.id === id && char.main === !main).map(_.main).update(main)
@@ -142,18 +140,15 @@ trait RosterService extends PubSub[User] {
 			// Ensure we have updated two chars
 			_ = if (new_updated + old_updated == 2) () else throw new Exception("Failed to update chars")
 		} yield {
-			notifyUpdate(new_main.copy(main = true))
-			notifyUpdate(old_main.copy(main = false))
+			(notifyUpdate(new_main.copy(main = true)), notifyUpdate(old_main.copy(main = false)))
 		}).transactionally
 	}
 
-	// Common operation code for enableChar() and disableChar()
-	private def changeEnabledState(id: Int, user: Option[User], state: Boolean): Future[Unit] = DB.run {
-		val char_query = getOwnChar(id, user)
-
+	// Common database query for enableChar() and disableChar()
+	private def changeEnabledState(id: Int, user: Option[User], state: Boolean): Future[Char] = DB.run {
+		val char_query = getOwnChar(id, user).filter(_.main === false)
 		for {
-			updated <- char_query.map(_.active).update(state)
-			_ = if (updated == 1) () else throw new Exception("Failed to update character active state")
+			_ <- char_query.map(_.active).update(state)
 			char <- char_query.result.head
 		} yield {
 			this.notifyUpdate(char)
@@ -161,18 +156,46 @@ trait RosterService extends PubSub[User] {
 	}
 
 	// Update the enabled state of a character
-	def enableChar(id: Int, user: Option[User] = None): Future[Unit] = changeEnabledState(id, user, true)
-	def disableChar(id: Int, user: Option[User] = None): Future[Unit] = changeEnabledState(id, user, false)
+	def enableChar(id: Int, user: Option[User] = None): Future[Char] = changeEnabledState(id, user, true)
+	def disableChar(id: Int, user: Option[User] = None): Future[Char] = changeEnabledState(id, user, false)
 
 	// Remove an existing character from the database
-	def removeChar(id: Int, user: Option[User] = None): Future[Unit] = DB.run {
+	def removeChar(id: Int, user: Option[User] = None): Future[Char] = DB.run {
 		for {
 			char <- getOwnChar(id, user).filter(c => c.main === false && c.active === false).result.head
 			count <- Chars.filter(c => c.id === char.id).delete
 			_ = if (count > 0) () else throw new Exception("Failed to delete this character")
 		} yield {
 			user_chars.clear(char.owner)
-			this !# CharDeleted(char.id)
+			this !# CharDeleted(char)
+			char
+		}
+	}
+
+	// Add a new character for a specific user
+	def addChar(server: String, name: String, owner: User, role: Option[String]): Future[Char] = {
+		for {
+			char <- Bnet.fetchChar(server, name)
+			res <- DB.run {
+				val count_main = Chars.filter(c => c.owner === owner.id && c.main === true).size.result
+				(for {
+					// Count the number of main for this user
+					pre_count <- count_main
+
+					// Construct the char for insertion with correct role, owner and main flag
+					final_char = char.copy(role = role.getOrElse(char.role), owner = owner.id, main = pre_count < 1)
+
+					// Insert this char
+					_ <- Chars += final_char
+
+					// Ensure we have exactly one main for this user now
+					post_count <- count_main
+					_ = if (post_count == 1) () else throw new Exception("Failed to register new character")
+				} yield final_char).transactionally
+			}
+		} yield {
+			this !# CharUpdate(res)
+			res
 		}
 	}
 }
