@@ -1,5 +1,6 @@
 import { Element, Dependencies, Property, Listener, PolymerElement } from "elements/polymer";
 import * as Widget from "elements/widgets";
+import { GtBox } from "elements/box";
 import { GtDialog } from "elements/dialog";
 import { Deferred } from "utils/deferred";
 
@@ -7,12 +8,12 @@ import { Deferred } from "utils/deferred";
  * Handle the user login credentials request
  */
 @Element("gt-login", "/assets/imports/loading.html")
-@Dependencies(GtDialog, Widget.GtInput)
+@Dependencies(GtDialog, GtBox, Widget.GtInput, Widget.GtButton)
 export class GtLogin extends PolymerElement {
 	/**
 	 * Deferred to resolve with user credentials
 	 */
-	@Property({ observer: "credentials-updated" })
+	@Property({ observer: "CredentialsUpdated" })
 	credentials: Deferred<[string, string]>;
 
 	/**
@@ -27,15 +28,15 @@ export class GtLogin extends PolymerElement {
 	private attached() {
 		this.$.username.value = localStorage.getItem("login.username") || "";
 		const dialog: GtDialog = this.$.dialog;
-		dialog.show();
+		setTimeout(() => dialog.show(), 1000);
 	}
 
 	/**
 	 * Toggle dialog locked state based on credentials deferred availability
 	 */
-	private "credentials-updated"() {
+	private CredentialsUpdated() {
 		const dialog: GtDialog = this.$.dialog;
-		dialog.locked = !this.credentials;
+		this.$.btn.disabled = !this.credentials;
 	}
 
 	/**
@@ -64,7 +65,7 @@ export class GtLogin extends PolymerElement {
 	 * Save the username to local storage
 	 */
 	@Listener("username.value-changed")
-	private "save-username"() {
+	private SaveUsername() {
 		localStorage.setItem("login.username", this.$.username.value);
 	}
 
@@ -72,8 +73,13 @@ export class GtLogin extends PolymerElement {
 	 * Handle form submit
 	 */
 	@Listener("form.submit")
-	private "on-submit"() {
+	private FormSubmit() {
 		this.credentials.resolve([this.$.username.value, this.$.password.value]);
 		this.credentials = null;
+	}
+	
+	@Listener("btn.click")
+	private BtnClick() {
+		this.$.form.submit();
 	}
 }

@@ -14,14 +14,9 @@
 			cursor: default;
 		}
 
-		#dialog {
-			width: 90%;
-			max-width: 500px;
-
-			&.slide-in {
-				animation-delay: 1.1s;
-				animation-duration: 0.75s;
-			}
+		#login {
+			width: 500px;
+			padding: 24px;
 		}
 
 		@side-width: 48%;
@@ -57,27 +52,37 @@
 				margin-bottom: 20px;
 			}
 		}
+		
+		#actions {
+			display: flex;
+			justify-content: flex-end;
+			margin: 0 -16px -16px -16px;
+		}
 	</style>
 	<template>
-		<gt-dialog #dialog no-modal>
-			<div #side>
-				<img src="/assets/images/login_logo.png">
-				<p>
-					<i>info_outline</i>
-					GuildTools access is restricted to guild members<br>and friends.
-				</p>
-				<p>
-					Please enter your login informations to continue.
-				</p>
-			</div>
-			<div #main>
-				<h3>GuildTools Login</h3>
-				<gt-form #form>
-					<gt-input id="username" label="From Scratch ID" required></gt-input>
-					<gt-input id="password" type="password" label="Password" [error]="error" required></gt-input>
-				</gt-form>
-			</div>
-			<gt-dialog-action submit>Login</gt-dialog-action>
+		<gt-dialog #dialog no-modal sticky>
+			<gt-box #login>
+				<div #side>
+					<img src="/assets/images/login_logo.png">
+					<p>
+						<i>info_outline</i>
+						GuildTools access is restricted to guild members<br>and friends.
+					</p>
+					<p>
+						Please enter your login informations to continue.
+					</p>
+				</div>
+				<div #main>
+					<h3>GuildTools Login</h3>
+					<gt-form #form>
+						<gt-input id="username" label="From Scratch ID" required></gt-input>
+						<gt-input id="password" type="password" label="Password" [error]="error" required></gt-input>
+					</gt-form>
+				</div>
+				<div #actions>
+					<gt-button #btn>Login</gt-button>
+				</div>
+			</gt-box>
 		</gt-dialog>
 	</template>
 </dom-module>

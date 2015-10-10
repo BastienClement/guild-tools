@@ -262,13 +262,16 @@
 	</style>
 	<template>
 		<gt-box heading="Characters" scrollable>
-			<gt-button [if]="editable"><i>person_add</i> Add character</gt-button>
+			<gt-button [if]="editable" (click)="AddChar"><i>person_add</i> Add character</gt-button>
 			<div #layout>
 				<profile-chars-card [repeat]="chars" [id]="item" [editable]></profile-chars-card>
 				<div .padding></div>
 				<div .padding></div>
 				<div .padding></div>
 			</div>
+			<gt-dialog #addchar-dialog>
+				Hello World
+			</gt-dialog>
 		</gt-box>
 	</template>
 </dom-module>
@@ -277,6 +280,7 @@
 	<style type="text/less">
 		:host {
 			display: block;
+			overflow: hidden;
 		}
 		
 		gt-box {
@@ -291,11 +295,11 @@
 		bnet-thumb {
 			height: 55px;
 			width: 55px;
-			transition: all .2s ease-out;
+			transition: all .25s ease-out;
 			
 			[inactive] & {
 				opacity: 0;
-				width: 0px;
+				width: 0;
 				margin-right: -10px;
 			}
 		}

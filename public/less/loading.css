@@ -16,7 +16,7 @@
 
 .no-loader #loader {
 	transition: all 0.75s ease-in;
-	transform: translateY(-50px);
+	transform: translateY(-50px) translateZ(0);
 	opacity: 0;
 	transition-delay: 0.4s;
 }
@@ -75,6 +75,7 @@
 	z-index: 1500;
 	opacity: 0;
 	transition: opacity 0.5s ease;
+	transform: translateZ(0);
 }
 
 #app-loader img {

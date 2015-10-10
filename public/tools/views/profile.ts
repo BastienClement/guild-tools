@@ -1,7 +1,7 @@
 import { Element, Property, Listener, Dependencies, Inject, On, Watch, Bind, PolymerElement } from "elements/polymer";
 import { Router, View } from "client/router";
 import { Roster, User, Char } from "services/roster";
-import { GtBox, GtButton, BnetThumb } from "elements/defs";
+import { GtBox, GtButton, GtDialog, BnetThumb } from "elements/defs";
 import { throttle } from "utils/Deferred";
 
 Router.declareTabs("profile", [
@@ -68,7 +68,7 @@ class ProfileCharsCard extends PolymerElement {
 }
 
 @Element("profile-chars", "/assets/views/profile.html")
-@Dependencies(GtBox, GtButton, ProfileCharsCard)    
+@Dependencies(GtBox, GtButton, GtDialog, ProfileCharsCard)    
 class ProfileChars extends PolymerElement {
 	@Inject
 	@On({
@@ -98,6 +98,10 @@ class ProfileChars extends PolymerElement {
 	@Property({ computed: "user" })
 	private get editable(): boolean {
 		return this.app.user.id == this.user;
+	}
+	
+	private AddChar() {
+		this.$["addchar-dialog"].show();
 	}
 }
 

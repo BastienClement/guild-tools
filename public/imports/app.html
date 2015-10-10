@@ -6,13 +6,13 @@
 			min-width: 1200px;
 		}
 
-		#title {
+		#title { .gpu;
 			position: absolute;
 			top: 0;
 			left: 0;
 			right: 0;
 			height: 56px;
-			z-index: 15;
+			z-index: 10;
 			
 			&[is_app] {
 				top: 1px;
@@ -21,13 +21,13 @@
 			}
 		}
 
-		#side {
+		#side { .gpu;
 			position: absolute;
 			top: 56px;
 			left: 0;
 			bottom: 0;
 			width: 56px;
-			z-index: 10;
+			z-index: 5;
 			
 			&[is_app] {
 				top: 57px;
@@ -36,13 +36,13 @@
 			}
 		}
 
-		#view {
+		#view { .gpu;
 			position: absolute;
 			top: 56px;
 			left: 56px + 12px;
 			right: 0;
 			bottom: 0;
-			z-index: 5;
+			z-index: 15;
 			
 			&[is_app] {
 				top: 57px;
@@ -69,7 +69,8 @@
 			animation: slide 0.5s ease-out;
 			animation-fill-mode: both;
 
-			background: fade(@fs-blue, 15%);
+			//background: fade(@fs-blue, 15%);
+			background: fade(mix(rgb(55, 74, 93), @fs-blue, 90%), 70%);
 			box-shadow: 0px 1px 2px rgba(17, 17, 17, 0.15);
 
 			display: flex;
@@ -295,8 +296,10 @@
 		}
 		
 		@keyframes sidebar-appear {
-			0% { background: fade(@fs-blue, 0%); }
-			100% { background: fade(@fs-blue, 8%); }
+			//0% { background: fade(@fs-blue, 0%); }
+			//100% { background: fade(@fs-blue, 8%); }
+			0% { background: rgba(51, 66, 80, 0); }
+			100% { background: rgba(51, 66, 80, 1); }
 		}
 		
 		.generate-icn-delay(@nth) when (@nth < 20) {
@@ -348,8 +351,7 @@
 <dom-module id="gt-view">
 	<style type="text/less">
 		:host {
-			overflow-y: auto;
-			overflow-x: hidden;
+			overflow: visible;
 		}
 
 		#wrapper {
