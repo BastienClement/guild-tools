@@ -201,7 +201,7 @@ class DashboardOnlines extends PolymerElement {
 
 @View("dashboard", "gt-dashboard", "/dashboard")
 @Dependencies(DashboardNews, DashboardShoutbox, DashboardOnlines, ProfileUser)
-export class Dashboard extends PolymerElement {
+export class GtDashboard extends PolymerElement {
 	@Inject
 	private server: Server;
 }

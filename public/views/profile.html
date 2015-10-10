@@ -269,9 +269,7 @@
 				<div .padding></div>
 				<div .padding></div>
 			</div>
-			<gt-dialog #addchar-dialog>
-				Hello World
-			</gt-dialog>
+			<profile-add-char #addchar [owner]="user"></profile-add-char>
 		</gt-box>
 	</template>
 </dom-module>
@@ -383,5 +381,96 @@
 				<gt-button #btn-remove {hidden}="char.active">Remove</gt-button>
 			</div>
 		</gt-box>
+	</template>
+</dom-module>
+
+<dom-module id="profile-add-char">
+	<style type="text/less">
+		:host {
+			display: block;
+		}
+		
+		gt-box {
+			width: 550px;
+			height: 450px;
+			overflow: hidden;
+		}
+		
+		#background {
+			.pos(absolute);
+			z-index: 1;
+			-webkit-filter: opacity(80%) saturate(75%);
+			-moz-filter: opacity(80%) saturate(75%);
+			-ms-filter: opacity(80%) saturate(75%);
+			filter: opacity(80%) saturate(75%);
+			
+			img {
+				position: absolute;
+				top: -50px;
+				left: 0;
+			}
+		}
+		
+		#middle {
+			.pos(absolute);
+			z-index: 2;
+		}
+		
+		#foreground {
+			position: absolute;
+			top: 0;
+			left: 0;
+			bottom: 0;
+			width: 45%;
+			z-index: 3;
+			padding: 16px;
+			
+			
+			@box-background: mix(#334352, @fs-blue, 96%);
+			//background: linear-gradient(to right, fade(@box-background, 98%) 0%, fade(@box-background, 95%) 45%, fade(@box-background, 0%) 75%);
+			background: fade(@box-background, 90%);
+			border-right: 1px solid mix(#395066, @fs-blue, 97%);
+		}		
+			
+		h3 {
+			font-family: "Roboto Condensed";
+			font-size: 24px;
+			font-weight: 400;
+			margin: -16px -16px 12px -16px;
+			padding: 16px;
+			line-height: 24px;
+		}
+		
+		#actions {
+			margin-top: 24px;
+			display: flex;
+			justify-content: flex-end;
+			margin-right: -8px;
+			
+			gt-button {
+				margin: 0;
+			}
+		}
+	</style>
+	<template>
+		<gt-dialog #dialog>
+			<gt-box>
+				<div #background>
+					<img default src="http://eu.battle.net/wow/static/images/2d/profilemain/race/10-0.jpg">
+				</div>
+				<div #middle></div>
+				<div #foreground>
+					<h3>Add character</h3>
+					<gt-form>
+						<gt-input #server type="text" label="Server name"></gt-input>
+						<gt-input #char type="text" label="Character name"></gt-input>
+						<div #actions>
+							<gt-button #load>Cancel</gt-button>
+							<gt-button #load>Load</gt-button>
+						</div>
+					</gt-form>
+				</div>
+			</gt-box>
+		</gt-dialog>
 	</template>
 </dom-module>

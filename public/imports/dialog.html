@@ -9,7 +9,7 @@
 		}
 		
 		:host(:not([no-modal])) {
-			background: fade(mix(#2e3740, rgb(99, 180, 255), 100%), 80%);
+			background: fade(darken(mix(#2e3740, @fs-blue, 95%), 5%), 40%);
 		}
 		
 		:host(.visible) {
@@ -52,7 +52,7 @@
 		}
 
 		@keyframes slide-in {
-			0%   { opacity: 0; transform: translateY(40px); }
+			0%   { opacity: 0; transform: translateY(20px); }
 			100% { opacity: 1; transform: translateY(0px); }
 		}
 	</style>
