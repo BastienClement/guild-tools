@@ -399,9 +399,6 @@
 		#background {
 			.pos(absolute);
 			z-index: 1;
-			-webkit-filter: opacity(80%) saturate(75%);
-			-moz-filter: opacity(80%) saturate(75%);
-			-ms-filter: opacity(80%) saturate(75%);
 			filter: opacity(80%) saturate(75%);
 			
 			img {
@@ -451,6 +448,30 @@
 				margin: 0;
 			}
 		}
+		
+		#roles {
+			display: flex;
+			justify-content: space-around;
+			width: 75%;
+			margin: auto;
+			
+			img {
+				width: 24px;
+				height: 24px;
+				opacity: .5;
+				transition: all .2s ease-out;
+				border: 2px solid fade(@fs-blue, 50%);
+				border-radius: 100%;
+				padding: 3px;
+				box-sizing: content-box;
+				filter: saturate(50%);
+				
+				&:hover {
+					opacity: 1;
+					filter: saturate(100%);
+				}
+			}
+		}
 	</style>
 	<template>
 		<gt-dialog #dialog>
@@ -469,6 +490,11 @@
 							<gt-button #load>Load</gt-button>
 						</div>
 					</gt-form>
+					<div #roles>
+						<img src="/assets/images/roles/TANK.png">
+						<img src="/assets/images/roles/HEALING.png">
+						<img src="/assets/images/roles/DPS.png">
+					</div>
 				</div>
 			</gt-box>
 		</gt-dialog>

@@ -21,5 +21,14 @@ interface System {
 	import<T>(...modules: any[]): Promise<T>;
 }
 
-declare var System: System;
-declare var APP: boolean;
+declare const System: System;
+declare const APP: boolean;
+
+interface StyleFixInterface {
+	link(e: HTMLLinkElement): void;
+	styleElement(e: HTMLStyleElement): void;
+	styleAttribute(e: HTMLElement): void;
+	fix(css: string, raw?: boolean, element?: HTMLElement): string;
+}
+
+declare const StyleFix: StyleFixInterface;

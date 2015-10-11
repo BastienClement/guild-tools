@@ -131,7 +131,7 @@ export class Loader {
 			${source}
 		`;
 
-		return this.lessImportDynamics(source).then(source => less.render(source)).then(output => output.css);
+		return this.lessImportDynamics(source).then(source => less.render(source)).then(output => StyleFix.fix(output.css, true));
 	}
 
 	/**
