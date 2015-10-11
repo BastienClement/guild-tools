@@ -1,6 +1,7 @@
 package gtp3
 
 import java.nio.charset.StandardCharsets
+import java.util.zip.Inflater
 
 import play.api.libs.json._
 import scodec.bits.ByteVector
@@ -20,8 +21,15 @@ object Payload {
 
 class Payload(val byteVector: ByteVector, val flags: Int) {
 	// Inflate a compressed buffer
-	// TODO
-	private def inflate(byteVector: Array[Byte]): Array[Byte] = ???
+	private def inflate(input: Array[Byte]): Array[Byte] = BufferPool.withBuffer { buf =>
+		val inflater = new Inflater()
+		inflater.setInput(input)
+
+		val length = inflater.inflate(buf)
+		assert(inflater.finished())
+
+		buf.slice(0, length)
+	}
 
 	// Flags
 	final val compressed = (flags & 0x01) != 0

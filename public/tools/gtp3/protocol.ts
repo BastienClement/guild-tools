@@ -12,7 +12,7 @@ export const enum Protocol {
 	OpenTimeout = 5000,
 	ChannelsLimit = 65535,
 	InflightRequests = 250,
-	CompressLimit = 250
+	CompressLimit = 256
 }
 
 /**

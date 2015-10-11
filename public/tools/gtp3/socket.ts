@@ -353,7 +353,7 @@ export class Socket extends EventEmitter {
 	private receiveHandshake(frame: HandshakeFrame): void {
 		if (this.state != SocketState.Open || frame.magic != Protocol.GTP3)
 			return this.protocolError();
-
+        
 		if (this.id !== UInt64.Zero) this.reset();
 		this.id = frame.sockid;
 
@@ -609,21 +609,9 @@ export class Socket extends EventEmitter {
 	/**
 	 * Print the socket activity
 	 */
-	private trace(direction: string, frame: any): void {
+	private trace(direction: string, frame: any) {
 		let frame_name = frame.frame_name;
 		let padding = " ".repeat(15 - frame_name.length);
-		if (frame.payload) {
-			let data = Payload.decode(frame);
-			let data_display = data;
-			
-			if ((Array.isArray(data) && data.length > 5) ||
-				(typeof data == "string" && data.length > 100)) {
-				data_display = { $: data };
-			}
-			
-			console.debug(direction, frame_name + padding, frame, "::", data_display);
-		} else {
-			console.debug(direction, frame_name + padding, frame);
-		}
+		console.debug(direction, frame_name + padding, frame);
 	}
 }

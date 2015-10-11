@@ -1,4 +1,6 @@
-declare module "pako" {
-	export function deflate(buf: ArrayBuffer): ArrayBuffer;
-	export function inflate(buf: ArrayBuffer): ArrayBuffer;
+interface PakoInterface {
+	deflate(buf: Uint8Array): Uint8Array;
+	inflate(buf: Uint8Array, config?: any): Uint8Array;
 }
+
+declare const pako: PakoInterface;

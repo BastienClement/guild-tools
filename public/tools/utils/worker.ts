@@ -40,18 +40,11 @@ export class ServiceWorker {
 		let rid = this.next_rid++;
 		this.requests.set(rid, defer);
 		
-		let transfers: any[] = [];
-		for (let arg of args) {
-			if (arg instanceof ArrayBuffer || ArrayBuffer.isView(arg)) {
-				transfers.push(arg);
-			}
-		}
-		
 		this.worker.postMessage({
 			$: method,
 			rid: rid,
 			args: args
-		}, transfers);
+		});
 		
 		return defer.promise;
 	}

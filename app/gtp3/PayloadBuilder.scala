@@ -1,6 +1,7 @@
 package gtp3
 
 import java.nio.charset.StandardCharsets
+import java.util.zip.Deflater
 import play.api.libs.json.{JsNull, JsValue, Json, Writes}
 import scodec.bits.ByteVector
 
@@ -13,9 +14,23 @@ trait PayloadBuilder[-T] {
 trait PayloadBuilderSteps {
 	// Compress and convert to ByteVector
 	trait BufferStep[-T] extends PayloadBuilder[T] {
-		def buffer(buf: Array[Byte], flags: Int = 0, compress: Boolean = true): Payload = {
-			val bv = ByteVector(buf)
-			new Payload(bv, flags)
+		def buffer(buf: Array[Byte], flags: Int = 0, compress: Boolean = true): Payload =
+			if (compress && buf.length > 255) deflate(buf, flags)
+			else passthru(buf, flags)
+
+		def deflate(buf: Array[Byte], flags: Int): Payload = BufferPool.withBuffer { output =>
+			val deflater = new Deflater()
+			deflater.setInput(buf)
+			deflater.finish()
+
+			val length = deflater.deflate(output)
+			assert(deflater.finished())
+
+			new Payload(ByteVector(output.slice(0, length)), flags | 0x01)
+		}
+
+		def passthru(buf: Array[Byte], flags: Int): Payload = {
+			new Payload(ByteVector(buf), flags & ~0x01)
 		}
 	}
 

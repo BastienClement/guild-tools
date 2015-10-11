@@ -5,7 +5,7 @@ import { FrameType, Protocol } from "gtp3/protocol";
 import { Socket, ChannelRequest } from "gtp3/socket";
 import { Stream } from "gtp3/stream";
 import { Frame, MessageFrame, RequestFrame, SuccessFrame, FailureFrame, CloseFrame } from "gtp3/frames";
-import { Payload, PayloadFrame } from "gtp3/payload";
+import { Payload, PayloadFrame, PayloadFlags } from "gtp3/payload";
 
 /**
  * Channel states
@@ -26,7 +26,7 @@ export class Channel extends EventEmitter {
 	private requests: Map<number, Deferred<any>> = new Map<number, Deferred<any>>();
 
 	// Default message flags
-	private default_flags: number = 0;
+	private default_flags: number = PayloadFlags.COMPRESS;
 
 	constructor(public socket: Socket,
 				public name: string,
@@ -38,9 +38,9 @@ export class Channel extends EventEmitter {
 	/**
 	 * Send a message without expecting a reply
 	 */
-	send(message: string, data: any = null, initial_flags: number = this.default_flags): void {
+	async send(message: string, data: any = null, initial_flags: number = this.default_flags) {
 		// Encode payload
-		let [payload, flags] = Payload.encode(data, initial_flags);
+		let [payload, flags] = await Payload.encode(data, initial_flags);
 
 		// Build frame
 		const frame = Frame.encode(MessageFrame, 0 , this.remote_id, message, flags, payload);
@@ -50,12 +50,12 @@ export class Channel extends EventEmitter {
 	/**
 	 * Send a request and expect a reply
 	 */
-	request<T>(request: string, data: any = null, initial_flags: number = this.default_flags): Promise<T> {
+	async request<T>(request: string, data: any = null, initial_flags: number = this.default_flags): Promise<T> {
 		// Allocate request ID
 		const id = this.requestid_pool.allocate();
 
 		// Encode payload
-		let [payload, flags] = Payload.encode(data, initial_flags);
+		let [payload, flags] = await Payload.encode(data, initial_flags);
 
 		// Build frame
 		const frame = Frame.encode(RequestFrame, 0 , this.remote_id, request, id, flags, payload);
@@ -119,7 +119,7 @@ export class Channel extends EventEmitter {
 
 	private async receiveMessage(frame: MessageFrame | RequestFrame) {
 		const req_id = (frame instanceof RequestFrame) ? frame.request : 0;
-		const payload = Payload.decode(frame);
+		const payload = await Payload.decode(frame);
 
 		if (frame instanceof RequestFrame) {
 			const results: any[] = await this.emit("request", frame.message, payload);
@@ -144,8 +144,8 @@ export class Channel extends EventEmitter {
 		}
 	}
 
-	private sendSuccess(request: number, data: any) {
-		let [payload, flags] = Payload.encode(data);
+	private async sendSuccess(request: number, data: any) {
+		let [payload, flags] = await Payload.encode(data);
 		const frame = Frame.encode(SuccessFrame, 0, this.remote_id, request, flags, payload);
 		this.socket._send(frame);
 	}

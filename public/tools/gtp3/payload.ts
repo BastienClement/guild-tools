@@ -1,11 +1,11 @@
-import { deflate, inflate } from "pako";
 import { Protocol } from "gtp3/protocol";
 import { UTF8Encoder, UTF8Decoder } from "gtp3/codecs";
+import { ServiceWorker } from "utils/worker";
 
 /**
  * Frame flags indicating high-level encoding
  */
-const enum PayloadFlags {
+export const enum PayloadFlags {
 	COMPRESS = 0x01,
 	UTF8DATA = 0x02,
 	JSONDATA = 0x04, // Require UTF8DATA
@@ -21,26 +21,33 @@ export interface PayloadFrame {
 }
 
 /**
+ * The return type of the encode function
+ */
+type PayloadAndFlags = [ArrayBuffer, number];
+
+/**
  * A shared zero-byte array buffer
  */
 const EmptyBuffer = new ArrayBuffer(0);
+
+const CompressWorker = new ServiceWorker("/assets/modules/workers/compress.js");
 
 export const Payload = {
 	/**
 	 * Decode the frame payload data
 	 */
-	decode(frame: PayloadFrame): any {
+	async decode(frame: PayloadFrame): Promise<any> {
 		const flags = frame.flags;
 
 		if (flags & PayloadFlags.IGNORE) {
-			return null;
+			return Promise.resolve(null);
 		}
 
 		let payload: any = frame.payload;
 
 		// Inflate compressed payload
 		if (flags & PayloadFlags.COMPRESS) {
-			payload = inflate(payload);
+			payload = await CompressWorker.request<ArrayBuffer>("inflate", payload);
 		}
 
 		// Decode UTF-8 data
@@ -59,7 +66,7 @@ export const Payload = {
 	/**
 	 * Encode payload data and flags
 	 */
-	encode(data: any, flags: number = this.default_flags): [ArrayBuffer, number] {
+	async encode(data: any, flags: number = this.default_flags): Promise<PayloadAndFlags> {
 		if (data && (data.buffer || data) instanceof ArrayBuffer) {
 			// Raw buffer
 			data = data.buffer || data;
@@ -75,7 +82,7 @@ export const Payload = {
 
 		if (!data) {
 			// No useful data
-			return [EmptyBuffer, PayloadFlags.IGNORE];
+			return Promise.resolve<PayloadAndFlags>([EmptyBuffer, PayloadFlags.IGNORE]);
 		}
 
 		if (flags & PayloadFlags.COMPRESS) {
@@ -83,10 +90,10 @@ export const Payload = {
 				flags &= ~PayloadFlags.COMPRESS;
 			} else {
 				// Deflate payload
-				data = deflate(data);
+				data = await CompressWorker.request<ArrayBuffer>("deflate", data);
 			}
 		}
 
-		return [data, flags];
+		return Promise.resolve<PayloadAndFlags>([data, flags]);
 	}
 };

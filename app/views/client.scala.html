@@ -51,24 +51,6 @@
 	})();
 </script>
 
-<!-- Base framework -->
-<script defer data-async="true" data-env="production" src='@routes.Assets.versioned("/public", "javascripts/less.js")'></script>
-<script defer src='@routes.Assets.versioned("/public", "javascripts/reflect.js")'></script>
-<script defer src='@routes.Assets.versioned("/public", "javascripts/traceur.js")'></script>
-<script defer src='@routes.Assets.versioned("/public", "javascripts/system.js")'></script>
-<script defer src='@routes.Assets.versioned("/public", "tools/config.js")'></script>
-<script defer id="wc-lite" src='@routes.Assets.versioned("/public", "javascripts/webcomponents-lite.js")'></script>
-<script defer src='@routes.Assets.versioned("/public", "javascripts/prefixfree.js")'></script>
-
-<!-- Load application -->
-<script>
-	document.getElementById("wc-lite").onload = function() {
-		System.import("client/boot").then(function(boot) {
-			boot.default();
-		});
-	};
-</script>
-
 <!-- Loading cover spinner -->
 <div id="loader" class="cloak">
 	<div class="spinner"><b></b><b></b><b></b><b></b><b></b><b></b></div>
@@ -81,3 +63,19 @@
 <div id="borders"></div>
 <div id="background"></div>
 <div id="app-loader" class="cloak"><img src="/assets/images/spinner.svg"></div>
+
+<!-- Base framework -->
+<script data-async="true" data-env="production" src='@routes.Assets.versioned("/public", "javascripts/less.js")'></script>
+<script src='@routes.Assets.versioned("/public", "javascripts/reflect.js")'></script>
+<script src='@routes.Assets.versioned("/public", "javascripts/traceur.js")'></script>
+<script src='@routes.Assets.versioned("/public", "javascripts/system.js")'></script>
+<script src='@routes.Assets.versioned("/public", "tools/config.js")'></script>
+<script src='@routes.Assets.versioned("/public", "javascripts/webcomponents-lite.js")'></script>
+<script src='@routes.Assets.versioned("/public", "javascripts/prefixfree.js")'></script>
+
+<!-- Load application -->
+<script>
+	System.import("client/boot").then(function(boot) {
+		boot.default();
+	});
+</script>
