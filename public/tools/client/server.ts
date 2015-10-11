@@ -32,7 +32,7 @@ export class Server extends EventEmitter {
 		const defer = this.connect_deferred = new Deferred<void>();
 		const socket = this.socket = new Socket(this.normalizeURL(url));
 
-		//socket.verbose = true;
+		socket.verbose = true;
 		socket.pipe(this);
 		socket.bind(this, "connected", "reconnecting", "disconnected", "reset", "channel-request");
 		socket.connect();

@@ -1,10 +1,3 @@
-///<reference path="encoding.d.ts" />
-///<reference path="jquery.d.ts" />
-///<reference path="less.d.ts" />
-///<reference path="pako.d.ts" />
-///<reference path="polymer.d.ts" />
-///<reference path="moment.d.ts" />
-///<reference path="node.d.ts" />
 
 declare module Reflect {
 	function getMetadata<T>(metadataKey: string, target: any, propertyKey?: string): T;
@@ -17,11 +10,11 @@ declare module Reflect {
 	function getOwnMetadataKeys(target: any, propertyKey?: string): string[];
 }
 
-interface System {
+interface SystemInterface {
 	import<T>(...modules: any[]): Promise<T>;
 }
 
-declare const System: System;
+declare const System: SystemInterface;
 declare const APP: boolean;
 
 interface StyleFixInterface {

@@ -82,7 +82,7 @@ export class Application {
 		await this.loader.loadElement(GtApp);
 		body.appendChild(this.root = new GtApp());
 		
-		await this.router.loadViews("views/defs")
+		await this.router.loadViews("views/_load")
 		
 		// Remove the loading title bar
 		if (GtApp) loader_title.remove();

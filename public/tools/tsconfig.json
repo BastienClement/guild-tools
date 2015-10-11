@@ -9,10 +9,5 @@
 		"target": "ES6",
 		"experimentalDecorators": true,
 		"experimentalAsyncFunctions": true
-	},
-	"files": [
-		"defs/defs.d.ts",
-		"client/boot.ts",
-		"views/defs.ts"
-	]
+	}
 }

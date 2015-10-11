@@ -1,5 +1,6 @@
 import { Component, Constructor } from "utils/di";
 import { Deferred } from "utils/deferred";
+import { ServiceWorker } from "utils/worker";
 import { PolymerElement, PolymerConstructor, PolymerMetadata, apply_polymer_fns } from "elements/polymer";
 
 // Path to the polymer file
@@ -124,14 +125,18 @@ export class Loader {
 	/**
 	 * Compile LESS source to CSS
 	 */
-	public compileLess(source: string): Promise<string> {
+	private lessWorker = new ServiceWorker("/assets/modules/workers/less.js");
+	public async compileLess(source: string): Promise<string> {
 		// Prepend the
 		source = `
 			@import (dynamic) "/assets/less/lib.less";
 			${source}
 		`;
-
-		return this.lessImportDynamics(source).then(source => less.render(source)).then(output => StyleFix.fix(output.css, true));
+		
+		let source_css = await this.lessImportDynamics(source);
+		let result_css = await this.lessWorker.request<string>("compile", source_css);
+		
+		return StyleFix.fix(result_css, true);
 	}
 
 	/**
