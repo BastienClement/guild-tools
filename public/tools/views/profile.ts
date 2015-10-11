@@ -78,6 +78,7 @@ export class ProfileAddChar extends PolymerElement {
 	
 	public show() {
 		this.$.dialog.show();
+		this.$.char.focus();
 	}
 }
 

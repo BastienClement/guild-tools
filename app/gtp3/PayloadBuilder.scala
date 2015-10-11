@@ -65,6 +65,31 @@ object PayloadBuilder extends PayloadBuilderMiddlePriority {
 	implicit val BuilderUnit = new PayloadBuilder[Unit] {
 		def build(jsNull: Unit): Payload = Payload.empty
 	}
+
+	// Some Writes for tuple types
+	trait ProductWrites {
+		// Encode (A, B) with a Writes[T] available for every element as a JS array
+		implicit def WritesProduct2[A: Writes, B: Writes] = new Writes[(A, B)] {
+			def writes(prod: (A, B)): JsValue = Json.arr(prod._1, prod._2)
+		}
+
+		// Encode (A, B, C) with a Writes[T] available for every element as a JS array
+		implicit def WritesProduct3[A: Writes, B: Writes, C: Writes] = new Writes[(A, B, C)] {
+			def writes(prod: (A, B, C)): JsValue = Json.arr(prod._1, prod._2, prod._3)
+		}
+
+		// Encode (A, B, C, D) with a Writes[T] available for every element as a JS array
+		implicit def WritesProduct4[A: Writes, B: Writes, C: Writes, D: Writes] = new Writes[(A, B, C, D)] {
+			def writes(prod: (A, B, C, D)): JsValue = Json.arr(prod._1, prod._2, prod._3, prod._4)
+		}
+
+		// Encode (A, B, C, D, E) with a Writes[T] available for every element as a JS array
+		implicit def WritesProduct5[A: Writes, B: Writes, C: Writes, D: Writes, E: Writes] = new Writes[(A, B, C, D, E)] {
+			def writes(prod: (A, B, C, D, E)): JsValue = Json.arr(prod._1, prod._2, prod._3, prod._4, prod._5)
+		}
+	}
+
+	object ProductWrites extends ProductWrites
 }
 
 // Intermediate priority builders
@@ -81,25 +106,5 @@ trait PayloadBuilderLowPriority extends PayloadBuilderSteps {
 	// This is a low priority builder to allow more specific encoding first
 	implicit def BuilderWrites[T: Writes] = new JsonStep[T] {
 		def build(value: T): Payload = json(Json.toJson(value))
-	}
-
-	// Encode (A, B) with a Writes[T] available for every element as a JS array
-	implicit def BuilderProduct2[A: Writes, B: Writes] = new JsonStep[(A, B)] {
-		def build(prod: (A, B)): Payload = json(Json.arr(prod._1, prod._2))
-	}
-
-	// Encode (A, B, C) with a Writes[T] available for every element as a JS array
-	implicit def BuilderProduct3[A: Writes, B: Writes, C: Writes] = new JsonStep[(A, B, C)] {
-		def build(prod: (A, B, C)): Payload = json(Json.arr(prod._1, prod._2, prod._3))
-	}
-
-	// Encode (A, B, C, D) with a Writes[T] available for every element as a JS array
-	implicit def BuilderProduct4[A: Writes, B: Writes, C: Writes, D: Writes] = new JsonStep[(A, B, C, D)] {
-		def build(prod: (A, B, C, D)): Payload = json(Json.arr(prod._1, prod._2, prod._3, prod._4))
-	}
-
-	// Encode (A, B, C, D, E) with a Writes[T] available for every element as a JS array
-	implicit def BuilderProduct5[A: Writes, B: Writes, C: Writes, D: Writes, E: Writes] = new JsonStep[(A, B, C, D, E)] {
-		def build(prod: (A, B, C, D, E)): Payload = json(Json.arr(prod._1, prod._2, prod._3, prod._4, prod._5))
 	}
 }

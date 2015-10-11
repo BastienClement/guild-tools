@@ -32,9 +32,17 @@ object ChannelHandler {
 	implicit def FuturePayloadConverter[T: PayloadBuilder] = new FuturePayloadBuilder[Future[T]] {
 		def build(f: Future[T]): Future[Payload] = f map { q => Payload(q) }
 	}
+
+	implicit val FuturePayloadIdentity = new FuturePayloadBuilder[Future[Payload]] {
+		def build(f: Future[Payload]): Future[Payload] = f
+	}
+
+	implicit val FuturePayloadError = new FuturePayloadBuilder[Error] {
+		def build(e: Error): Future[Payload] = Future.failed(e)
+	}
 }
 
-trait ChannelHandler extends Actor with Stash {
+trait ChannelHandler extends Actor with Stash with PayloadBuilder.ProductWrites {
 	// Implicitly converts to Option[T]
 	implicit def ImplicitOption[T](value: T): Option[T] = Option(value)
 

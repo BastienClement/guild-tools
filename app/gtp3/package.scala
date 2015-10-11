@@ -11,6 +11,7 @@ package object gtp3 {
 		"chat" -> Chat,
 		"master" -> Master,
 		"newsfeed" -> NewsFeed,
+		"profile" -> Profile,
 		"roster" -> Roster
 	)
 }
