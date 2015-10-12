@@ -26,5 +26,17 @@ interface StyleFixInterface {
 
 declare const StyleFix: StyleFixInterface;
 
-declare const traceur: any;
-declare const sourceMap: any;
+interface TraceurModule{
+	Compiler: TraceurCompilerStatic;
+}
+
+interface TraceurCompiler {
+	compile(source: string, filename: string): string;
+	sourceMapCache_: string;
+}
+
+interface TraceurCompilerStatic {
+	new (options?: any): TraceurCompiler;
+}
+
+declare const traceur: TraceurModule;
