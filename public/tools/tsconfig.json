@@ -4,7 +4,7 @@
 		"removeComments": false,
 		"preserveConstEnums": true,
 		"outDir": "../modules",
-		"sourceMap": true,
+		"inlineSourceMap": true,
 		"emitDecoratorMetadata": true,
 		"target": "ES6",
 		"experimentalDecorators": true,

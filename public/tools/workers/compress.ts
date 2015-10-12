@@ -9,19 +9,8 @@ module compressWorker {
 		return pako.inflate(new Uint8Array(buf)).buffer;
 	}
 
-	function handler(method: string): any {
-		switch (method) {
-			case "deflate": return deflate;
-			case "inflate": return inflate;
-		}
-	}
-
 	self.onmessage = function(m) {
-		var h = handler(m.data.$);
-		if (!h) console.error("Unknown handler", m.data);
-
-		var res: any = h.apply(null, m.data.args);
-
+		var res = (m.data.$ == "deflate" ? deflate : inflate)(m.data.args[0]);
 		self.postMessage({
 			$: "res",
 			rid: m.data.rid,

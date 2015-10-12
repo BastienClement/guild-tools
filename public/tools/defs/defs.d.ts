@@ -25,3 +25,6 @@ interface StyleFixInterface {
 }
 
 declare const StyleFix: StyleFixInterface;
+
+declare const traceur: any;
+declare const sourceMap: any;
