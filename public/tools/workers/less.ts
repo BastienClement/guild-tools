@@ -14,8 +14,8 @@ window.document = <any> {
 module LessWorker {
 	importScripts("/assets/javascripts/less.js");
 
-	async function compile(source: string) {
-		return (await less.render(source)).css;
+	function compile(source: string) {
+		return less.render(source).then(function(res) { return res.css; });
 	}
 
 	function handler(method: string): (...args: any[]) => Promise<any> {
@@ -24,14 +24,16 @@ module LessWorker {
 		}
 	}
 
-	self.onmessage = async(m) => {
+	self.onmessage = function(m) {
 		var h = handler(m.data.$);
 		if (!h) console.error("Unknown handler", m.data);
         
-		self.postMessage({
-			$: "res",
-			rid: m.data.rid,
-			res: await h(...m.data.args)
-		}, void 0);
+		h.apply(null, m.data.args).then(function(css: string) {
+			self.postMessage({
+				$: "res",
+				rid: m.data.rid,
+				res: css 
+			}, void 0);
+		});
 	};
 }
