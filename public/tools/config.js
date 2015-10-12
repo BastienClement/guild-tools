@@ -38,7 +38,7 @@ var traceur_async = new Promise(function () { });
 		var rid = next_rid++;
 		var name;
 
-		transpile({
+		var template = transpile({
 			Compiler: function (config) { 
 				this.compile = function (source, filename) {
 					name = filename;
@@ -50,6 +50,7 @@ var traceur_async = new Promise(function () { });
 						source: source,
 						filename: filename
 					});
+					return "$placeholder$";
 				};
 			}
 		});
@@ -59,7 +60,7 @@ var traceur_async = new Promise(function () { });
 		});
 
 		return task.then(function (code) {
-			return '(function(__moduleName){' + code + '\n})("' + name + '");\n//# sourceURL=' + name + '!transpiled';
+			return template.replace("$placeholder$", code);
 		});
 	};
 })();
