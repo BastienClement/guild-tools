@@ -9,10 +9,10 @@ export const enum Protocol {
 	BufferPauseLimit = 128,
 	BufferHardLimit = 256,
 	RequestAckCooldown = 4,
-	OpenTimeout = 5000,
+	OpenTimeout = 10000,
 	ChannelsLimit = 65535,
 	InflightRequests = 250,
-	CompressLimit = 256
+	CompressLimit = 1200
 }
 
 /**

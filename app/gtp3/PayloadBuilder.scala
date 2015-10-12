@@ -15,7 +15,7 @@ trait PayloadBuilderSteps {
 	// Compress and convert to ByteVector
 	trait BufferStep[-T] extends PayloadBuilder[T] {
 		def buffer(buf: Array[Byte], flags: Int = 0, compress: Boolean = true): Payload =
-			if (compress && buf.length > 255) deflate(buf, flags)
+			if (compress && buf.length > 1200) deflate(buf, flags)
 			else passthru(buf, flags)
 
 		def deflate(buf: Array[Byte], flags: Int): Payload = BufferPool.withBuffer { output =>
