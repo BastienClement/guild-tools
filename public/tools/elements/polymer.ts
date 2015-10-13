@@ -286,44 +286,82 @@ export function Element(selector: string, template?: string, ext?: string) {
 
 		// Define custom sugars and perform dependency injection
 		target.prototype.createdCallback = function() {
-			// Temporary holder for element properties to bypass Polymer setter
-			let props = Object.create(null);
+			// Temporary holder for injected components
+			let injects = Object.create(null);
 			
 			// Perform injections
 			// Since this is the first thing done, we can be sure that injected objects are available
 			// at any moment inside the object (including Polymer own initialization)
-			let injects = Reflect.getMetadata<InjectionBinding[]>("polymer:injects", target.prototype);
-			if (injects) {
-				for (let binding of injects) {
-					props[binding.property] = DefaultInjector.get(binding.ctor);
+			let inject_bindings = Reflect.getMetadata<InjectionBinding[]>("polymer:injects", target.prototype);
+			if (inject_bindings) {
+				for (let binding of inject_bindings) {
+					injects[binding.property] = DefaultInjector.get(binding.ctor);
 				}
 			}
 			
 			// Automatically inject the Application
-			props.app = DefaultInjector.get<Application>(Application);
+			injects.app = DefaultInjector.get<Application>(Application);
+			
+			// Construct a dummy object for obtaining default properties values
+			let props = Object.create(injects);
 			
 			// Call the original constructor
-			// Element ***must not*** extends the default TypeScript constructor
+			// Elements *must not* extends the default TypeScript constructor
 			// By default, only properties initialization is performed
 			target.call(props);
 			
-			// Call polymer constructor
-			Polymer.Base.createdCallback.apply(this, arguments);
-
-			// Define custom sugars            
-			this.node = Polymer.dom(this);
-			this.shadow = Polymer.dom(this.root);
-			
-			// Restore the work of the original constructor
-			// (only if no other value was defined in-between)
-			for (let key in props) {
-				if (this[key] === void 0) {
-					this[key] = props[key];
+			// Since Polymer sometimes calls ready() before returning from
+			// callbackCreated, this method ensure that the initialization
+			// is complete before calling ready()
+			let committed = false;
+			const init_commit = () => {
+				if (committed) return;
+				else committed = true;
+				
+				// Define custom sugars            
+				this.node = Polymer.dom(this);
+				this.shadow = Polymer.dom(this.root);
+				
+				// Copy injected components on the final object
+				for (let key in injects) {
+					if (this[key] === void 0) {
+						this[key] = injects[key];
+					}
 				}
-			}
+				
+				// If a custom initializer is defined, call it
+				// When this function is called, default argument values are not
+				// yet available. On the other hand, this function can override them.
+				if (this.init) this.init();
+			};
 			
-			// If a custom initializer is defined, call it
-			if (this.init) this.init();
+			// Hook the ready callback and apply default values obtained
+			// from the constructor. Deferring this to the ready event
+			// ensure that polymer properly notify listeners.
+			let ready = this.ready;
+			this.ready = () => {
+				// Ensure initialization is done
+				init_commit();
+				
+				// Copy default values
+				for (let prop of Object.getOwnPropertyNames(props)) {
+					// Ensure no one define the value before
+					if (this[prop] === void 0) {
+						this[prop] = props[prop];
+					}
+				}
+				
+				// Call the old ready function
+				if (ready) ready.call(this);
+			};
+			
+			// Call polymer constructor
+			// Elements *must not* use the created() callback either.
+			// Use init() instead
+			Polymer.Base.createdCallback.apply(this, arguments);
+			
+			// Finalize intialization
+			init_commit();
 		};
 
 		// When the element is attached, register every listener defined using
