@@ -96,8 +96,8 @@ export class GtInput extends PolymerElement {
 	/**
 	 * Reflect input focused state to the outer <label> element
 	 */
-	@Listener("input.focus") private "input-focused"() { this.$.outer.classList.add("focus"); }
-	@Listener("input.blur") private "input-blured"() { this.$.outer.classList.remove("focus"); }
+	@Listener("input.focus") private InputFocus() { this.toggleClass("focus", true); }
+	@Listener("input.blur") private InputBlur() { this.toggleClass("focus", false); }
 }
 
 
