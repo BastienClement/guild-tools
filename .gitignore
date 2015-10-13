@@ -19,5 +19,5 @@ dist
 /conf/application.conf
 /public/javascripts/compiler.jar
 /public/javascripts/compiler.sh
-
+.vscode
 guild-tools.eml
