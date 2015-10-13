@@ -492,10 +492,8 @@ export function Dependencies(...dependencies: PolymerConstructor<any>[]) {
  * Declare a Polymer Property
  */
 interface PolymerPropertyConfig<T> {
-	type?: { new (): T };
 	value?: T;
 	reflect?: boolean;
-	reflectToAttribute?: boolean;
 	readOnly?: boolean;
 	notify?: boolean;
 	computed?: string;
@@ -516,7 +514,7 @@ export function Property<T>(target?: any, property?: string, config: PolymerProp
 	
 	// Alias reflect -> reflectToAttribute
 	if (config.reflect) {
-		config.reflectToAttribute = true;
+		(<any> config).reflectToAttribute = true;
 	}
 
 	// Transform getter to match Poylmer computed property style    
@@ -534,8 +532,8 @@ export function Property<T>(target?: any, property?: string, config: PolymerProp
 	}
 	
 	// Get type from Typescript annotations
-	if (typeof config == "object" && !config.type) {
-		config.type = Reflect.getMetadata<any>("design:type", target, property);
+	if (typeof config == "object" && !(<any> config).type) {
+		(<any> config).type = Reflect.getMetadata<any>("design:type", target, property);
 	}
 
 	target.properties[property] = config;

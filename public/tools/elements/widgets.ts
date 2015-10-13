@@ -5,7 +5,7 @@ export class GtForm extends PolymerElement {
 	/**
 	 * Indicate an error during form validation
 	 */
-	@Property({ type: Boolean })
+	@Property
 	public failed: boolean;
 
 	/**
@@ -36,32 +36,32 @@ export class GtInput extends PolymerElement {
 	/**
 	 * Disable the input
 	 */
-	@Property({ type: Boolean, reflectToAttribute: true })
+	@Property({ reflect: true })
 	public disabled: boolean;
 
 	/**
 	 * Prevent form submission if empty
 	 */
-	@Property({ type: Boolean, reflectToAttribute: true })
+	@Property({ reflect: true })
 	public required: boolean;
 
 	/**
 	 * Input type "text", "password"
 	 */
-	@Property({ type: String, value: "text" })
-	public type: string;
+	@Property
+	public type: string = "text";
 
 	/**
 	 * Error message
 	 */
-	@Property({ type: String, value: null, reflectToAttribute: true, notify: true })
-	public error: string;
+	@Property({ reflect: true, notify: true })
+	public error: string = null;
 
 	/**
 	 * Proxy to input value
 	 */
-	@Property({ type: String, notify: true })
-	public value: string;
+	@Property({ notify: true })
+	public value: string = "";
 
 	/**
 	 * Focus the input
@@ -81,12 +81,13 @@ export class GtInput extends PolymerElement {
 	 * Catch Enter-key presses in the input and forward to the form
 	 */
 	@Listener("input.keypress")
-	private "input-keypressed"(e: KeyboardEvent) {
+	private InputKeypress(e: KeyboardEvent) {
+		this.value = this.$.input.value;
 		if (e.keyCode == 13) {
 			e.preventDefault();
 			const form = this.host(GtForm);
 			if (form) {
-				this.$.input.blur();
+				this.blur();
 				form.submit();
 			}
 		}
@@ -109,14 +110,14 @@ export class GtButton extends PolymerElement {
 	/**
 	 * Disable the button, prevent event triggering
 	 */
-	@Property({ type: Boolean, reflectToAttribute: true })
+	@Property({ reflect: true })
 	public disabled: boolean;
 
 	/**
 	 * If set, clicking the button will trigger the submit event
 	 * in the enclosing GtForm
 	 */
-	@Property({ type: Boolean })
+	@Property
 	public submit: boolean;
 
 	/**

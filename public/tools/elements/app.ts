@@ -92,7 +92,7 @@ export class GtSidebar extends PolymerElement {
 	/**
 	 * List of icons to display on the sidebar
 	 */
-	@Property({ type: Array })
+	@Property
 	private icons: SidebarIcon[] = [
 		{ icon: "widgets", key: "dashboard", link: "/dashboard" },
 		{ icon: "account_circle", key: "profile", link: "/profile" },

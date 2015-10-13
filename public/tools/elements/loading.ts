@@ -19,8 +19,8 @@ export class GtLogin extends PolymerElement {
 	/**
 	 * Deferred to resolve with user credentials
 	 */
-	@Property({ type: String, value: null })
-	error: string;
+	@Property
+	error: string = null;
 
 	/**
 	 * Auto show dialog when attached

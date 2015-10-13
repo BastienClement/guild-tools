@@ -10,10 +10,10 @@ export class DataMain extends Provider {
 	@On({ "char-updated": "CharUpdated" })
 	private roster: Roster;
 
-	@Property({ type: Number, observer: "update" })
+	@Property({ observer: "update" })
 	public user: number;
 	
-	@Property({ type: Object, notify: true })
+	@Property({ notify: true })
 	public main: Char;
 
 	public update() {
@@ -34,10 +34,10 @@ export class DataChar extends Provider {
 	@On({ "char-updated": "CharUpdated" })
 	private roster: Roster;
 
-	@Property({ type: Number, observer: "update" })
+	@Property({ observer: "update" })
 	public id: number;
 	
-	@Property({ type: Object, notify: true })
+	@Property({ notify: true })
 	public char: Char;
 
 	public update() {
@@ -58,13 +58,13 @@ export class DataUser extends Provider {
 	@On({ "user-updated": "UserUpdated" })
 	private roster: Roster;
 
-	@Property({ type: Number, observer: "update" })
+	@Property({ observer: "update" })
 	public id: number;
 	
-	@Property({ type: Boolean, observer: "update"})
+	@Property({ observer: "update"})
 	public current: boolean;
 	
-	@Property({ type: Object, notify: true })
+	@Property({ notify: true })
 	public user: User;
 
 	public update() {
@@ -79,10 +79,10 @@ export class DataUser extends Provider {
 
 @Element("data-class", null, "meta")
 export class DataClass extends Provider {
-	@Property({ type: Number, observer: "update" })
+	@Property({ observer: "update" })
 	public id: number;
 	
-	@Property({ type: String, notify: true })
+	@Property({ notify: true })
 	public name: string;
 
 	private class_name(id: number) {
@@ -110,10 +110,10 @@ export class DataClass extends Provider {
 
 @Element("data-race", null, "meta")
 export class DataRace extends Provider {
-	@Property({ type: Number, observer: "update" })
+	@Property({ observer: "update" })
 	public id: number;
 	
-	@Property({ type: String, notify: true })
+	@Property({ notify: true })
 	public name: string;
 
 	private race_name(id: number) {
@@ -144,10 +144,10 @@ export class DataRace extends Provider {
 
 @Element("data-rank", null, "meta")
 export class DataRank extends Provider {
-	@Property({ type: Number, observer: "update" })
+	@Property({ observer: "update" })
 	public id: number;
 	
-	@Property({ type: String, notify: true })
+	@Property({ notify: true })
 	public name: string;
 
 	private rank_name(id: number) {
