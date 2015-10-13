@@ -286,8 +286,8 @@ export function Element(selector: string, template?: string, ext?: string) {
 
 		// Define custom sugars and perform dependency injection
 		target.prototype.createdCallback = function() {
-			// Temporary holder for injected components
-			let injects = Object.create(null);
+			// Construct a dummy object for obtaining default properties values
+			let props = Object.create(null);
 			
 			// Perform injections
 			// Since this is the first thing done, we can be sure that injected objects are available
@@ -295,15 +295,14 @@ export function Element(selector: string, template?: string, ext?: string) {
 			let inject_bindings = Reflect.getMetadata<InjectionBinding[]>("polymer:injects", target.prototype);
 			if (inject_bindings) {
 				for (let binding of inject_bindings) {
-					injects[binding.property] = DefaultInjector.get(binding.ctor);
+					props[binding.property] = DefaultInjector.get(binding.ctor);
 				}
 			}
 			
 			// Automatically inject the Application
-			injects.app = DefaultInjector.get<Application>(Application);
+			props.app = DefaultInjector.get<Application>(Application);
 			
-			// Construct a dummy object for obtaining default properties values
-			let props = Object.create(injects);
+			
 			
 			// Call the original constructor
 			// Elements *must not* extends the default TypeScript constructor
@@ -323,9 +322,10 @@ export function Element(selector: string, template?: string, ext?: string) {
 				this.shadow = Polymer.dom(this.root);
 				
 				// Copy injected components on the final object
-				for (let key in injects) {
-					if (this[key] === void 0) {
-						this[key] = injects[key];
+				for (let key in props) {
+					if (this[key] === void 0 && !this.properties[key]) {
+						this[key] = props[key];
+						delete props[key];
 					}
 				}
 				
@@ -344,10 +344,10 @@ export function Element(selector: string, template?: string, ext?: string) {
 				init_commit();
 				
 				// Copy default values
-				for (let prop of Object.getOwnPropertyNames(props)) {
+				for (let key in props) {
 					// Ensure no one define the value before
-					if (this[prop] === void 0) {
-						this[prop] = props[prop];
+					if (this[key] === void 0) {
+						this[key] = props[key];
 					}
 				}
 				
@@ -514,10 +514,12 @@ export function Property<T>(target?: any, property?: string, config: PolymerProp
 	
 	if (!target.properties) target.properties = {};
 	
+	// Alias reflect -> reflectToAttribute
 	if (config.reflect) {
 		config.reflectToAttribute = true;
 	}
 
+	// Transform getter to match Poylmer computed property style    
 	if (config.computed) {
 		try {
 			const generator = Object.getOwnPropertyDescriptor(target, property).get;
@@ -531,6 +533,7 @@ export function Property<T>(target?: any, property?: string, config: PolymerProp
 		}
 	}
 	
+	// Get type from Typescript annotations
 	if (typeof config == "object" && !config.type) {
 		config.type = Reflect.getMetadata<any>("design:type", target, property);
 	}
@@ -647,11 +650,9 @@ export function apply_polymer_fns() {
 	 * TODO: prevent crossing shadow-dom boundaries
 	 */
 	Polymer.enclosing = <T extends PolymerElement>(node: Node, ctor: PolymerConstructor<T>) => {
-		const initial_name = node.nodeName;
 		do {
 			node = node.parentNode;
 		} while (node && !Polymer.is(node, ctor));
-		//if (!node) throw new SyntaxError(`<${initial_name}> is not enclosed by a <${ctor.__polymer.selector}>`);
 		return node;
 	};
 
