@@ -18,8 +18,8 @@ export class GtTitleBar extends PolymerElement {
 	@On({ "update-latency": "UpdateLatency" })
 	private server: Server;
 
-	@Property({ value: "0ms" })
-	public latency: string;
+	@Property
+	public latency: string = "0ms";
 	private latency_history: number[] = [];
 
 	// Update the latency indicator
@@ -50,8 +50,8 @@ export class GtTitleBar extends PolymerElement {
 	})
 	private chat: Chat;
 
-	@Property({ value: 0 })
-	public online_users: number;
+	@Property
+	public online_users: number = 0;
 	
 	private UpdateOnlineCount() {
 		this.debounce("update-count", () => this.online_users = this.chat.onlinesUsers.length);

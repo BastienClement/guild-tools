@@ -491,8 +491,7 @@ export function Dependencies(...dependencies: PolymerConstructor<any>[]) {
 /**
  * Declare a Polymer Property
  */
-interface PolymerPropertyConfig<T> {
-	value?: T;
+interface PolymerPropertyConfig {
 	reflect?: boolean;
 	readOnly?: boolean;
 	notify?: boolean;
@@ -500,11 +499,11 @@ interface PolymerPropertyConfig<T> {
 	observer?: string;
 }
 
-export function Property<T>(config: PolymerPropertyConfig<T>): (t: any, p: string) => void;
-export function Property<T>(target: any, property: string): void;
-export function Property<T>(target: any, property: string, config: PolymerPropertyConfig<T>): void;
+export function Property(config: PolymerPropertyConfig): (t: any, p: string) => void;
+export function Property(target: any, property: string): void;
+export function Property(target: any, property: string, config: PolymerPropertyConfig): void;
 
-export function Property<T>(target?: any, property?: string, config: PolymerPropertyConfig<T> = {}): any {
+export function Property<T>(target?: any, property?: string, config: PolymerPropertyConfig = {}): any {
 	// Called with a config object
 	if (!(target instanceof PolymerElement)) {
 		return (t: any, p: string) => Property(t, p, target);
