@@ -35,7 +35,7 @@ export class Application {
 	/**
 	 * The master channel
 	 */
-	public masterChannel: Channel = null;
+	public master: Channel = null;
 
 	/**
 	 * Initialize the GuildTools application
@@ -76,7 +76,7 @@ export class Application {
 		body.classList.add("app-loader");
 		
 		// Open master channel
-		this.masterChannel = await this.server.openChannel("master");
+		this.master = await this.server.openChannel("master");
 		
 		// Load the main container element
 		await this.loader.loadElement(GtApp);
