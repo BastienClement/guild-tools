@@ -523,11 +523,11 @@
 				<div #foreground>
 					<h3>Add character</h3>
 					<gt-form>
-						<gt-input #server type="text" label="Server name"></gt-input>
-						<gt-input #char type="text" label="Character name"></gt-input>
+						<gt-input #server type="text" label="Server name" [value]="server"></gt-input>
+						<gt-input #char type="text" label="Character name" [value]="char"></gt-input>
 					</gt-form>
 					<div #load>
-						<gt-button #load-btn><i>file_download</i> Load</gt-button>
+						<gt-button #load-btn [disabled]="!canLoad"><i>file_download</i> Load</gt-button>
 					</div>
 					<div #bottom>
 						<div #roles-label>

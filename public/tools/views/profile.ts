@@ -76,6 +76,15 @@ export class ProfileAddChar extends PolymerElement {
 	
 	@Property public owner: number;
 	
+	private server: string;
+	private char: string;
+	private load_in_progress = false;
+	
+	@Property({ computed: "server char load_in_progress" })
+	private get canLoad(): boolean {
+		return !!this.server && !!this.char && !this.load_in_progress;
+	}
+	
 	public show() {
 		this.$.dialog.show();
 		this.$.char.focus();
