@@ -20,7 +20,7 @@ trait AuthService {
 	def auth(session: String): Future[User] = {
 		val sess_query = Sessions.filter(_.token === session)
 		sess_query.map(_.user).head flatMap { user_id =>
-			sess_query.map(_.last_access).update(SmartTimestamp.now)
+			sess_query.map(_.last_access).update(SmartTimestamp.now).run
 			Users.filter(u => u.id === user_id && u.group.inSet(allowed_groups)).head
 		}
 	}
