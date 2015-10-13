@@ -82,7 +82,6 @@ export class GtInput extends PolymerElement {
 	 */
 	@Listener("input.keypress")
 	private InputKeypress(e: KeyboardEvent) {
-		this.value = this.$.input.value;
 		if (e.keyCode == 13) {
 			e.preventDefault();
 			const form = this.host(GtForm);
@@ -91,6 +90,11 @@ export class GtInput extends PolymerElement {
 				form.submit();
 			}
 		}
+	}
+	
+	@Listener("input.keyup")
+	private InputUp(e: KeyboardEvent) {
+		this.debounce("value-changed", () => this.value = this.$.input.value, 200);
 	}
 
 	/**
