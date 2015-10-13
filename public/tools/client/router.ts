@@ -5,9 +5,7 @@ import { PolymerConstructor, PolymerElement, Element, Inject, Bind, Property } f
 import { GtApp } from "elements/app";
 import { UserInformations } from "client/server";
 
-/**
- * One specific route configuration
- */
+// One specific route configuration
 interface RoutePattern {
 	pattern: RegExp;
 	tags: string[];
@@ -15,10 +13,12 @@ interface RoutePattern {
 	view: PolymerConstructor<any>;
 }
 
+// The object used to store route arguments
 interface ArgumentsObject {
 	[arg: string]: string;
 }
 
+// A module tab used in the titlebar
 export interface ModuleTab {
 	title: string;
 	link: string;
@@ -45,7 +45,8 @@ export class Router extends EventEmitter {
 	}
 
 	/**
-	 * Extract parameters names from view path
+	 * Extract parameters names from view path and construct
+	 * a equivalent regular expression for matching the path
 	 */
 	public static compilePath(path: string): [RegExp, string[]]{
 		// Trim and escape base path
@@ -55,7 +56,7 @@ export class Router extends EventEmitter {
 		path = path.replace(/\/$/, "").replace(/\(/g, "(?:");
 
 		// Extract tag names
-		const tags = (path.match(/[^?]:[a-z_0-9\-]+/g) || []).map(tag => tag.slice(2));
+		let tags = (path.match(/[^?]:[a-z_0-9\-]+/g) || []).map(tag => tag.slice(2));
 
 		// Replace tags with capturing placeholders
 		path = path.replace(/([^?]):[a-z_0-9\-]+/g, "$1([^/]+)");
@@ -63,53 +64,21 @@ export class Router extends EventEmitter {
 		return [new RegExp(`^${path}/?$`), tags];
 	}
 
-	/**
-	 * Routes definitions
-	 */
+	// Routes definitions
 	private routes: RoutePattern[] = [];
 	private tabs: { [module: string]: ModuleTab[] } = {};
 
-	/**
-	 * Register a new route
-	 */
-	public register<T extends PolymerElement>(path: string, module: string, view: PolymerConstructor<T>) {
-		const [pattern, tags] = Router.compilePath(path);
-		this.routes.push({ pattern, tags, module, view });
-	}
-
-	/**
-	 * Load all views from an AMD module
-	 */
-	public loadViews(module: string | string[]) {
-		Router.context = this;
-		return System.import(module).then(m => void 0);
-	}
-
-	public static declareTabs(module: string, tabs: ModuleTab[]) {
-		if (Router.context) {
-			Router.context.tabs[module] = tabs;
-		} else {
-			throw new Error("Cannot declare tabs outside of a loadView() call");
-		}
-	}
-
-	/**
-	 * Current main-view informations
-	 */
+	// Current main-view informations
 	@Notify public activeModule: string;
 	@Notify public activeTabs: ModuleTab[];
 	@Notify public activeView: PolymerConstructor<any>;
 	@Notify public activeArguments: ArgumentsObject;
 	@Notify public activePath: string;
 
-	/**
-	 * User will be redirected to this path if no view matches the current path
-	 */
+	// User will be redirected to this path if no view matches the current path
 	public fallback: string;
 
-	/**
-	 * Keep track of last path to prevent view to be reloaded if the path hasn't actually changed
-	 */
+	// Keep track of last path to prevent view to be reloaded if the path hasn't actually changed
 	private last_path: string;
 
 	/**
@@ -121,11 +90,38 @@ export class Router extends EventEmitter {
 	}
 
 	/**
+	 * Register a new route
+	 */
+	public register<T extends PolymerElement>(path: string, module: string, view: PolymerConstructor<T>) {
+		let [pattern, tags] = Router.compilePath(path);
+		this.routes.push({ pattern, tags, module, view });
+	}
+
+	/**
+	 * Load all views from an AMD module
+	 */
+	public loadViews(module: string | string[]) {
+		Router.context = this;
+		return System.import(module).then(m => void 0);
+	}
+
+	/**
+	 * Declare tabs for a specific module
+	 */
+	public static declareTabs(module: string, tabs: ModuleTab[]) {
+		if (Router.context) {
+			Router.context.tabs[module] = tabs;
+		} else {
+			throw new Error("Cannot declare tabs outside of a loadView() call");
+		}
+	}
+
+	/**
 	 * Update router state with current path
 	 */
 	public update() {
 		// Current path
-		const path = location.pathname;
+		let path = location.pathname;
 		if (path == this.last_path) return;
 
 		// Trim trailing slash if any
@@ -135,7 +131,7 @@ export class Router extends EventEmitter {
 
 		// Search matching view
 		for (let route of this.routes) {
-			const matches = path.match(route.pattern);
+			let matches = path.match(route.pattern);
 			if (matches) {
 				// Module and view constructor
 				this.activeModule = route.module;
@@ -143,7 +139,7 @@ export class Router extends EventEmitter {
 				this.activeView = route.view;
 
 				// Construct argument object
-				const args = this.activeArguments = <ArgumentsObject> {};
+				let args = this.activeArguments = <ArgumentsObject> {};
 				for (let i = 0; i < route.tags.length; ++i) {
 					args[route.tags[i]] = matches[i + 1];
 				}

@@ -1,12 +1,4 @@
 /**
- * Interface of the function returned by Deferred#lazy()
- */
-export interface LazyThen<T> {
-	<U>(fn: (value: T) => U | Promise<U>): Promise<U>;
-	(): Promise<T>;
-}
-
-/**
  * Represent a not-yet-available value
  */
 export class Deferred<T> {
@@ -37,67 +29,12 @@ export class Deferred<T> {
 	//
 
 	/**
-	 * Create a resolved promise
-	 */
-	static resolved<T>(value: T): Promise<T> {
-		const d = new Deferred<T>();
-		d.resolve(value);
-		return d.promise;
-	}
-
-	/**
-	 * Create a rejected promise
-	 */
-	static rejected<T>(err: Error): Promise<T> {
-		const d = new Deferred<any>();
-		d.reject(err);
-		return d.promise;
-	}
-
-	/**
 	 * Create a promise that will be resolved after a delay (ms)
 	 */
 	static delay(time: number): Promise<void> {
 		const delay = new Deferred<void>();
 		setTimeout(() => delay.resolve(), time);
 		return delay.promise;
-	}
-
-	/**
-	 * Execute multiple promise-returning function in parallel
-	 */
-	static all<T>(jobs: Promise<T>[]): Promise<T[]> {
-		// Short circuit on empty array
-		if (jobs.length < 1) return Deferred.resolved([]);
-
-		const done = new Deferred<any[]>();
-
-		const results = new Array(jobs.length);
-		let left = jobs.length;
-
-		function result(idx: number) {
-			return (res: any) => {
-				results[idx] = res;
-				if (--left == 0) {
-					done.resolve(results);
-				}
-			};
-		}
-
-		for (let i = 0; i < jobs.length; ++i) {
-			jobs[i].then(result(i), (e) => done.reject(e));
-		}
-
-		return done.promise;
-	}
-
-	/**
-	 * Execute multiple promise-returning function sequentially
-	 */
-	static pipeline<T>(begin: any, jobs: Array<(val: any) => any>): Promise<T> {
-		let next: Promise<any> = begin;
-		for (let job of jobs) next = (next && next.then) ? next.then(job) : job(next);
-		return next;
 	}
 
 	/**
@@ -124,20 +61,6 @@ export class Deferred<T> {
 	static require<T>(module_name: string, symbole?: string): Promise<T> {
 		return System.import<any>(module_name).then(mod => symbole ? mod[symbole] : mod);
 	}
-
-	/**
-	 * Construct a lazy promise
-	 */
-	/*static lazy<T>(init: () => T | Promise<T>): LazyThen<T> {
-		let promise: Promise<T> = null;
-		return (fn?: (value: T) => any) => {
-			if (!promise) {
-				const value = init();
-				promise = (value instanceof Promise) ? value : Deferred.resolved(promise);
-			}
-			return fn ? promise.then(fn) : promise;
-		};
-	}*/
 }
 
 // ------------

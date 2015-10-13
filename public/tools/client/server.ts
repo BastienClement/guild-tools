@@ -29,12 +29,18 @@ export class Server extends EventEmitter {
 
 	// Boostrap the server connection
 	connect(url: string): Promise<void> {
-		const defer = this.connect_deferred = new Deferred<void>();
-		const socket = this.socket = new Socket(this.normalizeURL(url));
+		let defer = this.connect_deferred = new Deferred<void>();
+		let socket = this.socket = new Socket(this.normalizeURL(url));
 
 		socket.verbose = true;
 		socket.pipe(this);
-		socket.bind(this, "connected", "reconnecting", "disconnected", "reset", "channel-request");
+		socket.bind(this, {
+			"connected": "Connected",
+			"reconnecting": "Reconnecting",
+			"disconnected": "Disconnected",
+			"reset": "Reset",
+			"channel-request": "ChannelRequest"
+		});
 		socket.connect();
 
 		return defer.promise;
@@ -49,7 +55,7 @@ export class Server extends EventEmitter {
 	}
 
 	// The socket is connected to the server
-	private "connected"(version: string) {
+	private Connected(version: string) {
 		// Check if the server was updated
 		if (this.version && this.version != version) {
 			/**** FIXME ****/
@@ -68,13 +74,13 @@ export class Server extends EventEmitter {
 	}
 
 	// Connection to the server was interrupted
-	private "reconnecting"() {
+	private Reconnecting() {
 		/**** FIXME ****/
 		//status("Reconnecting...", true);
 	}
 
 	// The socket is definitively closed
-	private "disconnected" (code: number, reason: string) {
+	private Disconnected(code: number, reason: string) {
 		if (this.connect_deferred) {
 			this.connect_deferred.reject(new Error(`[${code}] ${reason}`));
 		}
@@ -84,12 +90,12 @@ export class Server extends EventEmitter {
 	}
 
 	// Connection with the server was re-established but the session was lost
-	private "reset"() {
+	private Reset() {
 		// There is no way to do that properly on GT6, we'll need to reload the whole app
 	}
 
 	// Incomming channel request
-	private "channel-request"() {
+	private ChannelRequest() {
 		// Todo
 		throw new Error("Unimplemented")
 	}

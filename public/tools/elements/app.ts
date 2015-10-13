@@ -161,7 +161,7 @@ export class GtView extends PolymerElement {
 		
 		tasks.push(this.loader.loadElement(view));
 
-		Deferred.all(tasks).then(() => {
+		Promise.all(tasks).then(() => {
 			document.body.classList.remove("app-loader");
 
 			let args = this.router.activeArguments;

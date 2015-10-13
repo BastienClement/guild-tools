@@ -6,8 +6,13 @@ import { PolymerElement, PolymerConstructor, PolymerMetadata, apply_polymer_fns 
 // Path to the polymer file
 const POLYMER_PATH = "/assets/imports/polymer.html";
 
+// The Response object returned by fetch()
+interface FetchResponse {
+	text(): Promise<string>;
+}
+
 // Alias to the fetch function for type-safety purpose
-const Fetch: (url: string) => Promise<FetchResponse> = (<any>window).fetch;
+const fetch: (url: string) => Promise<FetchResponse> = (<any>window).fetch;
 
 // Keep references to already imported HTML document
 const imported_documents: Map<string, Promise<Document>> = new Map<any, any>();
@@ -20,14 +25,8 @@ let polymer_loaded = false;
 let polymer_autoload: PolymerConstructor<any>[] = [];
 
 /**
- * The Response object returned by fetch()
- */
-export interface FetchResponse {
-	text(): Promise<string>;
-}
-
-/**
  * Resource loading service
+ * Handle LESS compilation and Polymer sugars
  */
 @Component
 export class Loader {
@@ -54,11 +53,11 @@ export class Loader {
 		};
 
 		// If the Fetch API is available, use it
-		if (Fetch) return cache_and_return(Fetch(url).then((res) => res.text()))
+		if (fetch) return cache_and_return(fetch(url).then((res) => res.text()))
 
 		// Fallback to XHR
-		const defer = new Deferred<string>();
-		const xhr = new XMLHttpRequest();
+		let defer = new Deferred<string>();
+		let xhr = new XMLHttpRequest();
 
 		xhr.open("GET", url, true);
 		xhr.responseType = "text";
@@ -83,14 +82,17 @@ export class Loader {
 	public loadLess(url: string): Promise<void> {
 		let promise = imported_less.get(url);
 		if (promise) return promise;
+		
+		promise = (async() => {
+			let source = await this.fetch(url);
+			let css = await this.compileLess(source);
 
-		promise = this.fetch(url).then(source => this.compileLess(source)).then(css => {
-			const style = document.createElement("style");
+			let style = document.createElement("style");
 			style.innerHTML = css;
 			style.setAttribute("data-source", url);
 			document.head.appendChild(style);
-		});
-
+		})();
+		
 		imported_less.set(url, promise);
 		return promise;
 	}
@@ -98,28 +100,26 @@ export class Loader {
 	/**
 	 * Handle @import (dynamic) statements
 	 */
-	private lessImportDynamics(source: string): Promise<string> {
+	private async lessImportDynamics(source: string): Promise<string> {
 		// Split the input file on every dynamic import
-		const parts = source.split(/@import\s*\(dynamic\)\s*"([^"]*)";?/);
+		let parts = source.split(/@import\s*\(dynamic\)\s*"([^"]*)";?/);
 
 		// No import fournd
-		if (parts.length == 1) return Deferred.resolved(source);
+		if (parts.length == 1) return source;
 
 		// Fetch imports
-		const dyn_imports: Promise<string>[] = [];
+		let dyn_imports: Promise<string>[] = [];
 		for (let i = 1; i < parts.length; ++i) {
 			if (i % 2 == 1) dyn_imports.push(this.fetch(parts[i]));
 		}
-
-		// Combine
-		return Deferred.all(dyn_imports).then(dyn_source => {
-			for (let i = 0; i < dyn_source.length; ++i) {
-				parts[i * 2 + 1] = dyn_source[i];
-			}
-
-			// Recursive handling of deep @import (dynamic)
-			return this.lessImportDynamics(parts.join(""));
-		});
+		
+		let dyn_sources = await Promise.all(dyn_imports);
+		for (let i = 0; i < dyn_sources.length; i++) {
+			parts[i * 2 + 1] = dyn_sources[i];
+		}
+		
+		// Recursive handling of deep @import (dynamic)
+		return this.lessImportDynamics(parts.join(""));
 	}
 
 	/**
@@ -146,7 +146,7 @@ export class Loader {
 		let promise = imported_documents.get(url);
 		if (promise) return promise;
 
-		const link = document.createElement("link");
+		let link = document.createElement("link");
 		link.rel = "import";
 		link.href = url;
 
@@ -167,7 +167,7 @@ export class Loader {
 	 */
 	public async loadElement<T extends PolymerElement>(element: PolymerConstructor<T>): Promise<PolymerConstructor<T>> {
 		// Read Polymer metadata
-		const meta = Reflect.getMetadata<PolymerMetadata<T>>("polymer:meta", element);
+		let meta = Reflect.getMetadata<PolymerMetadata<T>>("polymer:meta", element);
 		
 		// Check if the element was already loaded once
 		if (meta.loaded) {
@@ -208,16 +208,16 @@ export class Loader {
 			let document = await this.loadDocument(meta.template);
 			
 			// Find the <dom-module> element
-			const domModule = document.querySelector<HTMLElement>(`dom-module[id=${meta.selector}]`);
+			let domModule = document.querySelector<HTMLElement>(`dom-module[id=${meta.selector}]`);
 			if (!domModule) throw new Error(`no <dom-module> found for element <${meta.selector}> in file '${meta.template}'`);
 			
 			// Compile LESS
-			const less_styles = <NodeListOf<HTMLStyleElement>> domModule.querySelectorAll(`style[type="text/less"]`);
+			let less_styles = <NodeListOf<HTMLStyleElement>> domModule.querySelectorAll(`style[type="text/less"]`);
 			if (less_styles.length > 0) {
 				const job = (i: number) => {
-					const style = less_styles[i];
+					let style = less_styles[i];
 					return this.compileLess(style.innerHTML).then(css => {
-						const new_style = document.createElement("style");
+						let new_style = document.createElement("style");
 						new_style.innerHTML = css;
 
 						style.parentNode.insertBefore(new_style, style);
@@ -225,7 +225,7 @@ export class Loader {
 					});
 				};
 
-				const jobs: Promise<void>[] = [];
+				let jobs: Promise<void>[] = [];
 				for (let i = 0; i < less_styles.length; ++i) {
 					jobs[i] = job(i);
 				}
@@ -234,7 +234,7 @@ export class Loader {
 			}
 
 			// Compile template            
-			const template = domModule.getElementsByTagName("template")[0];
+			let template = domModule.getElementsByTagName("template")[0];
 			if (template) {
 				this.compilePolymerSugars(template.content);
 				this.compileAngularNotation(<any> template.content);
@@ -248,7 +248,7 @@ export class Loader {
 	/**
 	 * Register an element to auto load when polymer is loaded
 	 */
-	registerPolymerAutoload(ctor: PolymerConstructor<any>) {
+	public registerPolymerAutoload(ctor: PolymerConstructor<any>) {
 		if (polymer_autoload) {
 			polymer_autoload.push(ctor);
 		} else {
@@ -292,7 +292,7 @@ export class Loader {
 		};
 
 		// <element [if]="{{cond}}">
-		const if_nodes = <NodeListOf<HTMLElement>> template.querySelectorAll("*[\\[if\\]]");
+		let if_nodes = <NodeListOf<HTMLElement>> template.querySelectorAll("*[\\[if\\]]");
 		for (let i = 0; i < if_nodes.length; ++i) {
 			node = if_nodes[i];
 			promote_attribute("[if]", "if", node.textContent, true);
@@ -300,7 +300,7 @@ export class Loader {
 		}
 
 		// <element [repeat]="{{collection}}" filter sort observe>
-		const repeat_nodes = <NodeListOf<HTMLElement>>  template.querySelectorAll("*[\\[repeat\\]]");
+		let repeat_nodes = <NodeListOf<HTMLElement>>  template.querySelectorAll("*[\\[repeat\\]]");
 		for (let i = 0; i < repeat_nodes.length; ++i) {
 			node = repeat_nodes[i];
 			promote_attribute("[repeat]", "items", "", true);
@@ -321,17 +321,17 @@ export class Loader {
 		if (!node) return;
 
 		// Find Angular2-style attributes
-		const attrs: [string, string, string][] = [];
+		let attrs: [string, string, string][] = [];
 		for (let i = 0; node.attributes && i < node.attributes.length; ++i) {
-			const attr = node.attributes[i];
+			let attr = node.attributes[i];
 			attrs[i] = [attr.name, attr.value, attr.name.slice(1, -1)];
 		}
 
-		const children = node.childNodes;
+		let children = node.childNodes;
 		let attr_bindings_compiled = false;
 
 		for (let a of attrs) {
-			const [name, value, bind] = a;
+			let [name, value, bind] = a;
 			if (name[0] == "[" || name[0] == "(" || name[0] == "{") {
 				switch (name[0]) {
 					case "[":
@@ -380,7 +380,7 @@ export class Loader {
 
 		// Construct the new tag
 		// -> Special case for empty tag
-		const tag_limit = node.innerHTML != "" ? node.outerHTML.indexOf(node.innerHTML) : node.outerHTML.indexOf(">") + 1;
+		let tag_limit = node.innerHTML != "" ? node.outerHTML.indexOf(node.innerHTML) : node.outerHTML.indexOf(">") + 1;
 		let tag = node.outerHTML.slice(0, tag_limit);
 		for (let attr of attrs) {
 			tag = tag.replace(attr[0], `${attr[2]}$`);
@@ -388,11 +388,11 @@ export class Loader {
 
 		// Instatiate
 		this.dummy_node.innerHTML = tag;
-		const new_node = <HTMLElement> this.dummy_node.firstChild;
+		let new_node = <HTMLElement> this.dummy_node.firstChild;
 
 		// Copy attributes
 		for (let attr of attrs) {
-			const attr_node = <Attr> new_node.attributes.getNamedItem(`${attr[2]}$`).cloneNode(false);
+			let attr_node = <Attr> new_node.attributes.getNamedItem(`${attr[2]}$`).cloneNode(false);
 			attr_node.value = `{{${attr[1] || attr[2]}}}`;
 			node.attributes.setNamedItem(attr_node);
 			node.removeAttribute(attr[0]);

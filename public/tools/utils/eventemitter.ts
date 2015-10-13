@@ -36,14 +36,14 @@ export class EventEmitter {
 	 * Create notification proxy
 	 */
 	constructor() {
-		const notify = Reflect.getMetadata<{ [prop: string]: boolean }>("eventemitter:notify", this);
+		let notify = Reflect.getMetadata<{ [prop: string]: boolean }>("eventemitter:notify", this);
 		if (notify) {
 			const define_property = (prop: string) => {
 				let value: any;
 				Object.defineProperty(this, prop, {
 					get: () => value,
 					set: (new_value: any) => {
-						const old_value = value;
+						let old_value = value;
 						value = new_value;
 						defer(() => this.emit(`${prop}-updated`, value, old_value));
 					}
@@ -77,23 +77,23 @@ export class EventEmitter {
 	/**
 	 * Bind a listener to an event
 	 */
-	on(event: string, fn: Function, context: any = this, ...args: any[]): EventEmitter {
+	public on(event: string, fn: Function, context: any = this, ...args: any[]): EventEmitter {
 		return this.registerHandler(event, fn, false, context, args);
 	}
 
 	/**
 	 * Bind a listener to the next event. The listener is called only once.
 	 */
-	once(event: string, fn: Function, context: any = this, ...args: any[]): EventEmitter {
+	public once(event: string, fn: Function, context: any = this, ...args: any[]): EventEmitter {
 		return this.registerHandler(event, fn, true, context, args);
 	}
 
 	/**
-	 * Bind events to same-name methods with 'this' bound to the listener object
+	 * Bind event according to a mapping object
 	 */
-	bind(listener: any, ...events: string[]): EventEmitter {
-		for (let event of events) {
-			this.registerHandler(event, listener[event], false, listener, EmptyArray);
+	public bind(listener: any, mapping: { [key: string]: string; }): EventEmitter {
+		for (let event in mapping) {
+			this.registerHandler(event, listener[mapping[event]], false, listener, EmptyArray);
 		}
 		return this;
 	}
@@ -102,8 +102,8 @@ export class EventEmitter {
 	 * Remove event handler for a specific event
 	 * If `cb` is not given, removes all handlers for a specific event
 	 */
-	off(event: string, fn?: Function, context?: any): EventEmitter {
-		const listeners = this.listeners.get(event);
+	public off(event: string, fn?: Function, context?: any): EventEmitter {
+		let listeners = this.listeners.get(event);
 
 		if (listeners) {
 			listeners.forEach(listener => {
@@ -119,7 +119,7 @@ export class EventEmitter {
 	/**
 	 * Pipe events to another EventEmitter
 	 */
-	pipe(emitter: EventEmitter, ...filters: string[]) {
+	public pipe(emitter: EventEmitter, ...filters: string[]) {
 		let blacklist = false;
 		let filters_set: Set<string> = null;
 
@@ -144,7 +144,7 @@ export class EventEmitter {
 	/**
 	 * Remove a piped-to EventEmitter
 	 */
-	unpipe(emitter: EventEmitter) {
+	public unpipe(emitter: EventEmitter) {
 		this.pipes.forEach(pipe => {
 			if (pipe.emitter === emitter) {
 				this.pipes.delete(pipe);

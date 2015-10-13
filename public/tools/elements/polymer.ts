@@ -1,4 +1,4 @@
-import { Deferred, LazyThen, defer } from "utils/deferred";
+import { Deferred, defer } from "utils/deferred";
 import { Queue } from "utils/queue";
 import { Constructor, DefaultInjector } from "utils/di";
 import { EventEmitter } from "utils/eventemitter";

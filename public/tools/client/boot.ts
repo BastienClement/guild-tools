@@ -37,9 +37,9 @@ export default async function boot() {
 	// Construct the Application
 	const app = injector.get(app_constructor);
 	
-	// Assign to global object and call main()
-	(<any> window).GuildTools = app;
 	try {
+		// Assign to global object and call main()
+		(<any> window).GuildTools = app;
 		await app.main();
 	} catch (e) {
 		console.error("loading failed", e);

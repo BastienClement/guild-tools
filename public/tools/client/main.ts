@@ -41,10 +41,10 @@ export class Application {
 	 * Initialize the GuildTools application
 	 */
 	async main(): Promise<void> {
-		const fast = localStorage.getItem("loading.fast") == "1";
-		const socket_endpoint = this.loader.fetch("/api/socket_url");
-		const body = document.body;
-
+		let fast = localStorage.getItem("loading.fast") == "1";
+		let socket_endpoint = this.loader.fetch("/api/socket_url");
+		let body = document.body;
+		
 		// Connect to server and load main less file        
 		await Promise.all([
 			this.loader.loadLess("/assets/less/guildtools.less"),
@@ -52,7 +52,7 @@ export class Application {
 		]);
 		
 		// Display the title bar
-		const loader_title = document.getElementById("loader-titlebar");
+		let loader_title = document.getElementById("loader-titlebar");
 		if (APP) {
 			loader_title.style.opacity = "1";
 		} else {
@@ -108,13 +108,13 @@ export class Application {
 		if (!this.spinner_enabled) return Promise.resolve(null);
 		this.spinner_enabled = false;
 
-		const last_dot = document.querySelector<HTMLSpanElement>("#loader .spinner b:last-child");
-		const trigger = new Deferred<void>();
+		let last_dot = document.querySelector<HTMLSpanElement>("#loader .spinner b:last-child");
+		let trigger = new Deferred<void>();
 
 		const listener = () => {
 			trigger.resolve(null);
 			last_dot.removeEventListener("animationiteration", listener);
-			const dots = document.querySelectorAll<HTMLSpanElement>("#loader .spinner b");
+			let dots = document.querySelectorAll<HTMLSpanElement>("#loader .spinner b");
 			for (let i = 0; i < dots.length; ++i) {
 				dots[i].style.animationIterationCount = "1";
 			}
@@ -123,7 +123,7 @@ export class Application {
 		last_dot.addEventListener("animationiteration", listener);
 
 		// Bypass the synchronization if loading.fast is set
-		if (localStorage.getItem("loading.fast") == "1") return Promise.resolve(null);
+		if (localStorage.getItem("loading.fast") == "1") return Promise.resolve();
 
 		return trigger.promise.then(() => Deferred.delay(500));
 	}
@@ -142,7 +142,7 @@ class AuthenticationDriver {
 	/**
 	 * Begin the authentication process
 	 */
-	async start(): Promise<void> {
+	public async start(): Promise<void> {
 		this.channel = await this.app.server.openChannel("auth");
 		let session = localStorage.getItem(KEY_AUTH_SESSION);
 		
@@ -173,7 +173,7 @@ class AuthenticationDriver {
 	 * the authentication was successful
 	 */
 	private async auth(session: string): Promise<boolean> {
-		const user = await this.channel.request<UserInformations>("auth", session);
+		let user = await this.channel.request<UserInformations>("auth", session);
 		this.app.user = user;
 		return !!user;
 	}
@@ -184,15 +184,19 @@ class AuthenticationDriver {
 	private async login(): Promise<string> {
 		let error: string = null
 		while (true) {
-			const [user, raw_pass] = await this.requestCredentials(error);
+			let [user, raw_pass] = await this.requestCredentials(error);
 
-			const [prepare, phpbb_hash, crypto] = await Deferred.all<any>([
+			type PrepareData = { setting: string, salt: string };
+			type PhpBBHash = (pass: string, setting: string) => string;
+			type CryptoJS = { SHA1: (str: string) => Object };
+			
+			let [prepare, phpbb_hash, crypto] = <[PrepareData, PhpBBHash, CryptoJS]> await Promise.all([
 				this.channel.request("prepare", user),
 				Deferred.require("phpbb_hash"),
 				Deferred.require("cryptojs")
 			]);
 
-			const pass = crypto.SHA1(phpbb_hash(raw_pass, prepare.setting) + prepare.salt).toString();
+			let pass = crypto.SHA1(phpbb_hash(raw_pass, prepare.setting) + prepare.salt).toString();
 
 			try {
 				return await this.channel.request<string>("login", { user, pass });
