@@ -10,7 +10,7 @@ import scala.concurrent.Future
 
 object BattleNet {
 	private val key = current.configuration.getString("bnet.apiKey") getOrElse ""
-	case class BnetFailure(response: WSResponse) extends Exception
+	case class BnetFailure(response: WSResponse) extends Exception((response.json \ "reason").as[String])
 }
 
 trait BattleNet {
@@ -18,9 +18,9 @@ trait BattleNet {
 		val params = user_params :+ ("apikey" -> key)
 		val request = WS.url(s"https://eu.api.battle.net/wow$api").withQueryString(params: _*).withRequestTimeout(10000)
 
-		request.withHeaders("Accept" -> "application/json").get() flatMap {
-			case res if res.status == 200 => Future.successful(res.json)
-			case res => Future.failed(BnetFailure(res))
+		request.withHeaders("Accept" -> "application/json").get() map {
+			case res if res.status == 200 => res.json
+			case res => throw BnetFailure(res)
 		}
 	}
 
