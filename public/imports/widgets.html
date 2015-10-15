@@ -73,6 +73,11 @@
 			border-radius: 0;
 			outline: none;
 			
+			&:disabled {
+				color: rgba(255, 255, 255, 0.75);
+				user-select: none;
+			}
+			
 			:host(:hover) & {
 				border-bottom-width: 2px;
 				margin-bottom: -1px;
@@ -100,6 +105,11 @@
 		#label {
 			font: 400 13px Roboto;
 			margin-bottom: 8px;
+			transition: opacity 0.2 ease-out;
+			
+			:host-context([disabled]) & {
+				opacity: 0.5;
+			}
 		}
 		
 		#error {
@@ -124,7 +134,7 @@
 		<label #outer {data-valid}="!error">
 			<span #label [if]>{{label}}</span>
 			<span #wrapper>
-				<input #input [type] [value]="value::change">
+				<input #input [type] [value]="value::change" {disabled}>
 			</span>
 			<div #error>{{error}}</div>
 		</label>

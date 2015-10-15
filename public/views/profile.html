@@ -483,6 +483,11 @@
 		#roles-label {
 			font: 400 13px Roboto;
    			margin-bottom: 16px;
+			transition: opacity .2 ease-out;
+			   
+			[disabled] & {
+				opacity: 0.5;
+			}
 		}
 		
 		#roles {
@@ -494,22 +499,29 @@
 			img {
 				width: 24px;
 				height: 24px;
-				opacity: .5;
+				opacity: 0.6;
 				transition: all .2s ease-out;
-				border: 2px solid fade(@fs-blue, 50%);
+				border: 2px solid fade(@fs-blue, 30%);
 				border-radius: 100%;
 				padding: 3px;
 				box-sizing: content-box;
 				filter: saturate(50%);
 				
-				&:hover:not([disabled]):not([active]) {
-					opacity: 0.75;
+				[disabled] & {
+					opacity: 0.5 !important;
+					filter: saturate(50%) !important;
+					border-color: fade(@fs-blue, 50%);
+				}
+				
+				&:hover:not([active]) {
+					opacity: 0.8;
 					filter: saturate(100%);
 				}
 				
 				&[active] {
 					opacity: 1;
 					filter: saturate(100%);
+					border-color: fade(@fs-blue, 60%);
 				}
 			}
 		}
@@ -534,13 +546,13 @@
 				<div #foreground>
 					<h3>Add character</h3>
 					<gt-form (submit)="load">
-						<gt-input #server type="text" label="Server name" [value]="server"></gt-input>
-						<gt-input #name type="text" label="Character name" [value]="name"></gt-input>
+						<gt-input #server type="text" label="Server name" [value]="server" [disabled]="char"></gt-input>
+						<gt-input #name type="text" label="Character name" [value]="name" [disabled]="char"></gt-input>
 					</gt-form>
 					<div #load>
 						<gt-button #load-btn [disabled]="!canLoad" (click)="load"><i>file_download</i> Load</gt-button>
 					</div>
-					<div #bottom>
+					<div #bottom {disabled}="!char">
 						<div #roles-label>
 							Character main role
 						</div>
@@ -550,8 +562,8 @@
 							<img src="/assets/images/roles/DPS.png" role="DPS" (click)="roleClicked" {active}="equals(role, 'DPS')">
 						</div>
 						<div #actions>
-							<gt-button>Cancel</gt-button>
-							<gt-button disabled>Confirm</gt-button>
+							<gt-button (click)="close">Cancel</gt-button>
+							<gt-button [disabled]="!char">Confirm</gt-button>
 						</div>
 					</div>
 				</div>

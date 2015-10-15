@@ -74,74 +74,85 @@ export class ProfileAddChar extends PolymerElement {
 	@Inject
 	private profile: Profile;
 	
-	@Property public owner: number;
+	// The owner of the newly added char
+	@Property public owner: number = this.app.user.id;
 	
 	private server: string;
 	private name: string;
 	private role: string;
 	
 	private char: Char;
-	private load_in_progress = false;
+	private load_done = false;
 	
-	@Property({ computed: "server name load_in_progress" })
+	// Check if the user can load a character (required fields filled and not already loaded)
+	@Property({ computed: "server name load_done" })
 	private get canLoad(): boolean {
-		return !!this.server && !!this.name && !this.load_in_progress;
+		return !!this.server && !!this.name && !this.load_done;
 	}
 	
-	private roleClicked(e: MouseEvent) {
-		let img = <HTMLImageElement> e.target;
-		this.role = img.getAttribute("role");
-	}
-	
+	// Load the character
 	private async load() {
 		if (!this.canLoad) return;
-		this.load_in_progress = true;
+		this.load_done = true;
 		
 		let input: GtInput = this.$.name;
 		input.error = null;
 		
 		try {
+			// Check if the character is already registered to someone in the database
 			let available = await this.profile.checkAvailability(this.server, this.name);
 			if (!available) {
 				throw new Error("This character is already registered");
 			}
 			
+			// Fetch the char from Battle.net
 			let char = this.char = await this.profile.fetchChar(this.server, this.name);
+			this.role = char.role;
 			
+			// Change the dialog background
 			let img = document.createElement("img");
 			img.src = "http://eu.battle.net/static-render/eu/" + char.thumbnail.replace("avatar", "profilemain");
 			this.$.background.appendChild(img);
 			img.onload = () => img.classList.add("loaded");
-			
-			this.role = char.role;
-			
-			console.log(this.char);
 		} catch (e) {
 			input.error = e.message;
 			input.value = "";
 			input.focus();
-		} finally {
-			this.load_in_progress = false;
+			this.load_done = false;
 		}
 	}
 	
+	// Role selected
+	private roleClicked(e: MouseEvent) {
+		let img = <HTMLImageElement> e.target;
+		this.role = img.getAttribute("role");
+	}
+	
+	// Show the add-char dialog
 	public show() {
 		// Reset fields values
 		this.name = "";
 		this.server = "";
-		this.role = "UNKNOWN";
+		this.char = null;
+		this.load_done = false;
 		
-		// Focus the server field
-		this.$.server.focus();
-		
-		// Remove old backgrounds from past loading
+		// Remove old backgrounds
 		let background: HTMLDivElement = this.$.background;
 		let imgs = background.querySelectorAll<HTMLImageElement>("img:not([default])");
 		for (let i = 0; i < imgs.length; i++) {
 			imgs[i].remove();
 		}
-		// Actually show the dialog
+		
+		// Show the dialog
 		this.$.dialog.show();
+		
+		// Focus the server field
+		this.$.name.focus();
+	}
+	
+	// Close the dialog
+	public close() {
+		this.$.dialog.hide();
 	}
 }
 
