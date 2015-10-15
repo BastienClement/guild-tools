@@ -106,14 +106,17 @@ export class ProfileAddChar extends PolymerElement {
 			}
 			
 			// Fetch the char from Battle.net
-			let char = this.char = await this.profile.fetchChar(this.server, this.name);
-			this.role = char.role;
+			let char = await this.profile.fetchChar(this.server, this.name);
 			
 			// Change the dialog background
 			let img = document.createElement("img");
 			img.src = "http://eu.battle.net/static-render/eu/" + char.thumbnail.replace("avatar", "profilemain");
-			this.$.background.appendChild(img);
-			img.onload = () => img.classList.add("loaded");
+			Polymer.dom(this.$.background).appendChild(img);
+			img.onload = () => {
+				this.char = char;
+				this.role = char.role;
+				img.classList.add("loaded");
+			};
 		} catch (e) {
 			input.error = e.message;
 			input.value = "";
