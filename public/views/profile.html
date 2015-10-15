@@ -402,9 +402,15 @@
 			filter: opacity(80%) saturate(75%);
 			
 			img {
+				opacity: 0;
 				position: absolute;
 				top: -70px;
 				left: -10px;
+				transition: opacity .2s ease-out;
+				
+				&[default], &.loaded {
+					opacity: 1;
+				}
 			}
 		}
 		
@@ -496,7 +502,12 @@
 				box-sizing: content-box;
 				filter: saturate(50%);
 				
-				&:hover:not([disabled]) {
+				&:hover:not([disabled]):not([active]) {
+					opacity: 0.75;
+					filter: saturate(100%);
+				}
+				
+				&[active] {
 					opacity: 1;
 					filter: saturate(100%);
 				}
@@ -522,21 +533,21 @@
 				<div #middle></div>
 				<div #foreground>
 					<h3>Add character</h3>
-					<gt-form>
+					<gt-form (submit)="load">
 						<gt-input #server type="text" label="Server name" [value]="server"></gt-input>
-						<gt-input #char type="text" label="Character name" [value]="char"></gt-input>
+						<gt-input #name type="text" label="Character name" [value]="name"></gt-input>
 					</gt-form>
 					<div #load>
-						<gt-button #load-btn [disabled]="!canLoad"><i>file_download</i> Load</gt-button>
+						<gt-button #load-btn [disabled]="!canLoad" (click)="load"><i>file_download</i> Load</gt-button>
 					</div>
 					<div #bottom>
 						<div #roles-label>
 							Character main role
 						</div>
 						<div #roles>
-							<img src="/assets/images/roles/TANK.png">
-							<img src="/assets/images/roles/HEALING.png">
-							<img src="/assets/images/roles/DPS.png">
+							<img src="/assets/images/roles/TANK.png" role="TANK" (click)="roleClicked" {active}="equals(role, 'TANK')">
+							<img src="/assets/images/roles/HEALING.png" role="HEALING" (click)="roleClicked" {active}="equals(role, 'HEALING')">
+							<img src="/assets/images/roles/DPS.png" role="DPS" (click)="roleClicked" {active}="equals(role, 'DPS')">
 						</div>
 						<div #actions>
 							<gt-button>Cancel</gt-button>

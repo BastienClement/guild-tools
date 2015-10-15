@@ -3,6 +3,7 @@ import { Service, Notify } from "utils/service";
 import { Server, ServiceChannel } from "client/server";
 import { Channel } from "gtp3/channel";
 import { Deferred } from "utils/deferred";
+import { Char } from "services/roster";
 
 /**
  * Profile service
@@ -15,4 +16,14 @@ export class Profile extends Service {
 	
 	// Profile channel
 	private channel = this.server.openServiceChannel("profile");
+	
+	// Check if a character is already registered to a user
+	public async checkAvailability(server: string, name: string) {
+		return this.channel.request<boolean>("is-char-available", { server, name });
+	}
+	
+	// Fetch a specific char from Battle.net
+	public async fetchChar(server: string, name: string) {
+		return this.channel.request<Char>("fetch-char", { server, name });
+	}
 }

@@ -77,17 +77,69 @@ export class ProfileAddChar extends PolymerElement {
 	@Property public owner: number;
 	
 	private server: string;
-	private char: string;
+	private name: string;
+	private role: string;
+	
+	private char: Char;
 	private load_in_progress = false;
 	
-	@Property({ computed: "server char load_in_progress" })
+	@Property({ computed: "server name load_in_progress" })
 	private get canLoad(): boolean {
-		return !!this.server && !!this.char && !this.load_in_progress;
+		return !!this.server && !!this.name && !this.load_in_progress;
+	}
+	
+	private roleClicked(e: MouseEvent) {
+		let img = <HTMLImageElement> e.target;
+		this.role = img.getAttribute("role");
+	}
+	
+	private async load() {
+		if (!this.canLoad) return;
+		this.load_in_progress = true;
+		
+		let input: GtInput = this.$.name;
+		input.error = null;
+		
+		try {
+			let available = await this.profile.checkAvailability(this.server, this.name);
+			if (!available) {
+				throw new Error("This character is already registered");
+			}
+			
+			let char = this.char = await this.profile.fetchChar(this.server, this.name);
+			
+			let img = document.createElement("img");
+			img.src = "http://eu.battle.net/static-render/eu/" + char.thumbnail.replace("avatar", "profilemain");
+			this.$.background.appendChild(img);
+			img.onload = () => img.classList.add("loaded");
+			
+			console.log(this.char);
+		} catch (e) {
+			input.error = e.message;
+			input.value = "";
+			input.focus();
+		} finally {
+			this.load_in_progress = false;
+		}
 	}
 	
 	public show() {
+		// Reset fields values
+		this.name = "";
+		this.server = "";
+		this.role = "UNKNOWN";
+		
+		// Focus the server field
+		this.$.server.focus();
+		
+		// Remove old backgrounds from past loading
+		let background: HTMLDivElement = this.$.background;
+		let imgs = background.querySelectorAll<HTMLImageElement>("img:not([default])");
+		for (let i = 0; i < imgs.length; i++) {
+			imgs[i].remove();
+		}
+		// Actually show the dialog
 		this.$.dialog.show();
-		this.$.char.focus();
 	}
 }
 

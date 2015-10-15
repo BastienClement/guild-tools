@@ -302,8 +302,6 @@ export function Element(selector: string, template?: string, ext?: string) {
 			// Automatically inject the Application
 			props.app = DefaultInjector.get<Application>(Application);
 			
-			
-			
 			// Call the original constructor
 			// Elements *must not* extends the default TypeScript constructor
 			// By default, only properties initialization is performed
@@ -670,4 +668,11 @@ export function apply_polymer_fns() {
 		e.preventDefault();
 		return false;
 	};
+	
+	/**
+	 * Equals function
+	 */
+	Base.equals = function(a: any, b: any) {
+		return a === b;
+	}
 }
