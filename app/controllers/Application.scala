@@ -1,9 +1,8 @@
 package controllers
 
 import akka.actor.Props
-import gtp3.SocketActor
+import gtp3.WSActor
 import play.api.Play.current
-import play.api.libs.json.JsValue
 import play.api.mvc.{Action, Controller, WebSocket}
 
 object Application extends Controller {
@@ -14,7 +13,7 @@ object Application extends Controller {
 	}
 
 	def gtp3 = WebSocket.acceptWithActor[Array[Byte], Array[Byte]] { request => out =>
-		Props(new SocketActor(out, request.remoteAddress))
+		Props(new WSActor(out, request.remoteAddress))
 	}
 
 	def test = Action {

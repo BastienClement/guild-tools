@@ -5,7 +5,15 @@ import reactive.ExecutionContext
 import scala.concurrent.duration.FiniteDuration
 
 object Timeout {
+	// Construct a timeout
 	def apply(dur: FiniteDuration)(body: => Unit): Timeout = new Timeout(dur)(body)
+
+	// Return a started timeout
+	def start(dur: FiniteDuration)(body: => Unit): Timeout = {
+		val t = Timeout(dur)(body)
+		t.start()
+		t
+	}
 }
 
 class Timeout(d: FiniteDuration)(body: => Unit) {

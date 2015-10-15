@@ -1,18 +1,17 @@
 package gtp3
 
-import actors.SocketManager.{Handshake, Resume}
 import akka.actor.{Actor, ActorRef, Props, Terminated}
-import channels.Auth.SetUser
 import gt.Global
 import gtp3.Socket._
 import models.User
+import play.libs.Akka
 
 import scala.annotation.tailrec
 import scala.collection.mutable
 
 object Socket {
 	// Construct Socket actors
-	def props(id: Long, out: ActorRef) = Props(new Socket(id, out))
+	def props(id: Long) = Props(new Socket(id))
 
 	// Open request responses
 	private case class ChannelAccept(open: OpenFrame, handler: Props)
@@ -20,9 +19,24 @@ object Socket {
 
 	// Special exception used if a frame is received multiple times
 	private case object DuplicatedFrame extends Exception
+
+	// Handshake messages
+	case class Handshake(out: ActorRef)
+	case class Resume(out: ActorRef, seq: Int)
+	case object Disconnect
+
+	// Incoming and outgoing frames
+	case class IncomingFrame(buf: Array[Byte])
+	case class OutgoingFrame(buf: Array[Byte])
+
+	// Define the authenticated user of this socket
+	case class SetUser(user: User)
 }
 
-class Socket(val id: Long, val out: ActorRef) extends Actor {
+class Socket(val id: Long) extends Actor {
+	// The outgoing frame receiver
+	private var out: ActorRef = null
+
 	// Incoming sequence id
 	private var in_seq = 0
 
@@ -43,17 +57,22 @@ class Socket(val id: Long, val out: ActorRef) extends Actor {
 
 	def receive = {
 		// Initialize a new socket
-		case Handshake() =>
+		case Handshake(o) =>
+			out = o
 			self ! HandshakeFrame(GTP3Magic, Global.serverVersion, id)
 
 		// Resume a disconnected socket
-		case Resume(seq) =>
+		case Resume(o, seq) =>
+			out = o
 			ack(seq)
 			while (out_buffer.nonEmpty) self ! out_buffer.dequeue()
 			self ! SyncFrame(in_seq)
 
+		case Disconnect =>
+			out = null
+
 		// Received a buffer from the WebSocket
-		case buffer: Array[Byte] =>
+		case IncomingFrame(buffer) =>
 			try {
 				// Decode the frame buffer
 				val frame = Frame.decode(buffer)
@@ -88,32 +107,33 @@ class Socket(val id: Long, val out: ActorRef) extends Actor {
 		case frame: Frame =>
 			// Special handling for sequenced frames
 			// Automatic tagging
-			frame.ifSequenced { seq_frame =>
-				// Get buffer length
-				val buf_len = out_buffer.length
+			frame.ifSequenced {
+				seq_frame =>
+					// Get buffer length
+					val buf_len = out_buffer.length
 
-				// Check limits
-				if (buf_len >= 256) {
-					throw new Exception("Output buffer is full")
-				} else if (buf_len > 32) {
-					if (request_ack_cooldown <= 0) {
-						self ! RequestAckFrame()
-						request_ack_cooldown = 3
-					} else {
-						request_ack_cooldown -= 1
+					// Check limits
+					if (buf_len >= 256) {
+						throw new Exception("Output buffer is full")
+					} else if (buf_len > 32) {
+						if (request_ack_cooldown <= 0) {
+							self ! RequestAckFrame()
+							request_ack_cooldown = 3
+						} else {
+							request_ack_cooldown -= 1
+						}
 					}
-				}
 
-				// The next sequence id
-				out_seq = (out_seq + 1) & 0xFFFF
-				seq_frame.seq = out_seq
+					// The next sequence id
+					out_seq = (out_seq + 1) & 0xFFFF
+					seq_frame.seq = out_seq
 
-				// Save the frame in the output queue
-				out_buffer.enqueue(seq_frame)
+					// Save the frame in the output queue
+					out_buffer.enqueue(seq_frame)
 			}
 
 			// Send the frame
-			out ! frame
+			if (out != null) out ! OutgoingFrame(Frame.encode(frame).toByteArray)
 
 		// A channel open request is accepted
 		case ChannelAccept(open, handler_props) =>

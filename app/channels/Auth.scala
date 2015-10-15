@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import actors.Actors._
 import akka.actor.{ActorRef, Props}
-import channels.Auth.SetUser
+import gtp3.Socket.SetUser
 import gtp3._
 import models._
 import play.api.libs.json.{JsNull, Json}
@@ -28,9 +28,6 @@ object Auth extends ChannelValidator {
 	}
 
 	private val concurrent = Future.failed[Payload](new Exception("Concurrent requests on auth channel are forbidden"))
-
-	// Message sent to the Socket actor to define the authenticated user for this socket
-	case class SetUser(user: User)
 }
 
 class Auth(val socket: ActorRef) extends ChannelHandler {
@@ -49,18 +46,21 @@ class Auth(val socket: ActorRef) extends ChannelHandler {
 	// Salt used for authentication
 	private var salt = utils.randomToken()
 
-	request("auth") { payload =>
-		utils.atLeast(500.milliseconds) {
-			AuthService.auth(payload.string) map { user =>
-				socket ! SetUser(user)
-				Json.toJson(user)
-			} recover {
-				case e => JsNull
+	request("auth") {
+		payload =>
+			utils.atLeast(500.milliseconds) {
+				AuthService.auth(payload.string) map {
+					user =>
+						socket ! SetUser(user)
+						Json.toJson(user)
+				} recover {
+					case e => JsNull
+				}
 			}
-		}
 	}
 
-		request("prepare") { payload =>
+	request("prepare") {
+		payload =>
 			utils.atLeast(500.milliseconds) {
 				val user = payload.value.as[String]
 				AuthService.setting(user) map {
@@ -69,11 +69,12 @@ class Auth(val socket: ActorRef) extends ChannelHandler {
 			}
 	}
 
-	request("login") { payload =>
-		utils.atLeast(500.milliseconds) {
-			val cur_salt = salt
-			salt = utils.randomToken()
-			AuthService.login(payload("user").as[String], payload("pass").as[String], cur_salt)
-		}
+	request("login") {
+		payload =>
+			utils.atLeast(500.milliseconds) {
+				val cur_salt = salt
+				salt = utils.randomToken()
+				AuthService.login(payload("user").as[String], payload("pass").as[String], cur_salt)
+			}
 	}
 }
