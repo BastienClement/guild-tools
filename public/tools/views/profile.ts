@@ -113,6 +113,8 @@ export class ProfileAddChar extends PolymerElement {
 			this.$.background.appendChild(img);
 			img.onload = () => img.classList.add("loaded");
 			
+			this.role = char.role;
+			
 			console.log(this.char);
 		} catch (e) {
 			input.error = e.message;
