@@ -7,7 +7,6 @@ import gtp3._
 import models.User
 import play.api.libs.json.Json
 import reactive.ExecutionContext
-import scala.language.postfixOps
 
 object Chat extends ChannelValidator {
 	def open(request: ChannelRequest) = request.accept(Props(new Chat(request.user)))
@@ -26,9 +25,9 @@ class Chat(val user: User) extends ChannelHandler {
 	}
 
 	akka {
-		case UserConnect(user) => send("connected", user.id)
-		case UserAway(user, away) => send("away-changed", (user.id, away))
-		case UserDisconnect(user) => send("disconnected", user.id)
+		case UserConnect(u) => send("connected", u.id)
+		case UserAway(u, away) => send("away-changed", (u.id, away))
+		case UserDisconnect(u) => send("disconnected", u.id)
 	}
 
 	message("set-away") { payload =>

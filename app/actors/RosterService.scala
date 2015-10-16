@@ -176,27 +176,26 @@ trait RosterService extends PubSub[User] {
 	def addChar(server: String, name: String, owner: User, role: Option[String]): Future[Char] = {
 		for {
 			char <- Bnet.fetchChar(server, name)
-			res <- DB.run {
-				val count_main = Chars.filter(c => c.owner === owner.id && c.main === true).size.result
-				(for {
-					// Count the number of main for this user
-					pre_count <- count_main
-
-					// Construct the char for insertion with correct role, owner and main flag
-					final_char = char.copy(role = role.getOrElse(char.role), owner = owner.id, main = pre_count < 1)
-
-					// Insert this char
-					_ <- Chars += final_char
-
-					// Ensure we have exactly one main for this user now
-					post_count <- count_main
-					_ = if (post_count == 1) () else throw new Exception("Failed to register new character")
-				} yield final_char).transactionally
-			}
+			res <- addChar(char, owner, role)
 		} yield {
 			this !# CharUpdate(res)
 			res
 		}
+	}
+
+	def addChar(char: Char, owner: User, role: Option[String]): Future[Char] = DB.run {
+		val count_main = Chars.filter(c => c.owner === owner.id && c.main === true).size.result
+		(for {
+			// Count the number of main for this user
+			pre_count <- count_main
+			// Construct the char for insertion with correct role, owner and main flag
+			final_char = char.copy(role = role.getOrElse(char.role), owner = owner.id, main = pre_count < 1)
+			// Insert this char
+			_ <- Chars += final_char
+			// Ensure we have exactly one main for this user now
+			post_count <- count_main
+			_ = if (post_count == 1) () else throw new Exception("Failed to register new character")
+		} yield final_char).transactionally
 	}
 }
 

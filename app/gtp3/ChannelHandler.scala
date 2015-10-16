@@ -44,7 +44,7 @@ object ChannelHandler {
 
 trait ChannelHandler extends Actor with Stash with PayloadBuilder.ProductWrites {
 	// Implicitly converts to Option[T]
-	implicit def ImplicitOption[T](value: T): Option[T] = Option(value)
+	implicit def OptionBoxing[T](v: T): Option[T] = Option(v)
 
 	// Reference to the channel actor
 	private var channel: ActorRef = context.system.deadLetters
