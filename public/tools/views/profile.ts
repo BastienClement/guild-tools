@@ -3,7 +3,7 @@ import { Router, View } from "client/router";
 import { Roster, User, Char } from "services/roster";
 import { Profile } from "services/profile";
 import { GtBox, GtButton, GtDialog, BnetThumb, GtForm, GtInput } from "elements/defs";
-import { throttle } from "utils/Deferred";
+import { throttle } from "utils/deferred";
 
 Router.declareTabs("profile", [
 	{ title: "Profile", link: "/profile" }
