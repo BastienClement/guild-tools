@@ -27,7 +27,7 @@ class DashboardNewsFilter extends PolymerElement {
 
 	@Property({ computed: "key" })
 	private get icon(): string {
-		return `/assets/images/feed/${this.key}.png`;
+		return `/assets/images/feed/${this.key.toLowerCase()}.png`;
 	}
 
 	@Listener("tap")
