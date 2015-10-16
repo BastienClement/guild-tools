@@ -22,7 +22,7 @@ class ProfileInfos extends PolymerElement {
 	
 	@Property({ computed: "user" })
 	private get editable(): boolean {
-		return this.app.user.id == this.user;
+		return this.app.user.id == this.user || this.app.user.promoted;
 	}
 }
 
@@ -177,6 +177,11 @@ class ProfileChars extends PolymerElement {
 		return this.user == this.app.user.id;
 	}
 	
+	@Property({ computed: "user" })
+	private get editable(): boolean {
+		return this.app.user.id == this.user || this.app.user.promoted;
+	}
+	
 	@Property public chars: number[];
 	
 	private UserUpdated(user: User) {
@@ -190,11 +195,6 @@ class ProfileChars extends PolymerElement {
 	@throttle private update() {
 		if (!this.user) return;
 		this.chars = this.roster.getUserCharacters(this.user);
-	}
-	
-	@Property({ computed: "user" })
-	private get editable(): boolean {
-		return this.app.user.id == this.user;
 	}
 	
 	private AddChar() {

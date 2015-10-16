@@ -30,11 +30,12 @@ class Roster(val user: User) extends ChannelHandler {
 		} send("user-data", Json.arr(user, chars))
 	}
 
-	request("promote-char") { p => RosterService.promoteChar(p.as[Int], user) }
+	// Allow promoted user to bypass own-character restrictions
+	val update_user = if (user.promoted) None else Some(user)
 
-	request("disable-char") { p => RosterService.disableChar(p.as[Int], user) }
-	request("enable-char") { p => RosterService.enableChar(p.as[Int], user) }
-	request("remove-char") { p => RosterService.removeChar(p.as[Int], user) }
-
-	request("update-char") { p => RosterService.refreshChar(p.as[Int], user) }
+	request("promote-char") { p => RosterService.promoteChar(p.as[Int], update_user) }
+	request("disable-char") { p => RosterService.disableChar(p.as[Int], update_user) }
+	request("enable-char") { p => RosterService.enableChar(p.as[Int], update_user) }
+	request("remove-char") { p => RosterService.removeChar(p.as[Int], update_user) }
+	request("update-char") { p => RosterService.refreshChar(p.as[Int], update_user) }
 }
