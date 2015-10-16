@@ -60,8 +60,17 @@ class Profile(val user: User) extends ChannelHandler {
 	request("is-char-available") { p =>
 		val server = p("server").as[String]
 		val name = p("name").as[String]
-		val free = Chars.filter(c => c.server === server && c.name === name).size === 0
-		free.result.run
+
+		for {
+			// Check that server is valid
+			realms <- Profile.realms_cache.value
+			exists = realms.exists { case (a, b) => a == server }
+			_ = if (exists) () else throw new Exception("Invalid server name")
+
+			// Query local database
+			query = Chars.filter(c => c.server === server && c.name === name).size === 0
+			free <- query.result.run
+		} yield free
 	}
 
 	// Fetch the realms list from the database
