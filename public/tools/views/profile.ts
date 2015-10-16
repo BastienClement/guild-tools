@@ -172,6 +172,11 @@ class ProfileChars extends PolymerElement {
 	@Property({ observer: "update" })
 	public user: number;
 	
+	@Property({ computed: "user" })
+	private get me(): boolean {
+		return this.user == this.app.user.id;
+	}
+	
 	@Property public chars: number[];
 	
 	private UserUpdated(user: User) {

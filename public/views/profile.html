@@ -259,11 +259,43 @@
 				height: 0px;
 			}
 		}
+		
+		#no-char {
+			display: flex;
+			width: 100%;
+			align-items: center;
+			justify-content: center;
+			padding: 100px 0;
+			color: @light-blue;
+			font-size: 24px;
+			
+			i {
+				margin-right: 20px;
+				font-size: 48px;
+				position: relative;
+				top: 1px;
+			}
+			
+			.smaller {
+				font-size: 16px;
+			}
+		}
 	</style>
 	<template>
 		<gt-box heading="Characters" scrollable>
 			<gt-button [if]="editable" (click)="AddChar"><i>person_add</i> Add character</gt-button>
 			<div #layout>
+				<div #no-char [if]="!chars.length">
+					<i>error_outline</i>
+					<div [if]="!me">
+						There is no registered character for this user<br>
+						<span .smaller>If he's a new guild member, maybe you could help him get started!</span>
+					</div>
+					<div [if]="me">
+						You have no registered character<br>
+						<span .smaller>Click on the Add Character button to register your first character</span>
+					</div>
+				</div>
 				<profile-chars-card [repeat]="chars" [id]="item" [editable]></profile-chars-card>
 				<div .padding></div>
 				<div .padding></div>
