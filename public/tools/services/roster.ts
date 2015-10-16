@@ -299,19 +299,19 @@ export class Roster extends Service {
 	// --- Update -------------------------------------------------------------
 	
 	public promoteChar(char: number) {
-		return this.channel.send("promote-char", char);
+		return this.channel.request<[Char, Char]>("promote-char", char);
 	}
 	
 	public disableChar(char: number) {
-		return this.channel.send("disable-char", char);
+		return this.channel.request<Char>("disable-char", char);
 	}
 	
 	public enableChar(char: number) {
-		return this.channel.send("enable-char", char);
+		return this.channel.request<Char>("enable-char", char);
 	}
 	
 	public removeChar(char: number) {
-		return this.channel.send("remove-char", char);
+		return this.channel.request<Char>("remove-char", char);
 	}
 	
 	public updateChar(char: number) {

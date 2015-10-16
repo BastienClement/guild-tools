@@ -4,7 +4,7 @@ import { Channel } from "gtp3/channel";
 import { Deferred } from "utils/deferred";
 import { Queue } from "utils/queue";
 import { EventEmitter } from "utils/eventemitter";
-import { Service } from "utils/service";
+import { Service, Notify } from "utils/service";
 
 export interface UserInformations {
 	id: number;
@@ -26,6 +26,11 @@ export class Server extends EventEmitter {
 
 	// Server versions string
 	private version: string = null;
+	
+	// Track loading state
+	@Notify public loading: boolean = false;
+	private request_count: number = 0;
+	private loading_transition = false;
 
 	// Boostrap the server connection
 	connect(url: string): Promise<void> {
@@ -39,7 +44,9 @@ export class Server extends EventEmitter {
 			"reconnecting": "Reconnecting",
 			"disconnected": "Disconnected",
 			"reset": "Reset",
-			"channel-request": "ChannelRequest"
+			"channel-request": "ChannelRequest",
+			"request-start": "RequestStart",
+			"request-end": "RequestEnd"
 		});
 		socket.connect();
 
@@ -99,6 +106,37 @@ export class Server extends EventEmitter {
 		// Todo
 		throw new Error("Unimplemented")
 	}
+	
+	private RequestStart() {
+		this.request_count++;
+		if (this.request_count > 0) {
+			this.updateLoading(true);
+		}
+	}
+	
+	private RequestEnd() {
+		this.request_count--;
+		if (this.request_count < 1) {
+			this.updateLoading(false);
+		}
+	}
+	
+	private async updateLoading(state: boolean) {
+		// Follow the transition lockout
+		if (this.loading_transition) return
+		this.loading_transition = true;
+		
+		// Update loading state
+		this.loading = state;
+		
+		// Lockout
+		await Deferred.delay(state ? 1500 : 500);
+		this.loading_transition = false;
+		
+		// Ensure that the loading state is still valid
+		if (state && this.request_count < 1) this.updateLoading(false);
+		else if (!state && this.request_count > 0) this.updateLoading(true);
+	}
 
 	// Socket latency
 	get latency(): number {
@@ -112,7 +150,10 @@ export class Server extends EventEmitter {
 
 	// Request a channel from the server
 	public openChannel(ctype: string): Promise<Channel> {
-		return this.socket.openChannel(ctype);
+		this.RequestStart();
+		let promise = this.socket.openChannel(ctype);
+		Deferred.finally(promise, () => this.RequestEnd());
+		return promise;
 	}
 	
 	// Open a service channel

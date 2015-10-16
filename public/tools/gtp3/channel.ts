@@ -50,7 +50,7 @@ export class Channel extends EventEmitter {
 	/**
 	 * Send a request and expect a reply
 	 */
-	async request<T>(request: string, data: any = null, initial_flags: number = this.default_flags): Promise<T> {
+	async request<T>(request: string, data: any = null, initial_flags: number = this.default_flags, silent: boolean = false): Promise<T> {
 		// Allocate request ID
 		const id = this.requestid_pool.allocate();
 
@@ -64,6 +64,13 @@ export class Channel extends EventEmitter {
 		// Create deferred
 		const deferred = new Deferred<T>();
 		this.requests.set(id, deferred);
+		
+		// Loading indicator
+		if (!silent) {
+			(<any>this.socket).emit("request-start");
+			Deferred.finally(deferred.promise, () => (<any>this.socket).emit("request-end"));
+		}
+		
 		return deferred.promise;
 	}
 

@@ -16,11 +16,15 @@ export class GtTitleBar extends PolymerElement {
 	
 	@Inject
 	@On({ "update-latency": "UpdateLatency" })
+	@Bind({ loading: "loading" })
 	private server: Server;
 
 	@Property
 	public latency: string = "0ms";
 	private latency_history: number[] = [];
+	
+	@Property
+	private loading: boolean;
 
 	// Update the latency indicator
 	private UpdateLatency() {
