@@ -13,7 +13,7 @@ object Application extends Controller {
 	}
 
 	def gtp3 = WebSocket.acceptWithActor[Array[Byte], Array[Byte]] { request => out =>
-		Props(new WSActor(out, request.remoteAddress))
+		Props(new WSActor(out, request))
 	}
 
 	def unsupported = Action {

@@ -4,14 +4,12 @@ import akka.actor.{Actor, ActorRef, Props, Terminated}
 import gt.Global
 import gtp3.Socket._
 import models.User
-import play.libs.Akka
-
 import scala.annotation.tailrec
 import scala.collection.mutable
 
 object Socket {
 	// Construct Socket actors
-	def props(id: Long) = Props(new Socket(id))
+	def props(id: Long, opener: Opener) = Props(new Socket(id, opener))
 
 	// Open request responses
 	private case class ChannelAccept(open: OpenFrame, handler: Props)
@@ -31,9 +29,12 @@ object Socket {
 
 	// Define the authenticated user of this socket
 	case class SetUser(user: User)
+
+	// The opener of a socket
+	case class Opener(ip: String, ua: Option[String])
 }
 
-class Socket(val id: Long) extends Actor {
+class Socket(val id: Long, val opener: Opener) extends Actor {
 	// The outgoing frame receiver
 	private var out: ActorRef = null
 
@@ -200,7 +201,7 @@ class Socket(val id: Long) extends Actor {
 	}
 
 	private def receiveOpen(frame: OpenFrame) = {
-		val request = new ChannelRequest(self, frame.channel_type, frame.token, user) {
+		val request = new ChannelRequest(self, frame.channel_type, frame.token, user, opener) {
 			def accept(handler: Props): Unit = {
 				if (replied) throw new Exception("Request already responded to")
 				_replied = true

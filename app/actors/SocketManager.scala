@@ -1,15 +1,15 @@
 package actors
 
-import java.security.SecureRandom
 import akka.actor._
 import gtp3.Socket
-import utils.{Bindings, Timeout}
-
+import gtp3.Socket.Opener
+import java.security.SecureRandom
+import reactive.AsFuture
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import reactive.AsFuture
+import utils.{Bindings, Timeout}
 
 trait SocketManager extends TypedActor.Receiver {
 	// Open sockets
@@ -47,17 +47,17 @@ trait SocketManager extends TypedActor.Receiver {
 				}
 
 			case None =>
-				// The socket does not exists ???
+			// The socket does not exists ???
 		}
 	}
 
 	/**
 	 * Allocate a new socket for a given actor
 	 */
-	def allocate(actor: ActorRef): Future[ActorRef] = AsFuture {
+	def allocate(actor: ActorRef, opener: Opener): Future[ActorRef] = AsFuture {
 		val id = nextSocketID
 
-		val socket = context.actorOf(Socket.props(id))
+		val socket = context.actorOf(Socket.props(id, opener))
 		context.watch(socket)
 		sockets.add(id, socket)
 
@@ -68,7 +68,7 @@ trait SocketManager extends TypedActor.Receiver {
 	/**
 	 * Rebind a socket to the given actor and return this socket
 	 */
-	def rebind(actor: ActorRef, id: Long, seq: Int): Future[ActorRef] = {
+	def rebind(actor: ActorRef, opener: Opener, id: Long, seq: Int): Future[ActorRef] = {
 		sockets.getTarget(id) match {
 			case Some(socket) => AsFuture {
 				for (timeout <- timeouts.get(socket)) {
@@ -80,7 +80,7 @@ trait SocketManager extends TypedActor.Receiver {
 				socket
 			}
 
-			case None => allocate(actor)
+			case None => allocate(actor, opener)
 		}
 	}
 

@@ -5,7 +5,6 @@ import gtp3.Channel._
 import gtp3.ChannelHandler._
 import org.apache.commons.lang3.exception.ExceptionUtils
 import reactive._
-
 import scala.concurrent.Future
 import scala.language.implicitConversions
 import scala.util.{Failure => TFailure, Success => TSuccess}

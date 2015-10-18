@@ -2,14 +2,15 @@ package gtp3
 
 import actors.Actors._
 import akka.actor.{Actor, ActorRef, PoisonPill}
-import gtp3.Socket.{IncomingFrame, OutgoingFrame}
+import gtp3.Socket.{IncomingFrame, Opener, OutgoingFrame}
+import gtp3.WSActor.BindingFailed
+import play.api.mvc.RequestHeader
 import reactive.ExecutionContext
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 import utils.Timeout
-import WSActor.BindingFailed
 
 object WSActor {
 	// A failed future used when socket binding is obviously failed
@@ -46,14 +47,17 @@ object WSActor {
 	}
 }
 
-class WSActor(val out: ActorRef, val remote: String) extends Actor {
+class WSActor(val out: ActorRef, val request: RequestHeader) extends Actor {
 	// The attached socket object
 	var socket: ActorRef = null
 
 	// Instantly kill socket if too many are being created from one IP address
-	if (!WSActor.accept(remote)) {
+	if (!WSActor.accept(request.remoteAddress)) {
 		self ! PoisonPill
 	}
+
+	// The socket opener
+	val opener = Opener(request.remoteAddress, request.headers.get("User-Agent"))
 
 	// Handshake must happen within 20 seconds
 	val timeout = Timeout.start(20.seconds) {
@@ -69,11 +73,11 @@ class WSActor(val out: ActorRef, val remote: String) extends Actor {
 			val status = Frame.decode(buffer) match {
 				// Create a new socket for this client
 				case HelloFrame(magic, version) =>
-					if (magic == GTP3Magic) SocketManager.allocate(self)
+					if (magic == GTP3Magic) SocketManager.allocate(self, opener)
 					else BindingFailed
 
 				// Rebind an existing socket
-				case ResumeFrame(sockid, seq) => SocketManager.rebind(self, sockid, seq)
+				case ResumeFrame(sockid, seq) => SocketManager.rebind(self, opener, sockid, seq)
 
 				// Bad stuff
 				case _ => BindingFailed
@@ -110,6 +114,6 @@ class WSActor(val out: ActorRef, val remote: String) extends Actor {
 	 */
 	override def postStop() = {
 		SocketManager.disconnected(socket)
-		WSActor.closed(remote)
+		WSActor.closed(request.remoteAddress)
 	}
 }

@@ -1,15 +1,13 @@
 package channels
 
-import java.util.concurrent.atomic.AtomicInteger
-
 import actors.Actors._
 import akka.actor.{ActorRef, Props}
-import gtp3.Socket.SetUser
+import gtp3.Socket.{Opener, SetUser}
 import gtp3._
+import java.util.concurrent.atomic.AtomicInteger
 import models._
 import play.api.libs.json.{JsNull, Json}
 import reactive._
-
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -23,14 +21,14 @@ object Auth extends ChannelValidator {
 			request.reject(105, "Cannot open more than one auth channel per socket")
 		} else {
 			already_open.update(request.socket, true)
-			request.accept(Props(new Auth(request.socket)))
+			request.accept(Props(new Auth(request.socket, request.opener)))
 		}
 	}
 
 	private val concurrent = Future.failed[Payload](new Exception("Concurrent requests on auth channel are forbidden"))
 }
 
-class Auth(val socket: ActorRef) extends ChannelHandler {
+class Auth(val socket: ActorRef, val opener: Opener) extends ChannelHandler {
 	// Count parallel requests
 	private val count = new AtomicInteger(0)
 
@@ -74,7 +72,9 @@ class Auth(val socket: ActorRef) extends ChannelHandler {
 			utils.atLeast(500.milliseconds) {
 				val cur_salt = salt
 				salt = utils.randomToken()
-				AuthService.login(payload("user").as[String], payload("pass").as[String], cur_salt)
+				val user = payload("user").as[String]
+				val pass = payload("pass").as[String]
+				AuthService.login(user, pass, cur_salt, opener.ip, opener.ua)
 			}
 	}
 }

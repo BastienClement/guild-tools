@@ -42,7 +42,7 @@ trait AuthService {
 	def setting(user: String): Future[String] = setting_cache(user)
 
 	// Perform user authentication
-	def login(name: String, password: String, salt: String): Future[String] = {
+	def login(name: String, password: String, salt: String, ip: Option[String], ua: Option[String]): Future[String] = {
 		val user_credentials = for {
 			u <- Users if (u.name === name || u.name_clean === name.toLowerCase) && (u.group inSet allowed_groups)
 		} yield (u.pass, u.id)
@@ -53,7 +53,7 @@ trait AuthService {
 					val token = utils.randomToken()
 					Try {
 						val now = SmartTimestamp.now
-						DB.run(Sessions.map(s => (s.token, s.user, s.ip, s.created, s.last_access)) +=(token, user_id, "", now, now)).await
+						DB.run(Sessions += Session(token, user_id, ip, ua, now, now)).await
 						Some(token)
 					} getOrElse {
 						if (attempt < 3) createSession(attempt + 1)
