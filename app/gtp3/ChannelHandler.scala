@@ -37,8 +37,12 @@ object ChannelHandler {
 		def build(f: Future[Payload]): Future[Payload] = f
 	}
 
-	implicit val FuturePayloadError = new FuturePayloadBuilder[Error] {
-		def build(e: Error): Future[Payload] = Future.failed(e)
+	implicit val FuturePayloadThrowable = new FuturePayloadBuilder[Throwable] {
+		def build(e: Throwable): Future[Payload] = Future.failed(e)
+	}
+
+	implicit val FuturePayloadUnit = new FuturePayloadBuilder[Unit] {
+		def build(u: Unit): Future[Payload] = Future.successful(Payload.empty)
 	}
 }
 
@@ -53,37 +57,25 @@ trait ChannelHandler extends Actor with Stash with PayloadBuilder.ProductWrites 
 	private var init_handler: () => Unit = null
 	private var stop_handler: () => Unit = null
 
-	def init(fn: => Unit) = init_handler = () => fn
-	def stop(fn: => Unit) = stop_handler = () => fn
+	final def init(fn: => Unit) = init_handler = () => fn
+	final def stop(fn: => Unit) = stop_handler = () => fn
 
-	// Request handlers
-	type RequestHandler = (Payload) => Future[Payload]
-	type MessageHandler = (Payload) => Unit
-
-	private var handlers = Map[String, RequestHandler]()
-
-	private def wrap(h: MessageHandler): RequestHandler = (p) => {
-		h(p)
-		ChannelHandler.empty
-	}
-
-	private def adapter[T](fn: (Payload) => T)(implicit fpb: FuturePayloadBuilder[T]): RequestHandler =
-		(p: Payload) => fpb.build(fn(p))
-
-	// Register a request handler
-	// The handler can return any type convertible to Payload by a PayloadBuilder
+	// Request and message handlers
+	// The request handler can return any type convertible to Payload by a PayloadBuilder
 	// Alternatively a Future of such a type
-	def request[T: FuturePayloadBuilder](name: String)(fn: (Payload) => T) = handlers += name -> adapter(fn)
+	private var handlers = Map[String, Payload => Future[Payload]]()
 
-	// Register a message handler
-	def message(name: String)(fn: MessageHandler) = request(name)(wrap(fn))
+	final def message(name: String)(fn: Payload => Unit): Unit = request(name)(fn)
+	final def request[T](name: String)(fn: Payload => T)(implicit fpb: FuturePayloadBuilder[T]): Unit =
+		handlers += name -> (fn andThen fpb.build)
 
 	// Akka message handler
-	var akka_handler: Receive = PartialFunction.empty
-	def akka(pf: Receive) = akka_handler = pf
+	private var akka_handler: Receive = PartialFunction.empty
+	final def akka(pf: Receive) = akka_handler = pf
 
 	// Output message
-	def send[T: PayloadBuilder](msg: String, data: T) = channel ! SendMessage(msg, Payload(data))
+	def send[T: PayloadBuilder](msg: String, data: T): Unit = channel ! SendMessage(msg, Payload(data))
+	final def send[T: PayloadBuilder](msg: String): Unit = send(msg, Payload.empty)
 
 	// Initial message receiver
 	// Wait for the first Init message and stash everything else
