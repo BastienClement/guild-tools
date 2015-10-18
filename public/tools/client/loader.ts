@@ -240,14 +240,13 @@ export class Loader {
 			// Compile template            
 			let template = domModule.getElementsByTagName("template")[0];
 			if (template) {
-				let children = template.content.querySelectorAll("img");
+				/*let children = template.content.querySelectorAll("*");
 				for (let i = 0; i < children.length; i++) {
 					let attrs = children[i].attributes;
 					for (let j = 0; j < attrs.length; j++) {
 						let attr = attrs[j];
-						attr.value = attr.value.replace(/\/assets\/([^")\s]+)/g, function(all, match) { return gt_asset(match); });
 					}
-				}
+				}*/
 				
 				this.compilePolymerSugars(template.content);
 				this.compileAngularNotation(<any>template.content);
