@@ -19,14 +19,6 @@ System.config({
 	}
 });
 
-(function () {
-	var systemFetch = System.fetch;
-	System.fetch = function (meta) {
-		meta.address = meta.address.replace(/\/assets\/(.+)$/, function (all, match) { return gt_asset(match); });
-		return systemFetch.call(System, meta);
-	};
-})();
-
 var traceur_async = new Promise(function () { });
 (function () {
 	var fix_sourcemap = localStorage.getItem("traceur.sourcemap.fix") === "1";
