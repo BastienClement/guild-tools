@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <meta charset="UTF-8">
 <title>Guild Tools</title>
-<link rel="shortcut icon" href='@routes.Assets.versioned("/public", "images/favicon.ico")'>
+<link rel="shortcut icon" href='@routes.Assets.versioned("images/favicon.ico")'>
 
 <!-- Background and nothing else -->
 <style>
@@ -34,13 +34,31 @@
 	}
 </style>
 
+<script src='@routes.Assets.versioned("javascripts/bowser.js")'></script>
+<script>
+	(function() {
+		var valid = (function() {
+			var version = parseInt(bowser.version.split(".")[0]);
+			switch (bowser.name) {
+				case "Chrome": return version >= 46;
+				case "Firefox": return version >= 41;
+				default: return false;
+			}
+		})();
+
+		if (!valid) {
+			document.location.href = "/unsupported";
+		}
+	})();
+</script>
+
 <!-- Load the loading stylesheet -->
 <script>
 	var APP = typeof require == "function";
 	if (APP) document.querySelector("html").classList.add("app");
 	(function() {
 		var xhr = new XMLHttpRequest();
-		xhr.open("GET", '@routes.Assets.versioned("/public", "less/loading.css")', true);
+		xhr.open("GET", '@routes.Assets.versioned("less/loading.css")', true);
 		xhr.responseType = "text";
 		xhr.onload = function() {
 			var style = document.createElement("style");
@@ -66,12 +84,12 @@
 <div id="app-loader" class="cloak"><img src="/assets/images/spinner.svg"></div>
 
 <!-- Base framework -->
-<script src='@routes.Assets.versioned("/public", "javascripts/reflect.js")'></script>
-<script src='@routes.Assets.versioned("/public", "javascripts/traceur-runtime.js")'></script>
-<script src='@routes.Assets.versioned("/public", "javascripts/system.js")'></script>
-<script src='@routes.Assets.versioned("/public", "tools/config.js")'></script>
-<script src='@routes.Assets.versioned("/public", "javascripts/webcomponents-lite.js")'></script>
-<script src='@routes.Assets.versioned("/public", "javascripts/prefixfree.js")'></script>
+<script src='@routes.Assets.versioned("javascripts/reflect.js")'></script>
+<script src='@routes.Assets.versioned("javascripts/traceur-runtime.js")'></script>
+<script src='@routes.Assets.versioned("javascripts/system.js")'></script>
+<script src='@routes.Assets.versioned("tools/config.js")'></script>
+<script src='@routes.Assets.versioned("javascripts/webcomponents-lite.js")'></script>
+<script src='@routes.Assets.versioned("javascripts/prefixfree.js")'></script>
 
 <!-- Load application -->
 <script>

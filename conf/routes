@@ -3,9 +3,6 @@
 # ~~~~
 
 GET         /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
-GET         /views/*file                controllers.Assets.versioned(path="/public/views", file: Asset)
-
-#GET         /webjars/*file              controllers.WebJarAssets.at(file)
 
 GET			/gtp3						controllers.Application.gtp3
 
@@ -17,4 +14,5 @@ GET         /api/*path                  controllers.Api.catchall(path)
 GET         /ping/dashboard/feed        controllers.Ping.dashboardFeed
 
 GET         /                           controllers.Application.client
+GET         /unsupported                controllers.Application.unsupported
 GET         /*path                      controllers.Application.catchall(path)

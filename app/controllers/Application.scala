@@ -6,9 +6,9 @@ import play.api.Play.current
 import play.api.mvc.{Action, Controller, WebSocket}
 
 object Application extends Controller {
-	def catchall(path: String) = client()
+	def catchall(path: String) = client
 
-	def client() = Action {
+	def client = Action {
 		Ok(views.html.client.render())
 	}
 
@@ -16,7 +16,7 @@ object Application extends Controller {
 		Props(new WSActor(out, request.remoteAddress))
 	}
 
-	def test = Action {
-		Ok("")
+	def unsupported = Action {
+		Ok(views.html.unsupported.render())
 	}
 }
