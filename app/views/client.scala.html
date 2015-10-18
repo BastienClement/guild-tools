@@ -34,24 +34,6 @@
 	}
 </style>
 
-<script src='@routes.Assets.versioned("javascripts/bowser.js")'></script>
-<script>
-	(function() {
-		var valid = (function() {
-			var version = parseInt(bowser.version.split(".")[0]);
-			switch (bowser.name) {
-				case "Chrome": return version >= 46;
-				case "Firefox": return version >= 41;
-				default: return false;
-			}
-		})();
-
-		if (!valid) {
-			document.location.href = "/unsupported";
-		}
-	})();
-</script>
-
 <!-- Load the loading stylesheet -->
 <script>
 	var APP = typeof require == "function";
@@ -90,6 +72,25 @@
 <script src='@routes.Assets.versioned("tools/config.js")'></script>
 <script src='@routes.Assets.versioned("javascripts/webcomponents-lite.js")'></script>
 <script src='@routes.Assets.versioned("javascripts/prefixfree.js")'></script>
+
+<!-- Check browser compatibility -->
+<script src='@routes.Assets.versioned("javascripts/bowser.js")'></script>
+<script>
+	(function() {
+		var valid = (function() {
+			var version = parseInt(bowser.version.split(".")[0]);
+			switch (bowser.name) {
+				case "Chrome": return version >= 46;
+				case "Firefox": return version >= 41;
+				default: return false;
+			}
+		})();
+
+		if (!valid) {
+			document.location.href = "/unsupported";
+		}
+	})();
+</script>
 
 <!-- Load application -->
 <script>

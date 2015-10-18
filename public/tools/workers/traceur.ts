@@ -1,6 +1,6 @@
 module TraceurWorker {
 	importScripts("/assets/javascripts/traceur.js");
-	importScripts("/assets/javascripts/source-map.js");
+	var sourcemap_loaded = false;
 	
 	self.onmessage = function(m) {
 		var index: number;
@@ -21,6 +21,12 @@ module TraceurWorker {
 			
 			// If both are available, compute map from Traceur-generated to Typescript-source
 			if (ts_map_str && traceur_map_str) {
+				// Ensure the source map module is loaded
+				if (!sourcemap_loaded) {
+					importScripts("/assets/javascripts/source-map.js");
+					sourcemap_loaded = true;
+				}
+				
 				// Load both source maps
 				var ts_map = new sourceMap.SourceMapConsumer(ts_map_str);
 				var traceur_map = new sourceMap.SourceMapConsumer(traceur_map_str);

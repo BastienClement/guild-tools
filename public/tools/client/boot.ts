@@ -31,8 +31,10 @@ export default async function boot() {
 	fix_imports_shim();
 	
 	// Load the default injector and the Application constructor
-	const injector = await Deferred.require<Injector>("utils/di", "DefaultInjector");
-	const app_constructor = await Deferred.require<Constructor<Application>>("client/main", "Application");
+	const [injector, app_constructor] = <[Injector, Constructor<Application>]> await Promise.all<any>([
+		Deferred.require<Injector>("utils/di", "DefaultInjector"),
+		Deferred.require<Constructor<Application>>("client/main", "Application")
+	]);
 	
 	// Construct the Application
 	const app = injector.get(app_constructor);

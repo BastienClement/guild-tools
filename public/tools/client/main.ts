@@ -48,7 +48,13 @@ export class Application {
 		// Connect to server and load main less file        
 		await Promise.all([
 			this.loader.loadLess("/assets/less/guildtools.less"),
-			this.server.connect(await socket_endpoint)
+			socket_endpoint.then(ep => this.server.connect(ep))
+		]);
+		
+		// Preload GtApp and views
+		let app_views_promise = Promise.all<any>([
+			this.loader.loadElement(GtApp),
+			this.router.loadViews("views/load")
 		]);
 		
 		// Display the title bar
@@ -76,13 +82,16 @@ export class Application {
 		body.classList.add("app-loader");
 		
 		// Open master channel
-		this.master = await this.server.openChannel("master");
+		let master_channel_promise = this.server.openChannel("master");
 		
-		// Load the main container element
-		await this.loader.loadElement(GtApp);
+		// Await every required promises
+		await Promise.all<any>([
+			master_channel_promise.then(c => this.master = c),
+			app_views_promise
+		]);
+		
+		// Create the main container element
 		body.appendChild(this.root = new GtApp());
-		
-		await this.router.loadViews("views/load")
 		
 		// Remove the loading title bar
 		if (GtApp) loader_title.remove();

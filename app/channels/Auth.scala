@@ -44,17 +44,14 @@ class Auth(val socket: ActorRef, val opener: Opener) extends ChannelHandler {
 	// Salt used for authentication
 	private var salt = utils.randomToken()
 
-	request("auth") {
-		payload =>
-			utils.atLeast(500.milliseconds) {
-				AuthService.auth(payload.string) map {
-					user =>
-						socket ! SetUser(user)
-						Json.toJson(user)
-				} recover {
-					case e => JsNull
-				}
-			}
+	request("auth") { payload =>
+		AuthService.auth(payload.string) map {
+			user =>
+				socket ! SetUser(user)
+				Json.toJson(user)
+		} recover {
+			case e => JsNull
+		}
 	}
 
 	request("prepare") {
