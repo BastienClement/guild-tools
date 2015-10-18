@@ -1,5 +1,4 @@
-@import scala.collection.concurrent.TrieMap
-@(digests: TrieMap[String, Option[String]])
+@(implicit request: RequestHeader)
 <!DOCTYPE html>
 <meta charset="UTF-8">
 <title>Guild Tools</title>
@@ -37,14 +36,12 @@
 </style>
 
 <!-- Client-side routes -->
+@helper.javascriptRouter("gt_routes")(
+	routes.javascript.Assets.versioned
+)
 <script>
-	var gt_routes = {
-		@for((source, target) <- digests if target.isDefined) { "@source": "@target.get", }
-	};
 	function gt_asset(path) {
-		var digest = gt_routes["/public/" + path];
-		if (digest) return path.replace(/^(.+)\/([^\/]+)$/, "/assets/$1/" + digest + "-$2");
-		return "/assets/" + path;
+		return gt_routes.controllers.Assets.versioned(path).url;
 	}
 </script>
 

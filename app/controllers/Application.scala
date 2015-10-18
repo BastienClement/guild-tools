@@ -9,7 +9,7 @@ object Application extends Controller {
 	def catchall(path: String) = client
 
 	def client = Action { request =>
-		Ok(views.html.client.render(controllers.Assets.digestCache))
+		Ok(views.html.client.render(request))
 	}
 
 	def gtp3 = WebSocket.acceptWithActor[Array[Byte], Array[Byte]] { request => out =>
