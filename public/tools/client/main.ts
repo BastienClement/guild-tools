@@ -151,6 +151,7 @@ class AuthenticationDriver {
 			// Check session if available
 			if (session) {
 				if (await this.auth(session)) {
+					document.cookie = `gt_session=${session};path=/;max-age=604800`;
 					localStorage.setItem(KEY_AUTH_SESSION, session);
 					break;
 				} else {
