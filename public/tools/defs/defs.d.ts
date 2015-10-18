@@ -40,3 +40,4 @@ interface TraceurCompilerStatic {
 }
 
 declare const traceur: TraceurModule;
+declare function gt_asset(path: string): string;

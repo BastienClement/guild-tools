@@ -5,10 +5,10 @@ System.config({
 		sourceMaps: "inline"
 	},
 	paths: {
-		"encoding": "/assets/javascripts/encoding.js",
-		"phpbb_hash": "/assets/javascripts/phpbb_hash.js",
-		"cryptojs": "/assets/javascripts/crypto.js",
-		"moment": "/assets/javascripts/moment.js",
+		"encoding": gt_asset("javascripts/encoding.js"),
+		"phpbb_hash": gt_asset("javascripts/phpbb_hash.js"),
+		"cryptojs": gt_asset("javascripts/crypto.js"),
+		"moment": gt_asset("javascripts/moment.js"),
 		"*": "/assets/modules/*.js"
 	},
 	shim: {
@@ -35,6 +35,9 @@ var traceur_async = new Promise(function () { });
 	var free = [];
 	var queue = [];
 	
+	var traceurURL = gt_asset("javascripts/traceur.js");
+	var sourcemapURL = gt_asset("javascripts/source-map.js");
+	
 	function flush() {
 		while (queue.length > 0 && free.length > 0) {
 			var task = queue.pop();
@@ -53,10 +56,15 @@ var traceur_async = new Promise(function () { });
 	}
 	
 	function create_worker(i) {
-		var worker = new Worker("/assets/modules/workers/traceur.js");
+		var worker = new Worker(gt_asset("modules/workers/traceur.js"));
 		workers[i] = worker;
 		free.push(i);
 		workers_active++;
+		
+		worker.postMessage({
+			traceurURL: traceurURL,
+			sourcemapURL: sourcemapURL
+		});
 		
 		worker.onmessage = function (m) {
 			var h = requests.get(m.data.rid);

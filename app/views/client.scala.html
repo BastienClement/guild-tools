@@ -1,3 +1,4 @@
+@(implicit request: RequestHeader)
 <!DOCTYPE html>
 <meta charset="UTF-8">
 <title>Guild Tools</title>
@@ -34,6 +35,16 @@
 	}
 </style>
 
+<!-- Client-side routes -->
+@helper.javascriptRouter("gt_routes")(
+	routes.javascript.Assets.versioned
+)
+<script>
+	function gt_asset(path) {
+		return gt_routes.controllers.Assets.versioned(path).url;
+	}
+</script>
+
 <!-- Load the loading stylesheet -->
 <script>
 	var APP = typeof require == "function";
@@ -63,7 +74,7 @@
 <!-- Application utility divs -->
 <div id="borders"></div>
 <div id="background"></div>
-<div id="app-loader" class="cloak"><img src="/assets/images/spinner.svg"></div>
+<div id="app-loader" class="cloak"><img src='@routes.Assets.versioned("images/spinner.svg")'></div>
 
 <!-- Base framework -->
 <script src='@routes.Assets.versioned("javascripts/reflect.js")'></script>

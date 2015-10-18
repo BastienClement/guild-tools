@@ -4,7 +4,7 @@ import { ServiceWorker } from "utils/worker";
 import { PolymerElement, PolymerConstructor, PolymerMetadata, apply_polymer_fns } from "elements/polymer";
 
 // Path to the polymer file
-const POLYMER_PATH = "/assets/imports/polymer.html";
+const POLYMER_PATH = gt_asset("imports/polymer.html");
 
 // The Response object returned by fetch()
 interface FetchResponse {
@@ -125,16 +125,20 @@ export class Loader {
 	/**
 	 * Compile LESS source to CSS
 	 */
-	private lessWorker = new ServiceWorker("/assets/modules/workers/less.js");
+	private lessWorker = new ServiceWorker(gt_asset("modules/workers/less.js"));
 	public async compileLess(source: string): Promise<string> {
 		// Prepend the
 		source = `
-			@import (dynamic) "/assets/less/lib.less";
+			@import (dynamic) "${gt_asset("/less/lib.less")}";
 			${source}
 		`;
 		
 		let source_css = await this.lessImportDynamics(source);
 		let result_css = await this.lessWorker.request<string>("compile", source_css);
+		
+		result_css = result_css.replace(/\/assets\/([^")\s]+)/g, (matched: string, url: string) => {
+			return gt_asset(url);
+		});
 		
 		return StyleFix.fix(result_css, true);
 	}
@@ -236,8 +240,16 @@ export class Loader {
 			// Compile template            
 			let template = domModule.getElementsByTagName("template")[0];
 			if (template) {
+				/*let children = template.content.querySelectorAll("*");
+				for (let i = 0; i < children.length; i++) {
+					let attrs = children[i].attributes;
+					for (let j = 0; j < attrs.length; j++) {
+						let attr = attrs[j];
+					}
+				}*/
+				
 				this.compilePolymerSugars(template.content);
-				this.compileAngularNotation(<any> template.content);
+				this.compileAngularNotation(<any>template.content);
 			}
 		}
 
