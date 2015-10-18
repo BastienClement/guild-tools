@@ -451,7 +451,7 @@ export function Element(selector: string, template?: string, ext?: string) {
 		// Get metadata object or create it
 		meta = Reflect.getMetadata("polymer:meta", target) || <any> {};
 		meta.selector = selector;
-		meta.template = gt_asset(template);
+		meta.template = template;
 		meta.base = target;
 		meta.proto = target.prototype;
 		meta.loaded = false;
