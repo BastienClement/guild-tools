@@ -380,12 +380,15 @@ export class Loader {
 
 		// Construct the new tag
 		// -> Special case for empty tag
-		let tag_limit = node.innerHTML != "" ? node.outerHTML.indexOf(node.innerHTML) : node.outerHTML.indexOf(">") + 1;
-		let tag = node.outerHTML.slice(0, tag_limit);
+		let tag = node.outerHTML.slice(0, node.outerHTML.indexOf(">") + 1);
 		for (let attr of attrs) {
 			tag = tag.replace(attr[0], `${attr[2]}$`);
 		}
-
+		
+		// Replace the element name by <div>
+		// Without this, an instance of the element is incorrectly created
+		tag = tag.replace(/^<[^\s]+/, "<div");
+        
 		// Instatiate
 		this.dummy_node.innerHTML = tag;
 		let new_node = <HTMLElement> this.dummy_node.firstChild;
