@@ -1,15 +1,8 @@
 module TraceurWorker {
+	importScripts("/assets/javascripts/traceur.js");
 	var sourcemap_loaded = false;
-	var sourcemap_url: string;
 	
 	self.onmessage = function(m) {
-		// Init message
-		if (m.data.traceurURL) {
-			importScripts(m.data.traceurURL);
-			sourcemap_url = m.data.sourcemapURL
-			return;
-		}
-		
 		var index: number;
 		var value: any;
 		
@@ -30,7 +23,7 @@ module TraceurWorker {
 			if (ts_map_str && traceur_map_str) {
 				// Ensure the source map module is loaded
 				if (!sourcemap_loaded) {
-					importScripts(sourcemap_url);
+					importScripts("/assets/javascripts/source-map.js");
 					sourcemap_loaded = true;
 				}
 				

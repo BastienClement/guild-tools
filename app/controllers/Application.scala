@@ -8,8 +8,8 @@ import play.api.mvc.{Action, Controller, WebSocket}
 object Application extends Controller {
 	def catchall(path: String) = client
 
-	def client = Action { request =>
-		Ok(views.html.client.render(request))
+	def client = Action {
+		Ok(views.html.client.render())
 	}
 
 	def gtp3 = WebSocket.acceptWithActor[Array[Byte], Array[Byte]] { request => out =>
