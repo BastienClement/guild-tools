@@ -43,7 +43,7 @@
 	};
 	function gt_asset(path) {
 		var digest = gt_routes["/public/" + path];
-		if (digest) return path.replace(/^(.+)\/([^\/]+)$/, "/assets/$1/" + digest + "-$2");
+		if (digest) return path.replace(/^(?:\/assets\/)?(.+)\/([^\/]+)$/, "/assets/$1/" + digest + "-$2");
 		return "/assets/" + path;
 	}
 </script>
