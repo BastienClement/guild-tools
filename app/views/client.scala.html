@@ -42,9 +42,8 @@
 		@for((source, target) <- digests if target.isDefined) { "@source": "@target.get", }
 	};
 	function gt_asset(path) {
-		path = path.replace("^(?:\/assets\/)?(.+)$", "$1");
 		var digest = gt_routes["/public/" + path];
-		if (digest) return path.replace(/^(.+)\/([^\/]+)$/, "/assets/$1/" + digest + "-$2");
+		if (digest) return path.replace(/^(?:\/assets\/)?(.+)\/([^\/]+)$/, "/assets/$1/" + digest + "-$2");
 		return "/assets/" + path;
 	}
 </script>
