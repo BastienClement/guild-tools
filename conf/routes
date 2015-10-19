@@ -4,7 +4,7 @@
 
 GET         /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
 
-GET			/gtp3						controllers.Application.gtp3
+GET         /gtp3                       controllers.Application.gtp3
 
 GET         /api/gamedata               controllers.Api.gamedata
 POST        /api/bugsack                controllers.Api.bugsack
@@ -13,7 +13,10 @@ GET         /api/*path                  controllers.Api.catchall(path)
 
 GET         /ping/dashboard/feed        controllers.Ping.dashboardFeed
 
-GET			/wt/						controllers.WebTools.main
+GET         /wt/                        controllers.WebTools.main
+GET         /wt/wishlist                controllers.WebTools.wishlist
+POST        /wt/wishlist                controllers.WebTools.wishlistSave
+GET         /wt/*path                   controllers.WebTools.catchall(path)
 
 GET         /                           controllers.Application.client
 GET         /unsupported                controllers.Application.unsupported

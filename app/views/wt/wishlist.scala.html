@@ -1,0 +1,169 @@
+@import models._
+@(bosses: Seq[String], data: String)(implicit user: User)
+@wt.layout("wishlist") {
+
+	<h2>Wishlist Hellfire Citadel</h2>
+
+	<style>
+		#wishes {
+			background: rgba(99, 180, 255, 0.1);
+			padding: 0;
+		}
+
+		.boss {
+			display: flex;
+			border-top: 1px solid rgba(99, 180, 255, 0.2);
+		}
+
+		.boss:first-child {
+			border-top: 0;
+			background: rgba(99, 180, 255, 0.1);
+		}
+
+		.boss div {
+			flex: 1;
+			padding: 8px 16px;
+			border-right: 1px solid rgba(99, 180, 255, 0.2);
+			text-align: center;
+		}
+
+		.boss div:last-child {
+			border-right: 0;
+		}
+
+		.boss .name {
+			width: 150px;
+			flex: none;
+			background: rgba(99, 180, 255, 0.05);
+			font-weight: 500;
+		}
+
+		input[type="radio"] {
+			background: rgba(99, 180, 255, 0.1);
+			border: 2px solid rgba(99, 180, 255, 0.2);
+			height: 15px;
+			width: 15px;
+			-webkit-appearance: none;
+			vertical-align: -2px;
+			outline: none;
+			margin-right: 2px;
+		}
+
+		input[type="radio"]:checked {
+			box-shadow: 0px 0px 8px rgba(99, 180, 255, 0.5);
+			background: rgba(99, 180, 255, 0.5);
+		}
+
+		label:first-child {
+			margin-right: 30px;
+		}
+
+		.bad input[type="radio"][value="Oui"]:checked {
+			background: rgba(255, 128, 64, 0.8);
+			border-color: rgba(255, 128, 64, 0.8);
+		}
+
+		.name a:not(:hover) {
+			color: #fff;
+		}
+
+		.name a:hover {
+			color: #64B4FF;
+		}
+
+		.out .boss div {
+			padding: 1px;
+		}
+
+		#sub-btn {
+			margin-top: 16px;
+		}
+
+		#saved {
+			display: none;
+			color: lightgreen;
+			position: relative;
+			top: 5px;
+			left: 5px;
+		}
+	</style>
+
+	<div class="box" id="wishes">
+		<div class="boss title">
+			<div class="name"></div>
+			<div>Need Mythic (non WF / Socket)</div>
+			<div>Le coineriez vous si vous ne faisiez pas Archimonde&nbsp;?</div>
+		</div>
+		@for(boss <- bosses) {
+			<div class="boss">
+				<div class="name">
+					<a href="/wt/wishlist/@boss">@boss</a>
+				</div>
+				<div class="need">
+					<label><input type="radio" value="Oui" name="@boss-need"> Oui</label>
+					<label><input type="radio" value="Non" name="@boss-need"> Non</label>
+				</div>
+				<div class="coins">
+					<label><input type="radio" value="Oui" name="@boss-coin"> Oui</label>
+					<label><input type="radio" value="Non" name="@boss-coin"> Non</label>
+				</div>
+			</div>
+		}
+	</div>
+
+	<script>
+			var data = @Html(data);
+
+			function do_save() {
+				var bosses = document.querySelectorAll("#wishes .boss:not(.title)");
+				var data = {};
+
+				for (var i = 0; i < bosses.length; i++) {
+					var boss = bosses[i];
+					var name = $(boss.querySelector("a")).text();
+					var need = boss.querySelector(".need input:checked").value;
+					var coin = boss.querySelector(".coins input:checked").value;
+
+					data[name] = {
+						need: need,
+						coin: coin
+					};
+				}
+
+				$("#saved").hide();
+				console.log(data);
+				$.post("/wt/wishlist", { data: JSON.stringify(data) }, function(res) {
+					$("#saved").css("display", "inline");
+				});
+			}
+
+			var bosses = document.querySelectorAll("#wishes .boss:not(.title)");
+			for (var i = 0; i < bosses.length; i++) {
+				var boss = bosses[i];
+				var name = $(boss.querySelector("a")).text();
+
+				var boss_data = data[name];
+
+				if (!boss_data) {
+					$("input[value='Non']", boss).attr("checked", true);
+					continue;
+				}
+
+				if (boss_data.need == "Oui") {
+					$(".need input[value='Oui']", boss).attr("checked", true);
+				} else {
+					$(".need input[value='Non']", boss).attr("checked", true);
+				}
+
+				if (boss_data.coin == "Oui") {
+					$(".coins input[value='Oui']", boss).attr("checked", true);
+				} else {
+					$(".coins input[value='Non']", boss).attr("checked", true);
+				}
+			}
+	</script>
+
+	<button id="sub-btn" onclick="do_save();"><i class="material-icons">archive</i> Sauvegarder</button>
+	<i class="material-icons" id="saved">check</i>
+
+}

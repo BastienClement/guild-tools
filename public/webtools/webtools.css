@@ -7,21 +7,13 @@ html, body {
 }
 
 body {
-    overflow: hidden;
     font: 400 14px "Roboto";
     color: #f1f1f1;
-    display: flex;
-    min-height: 400px;
 }
 
 a {
     text-decoration: none;
     color: #8EAFCE;
-}
-
-aside {
-    background: #395066;
-    width: 250px;
 }
 
 aside h1 {

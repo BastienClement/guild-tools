@@ -4,13 +4,33 @@
 <meta charset="utf-8">
 <link rel="stylesheet" href='@routes.Assets.versioned("webtools/webtools.css")'>
 
-<script src='@routes.Assets.versioned("javascripts/seamless.js")'></script>
+<script src='@routes.Assets.versioned("javascripts/jquery.js")'></script>
 <script>
-seamless.frame({
-	"allowed_domains": ["http://www.fs-guild.net"],
-	"target_origin": '*'
-});
+	window.onload = function() {
+		window.parent.postMessage(JSON.stringify({
+			height: document.body.offsetHeight
+		}), "*");
+	};
+
+	window.onunload = function() {
+		window.parent.postMessage(JSON.stringify({
+			navigate: true
+		}), "*");
+	}
 </script>
+
+<style>
+body {
+	overflow: hidden;
+	display: flex;
+	min-height: 400px;
+}
+
+aside {
+	background: #395066;
+	width: 250px;
+}
+</style>
 
 @menu_item(title: String, icon: String, href: String, sec: String) = {
 	<li @if(section == sec) { class="active" }><a href="@href"><i class="material-icons">@icon</i> @title</a></li>
@@ -25,15 +45,11 @@ seamless.frame({
 			@menu_item("Personnages", "account_circle", "/wt/chars", "chars")
 			@menu_item("Événements", "event", "/wt/events", "events")
 
-			@if(user.member && false) {
-			} else {
-				@menu_item("Candidature", "assignment_ind", "/wt/apply", "apply")
-			}
-
+			@menu_item("Candidature", "assignment_ind", "/wt/apply", "apply")
 			@menu_item("Candidatures", "assignment", "/wt/applys", "apply")
 
 			@if(user.roster) {
-				@menu_item("Wishlists", "favorite", "/wt/whishlist", "wishlist")
+				@menu_item("Wishlist", "favorite", "/wt/wishlist", "wishlist")
 			}
 		}
 	</ul>
