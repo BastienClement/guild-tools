@@ -1,0 +1,186 @@
+@import url("https://fonts.googleapis.com/css?family=Roboto:400,400italic,300,500|Roboto+Condensed:400,300,600|Roboto+Mono:400");
+@import url("https://fonts.googleapis.com/icon?family=Material+Icons");
+
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    overflow: hidden;
+    font: 400 14px "Roboto";
+    color: #f1f1f1;
+    display: flex;
+    min-height: 400px;
+}
+
+a {
+    text-decoration: none;
+    color: #8EAFCE;
+}
+
+aside {
+    background: #395066;
+    width: 250px;
+}
+
+aside h1 {
+    font-family: "Roboto Condensed";
+    font-size: 21px;
+    font-weight: 300;
+    margin: 24px 16px;
+}
+
+aside ul {
+    padding: 0;
+    list-style: none;
+}
+
+aside li {
+    margin: 16px 0;
+    font-weight: 400;
+    position: relative;
+    height: 40px;
+}
+
+aside li.active {
+    box-shadow: 1px 1px 1px rgba(17, 17, 17, 0.2);
+    background-color: #426585;
+}
+
+aside li::after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 100%;
+    border-left: 10px solid #426585;
+    border-top: 20px solid transparent;
+    border-bottom: 20px solid transparent;
+    opacity: 0;
+}
+
+aside li.active::after {
+    opacity: 1;
+}
+
+aside i {
+    vertical-align: -8px;
+    margin-right: 16px;
+    margin-left: 8px;
+}
+
+aside a {
+    color: #fff;
+    display: block;
+    padding: 8px;
+}
+
+.fullpage {
+    display: flex;
+    height: 400px;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    font-weight: 300;
+    color: #8EAFCE;
+    line-height: 30px;
+}
+
+.fullpage div {
+    text-align:center;
+}
+
+.fullpage div > i {
+    font-size: 80px;
+    display: block;
+    margin-bottom: 40px;
+}
+
+#content {
+    padding: 16px 16px 16px 24px;
+    flex: 1;
+}
+
+#content h2 {
+    font-family: "Roboto Condensed";
+    font-size: 21px;
+    font-weight: 300;
+    margin: 24px 0 16px 0;
+}
+
+#content h2:first-child {
+    margin-top: 8px;
+}
+
+#content h3 {
+    font-family: "Roboto Condensed";
+    font-size: 18px;
+    font-weight: 300;
+    margin: 16px 0 16px 0;
+}
+
+#content p {
+    font-weight: 300;
+    color: #8EAFCE;
+    margin-bottom: 16px;
+    position: relative;
+    padding-left: 32px;
+    min-height: 32px;
+}
+
+#content p i {
+    position: absolute;
+    top: 7px;
+    left: 0;
+}
+
+#content p a {
+    border-bottom: 1px dotted;
+}
+
+#content p a:hover {
+    color: #fff;
+}
+
+body .c7, body .c7 a {
+    color: #2B6CFF !important;
+}
+
+body .c6, body .c6 a {
+    color: #DE2243 !important;
+}
+
+body .c10, body .c10 a {
+    color: #00A07D !important;
+}
+
+#content button,
+#content .button {
+    background: rgba(99, 180, 255, 0.2);
+    border: 1px solid rgba(99, 180, 255, 0.1);
+    box-shadow: 0 1px 1px rgba(17, 17, 17, 0.3);
+    transition: background .2s ease-out;
+    color: #fff;
+    padding: 8px 12px 8px 10px;
+    border-radius: 2px;
+    cursor: pointer;
+    margin-bottom: 16px;
+    font-size: 13px;
+}
+
+#content button:disabled {
+    opacity: 0.5;
+}
+
+#content button:hover:not(:disabled),
+#content .button:hover:not(:disabled){
+    background: rgba(99, 180, 255, 0.3);
+}
+
+#content button i,
+#content .button i{
+    vertical-align: -5px;
+    margin-right: 5px;
+    font-size: 20px;
+}

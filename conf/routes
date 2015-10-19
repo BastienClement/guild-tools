@@ -13,6 +13,8 @@ GET         /api/*path                  controllers.Api.catchall(path)
 
 GET         /ping/dashboard/feed        controllers.Ping.dashboardFeed
 
+GET			/wt/						controllers.WebTools.main
+
 GET         /                           controllers.Application.client
 GET         /unsupported                controllers.Application.unsupported
 GET         /*path                      controllers.Application.catchall(path)

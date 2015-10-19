@@ -1,0 +1,40 @@
+@import models._
+@(content: Html)(implicit user: User)
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link rel="stylesheet" href='@routes.Assets.versioned("webtools/webtools.css")'>
+
+<script src='@routes.Assets.versioned("javascripts/seamless.js")'></script>
+<script>
+seamless.frame({
+	"allowed_domains": ["http://www.fs-guild.net"],
+	"target_origin": '*'
+});
+</script>
+
+<aside>
+	<h1>From Scratch WebTools</h1>
+	<ul>
+		@if(user == null) {
+			<li class="active"><a href="#chars"><i class="material-icons">lock</i> Accès limité</a></li>
+		} else {
+			<li><a href="#chars" default><i class="material-icons">account_circle</i> Personnages</a></li>
+			<li><a href="#events"><i class="material-icons">event</i> Événements</a></li>
+
+			@if(user.member && false) {
+			} else {
+				<li><a href="#apply"><i class="material-icons">assignment_ind</i> Candidature</a></li>
+			}
+
+			<li><a href="#applys"><i class="material-icons">assignment</i> Candidatures</a></li>
+
+			@if(user.roster) {
+				<li><a href="#wishlist"><i class="material-icons">favorite</i> Wishlists</a></li>
+			}
+		}
+	</ul>
+</aside>
+
+<div id="content">
+@content
+</div>

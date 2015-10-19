@@ -4,15 +4,26 @@ import actors.AuthService._
 import models._
 import models.mysql._
 import reactive._
+import scala.annotation.tailrec
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
 import utils.{Cache, SmartTimestamp}
 
 object AuthService {
-	val allowed_groups = Set(8, 12, 9, 11, 10, 13)
+	val allowed_groups = Set(
+		8, // Apply
+		12, // Casual
+		9, // Member
+		11, // Officer
+		10, // Guest
+		13 // Veteran
+	)
+
 	val developer_users = Set(1647)
 	val officier_groups = Set(11)
+	val member_groups = Set(9, 11)
+	val roster_groups = Set(8, 9, 11)
 }
 
 trait AuthService {
@@ -47,26 +58,31 @@ trait AuthService {
 			u <- Users if (u.name === name || u.name_clean === name.toLowerCase) && (u.group inSet allowed_groups)
 		} yield (u.pass, u.id)
 
-		user_credentials.headOption collect {
+		user_credentials.headOption flatMap {
 			case Some((pass_ref, user_id)) if password == utils.sha1(pass_ref + salt) =>
-				def createSession(attempt: Int = 1): Option[String] = {
-					val token = utils.randomToken()
-					Try {
-						val now = SmartTimestamp.now
-						DB.run(Sessions += Session(token, user_id, ip, ua, now, now)).await
-						Some(token)
-					} getOrElse {
-						if (attempt < 3) createSession(attempt + 1)
-						else None
-					}
-				}
-
-				createSession() getOrElse {
-					throw new Exception("Unable to login")
+				createSession(user_id, ip, ua) recover {
+					case _ => throw new Exception("Unable to login")
 				}
 
 			case _ => throw new Exception("Invalid credentials")
 		}
+	}
+
+	// Create a session for a given user
+	def createSession(user: Int, ip: Option[String], ua: Option[String]): Future[String] = {
+		def attempt(count: Int = 1): Future[String] = {
+			val token = utils.randomToken()
+			val now = SmartTimestamp.now
+			val res = for {
+				_ <- DB.run(Sessions += Session(token, user, ip, ua, now, now))
+			} yield token
+
+			res recoverWith {
+				case _ if count < 3 => attempt(count + 1)
+			}
+		}
+
+		attempt()
 	}
 
 	// Remove a session from the database

@@ -1,16 +1,14 @@
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
-
 import play.api.Play
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.json._
-import slick.dbio.{NoStream, DBIOAction}
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
+import scala.language.implicitConversions
+import slick.dbio.{DBIOAction, NoStream}
 import slick.driver.JdbcProfile
 import slick.lifted.Query
-
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
-import scala.language.implicitConversions
 
 package object models {
 	val DB = DatabaseConfigProvider.get[JdbcProfile](Play.current).db
@@ -19,7 +17,9 @@ package object models {
 	val sql = slick.jdbc.StaticQuery
 
 	implicit class QueryExecutor[A](val q: Query[_, A, Seq]) extends AnyVal {
+
 		import mysql._
+
 		def run = DB.run(q.result)
 		def head = DB.run(q.result.head)
 		def headOption = DB.run(q.result.headOption)
@@ -50,7 +50,9 @@ package object models {
 				"color" -> user.color,
 				"officer" -> user.officer,
 				"promoted" -> user.promoted,
-				"developer" -> user.developer)
+				"developer" -> user.developer,
+				"member" -> user.member,
+				"roster" -> user.roster)
 		}
 	}
 
