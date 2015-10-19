@@ -1,5 +1,5 @@
 @import models._
-@(content: Html)(implicit user: User)
+@(section: String)(content: Html)(implicit user: User)
 <!DOCTYPE html>
 <meta charset="utf-8">
 <link rel="stylesheet" href='@routes.Assets.versioned("webtools/webtools.css")'>
@@ -12,24 +12,28 @@ seamless.frame({
 });
 </script>
 
+@menu_item(title: String, icon: String, href: String, sec: String) = {
+	<li @if(section == sec) { class="active" }><a href="@href"><i class="material-icons">@icon</i> @title</a></li>
+}
+
 <aside>
 	<h1>From Scratch WebTools</h1>
 	<ul>
 		@if(user == null) {
-			<li class="active"><a href="#chars"><i class="material-icons">lock</i> Accès limité</a></li>
+			@menu_item("Accès limité", "lock", "#", "")
 		} else {
-			<li><a href="#chars" default><i class="material-icons">account_circle</i> Personnages</a></li>
-			<li><a href="#events"><i class="material-icons">event</i> Événements</a></li>
+			@menu_item("Personnages", "account_circle", "/wt/chars", "chars")
+			@menu_item("Événements", "event", "/wt/events", "events")
 
 			@if(user.member && false) {
 			} else {
-				<li><a href="#apply"><i class="material-icons">assignment_ind</i> Candidature</a></li>
+				@menu_item("Candidature", "assignment_ind", "/wt/apply", "apply")
 			}
 
-			<li><a href="#applys"><i class="material-icons">assignment</i> Candidatures</a></li>
+			@menu_item("Candidatures", "assignment", "/wt/applys", "apply")
 
 			@if(user.roster) {
-				<li><a href="#wishlist"><i class="material-icons">favorite</i> Wishlists</a></li>
+				@menu_item("Wishlists", "favorite", "/wt/whishlist", "wishlist")
 			}
 		}
 	</ul>
