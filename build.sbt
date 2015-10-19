@@ -10,8 +10,8 @@ libraryDependencies ++= Seq(
 	jdbc,
 	cache,
 	ws,
-	"mysql" % "mysql-connector-java" % "5.1.36",
-	"com.typesafe.play" %% "play-slick" % "1.0.1",
+	"mysql" % "mysql-connector-java" % "5.1.37",
+	"com.typesafe.play" %% "play-slick" % "1.1.0",
 	"org.scodec" %% "scodec-core" % "1.8.2",
 	"org.scodec" %% "scodec-bits" % "1.0.10"
 )
