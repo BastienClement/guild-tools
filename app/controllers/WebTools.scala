@@ -14,10 +14,12 @@ object WebTools extends Controller {
 
 	object UserAction extends ActionBuilder[UserRequest] {
 		val sessionCache = Cache.async[String, User](1.minute) { token =>
-			for {
-				session <- Sessions.filter(_.token === token).head
-				user <- Users.filter(_.id === session.user).head
-			} yield user
+			DB.run {
+				for {
+					session <- Sessions.filter(_.token === token).result.head
+					user <- Users.filter(_.id === session.user).result.head
+				} yield user
+			}
 		}
 
 		def cookieUser[A](implicit request: Request[A]) = {
