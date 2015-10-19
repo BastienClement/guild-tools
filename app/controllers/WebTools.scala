@@ -6,18 +6,26 @@ import models.mysql._
 import play.api.mvc._
 import reactive._
 import scala.concurrent.Future
+import utils.Cache
+import scala.concurrent.duration._
 
 object WebTools extends Controller {
 	class UserRequest[A](val user: User, val token: String, val set_cookie: Boolean, val request: Request[A]) extends WrappedRequest[A](request)
 
 	object UserAction extends ActionBuilder[UserRequest] {
+		val sessionCache = Cache.async[String, User](1.minute) { token =>
+			for {
+				session <- Sessions.filter(_.token === token).head
+				user <- Users.filter(_.id === session.user).head
+			} yield user
+		}
+
 		def cookieUser[A](implicit request: Request[A]) = {
 			for {
 				token <- Future {
 					request.cookies.get("gt_session").get.value
 				}
-				session <- Sessions.filter(_.token === token).head
-				user <- Users.filter(_.id === session.user).head
+				user <- sessionCache(token)
 			} yield (user, token, false)
 		}
 
