@@ -1,7 +1,7 @@
 package utils
 
 import models.ChatMessages
-import models.simple._
+import models.mysql._
 import utils.Implicits.OptionBoxing
 
 object ChatSelect extends ChatSelect(None, None, None, None, None) {

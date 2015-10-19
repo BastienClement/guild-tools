@@ -12,9 +12,7 @@ import slick.lifted.Query
 
 package object models {
 	val DB = DatabaseConfigProvider.get[JdbcProfile](Play.current).db
-	val simple = slick.driver.MySQLDriver.simple
 	val mysql = slick.driver.MySQLDriver.api
-	val sql = slick.jdbc.StaticQuery
 
 	implicit class QueryExecutor[A](val q: Query[_, A, Seq]) extends AnyVal {
 
