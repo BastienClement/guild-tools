@@ -73,6 +73,13 @@
 <script src='@routes.Assets.versioned("javascripts/webcomponents-lite.js")'></script>
 <script src='@routes.Assets.versioned("javascripts/prefixfree.js")'></script>
 
+<!-- Load application -->
+<script>
+	System.import("client/boot").then(function(boot) {
+		boot.default();
+	});
+</script>
+
 <!-- Check browser compatibility -->
 <script src='@routes.Assets.versioned("javascripts/bowser.js")'></script>
 <script>
@@ -91,11 +98,4 @@
 			document.location.href = "/unsupported";
 		}
 	})();
-</script>
-
-<!-- Load application -->
-<script>
-	System.import("client/boot").then(function(boot) {
-		boot.default();
-	});
 </script>
