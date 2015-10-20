@@ -371,6 +371,37 @@
 			gt-button {
 				margin: 0;
 			}
+			
+			#roles {
+				flex: 1;
+				display: flex;
+				align-items: center;
+				transition: opacity .2s ease-out;
+				
+				&[disabled] {
+					opacity: 0;
+				}
+				
+				img { .gpu;
+					width: 20px;
+					height: 20px;
+					opacity: 0.75;
+					transition: all .2s ease-out;
+					border-bottom: 2px solid transparent;
+					box-sizing: content-box;
+					padding: 9px 3px;
+					margin: -2px 0;
+					
+					&:hover:not([active]) {
+						border-color: fade(@fs-blue, 30%);
+					}
+					
+					&[active] {
+						opacity: 1;
+						border-color: fade(@fs-blue, 50%);
+					}
+				}
+			}
 		}
 	</style>
 	<template>
@@ -400,6 +431,11 @@
 				</div>
 			</div>
 			<div #actions {hidden}="!editable">
+				<div #roles {disabled}="!char.active">
+					<img src="/assets/images/roles/TANK.png" role="TANK" (click)="roleClicked" {active}="equals(char.role, 'TANK')">
+					<img src="/assets/images/roles/HEALING.png" role="HEALING" (click)="roleClicked" {active}="equals(char.role, 'HEALING')">
+					<img src="/assets/images/roles/DPS.png" role="DPS" (click)="roleClicked" {active}="equals(char.role, 'DPS')">
+				</div>
 				<span {hidden}="!char.active">
 					<gt-button #btn-main {hidden}="char.main">Main</gt-button>
 					<gt-button #btn-disable {hidden}="char.main">Disable</gt-button>
