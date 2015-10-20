@@ -28,6 +28,11 @@ export class Application {
 	public root: GtApp = null;
 	
 	/**
+	 * App is running in standalone mode
+	 */
+	public standalone: boolean = APP;
+	
+	/**
 	 * The current user
 	 */
 	public user: User = null;
@@ -54,7 +59,7 @@ export class Application {
 		// Preload GtApp and views
 		let app_views_promise = Promise.all<any>([
 			this.loader.loadElement(GtApp),
-			this.router.loadViews("views/load")
+			this.router.loadRoutes("/assets/tools/routes")
 		]);
 		
 		// Display the title bar

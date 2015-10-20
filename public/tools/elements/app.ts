@@ -1,51 +1,84 @@
-import { Element, Property, Listener, Dependencies, Inject, On, Watch, Bind, PolymerElement, PolymerModelEvent, PolymerMetadata } from "elements/polymer";
+import { Element, Property, Listener, Dependencies, Inject, On, Watch, Bind,
+	PolymerElement, PolymerModelEvent, PolymerMetadata, PolymerConstructor } from "elements/polymer";
 import { GtButton } from "elements/widgets";
-import { Router, ModuleTab } from "client/router";
+import { Router } from "client/router";
 import { Server } from "client/server";
 import { Loader } from "client/loader";
 import { Deferred } from "utils/deferred";
 import { Chat } from "services/chat";
+
+// Force loading of data providers elements
+import * as DataProviders from "elements/data";
+(DataProviders);
+
+// Views loader
+type ViewPromise = Promise<PolymerConstructor<any>>;
+const views_cache = new Map<string, ViewPromise>();
+
+function load_view(key: string) {
+	if (views_cache.has(key)) {
+		return views_cache.get(key);
+	}
+	
+	let [, unit, name] = key.match(/^(.+)\/([^\/]+)$/);
+	let promise: ViewPromise = Deferred.require(unit, name);
+	
+	promise.catch(e => views_cache.delete(key));
+	
+	views_cache.set(key, promise);
+	return promise;
+}
+
+// Dummy factory div to construct views instances
+const factory = document.createElement("div");
+
+// Tab
+export interface Tab {
+	title: string;
+	link: string;
+	active: boolean;
+}
+
+// Function generating current tabs list
+export type TabsGenerator = (view: string, path: string) => Tab[];
+
+// Metadata for views
+export interface ViewMetadata {
+	module: string;
+	tabs: TabsGenerator;
+}
+
+// The @View annoation
+export function View(module: string, tabs: TabsGenerator) {
+	return <T extends PolymerElement>(target: PolymerConstructor<T>) => {
+		Reflect.defineMetadata("view:meta", { module, tabs }, target);
+	};
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <gt-title-bar>
 
 @Element("gt-title-bar", "/assets/imports/app.html")
 @Dependencies(GtButton)
 export class GtTitleBar extends PolymerElement {
 	// Remove the title bar if not launched as an app
 	private ready() {
-		if (!APP) this.$["window-controls"].remove();
+		if (!this.app.standalone)
+			this.$["window-controls"].remove();
 	}
 	
+	// ========================================================================
+	// Loading
+
 	@Inject
-	@On({ "update-latency": "UpdateLatency" })
 	@Bind({ loading: "loading" })
 	private server: Server;
 
 	@Property
-	public latency: string = "0ms";
-	private latency_history: number[] = [];
-	
-	@Property
 	private loading: boolean;
 
-	// Update the latency indicator
-	private UpdateLatency() {
-		// Push the latency in the history array
-		const history = this.latency_history;
-		history.push(this.server.latency);
-		if (history.length > 4) history.shift();
-
-		// Sum and count of history values
-		let acc = history.reduce((acc, l) => {
-			acc.sum += l;
-			acc.count++;
-			return acc;
-		}, { sum: 0, count: 0 });
-
-		// Average
-		const latency = acc.sum / acc.count;
-
-		// Update the latency value
-		this.latency = Math.floor(latency * 100) / 100 + "ms";
-	}
+	// ========================================================================
+	// Chat
 
 	@Inject
 	@On({
@@ -56,54 +89,73 @@ export class GtTitleBar extends PolymerElement {
 
 	@Property
 	public online_users: number = 0;
-	
+
 	private UpdateOnlineCount() {
-		this.debounce("update-count", () => this.online_users = this.chat.onlinesUsers.length);
+		this.debounce("update-online", () => this.online_users = this.chat.onlinesUsers.length);
 	}
+	
+	// ========================================================================
+	// Tabs
 
 	@Inject
-	@Bind({ activeTabs: "tabs", activePath: "path" })
+	@Bind({ activePath: "path" })
+	@Watch({ activeView: "UpdateTabs" })
 	private router: Router;
 
-	private tabs: ModuleTab[];
 	private path: string;
+	private tabs: Tab[];
 
-	private tabActive(tab: ModuleTab) {
-		if (tab.pattern) {
-			return tab.pattern.test(this.path);
-		} else {
-			return tab.link == this.path;
-		}
-	}
+	private async UpdateTabs() {
+		// Capture the current active path to handle race-conditions
+		let path = this.path;
 
-	private activateTab(e: PolymerModelEvent<ModuleTab>) {
-		this.router.goto(e.model.item.link);
-	}
+		// Load the current view
+		let view = await load_view(this.router.activeView);
+		if (path != this.path) return;
 
-	private tabVisible(tab: ModuleTab) {
-		return !tab.visible || tab.visible(this.app.user);
+		// Get tabs generator from view metadata	
+		let meta = Reflect.getMetadata<ViewMetadata>("view:meta", view);
+		if (!meta) return;
+		
+		this.tabs = meta.tabs(this.router.activeView, path);
 	}
 	
+	// ========================================================================
+	// Panel
+
 	@Property({ reflect: true })
 	public panel: boolean = false;
-	
+
 	@Listener("logo.click")
 	private OpenPanel() {
 		if (!this.panel) {
 			this.panel = true;
 			(<any>this).style.zIndex = 20;
-		}    
+		}
 	}
-	
+
 	@Listener("panel.mouseleave")
 	private ClosePanel(ev: MouseEvent) {
 		if (this.panel) {
 			this.panel = false;
 			this.debounce("z-index-downgrade", () => { if (!this.panel) (<any>this).style.zIndex = 10; }, 300);
-		}    
+		}
 	}
+
+	private About() { this.router.goto("/about"); }
+	private Settings() { this.router.goto("/settings"); }
+	private Reload() { document.location.reload(); }
+	private DownloadClient() { }
+	private DevTools() { }
+	private ServerStatus() { this.router.goto("/status"); }
+	private Logout() { }
+	private Quit() { window.close(); }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// <gt-sidebar>
+
+// Sidebar module icon
 interface SidebarIcon {
 	icon: string;
 	key: string;
@@ -112,9 +164,6 @@ interface SidebarIcon {
 
 @Element("gt-sidebar", "/assets/imports/app.html")
 export class GtSidebar extends PolymerElement {
-	/**
-	 * List of icons to display on the sidebar
-	 */
 	@Property
 	private icons: SidebarIcon[] = [
 		{ icon: "widgets", key: "dashboard", link: "/dashboard" },
@@ -128,32 +177,39 @@ export class GtSidebar extends PolymerElement {
 		//{ icon: "brush", key: "whiteboard", link: "/whiteboard" },
 		//{ icon: "backup", key: "drive", link: "/drive" }
 	];
-
-	/**
-	 * Reference to the application router to get the
-	 * current main-view module
-	 */
+	
 	@Inject
-	@Bind({ activeModule: "module" })
+	@Bind({ activePath: "path" })
+	@Watch({ activeView: "UpdateView" })
 	private router: Router;
 
+	// Current path
+	private path: string;
+    
 	// Current active module
 	private module: string;
 
-	/**
-	 * Icon click handler
-	 */
+	private async UpdateView() {
+		// Capture the current active path to handle race-conditions
+		let path = this.path;
+
+		// Load the current view
+		let view = await load_view(this.router.activeView);
+		if (path != this.path) return;
+
+		// Get module name from view metadata	
+		let meta = Reflect.getMetadata<ViewMetadata>("view:meta", view);
+		this.module = meta ? meta.module : null;
+	}
+    
+	// Click handler for icons
 	private IconClicked(e: PolymerModelEvent<{ link: string }>) {
 		this.router.goto(e.model.item.link)
 	}
-
-	/**
-	 * Check if two strings are equals
-	 */
-	private equals<T>(a: T, b: T) {
-		return a == b;
-	}
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// <gt-view>
 
 @Element("gt-view", "/assets/imports/app.html")
 export class GtView extends PolymerElement {
@@ -167,7 +223,7 @@ export class GtView extends PolymerElement {
 	private layer: number = 0;
 	private current: any = null;
 
-	private update() {
+	private async update() {
 		document.body.classList.add("app-loader");
 		this.current = null;
 
@@ -179,54 +235,56 @@ export class GtView extends PolymerElement {
 			}).then(() => this.node.removeChild(e));
 		});
 
-		let view = this.router.activeView;
-		if (!view) return;
-		
+		let view_key = this.router.activeView;
+		if (!view_key) return;
+
+		let view = await load_view(view_key);
 		tasks.push(this.loader.loadElement(view));
 
-		Promise.all(tasks).then(() => {
-			document.body.classList.remove("app-loader");
+		await Promise.all(tasks);
+		document.body.classList.remove("app-loader");
 
-			let args = this.router.activeArguments;
-			let arg_string: string[] = [];
-			
-			for (let key in args) {
-				if (args[key] != void 0) {
-					let arg_value = args[key].replace(/./g, (s) => `&#${s.charCodeAt(0)};`);
-					arg_string.push(` ${key}='${arg_value}'`);
-				}
+		let args = this.router.activeArguments;
+		let arg_string: string[] = [];
+
+		for (let key in args) {
+			if (args[key] != void 0) {
+				let arg_value = args[key].replace(/./g, (s) => `&#${s.charCodeAt(0)};`);
+				arg_string.push(` ${key}='${arg_value}'`);
 			}
-			
-			// Use a crazy HTML generation system to create the element since we need to have
-			// router-provided attributes defined before the createdCallback() method is called
-			let factory = document.createElement("div");
-			let meta = Reflect.getMetadata<PolymerMetadata<any>>("polymer:meta", view);
-			factory.innerHTML = `<${meta.selector}${arg_string.join()}></${meta.selector}>`;
-			
-			// Element has been constructed by the HTML parser
-			let element = <any> factory.firstElementChild;
+		}
+		
 
-			element.style.zIndex = ++this.layer;
+		// Use a crazy HTML generation system to create the element since we need to have
+		// router-provided attributes defined before the createdCallback() method is called
+		let meta = Reflect.getMetadata<PolymerMetadata<any>>("polymer:meta", view);
+		factory.innerHTML = `<${meta.selector}${arg_string.join()}></${meta.selector}>`;
 
-			this.current = element;
-			this.node.appendChild(element);
+		// Element has been constructed by the HTML parser
+		let element = <any> factory.firstElementChild;
 
-			requestAnimationFrame(() => requestAnimationFrame(() => element.classList.add("active")));
-		});
+		element.style.zIndex = ++this.layer;
+
+		this.current = element;
+		this.node.appendChild(element);
+
+		requestAnimationFrame(() => requestAnimationFrame(() => element.classList.add("active")));
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// <gt-app>
 
 @Element("gt-app", "/assets/imports/app.html")
 @Dependencies(GtTitleBar, GtSidebar, GtView)
 export class GtApp extends PolymerElement {
 	@Property
 	public is_app: boolean = APP;
-	
+
 	public titlebar: GtTitleBar;
 	public sidebar: GtSidebar;
 	public view: GtView;
-	
+
 	private ready() {
 		this.titlebar = this.$.title;
 		this.sidebar = this.$.side;

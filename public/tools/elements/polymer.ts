@@ -1,5 +1,3 @@
-import { Deferred, defer } from "utils/deferred";
-import { Queue } from "utils/queue";
 import { Constructor, DefaultInjector } from "utils/di";
 import { EventEmitter } from "utils/eventemitter";
 import { Service } from "utils/service";
@@ -455,9 +453,15 @@ export function Element(selector: string, template?: string, ext?: string) {
 		meta.base = target;
 		meta.proto = target.prototype;
 		meta.loaded = false;
-
+		
 		// Copy it on the proxy
 		Reflect.defineMetadata("polymer:meta", meta, proxy);
+		Reflect.deleteMetadata("polymer:meta", target);
+		
+		// Transpose remaining metadatas
+		for (let key of Reflect.getOwnMetadataKeys(target)) {
+			Reflect.defineMetadata(key, Reflect.getMetadata(key, target), proxy);
+		}
 
 		// Transpose static members on the proxy function
 		for (let key in target) {
@@ -622,10 +626,9 @@ export function apply_polymer_fns() {
 	/**
 	 * Check if an Node is an instance of the given Polymer element
 	 */
-	Polymer.is = <T extends PolymerElement>(node: Node, ctor: PolymerConstructor<T>) => {
+	Polymer.is = <T extends PolymerElement>(node: any, ctor: PolymerConstructor<T>): node is T => {
 		const selector = Reflect.getMetadata<{ selector: string; }>("polymer:meta", ctor).selector;
 		return (<any> node).is == selector;
-		//return Object.getPrototypeOf(node) === Polymer.Base.getNativePrototype(selector);
 	};
 
 	/**
@@ -672,7 +675,7 @@ export function apply_polymer_fns() {
 	/**
 	 * Equals function
 	 */
-	Base.equals = function(a: any, b: any) {
+	Base.equals = function<T>(a: T, b: T) {
 		return a === b;
 	}
 }

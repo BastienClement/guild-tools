@@ -1,0 +1,2 @@
+/dashboard                        views/dashboard/GtDashboard
+/profile(/:user)?                 views/profile/GtProfile

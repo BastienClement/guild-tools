@@ -1,5 +1,5 @@
 import { EventEmitter } from "utils/eventemitter";
-import { DispatchTable, ServiceChannel } from "client/server";
+import { DispatchTable } from "client/server";
 import { defer } from "utils/deferred";
 
 /**

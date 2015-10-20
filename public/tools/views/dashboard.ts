@@ -1,21 +1,21 @@
-import { Element, Property, Listener, Dependencies, Inject, On, Watch, Bind, PolymerElement, PolymerModelEvent } from "elements/polymer";
-import { Router, View } from "client/router";
+import { Element, Property, Listener, Dependencies, Inject, On, Bind, PolymerElement, PolymerModelEvent } from "elements/polymer";
+import { View } from "elements/app";
+import { GtBox, GtAlert } from "elements/box";
+import { GtTimeago } from "elements/timeago";
+import { BnetThumb } from "elements/bnet";
 import { Server } from "client/server";
 import { NewsFeed, NewsData } from "services/newsfeed";
 import { Chat, ChatMessage } from "services/chat";
-import { Roster, User, Char } from "services/roster";
-import { GtBox, GtAlert, GtTimeago, BnetThumb, DataMain } from "elements/defs";
 import { ProfileUser } from "views/profile"
-
-Router.declareTabs("dashboard", [
-	{ title: "Dashboard", link: "/dashboard" }
-]);
 
 const SHOUTBOX_ROOM = 0;
 
 interface NewsFilters {
 	[key: string]: boolean;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// <dashboard-news-filter>
 
 @Element("dashboard-news-filter", "/assets/views/dashboard.html")
 class DashboardNewsFilter extends PolymerElement {
@@ -35,6 +35,9 @@ class DashboardNewsFilter extends PolymerElement {
 		this.fire("toggle-filter", this.key);
 	}
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// <dashboard-news>
 
 @Element("dashboard-news", "/assets/views/dashboard.html")
 @Dependencies(DashboardNewsFilter, GtBox, GtTimeago, GtAlert)
@@ -106,6 +109,8 @@ class DashboardNews extends PolymerElement {
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// <dashboard-shoutbox>
 
 @Element("dashboard-shoutbox", "/assets/views/dashboard.html")
 @Dependencies()
@@ -137,7 +142,6 @@ class DashboardShoutbox extends PolymerElement {
 		// Request the shoutbox messages backlog
 		const msgs = await this.chat.requestBacklog(SHOUTBOX_ROOM);
 		
-		console.log(msgs);
 		this.messages = msgs;
 		this.loading = false;
 	}
@@ -147,32 +151,46 @@ class DashboardShoutbox extends PolymerElement {
 	}
 }
 
-@Element("dashboard-onlines-user", "/assets/views/dashboard.html")
-@Dependencies(BnetThumb, DataMain)    
-class DashboardOnlinesUser extends PolymerElement {
-	@Inject
-	private router: Router;
-	
-	@Property
-	public user: number;
-	
-	@Property
-	public away: boolean = this.chat.isAway(this.user);
+///////////////////////////////////////////////////////////////////////////////
+// <dashboard-onlines-user>
 
+@Element("dashboard-onlines-user", "/assets/views/dashboard.html")
+@Dependencies(BnetThumb)    
+class DashboardOnlinesUser extends PolymerElement {
 	@Inject
 	@On({ "away-changed": "UpdateAway" })
 	private chat: Chat;
 	
+	/**
+	 * The user represented by this element
+	 */
+	@Property public user: number;
+	
+	/**
+	 * Away state
+	 */
+	@Property public away: boolean = this.chat.isAway(this.user);
+	
+	/**
+	 * The away-state of a user has changed
+	 */
 	private UpdateAway(user: number, away: boolean) {
+		// Only update if the user is the good one
 		if (user == this.user) this.away = away;
 	}
 	
+	/**
+	 * Click on the element navigate to the user profile
+	 */
 	@Listener("click")
 	private OnClick() {
-		if (this.user == this.app.user.id) this.router.goto("/profile");
-		else this.router.goto(`/profile/${this.user}`);
+		if (this.user == this.app.user.id) this.app.router.goto("/profile");
+		else this.app.router.goto(`/profile/${this.user}`);
 	}
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// <dashboard-onlines>
 
 @Element("dashboard-onlines", "/assets/views/dashboard.html")
 @Dependencies(DashboardOnlinesUser)
@@ -208,7 +226,11 @@ class DashboardOnlines extends PolymerElement {
 	}
 }
 
-@View("dashboard", "gt-dashboard", "/dashboard")
+///////////////////////////////////////////////////////////////////////////////
+// <gt-dashboard>
+
+@View("dashboard", () => [{ title: "Dashboard", link: "/dashboard", active: true }])
+@Element("gt-dashboard", "/assets/views/dashboard.html")    
 @Dependencies(DashboardNews, DashboardShoutbox, DashboardOnlines, ProfileUser)
 export class GtDashboard extends PolymerElement {
 	@Inject

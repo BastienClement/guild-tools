@@ -79,7 +79,7 @@ class Profile(val user: User) extends ChannelHandler {
 	request("register-char") { p =>
 		val server = p("server").as[String]
 		val name = p("name").as[String]
-		val role = p("role").asOpt[String]
+		val role = p("role").asOpt[String].filter(Chars.validateRole)
 		last_char match {
 			case Some(char) if char.server == server && char.name == name =>
 				RosterService.addChar(char, user, role)

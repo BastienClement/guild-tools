@@ -3,12 +3,9 @@ import { Deferred } from "utils/deferred";
 import { EventEmitter } from "utils/eventemitter";
 
 import { Channel } from "gtp3/channel";
-import { Stream } from "gtp3/stream";
 import { NumberPool } from "gtp3/numberpool";
 import { UInt64 } from "gtp3/bufferstream";
 import { FrameType, Protocol } from "gtp3/protocol";
-import { UTF8Encoder, UTF8Decoder } from "gtp3/codecs";
-import { Payload } from "gtp3/payload";
 
 import { Frame, HelloFrame, ResumeFrame, HandshakeFrame, SyncFrame, AckFrame, PingFrame, PongFrame,
 	RequestAckFrame, OpenFrame, OpenSuccessFrame, OpenFailureFrame, ResetFrame } from "gtp3/frames";

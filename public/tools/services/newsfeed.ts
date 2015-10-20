@@ -1,8 +1,6 @@
 import { Component } from "utils/di";
 import { Service, Notify } from "utils/service";
 import { Server } from "client/server";
-import { Channel } from "gtp3/channel";
-import { Deferred } from "utils/deferred";
 
 /**
  * News data

@@ -1,19 +1,30 @@
-import { Element, Property, Listener, Dependencies, Inject, On, Watch, Bind, PolymerElement } from "elements/polymer";
-import { Router, View } from "client/router";
+import { Element, Property, Listener, Dependencies, Inject, On, PolymerElement } from "elements/polymer";
+import { View, Tab, TabsGenerator } from "elements/app";
+import { GtButton, GtForm, GtInput } from "elements/widgets";
+import { BnetThumb } from "elements/bnet";
+import { GtDialog } from "elements/dialog";
+import { GtBox } from "elements/box";
 import { Roster, User, Char } from "services/roster";
 import { Profile } from "services/profile";
-import { GtBox, GtButton, GtDialog, BnetThumb, GtForm, GtInput } from "elements/defs";
 import { throttle } from "utils/deferred";
 
-Router.declareTabs("profile", [
-	{ title: "Profile", link: "/profile" }
-]);
+const ProfileTabs: TabsGenerator = (view: string, path: string): Tab[] => {
+	return [
+		{ title: "Profile", link: "/profile", active: view == "views/profile/GtProfile" }
+	];
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <profile-user>
 
 @Element("profile-user", "/assets/views/profile.html")
 @Dependencies(GtBox, BnetThumb)    
 export class ProfileUser extends PolymerElement {
 	@Property public user: number;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// <profile-infos>
 
 @Element("profile-infos", "/assets/views/profile.html")
 @Dependencies(GtBox, GtButton)    
@@ -25,6 +36,9 @@ class ProfileInfos extends PolymerElement {
 		return this.app.user.id == this.user || this.app.user.promoted;
 	}
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// <profile-chars-card>
 
 @Element("profile-chars-card", "/assets/views/profile.html")
 @Dependencies(GtBox, GtButton, BnetThumb)    
@@ -67,6 +81,9 @@ class ProfileCharsCard extends PolymerElement {
 		}
 	}
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// <profile-add-char>
 
 @Element("profile-add-char", "/assets/views/profile.html")
 @Dependencies(GtBox, GtForm, GtInput)    
@@ -153,11 +170,19 @@ export class ProfileAddChar extends PolymerElement {
 		this.$.name.focus();
 	}
 	
+	// Add the character to the user account
+	private confirm() {
+		
+	}
+	
 	// Close the dialog
 	public close() {
 		this.$.dialog.hide();
 	}
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// <profile-chars>
 
 @Element("profile-chars", "/assets/views/profile.html")
 @Dependencies(GtBox, GtButton, GtDialog, ProfileCharsCard, ProfileAddChar)    
@@ -202,7 +227,11 @@ class ProfileChars extends PolymerElement {
 	}
 }
 
-@View("profile", "gt-profile", "/profile(/:user)?")
+///////////////////////////////////////////////////////////////////////////////
+// <gt-profile>
+
+@View("profile", ProfileTabs)
+@Element("gt-profile", "/assets/views/profile.html")       
 @Dependencies(ProfileUser, ProfileInfos, ProfileChars)
 export class GtProfile extends PolymerElement {
 	@Property

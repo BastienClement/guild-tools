@@ -118,18 +118,30 @@ export class GtButton extends PolymerElement {
 	public disabled: boolean;
 
 	/**
-	 * If set, clicking the button will trigger the submit event
-	 * in the enclosing GtForm
+	 * If set, clicking the button will trigger the submit event in the enclosing GtForm
 	 */
-	@Property
-	public submit: boolean;
+	@Property public submit: boolean;
+	
+	/**
+	 * If set, clicking the button will trigger navigation
+	 */
+	@Property public goto: string;
 
 	/**
-	 * Filter click and tap event if the element is disabled
+	 * Click handler
 	 */
 	@Listener("click", "tap")
 	private "event-filter"(e: Event) {
+		// Button is disabled
 		if (this.disabled) return this.stopEvent(e);
+		
+		// Button is a link
+		if (this.goto) {
+			this.app.router.goto(this.goto);
+			return;
+		}
+		
+		// Button is a form submit action
 		if (this.submit) {
 			const form = this.host(GtForm);
 			if (form) form.submit();

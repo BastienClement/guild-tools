@@ -5,7 +5,7 @@ import { FrameType, Protocol } from "gtp3/protocol";
 import { Socket, ChannelRequest } from "gtp3/socket";
 import { Stream } from "gtp3/stream";
 import { Frame, MessageFrame, RequestFrame, SuccessFrame, FailureFrame, CloseFrame } from "gtp3/frames";
-import { Payload, PayloadFrame, PayloadFlags } from "gtp3/payload";
+import { Payload, PayloadFlags } from "gtp3/payload";
 
 /**
  * Channel states

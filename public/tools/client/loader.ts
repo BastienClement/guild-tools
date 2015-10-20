@@ -1,4 +1,4 @@
-import { Component, Constructor } from "utils/di";
+import { Component } from "utils/di";
 import { Deferred } from "utils/deferred";
 import { ServiceWorker } from "utils/worker";
 import { PolymerElement, PolymerConstructor, PolymerMetadata, apply_polymer_fns } from "elements/polymer";

@@ -1,5 +1,5 @@
-import { Component, Injector } from "utils/di";
-import { Socket, SocketDelegate } from "gtp3/socket";
+import { Component } from "utils/di";
+import { Socket } from "gtp3/socket";
 import { Channel } from "gtp3/channel";
 import { Deferred } from "utils/deferred";
 import { Queue } from "utils/queue";
