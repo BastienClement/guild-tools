@@ -15,22 +15,20 @@ package object models {
 	val mysql = slick.driver.MySQLDriver.api
 
 	implicit class QueryExecutor[A](val q: Query[_, A, Seq]) extends AnyVal {
-
 		import mysql._
-
-		def run = DB.run(q.result)
-		def head = DB.run(q.result.head)
-		def headOption = DB.run(q.result.headOption)
+		@inline def run = DB.run(q.result)
+		@inline def head = DB.run(q.result.head)
+		@inline def headOption = DB.run(q.result.headOption)
 	}
 
 	implicit class DBActionExecutior[R](val q: DBIOAction[R, NoStream, Nothing]) extends AnyVal {
-		def run = DB.run(q)
-		def await = DB.run(q).await
+		@inline def run = DB.run(q)
+		@inline def await = DB.run(q).await
 	}
 
 	implicit class AwaitableFuture[A](val f: Future[A]) extends AnyVal {
-		def await: A = await(30.seconds)
-		def await(limit: Duration): A = Await.result(f, limit)
+		@inline def await: A = await(30.seconds)
+		@inline def await(limit: Duration): A = Await.result(f, limit)
 	}
 
 	implicit val timestampFormat = new Format[Timestamp] {

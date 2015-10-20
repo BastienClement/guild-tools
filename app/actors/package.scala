@@ -13,7 +13,7 @@ package object actors {
 	}
 
 	// Extract the inner TypedActor from the companion object
-	implicit def invokeTypedActor[A <: AnyRef](s: StaticActor[A, _]): A = s.$actor
+	@inline implicit def invokeTypedActor[A <: AnyRef](s: StaticActor[A, _]): A = s.$actor
 
 	// Log DeadLetters
 	private class DeadLetterLogger extends Actor {
