@@ -3,20 +3,26 @@ import { EventEmitter } from "utils/eventemitter";
 import { Notify } from "utils/service";
 import { Loader } from "client/loader";
 
-// One specific route configuration
+/**
+ * One specific route configuration
+ */
 interface RoutePattern {
 	pattern: RegExp;
 	tags: string[];
 	view: string;
 }
 
-// The object used to store route arguments
+/**
+ * The object used to store route arguments
+ */
 interface ArgumentsObject {
 	[arg: string]: string;
 }
 
-// Extract parameters names from view path and construct
-// an equivalent regular expression for matching the path
+/**
+ * Extract parameters names from view path and construct
+ * an equivalent regular expression for matching the path
+ */
 function compilePattern(path: string): [RegExp, string[]] {
 	// Remove trailing slashes and make parens non-capturing
 	// to prevent breaking tags capture
@@ -36,7 +42,9 @@ function compilePattern(path: string): [RegExp, string[]] {
  */
 @Component
 export class Router extends EventEmitter {
-	// Routes definitions
+	/**
+	 * Routes definitions
+	 */
 	private routes: RoutePattern[] = [];
 
 	// Current main-view informations
@@ -44,14 +52,24 @@ export class Router extends EventEmitter {
 	@Notify public activeArguments: ArgumentsObject;
 	@Notify public activeView: string;
 
-	// User will be redirected to this path if no view matches the current path
+	/**
+	 * User will be redirected to this path if no view matches the current path
+	 */
 	public fallback: string;
+	
+	/**
+	 * Prevent navigation if set
+	 */
+	private locked: boolean = false;
 
 	constructor(private loader: Loader) {
 		super();
 		window.addEventListener("popstate", () => this.update());
 	}
 
+	/**
+	 * Load routes from a definition file
+	 */    
 	public async loadRoutes(path: string) {
 		let routes = await this.loader.fetch(path);
 		let entries = routes.match(/^\s*\S+\s+\S+\s*$/gm).map(l => l.match(/\S+/g));
@@ -62,6 +80,9 @@ export class Router extends EventEmitter {
 		};
 	}
 
+	/**
+	 * Update the router state to match the current path
+	 */    
 	public update() {
 		// Current path
 		let path = location.pathname;
@@ -100,12 +121,22 @@ export class Router extends EventEmitter {
 		}
 	}
 
+	/**
+	 * Navigation
+	 */    
 	public goto(path: string, replace: boolean = false) {
-		if (replace) {
-			history.replaceState(null, "", path);
-		} else {
-			history.pushState(null, "", path);
-		}
+		if (this.locked) return;
+		
+		if (replace) history.replaceState(null, "", path);
+		else history.pushState(null, "", path);
+		
 		this.update();
+	}
+	
+	/**
+	 * Change the locked state
+	 */
+	public lock(state: boolean) {
+		this.locked = state;
 	}
 }

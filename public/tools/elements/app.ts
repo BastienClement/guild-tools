@@ -237,6 +237,7 @@ export class GtView extends PolymerElement {
 
 		let view_key = this.router.activeView;
 		if (!view_key) return;
+		this.router.lock(true);
 
 		let view = await load_view(view_key);
 		tasks.push(this.loader.loadElement(view));
@@ -269,6 +270,7 @@ export class GtView extends PolymerElement {
 		this.node.appendChild(element);
 
 		requestAnimationFrame(() => requestAnimationFrame(() => element.classList.add("active")));
+		this.router.lock(false);
 	}
 }
 
