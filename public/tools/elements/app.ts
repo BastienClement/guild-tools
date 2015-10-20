@@ -83,6 +83,25 @@ export class GtTitleBar extends PolymerElement {
 	private tabVisible(tab: ModuleTab) {
 		return !tab.visible || tab.visible(this.app.user);
 	}
+	
+	@Property({ reflect: true })
+	public panel: boolean = false;
+	
+	@Listener("logo.click")
+	private OpenPanel() {
+		if (!this.panel) {
+			this.panel = true;
+			(<any>this).style.zIndex = 20;
+		}    
+	}
+	
+	@Listener("panel.mouseleave")
+	private ClosePanel(ev: MouseEvent) {
+		if (this.panel) {
+			this.panel = false;
+			this.debounce("z-index-downgrade", () => { if (!this.panel) (<any>this).style.zIndex = 10; }, 300);
+		}    
+	}
 }
 
 interface SidebarIcon {

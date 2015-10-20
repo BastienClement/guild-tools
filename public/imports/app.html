@@ -100,16 +100,20 @@
 			padding: 12px;
 
 			background: fade(@fs-blue, 15%);
-			transition: all .25s ease-out;
+			//background: rgba(65, 100, 132, 0.90);
+			transition: all .2s ease-out;
 
 			&:hover {
 				background: fade(@fs-blue, 25%);
 			}
 
-			&.open {
+			@panel-width: 220px;
+			@panel-height: 525px;
+
+			:host([panel]) & {
 				background: rgba(65, 100, 132, 0.98);
-				width: 220px;
-				height: 525px;
+				width: @panel-width;
+				height: @panel-height;
 				box-shadow: 1px 1px 15px rgba(17, 17, 17, 0.3);
 				border-left: 0;
 				border-top: 0;
@@ -125,10 +129,10 @@
 				position: absolute;
 				top: 0;
 				left: 0;
-				width: 220px;
-				height: 100%;
+				width: @panel-width;
+				height: @panel-height;
 				opacity: 0;
-				transition: all .25s ease-out;
+				//transition: all .25s ease-out;
 				display: flex;
 				flex-direction: column;
 				
