@@ -44,8 +44,8 @@ trait AuthService {
 		val password = for (u <- Users if u.name === user || u.name_clean === user.toLowerCase) yield u.pass
 		password.head map { pass =>
 			pass.substring(0, 12)
-		} fallbackTo {
-			Future.successful("$H$9" + utils.randomToken().substring(0, 8))
+		} recover {
+			case _ => "$H$9" + utils.randomToken().substring(0, 8)
 		}
 	}
 
