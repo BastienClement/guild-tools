@@ -82,5 +82,4 @@ class CalendarEvents(tag: Tag) extends Table[CalendarEvent](tag, "gt_events_visi
 	def * = (id, title, desc, owner, date, time, visibility, state) <> (CalendarEvent.tupled, CalendarEvent.unapply)
 }
 
-object CalendarEvents extends TableQuery(new CalendarEvents(_)) {
-}
+object CalendarEvents extends TableQuery(new CalendarEvents(_))

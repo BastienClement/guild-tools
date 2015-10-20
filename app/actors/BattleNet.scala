@@ -8,7 +8,9 @@ import play.api.libs.ws.{WS, WSResponse}
 import reactive.ExecutionContext
 import scala.concurrent.Future
 
-object BattleNet {
+private[actors] class BattleNetImpl extends BattleNet
+
+object BattleNet extends StaticActor[BattleNet, BattleNetImpl]("BattleNet") {
 	private val key = current.configuration.getString("bnet.apiKey") getOrElse ""
 	case class BnetFailure(response: WSResponse) extends Exception((response.json \ "reason").as[String])
 }
@@ -56,5 +58,3 @@ trait BattleNet {
 		}
 	}
 }
-
-class BattleNetImpl extends BattleNet

@@ -1,6 +1,6 @@
 package channels
 
-import actors.Actors._
+import actors.RosterService
 import actors.RosterService.{CharDeleted, CharUpdate}
 import akka.actor.Props
 import gtp3._

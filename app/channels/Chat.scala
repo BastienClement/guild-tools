@@ -1,6 +1,6 @@
 package channels
 
-import actors.Actors._
+import actors.ChatService
 import actors.ChatService.{UserAway, UserConnect, UserDisconnect}
 import akka.actor.Props
 import gtp3._

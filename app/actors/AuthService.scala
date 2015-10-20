@@ -4,13 +4,13 @@ import actors.AuthService._
 import models._
 import models.mysql._
 import reactive._
-import scala.annotation.tailrec
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.util.Try
 import utils.{Cache, SmartTimestamp}
 
-object AuthService {
+private[actors] class AuthServiceImpl extends AuthService
+
+object AuthService extends StaticActor[AuthService, AuthServiceImpl]("AuthService") {
 	val allowed_groups = Set(
 		8, // Apply
 		12, // Casual
@@ -90,5 +90,3 @@ trait AuthService {
 		for (_ <- Sessions.filter(_.token === session).delete) yield ()
 	}
 }
-
-class AuthServiceImpl extends AuthService

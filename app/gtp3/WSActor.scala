@@ -1,6 +1,6 @@
 package gtp3
 
-import actors.Actors._
+import actors.SocketManager
 import akka.actor.{Actor, ActorRef, PoisonPill}
 import gtp3.Socket.{IncomingFrame, Opener, OutgoingFrame}
 import gtp3.WSActor.BindingFailed

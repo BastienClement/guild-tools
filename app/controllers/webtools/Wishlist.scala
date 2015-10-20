@@ -3,7 +3,7 @@ package controllers.webtools
 import controllers.WebTools
 import models._
 import models.mysql._
-import play.api.libs.json.{JsNull, JsValue, Json}
+import play.api.libs.json.{JsNull, Json}
 import reactive._
 import scala.concurrent.Future
 

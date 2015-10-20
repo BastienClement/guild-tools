@@ -4,14 +4,15 @@ import actors.ChatService._
 import akka.actor.ActorRef
 import models._
 import models.mysql._
-import utils.PubSub
-
+import reactive.ExecutionContext
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.language.implicitConversions
-import reactive.ExecutionContext
+import utils.PubSub
 
-object ChatService {
+private[actors] class ChatServiceImpl extends ChatService
+
+object ChatService extends StaticActor[ChatService, ChatServiceImpl]("ChatService") {
 	case class UserConnect(user: User)
 	case class UserAway(user: User, away: Boolean)
 	case class UserDisconnect(user: User)
@@ -84,5 +85,3 @@ trait ChatService extends PubSub[User] {
 		query.sortBy(_.id.asc).take(actual_count).run
 	}
 }
-
-class ChatServiceImpl extends ChatService

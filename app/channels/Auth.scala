@@ -1,6 +1,6 @@
 package channels
 
-import actors.Actors._
+import actors._
 import akka.actor.{ActorRef, Props}
 import gtp3.Socket.{Opener, SetUser}
 import gtp3._

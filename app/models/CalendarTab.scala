@@ -6,9 +6,6 @@ case class CalendarTab(id: Int, event: Int, title: String, note: Option[String],
 	lazy val expandEvent = CalendarEvents.filter(_.id === event).head
 }
 
-/**
- * Answers database
- */
 class CalendarTabs(tag: Tag) extends Table[CalendarTab](tag, "gt_events_tabs") {
 	def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
 	def event = column[Int]("event")
@@ -21,7 +18,4 @@ class CalendarTabs(tag: Tag) extends Table[CalendarTab](tag, "gt_events_tabs") {
 	def * = (id, event, title, note, order, locked, undeletable) <> (CalendarTab.tupled, CalendarTab.unapply)
 }
 
-/**
- * Helpers
- */
 object CalendarTabs extends TableQuery(new CalendarTabs(_))

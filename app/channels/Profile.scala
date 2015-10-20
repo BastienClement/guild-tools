@@ -1,8 +1,7 @@
 package channels
 
-import actors.Actors._
+import actors.{BattleNet, RosterService}
 import akka.actor.Props
-import gtp3.ChannelHandler.FuturePayloadBuilder
 import gtp3._
 import models._
 import models.mysql._

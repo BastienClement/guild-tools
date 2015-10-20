@@ -1,6 +1,5 @@
 package actors
 
-import actors.Actors.{BattleNet => Bnet}
 import actors.BattleNet.BnetFailure
 import actors.RosterService.{CharDeleted, CharUpdate}
 import models._
@@ -11,7 +10,9 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import utils.{Cache, CacheCell, PubSub}
 
-object RosterService {
+private[actors] class RosterServiceImpl extends RosterService
+
+object RosterService extends StaticActor[RosterService, RosterServiceImpl]("RosterService") {
 	case class CharUpdate(char: Char)
 	case class CharDeleted(char: Char)
 }
@@ -74,7 +75,7 @@ trait RosterService extends PubSub[User] {
 				char.filter(c => c.last_update < Platform.currentTime - (1000 * 60 * 15)).head recover {
 					case cause => throw new Exception("Cannot refresh character at this time", cause)
 				} flatMap { oc =>
-					Bnet.fetchChar(oc.server, oc.name) recoverWith {
+					BattleNet.fetchChar(oc.server, oc.name) recoverWith {
 						case BnetFailure(response) if response.status == 404 =>
 							char.map(_.failures).head map { f =>
 								val failures = f + 1
@@ -175,7 +176,7 @@ trait RosterService extends PubSub[User] {
 	// Add a new character for a specific user
 	def addChar(server: String, name: String, owner: User, role: Option[String]): Future[Char] = {
 		for {
-			char <- Bnet.fetchChar(server, name)
+			char <- BattleNet.fetchChar(server, name)
 			res <- addChar(char, owner, role)
 		} yield {
 			this !# CharUpdate(res)
@@ -198,5 +199,3 @@ trait RosterService extends PubSub[User] {
 		} yield final_char).transactionally
 	}
 }
-
-class RosterServiceImpl extends RosterService

@@ -69,7 +69,7 @@ object WebTools extends Controller with Wishlist {
 				}
 				ip = Some(request.remoteAddress)
 				ua = request.headers.get("User-Agent")
-				session_token <- Actors.AuthService.createSession(user.id, ip, ua)
+				session_token <- AuthService.createSession(user.id, ip, ua)
 			} yield (user, session_token, true)
 		}
 

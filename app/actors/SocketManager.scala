@@ -11,6 +11,10 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import utils.{Bindings, Timeout}
 
+private[actors] class SocketManagerImpl extends SocketManager
+
+object SocketManager extends StaticActor[SocketManager, SocketManagerImpl]("SocketManager")
+
 trait SocketManager extends TypedActor.Receiver {
 	// Open sockets
 	private val sockets = Bindings[Long, ActorRef]()
@@ -88,5 +92,3 @@ trait SocketManager extends TypedActor.Receiver {
 		case Terminated(socket) => sockets.removeTarget(socket)
 	}
 }
-
-class SocketManagerImpl extends SocketManager

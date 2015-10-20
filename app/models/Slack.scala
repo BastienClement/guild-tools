@@ -1,16 +1,12 @@
 package models
 
 import java.sql.Timestamp
-import actors.Actors._
 import models.mysql._
 
 case class Slack(id: Int, user: Int, from: Timestamp, to: Timestamp, reason: Option[String]) {
 	lazy val conceal = this.copy(reason = None)
 }
 
-/**
- * Absences database
- */
 class Slacks(tag: Tag) extends Table[Slack](tag, "gt_slacks") {
 	def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
 	def user = column[Int]("user")
@@ -21,8 +17,4 @@ class Slacks(tag: Tag) extends Table[Slack](tag, "gt_slacks") {
 	def * = (id, user, from, to, reason) <> (Slack.tupled, Slack.unapply)
 }
 
-/**
- * Helpers
- */
-object Slacks extends TableQuery(new Slacks(_)) {
-}
+object Slacks extends TableQuery(new Slacks(_))

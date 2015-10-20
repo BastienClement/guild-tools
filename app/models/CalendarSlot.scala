@@ -12,9 +12,6 @@ case class CalendarSlot(tab: Int, slot: Int, owner: Int, name: String, `class`: 
 	}
 }
 
-/**
- * Answers database
- */
 class CalendarSlots(tag: Tag) extends Table[CalendarSlot](tag, "gt_events_slots") {
 	def tab = column[Int]("tab", O.PrimaryKey)
 	def slot = column[Int]("slot")
@@ -26,7 +23,4 @@ class CalendarSlots(tag: Tag) extends Table[CalendarSlot](tag, "gt_events_slots"
 	def * = (tab, slot, owner, name, clazz, role) <> (CalendarSlot.tupled, CalendarSlot.unapply)
 }
 
-/**
- * Helpers
- */
 object CalendarSlots extends TableQuery(new CalendarSlots(_))
