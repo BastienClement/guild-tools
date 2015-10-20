@@ -67,6 +67,7 @@
 <script src='@routes.Assets.versioned("javascripts/bowser.js")'></script>
 <script>
 	var good = false;
+	var bowser = this.bowser || module.exports;
 	if (bowser.name == "Firefox") {
 		bowser.name = "Mozilla Firefox";
 		bowser.url = "http://getfirefox.com";
