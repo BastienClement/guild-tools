@@ -171,7 +171,7 @@
 				<dashboard-news-filter key="BLUE" [active]="filters.BLUE"></dashboard-news-filter>
 				<dashboard-news-filter key="WOW" [active]="filters.WOW"></dashboard-news-filter>
 			</div>
-			<gt-alert #none {hidden}="!noVisible" icon="cloud_off">
+			<gt-alert #none {hidden}="!noVisible" icon="cloud_off" nested>
 				No news to display.<br>
 				The news feed may be temporarily unavailable.
 			</gt-alert>

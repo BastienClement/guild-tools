@@ -313,10 +313,6 @@
 			overflow: hidden;
 		}
 		
-		gt-box {
-			background: fade(@fs-blue, 5%);
-		}
-		
 		#layout {
 			display: flex;
 			align-items: center;
@@ -367,8 +363,8 @@
 		
 		#actions {
 			margin: 12px -12px -12px -12px;
+			border-top: 1px solid fade(@fs-blue, 10%);
 			padding: 2px 8px;
-			border-top: 1px solid fade(@fs-blue, 20%);
 			display: flex;
 			justify-content: flex-end;
 			
@@ -381,7 +377,7 @@
 		<meta is="data-char" [id] [char]>
 		<meta is="data-race" [id]="char.race" [name]="race-name">
 		<meta is="data-class" [id]="char.class" [name]="class-name">
-		<gt-box {inactive}="!char.active">
+		<gt-box {inactive}="!char.active" nested>
 			<div #layout>
 				<bnet-thumb [char]></bnet-thumb>
 				<div #infos>

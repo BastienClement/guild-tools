@@ -2,11 +2,11 @@ import { Element, Property, Dependencies, PolymerElement } from "elements/polyme
 
 @Element("gt-box", "/assets/imports/box.html")
 export class GtBox extends PolymerElement {
-	@Property(String)
-	public heading: string;
-
-	@Property(String)
-	public scrollable: string;
+	@Property public heading: string;
+	@Property public scrollable: string;
+	
+	@Property({ reflect: true })
+	public nested: boolean;
 
 	@Property({ computed: "heading" })
 	private get "has-heading"(): boolean {
@@ -17,6 +17,8 @@ export class GtBox extends PolymerElement {
 @Element("gt-alert", "/assets/imports/box.html")
 @Dependencies(GtBox)
 export class GtAlert extends PolymerElement {
-	@Property(String)
-	public icon: String;
+	@Property public icon: String;
+	
+	@Property({ reflect: true })
+	public nested: boolean;
 }

@@ -16,6 +16,12 @@
 			border-color: mix(#395066, @fs-blue, 97%);
 			box-shadow: 0px 1px 5px 1px rgba(17, 17, 17, 0.20);
 		}
+		
+		:host([nested]) {
+			background: rgba(17, 17, 17, 0.15);
+			border: 1px solid rgba(17, 17, 17, 0.1);
+			box-shadow: none;
+		}
 
 		h2 {
 			font-family: "Roboto Condensed";
@@ -61,10 +67,6 @@
 			color: @light-blue;
 		}
 
-		gt-box {
-			box-shadow: 0 1px 1px rgba(17, 17, 17, 0.1);
-		}
-
 		.layout {
 			display: flex;
 			align-items: center;
@@ -76,7 +78,7 @@
 		}
 	</style>
 	<template>
-		<gt-box>
+		<gt-box {nested}>
 			<div .layout>
 				<i>{{icon}}</i>
 				<div>
