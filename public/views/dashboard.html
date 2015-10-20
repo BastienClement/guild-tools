@@ -261,13 +261,13 @@
 		#layout {
 			display: flex;
 			align-items: center;
-			background: fade(@fs-blue, 10%);
-			border: 1px solid fade(@fs-blue, 10%);
+			background: rgba(17, 17, 17, 0.15);
+			border: 1px solid rgba(17, 17, 17, 0.1);
 			transition: all .2s ease-out;
 			
 			&:hover {
-				background: fade(@fs-blue, 12%);
-				border-color: fade(@fs-blue, 20%);
+				background: fade(mix(rgb(17, 17, 17), @fs-blue, 33%), 15%);
+				border-color: fade(@fs-blue, 15%);
 			}
 		}
 		
@@ -279,7 +279,7 @@
 		#state-container {
 			background: rgba(17, 17, 17, 0.1);
 			background-clip: padding-box;
-			border: 1px solid fade(@fs-blue, 10%);
+			border: 1px solid rgba(17, 17, 17, 0.1);
 			border-width: 0 1px 0 1px;
 			height: @size;
 			padding: (@size - @radius) / 2;
