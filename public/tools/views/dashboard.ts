@@ -150,6 +150,9 @@ class DashboardShoutbox extends PolymerElement {
 @Element("dashboard-onlines-user", "/assets/views/dashboard.html")
 @Dependencies(BnetThumb, DataMain)    
 class DashboardOnlinesUser extends PolymerElement {
+	@Inject
+	private router: Router;
+	
 	@Property
 	public user: number;
 	
@@ -162,6 +165,12 @@ class DashboardOnlinesUser extends PolymerElement {
 	
 	private UpdateAway(user: number, away: boolean) {
 		if (user == this.user) this.away = away;
+	}
+	
+	@Listener("click")
+	private OnClick() {
+		if (this.user == this.app.user.id) this.router.goto("/profile");
+		else this.router.goto(`/profile/${this.user}`);
 	}
 }
 
