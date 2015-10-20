@@ -48,7 +48,6 @@
 				}
 
 				$("#saved").hide();
-				console.log(data);
 				$.post("/wt/wishlist", { data: JSON.stringify(data) }, function(res) {
 					$("#saved").css("display", "inline");
 				});

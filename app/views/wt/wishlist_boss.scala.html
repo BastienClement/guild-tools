@@ -1,0 +1,83 @@
+@import models._
+@(boss: String, data: String)(implicit user: User)
+@wt.layout("wishlist") {
+
+	<h2>@boss</h2>
+	<link rel="stylesheet" href='@routes.Assets.versioned("webtools/wishlist.css")'>
+
+	<a href="/wt/wishlist" id="back-btn" class="button"><i class="material-icons">chevron_left</i> Back</a>
+
+	<div id="wishlist-box" class="box out">
+		<div class="boss title">
+			<div class="name"></div>
+			<div>Need</div>
+			<div>Coin</div>
+		</div>
+		<script>
+			(function() {
+				var data = @Html(data);
+				var box = $("#wishlist-box");
+
+				data.sort(function(ea, eb) {
+					var a = ea[2], b = eb[2];
+					var n = ea[0].localeCompare(eb[0]);
+					if (!a && !b) {
+						return n;
+					} else if ((a == null) != (b == null)) {
+						return a == null ? 1 : -1;
+					}
+
+					if (a.need != b.need) return a.need == "Oui" ? -1 : 1;
+					if (a.coin != b.coin) return a.coin == "Oui" ? -1 : 1;
+					else return n;
+				});
+
+				function fill_div(div, row, key) {
+					var span = $("<span>");
+					if (!row) {
+						span.css("color", "#A7AEB3");
+						span.text("?");
+					} else if (row[key] == "Oui") {
+						span.css("color", "lightgreen");
+						span.text("Oui");
+					} else {
+						span.css("color", "orange");
+						span.text("Non");
+					}
+					div.append(span);
+				}
+
+				var last = null;
+				for (var i = 0; i < data.length; i++) {
+					var entry = data[i];
+
+					var key = JSON.stringify(entry[2]);
+					if (last !== null && last !== key) {
+						var spacer = $("<div>");
+						spacer.css({ "height": "5px", "background-color": "rgba(17, 17, 17, 0.3)"});
+						box.append(spacer);
+					}
+					last = key;
+
+					var row = $("<div class='boss'>");
+
+					var name = $("<div class='name'>");
+					name.addClass("c" + entry[1]);
+					name.css({ "text-shadow": "0px 1px 1px rgba(0, 0, 0, 0.5)" });
+					name.text(entry[0]);
+					row.append(name);
+
+					var need = $("<div class='need'>");
+					fill_div(need, entry[2], "need");
+					row.append(need);
+
+					var coin = $("<div class='coin'>");
+					fill_div(coin, entry[2], "coin");
+					row.append(coin);
+
+					box.append(row);
+				}
+			})();
+		</script>
+	</div>
+}

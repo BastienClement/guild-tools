@@ -6,7 +6,6 @@ GET         /assets/*file               controllers.Assets.versioned(path="/publ
 
 GET         /gtp3                       controllers.Application.gtp3
 
-GET         /api/gamedata               controllers.Api.gamedata
 POST        /api/bugsack                controllers.Api.bugsack
 GET         /api/socket_url             controllers.Api.socketURL
 GET         /api/*path                  controllers.Api.catchall(path)
@@ -16,6 +15,7 @@ GET         /ping/dashboard/feed        controllers.Ping.dashboardFeed
 GET         /wt/                        controllers.WebTools.main
 GET         /wt/wishlist                controllers.WebTools.wishlist
 POST        /wt/wishlist                controllers.WebTools.wishlistSave
+GET         /wt/wishlist/:boss          controllers.WebTools.wishlistBoss(boss)
 GET         /wt/*path                   controllers.WebTools.catchall(path)
 
 GET         /                           controllers.Application.client

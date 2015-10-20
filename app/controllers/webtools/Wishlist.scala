@@ -3,7 +3,7 @@ package controllers.webtools
 import controllers.WebTools
 import models._
 import models.mysql._
-import play.api.libs.json.Json
+import play.api.libs.json.{JsNull, JsValue, Json}
 import reactive._
 import scala.concurrent.Future
 
@@ -45,6 +45,30 @@ trait Wishlist {
 				// Insert data into database
 				val query = sqlu"INSERT INTO poll_whishlist SET user = ${request.user.id}, data = $data ON DUPLICATE KEY UPDATE data = VALUES(data)"
 				DB.run(query) map { _ => Ok("OK") } recover { case e => println(e); throw e }
+		}
+	}
+
+	def wishlistBoss(boss: String) = UserAction.async { request =>
+		if (!request.user.roster) throw Deny
+		if (!wishlistBosses.contains(boss)) throw Deny
+
+		val query = sql"""
+			SELECT c.name, c.class, w.data
+			FROM phpbb_users AS u
+			JOIN gt_chars AS c ON u.user_id = c.owner AND c.main = 1
+			LEFT JOIN poll_whishlist AS w ON w.user = u.user_id
+			WHERE u.group_id IN (9, 11, 8)
+		""".as[(String, Int, Option[String])]
+
+		for {
+			rows <- DB.run(query) recover { case _ => Vector() }
+		} yield {
+			val data = rows.map { case (u, c, d) =>
+				val boss_data = d.map(Json.parse).getOrElse(JsNull) \ boss
+				Json.arr(u, c, boss_data.getOrElse(JsNull))
+			}
+			val json = Json.stringify(Json.toJson(data))
+			Ok(views.html.wt.wishlist_boss.render(boss, json, request.user))
 		}
 	}
 }
