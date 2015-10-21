@@ -6,6 +6,7 @@ import { Server } from "client/server";
 import { Loader } from "client/loader";
 import { Deferred } from "utils/deferred";
 import { Chat } from "services/chat";
+import { User } from "services/roster";
 
 // Force loading of data providers elements
 import "elements/data";
@@ -39,7 +40,7 @@ export interface Tab {
 }
 
 // Function generating current tabs list
-export type TabsGenerator = (view: string, path: string) => Tab[];
+export type TabsGenerator = (view: string, path: string, user: User) => Tab[];
 
 // Metadata for views
 export interface ViewMetadata {
@@ -116,7 +117,7 @@ export class GtTitleBar extends PolymerElement {
 		let meta = Reflect.getMetadata<ViewMetadata>("view:meta", view);
 		if (!meta) return;
 		
-		this.tabs = meta.tabs(this.router.activeView, path);
+		this.tabs = meta.tabs(this.router.activeView, path, this.app.user);
 	}
 	
 	// ========================================================================

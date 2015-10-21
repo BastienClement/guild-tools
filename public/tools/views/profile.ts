@@ -9,11 +9,9 @@ import { Roster, User, Char } from "services/roster";
 import { Profile } from "services/profile";
 import { throttle } from "utils/deferred";
 
-const ProfileTabs: TabsGenerator = (view: string, path: string): Tab[] => {
-	return [
-		{ title: "Profile", link: "/profile", active: view == "views/profile/GtProfile" }
-	];
-}
+const ProfileTabs: TabsGenerator = (view, path, user) => [
+	{ title: "Profile", link: "/profile", active: view == "views/profile/GtProfile" }
+];
 
 ///////////////////////////////////////////////////////////////////////////////
 // <profile-user>
