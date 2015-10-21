@@ -142,12 +142,9 @@ export class GtTitleBar extends PolymerElement {
 		}
 	}
 
-	private About() { this.router.goto("/about"); }
-	private Settings() { this.router.goto("/settings"); }
 	private Reload() { document.location.reload(); }
 	private DownloadClient() { }
 	private DevTools() { }
-	private ServerStatus() { this.router.goto("/status"); }
 	private Logout() { }
 	private Quit() { window.close(); }
 }

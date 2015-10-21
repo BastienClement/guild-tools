@@ -1,0 +1,78 @@
+<dom-module id="gt-about">
+	<style type="text/less">
+		:host {
+			display: flex;	
+			align-items: center;
+			justify-content: center;
+		}
+		
+		#about {
+			background: url("/assets/images/about/background.png");
+			width: 400px;
+			height: 400px;
+			padding: 60px 70px;
+			line-height: 1.5em;
+			
+			strong {
+				font-weight: 500;
+			}
+			
+			em {
+				font-style: normal;
+				font-weight: 300;
+			}
+		}
+		
+		#logo {
+			margin-bottom: 50px;
+		}
+		
+		#powered {
+			height: 400px;
+			width: 180px;
+			margin-left: 15px;
+			
+			.layout {
+				.pos(absolute, 15px, 15px, 15px, 15px);
+				display: flex;
+				flex-direction: column;
+				justify-content: space-around;
+				align-items: center;
+			}
+			
+			img {
+				display: block;
+			}
+		}
+	</style>
+	<template>
+		<gt-box #about>
+			<p #logo>
+				<img src="/assets/images/about/guild-tools.png">
+			</p>
+			<p>
+				<strong>Guild-Tools 6.0</strong> &mdash; <em>Build <b>{{version}}</b></em><br>
+				&copy; 2014-2015 Bastien Clément (<strong>Blash</strong>)
+			</p>
+			<p>
+				An handcrafted <strong>From Scratch</strong> software
+			</p>
+			<p>
+				
+			</p>
+			<p>
+				Based on the <strong>BlowTools</strong> project<br>
+				&copy; 2013-2014 <strong>Blash</strong> / <strong>Räzen</strong>
+			</p>
+		</gt-box>
+		<gt-box nested #powered>
+			<div .layout>
+				<img src="/assets/images/about/chrome.png">
+				<img src="/assets/images/about/polymer.png">
+				<img src="/assets/images/about/play.png">
+				<img src="/assets/images/about/scala.png">
+				<img src="/assets/images/about/battlenet.png">
+			</div>
+		</gt-box>
+	</template>
+</dom-module>

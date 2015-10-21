@@ -25,7 +25,7 @@ export class Server extends EventEmitter {
 	private connect_deferred: Deferred<void>;
 
 	// Server versions string
-	private version: string = null;
+	public version: string = null;
 	
 	// Track loading state
 	@Notify public loading: boolean = false;
