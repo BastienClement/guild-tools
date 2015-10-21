@@ -4,6 +4,7 @@ import { GtButton, GtForm, GtInput } from "elements/widgets";
 import { BnetThumb } from "elements/bnet";
 import { GtDialog } from "elements/dialog";
 import { GtBox } from "elements/box";
+import { GtTimeago } from "elements/timeago";
 import { Roster, User, Char } from "services/roster";
 import { Profile } from "services/profile";
 import { throttle } from "utils/deferred";
@@ -41,7 +42,7 @@ class ProfileInfos extends PolymerElement {
 // <profile-chars-card>
 
 @Element("profile-chars-card", "/assets/views/profile.html")
-@Dependencies(GtBox, GtButton, BnetThumb)    
+@Dependencies(GtBox, GtButton, BnetThumb, GtTimeago)    
 class ProfileCharsCard extends PolymerElement {
 	@Inject
 	private roster: Roster;

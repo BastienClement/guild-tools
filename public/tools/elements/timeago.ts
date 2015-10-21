@@ -1,4 +1,4 @@
-import { Element, Property, Listener, Dependencies, Inject, PolymerElement } from "elements/polymer";
+import { Element, Property, PolymerElement } from "elements/polymer";
 import moment from "moment";
 
 @Element("gt-timeago")
