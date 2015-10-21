@@ -43,7 +43,9 @@ class Channel(val socket: ActorRef, val id: Int, val sender_channel: Int, val ha
 
 		case Failure(rid, fail) => fail match {
 			case e: Error => socket ! FailureFrame(0, sender_channel, rid, e.code, e.message, ExceptionUtils.getStackTrace(e))
-			case e: Throwable => socket ! FailureFrame(0, sender_channel, rid, 0, e.getMessage, ExceptionUtils.getStackTrace(e))
+			case e: Throwable =>
+				val m = e.getMessage // Ensure message is not null
+				socket ! FailureFrame(0, sender_channel, rid, 0, if (m != null) m else "", ExceptionUtils.getStackTrace(e))
 		}
 
 		case SendMessage(msg, payload) =>
