@@ -37,6 +37,7 @@ export interface Tab {
 	title: string;
 	link: string;
 	active: boolean;
+	hidden?: boolean;
 }
 
 // Function generating current tabs list
@@ -117,7 +118,7 @@ export class GtTitleBar extends PolymerElement {
 		let meta = Reflect.getMetadata<ViewMetadata>("view:meta", view);
 		if (!meta) return;
 		
-		this.tabs = meta.tabs(this.router.activeView, path, this.app.user);
+		this.tabs = meta.tabs(this.router.activeView, path, this.app.user).filter(t => !t.hidden);
 	}
 	
 	// ========================================================================
