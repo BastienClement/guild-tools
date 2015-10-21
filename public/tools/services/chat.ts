@@ -20,7 +20,7 @@ export interface ChatMessage {
 export class Chat extends Service {
 	// List of onlines user
 	private onlines = new Map<number, boolean>();
-	private channel = this.server.openServiceChannel("chat");
+	private channel = this.server.openServiceChannel("chat", false);
 	
 	@Notify
 	@ServiceChannel.ReflectState("channel")

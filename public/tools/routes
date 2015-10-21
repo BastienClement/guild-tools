@@ -1,3 +1,4 @@
 /dashboard                        views/dashboard/GtDashboard
 /profile(/:user)?                 views/profile/GtProfile
 /about                            views/about/GtAbout
+/server-status                    views/server-status/GtServerStatus

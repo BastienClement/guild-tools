@@ -1,0 +1,161 @@
+<dom-module id="gt-server-status">
+	<style type="text/less">
+		:host {
+			display: flex;
+		}
+		
+		.col {
+			display: flex;
+			flex-direction: column;
+		}
+		
+		table, tr, td {
+			padding: 0;
+			margin: 0;
+		}
+		
+		.col > gt-box  gt-button {
+			position: absolute;
+			top: 6px;
+			right: 0px;
+			i { margin-top: 1px; }
+		}
+	
+		.infos {
+			&:not(:first-child) { margin-top: 6px; }
+			td { vertical-align: top; }
+			td:first-child {
+				font-weight: 400;
+				width: 80px;
+			}
+			td:last-child {
+				word-break: break-all;
+				font: 400 13px "Roboto Mono";
+			}
+		}
+		
+		#left {
+			width: 320px;
+			margin-right: 6px;
+			gt-box { flex: 1; }
+		}
+		
+		#middle {
+			flex: 1;
+			gt-box { flex: 1; }
+		}
+		
+		#sockets {
+			& > gt-box:not(:first-child) {
+				margin-top: 6px;
+			}
+			
+			.heading {
+				b { padding: 0 3px; }
+				.id { color: @light-blue; }
+				.name { color: @fs-gray; font: 400 13px "Roboto Mono"; }
+			}
+			
+			.opener {
+				margin: 6px 0 10px 0;
+				td { vertical-align: top; }
+				td:nth-child(2n) { color: @fs-gray; padding: 0 12px; }
+				td:nth-child(2n+1) { white-space: pre; }
+				td:nth-child(2) { width: 150px; }
+			}
+			
+			.channels {
+				margin-bottom: -3px;
+				
+				.channel {
+					display: inline-block;
+					padding: 2px 8px;
+					margin-right: 6px;
+					border-radius: 2px;
+					box-shadow: none;
+					font: 400 12px "Roboto Mono";
+				}
+				
+				b:first-child {
+					color: @light-blue;
+					margin-right: 5px;
+				}
+			}
+		}
+		
+		#fail gt-box {
+			width: 375px;
+			p { margin-top: 0; }
+		}
+	</style>
+	<template>
+		<div .col #left>
+			<gt-box .infos heading="Server" scrollable {hidden}="!channel_ready">
+				<table>
+					<tr><td>Server</td><td>{{serverInfos.name}}</td></tr>
+					<tr><td>Version</td><td>{{serverInfos.version}}</td></tr>
+					<tr><td>Start time</td><td>{{startTime}}</td></tr>
+					<tr><td>Uptime</td><td>{{duration(serverInfos.uptime)}}</td></tr>
+					<tr><td>Sockets</td><td>{{socketsInfos.length}}</td></tr>
+				</table>
+			</gt-box>
+			<gt-box .infos heading="Runtime" scrollable {hidden}="!channel_ready">
+				<gt-button (click)="runGC"><i>filter_tilt_shift</i> Run GC</gt-button>
+				<table>
+					<tr><td>Cores</td><td>{{runtimeInfos.cores}}</td></tr>
+					<tr><td>Used</td><td>{{formatMemory(runtimeInfos.memory_used)}}</td></tr>
+					<tr><td>Free</td><td>{{formatMemory(runtimeInfos.memory_free)}}</td></tr>
+					<tr><td>Total</td><td>{{formatMemory(runtimeInfos.memory_total)}}</td></tr>
+					<tr><td>Max</td><td>{{formatMemory(runtimeInfos.memory_max)}}</td></tr>
+				</table>
+			</gt-box>
+			<gt-box .infos heading="Host" scrollable {hidden}="!channel_ready">
+				<table>
+					<tr><td>Server</td><td>{{hostInfos.name}}</td></tr>
+					<tr><td>Version</td><td>{{hostInfos.version}}</td></tr>
+					<tr><td>Uptime</td><td>{{hostInfos.uptime}}</td></tr>
+				</table>
+			</gt-box>
+		</div>
+		<div .col #middle>
+			<gt-box #sockets heading="Open sockets" scrollable {hidden}="!channel_ready">
+				<gt-button (click)="fetchSocketsInfos"><i>refresh</i> Refresh</gt-button>
+				<gt-box nested [repeat]="socketsInfos">
+					<div .heading>
+						<gt-button (click)="killSocket"><i>block</i> Kill</gt-button>
+						<i>settings_ethernet</i>
+						<b .id>{{item.id}}</b>
+						<b .user>{{username(item.user)}}</b>
+						<b .name>{{item.name}}</b>
+					</div>
+					<div .opener>
+						<table>
+							<tr>
+								<td>Open</td><td><b>{{duration(item.uptime)}}</b></td>
+								<td>Remote</td><td>{{item.opener.ip}}</td>
+							</tr>
+							<tr>
+								<td>State</td><td>{{item.state}}</td>
+								<td>User-Agent</td><td>{{item.opener.ua}}</td>
+							</tr>
+						</table>
+					</div>
+					<div .channels>
+						<gt-box .channel [repeat]="item.channels">
+							<b>{{item.0}}</b><b>{{item.1}}</b>
+						</gt-box>
+					</div>
+				</gt-box>
+			</div>
+		</div>
+		<gt-dialog #fail sticky>
+			<gt-box heading="Access denied" scrollable>
+				<p>It seems like the server denied you access to this page.</p>
+				<p>This is a system inspection module and you're probably not supposed to be here.</p>
+				<div #actions>
+					<gt-button goto="/">Back to safety</gt-button>
+				</div>
+			</gt-box>
+		</gt-dialog>
+	</template>
+</dom-module>

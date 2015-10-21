@@ -22,7 +22,7 @@ export class NewsFeed extends Service {
 	/**
 	 * The newsfeed channel
 	 */
-	private channel = this.server.openServiceChannel("newsfeed");
+	private channel = this.server.openServiceChannel("newsfeed", false);
 
 	/**
 	 * News data array

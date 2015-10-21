@@ -1,8 +1,8 @@
 package actors
 
 import akka.actor._
-import gtp3.Socket
-import gtp3.Socket.Opener
+import gtp3.{WSActor, Socket}
+import gtp3.Socket.{ForceStop, Opener}
 import java.security.SecureRandom
 import reactive.AsFuture
 import scala.annotation.tailrec
@@ -17,10 +17,10 @@ object SocketManager extends StaticActor[SocketManager, SocketManagerImpl]("Sock
 
 trait SocketManager extends TypedActor.Receiver {
 	// Open sockets
-	private val sockets = Bindings[Long, ActorRef]()
+	private val sockets = Bindings[Long, ActorTag[Socket]]()
 
 	// Close timeouts
-	private val timeouts = mutable.Map[ActorRef, Timeout]()
+	private val timeouts = mutable.Map[ActorTag[Socket], Timeout]()
 
 	// Random number genertor for socket id
 	private val rand = new SecureRandom()
@@ -42,7 +42,7 @@ trait SocketManager extends TypedActor.Receiver {
 	/**
 	 * Decrement the socket counter for this origin
 	 */
-	def disconnected(socket: ActorRef): Unit = {
+	def disconnected(socket: ActorTag[Socket]): Unit = {
 		sockets.getSource(socket) match {
 			case Some(id) =>
 				socket ! Socket.Disconnect
@@ -58,7 +58,7 @@ trait SocketManager extends TypedActor.Receiver {
 	/**
 	 * Allocate a new socket for a given actor
 	 */
-	def allocate(actor: ActorRef, opener: Opener): Future[ActorRef] = AsFuture {
+	def allocate(actor: ActorTag[WSActor], opener: Opener): Future[ActorTag[Socket]] = AsFuture {
 		val id = nextSocketID
 
 		val socket = context.actorOf(Socket.props(id, opener))
@@ -72,7 +72,7 @@ trait SocketManager extends TypedActor.Receiver {
 	/**
 	 * Rebind a socket to the given actor and return this socket
 	 */
-	def rebind(actor: ActorRef, opener: Opener, id: Long, seq: Int): Future[ActorRef] = {
+	def rebind(actor: ActorTag[WSActor], opener: Opener, id: Long, seq: Int): Future[ActorTag[Socket]] = {
 		sockets.getTarget(id) match {
 			case Some(socket) => AsFuture {
 				for (timeout <- timeouts.get(socket)) {
@@ -87,6 +87,18 @@ trait SocketManager extends TypedActor.Receiver {
 			case None => allocate(actor, opener)
 		}
 	}
+
+	/**
+	 * Kill an open socket
+	 */
+	def killSocket(id: Long) = {
+		for (socket <- sockets.getTarget(id)) socket ! ForceStop
+	}
+
+	/**
+	 * Get the list of open sockets
+	 */
+	def socketsMap = Future.successful(sockets.toMap)
 
 	def onReceive(message: Any, sender: ActorRef) = message match {
 		case Terminated(socket) => sockets.removeTarget(socket)

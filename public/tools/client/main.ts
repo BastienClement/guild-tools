@@ -41,6 +41,13 @@ export class Application {
 	 * The master channel
 	 */
 	public master: Channel = null;
+	
+	/**
+	 * Access the current view element
+	 */
+	public get view(): PolymerElement {
+		return (<any>this.root.view).current;
+	}
 
 	/**
 	 * Initialize the GuildTools application

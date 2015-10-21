@@ -57,27 +57,32 @@ export class GtDialog extends PolymerElement {
 		
 		const animation_listener = () => {
 			node.removeEventListener("animationend", animation_listener);
-			
-			this.$.slider.classList.remove("slide-in");
-			node.classList.remove("visible");
-			node.classList.remove("fade-out");
-			
-			if (GtDialog.visible == this) {
-				GtDialog.visible = null;
-			}
-			
-			this.fire("hide");
 			defer.resolve();
-			
-			if (GtDialog.queue.length() > 0) {
-				GtDialog.queue.dequeue().show(true);
-			}
+			this.close();
 		}
 		
 		node.classList.add("fade-out");
 		node.addEventListener("animationend", animation_listener);
 		
 		return defer.promise;
+	}
+	
+	private close() {
+		let node = this.node.node;
+		
+		this.$.slider.classList.remove("slide-in");
+		node.classList.remove("visible");
+		node.classList.remove("fade-out");
+		
+		if (GtDialog.visible == this) {
+			GtDialog.visible = null;
+		}
+		
+		this.fire("hide");
+		
+		if (GtDialog.queue.length() > 0) {
+			GtDialog.queue.dequeue().show(true);
+		}
 	}
 	
 	@Listener("click")
@@ -88,5 +93,11 @@ export class GtDialog extends PolymerElement {
 	@Listener("content.click")
 	private ContentClick(e: Event) {
 		this.stopEvent(e);
+	}
+	
+	private detached() {
+		if (GtDialog.visible === this) {
+			this.close();
+		}
 	}
 }

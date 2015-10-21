@@ -24,4 +24,9 @@ export class Profile extends Service {
 	public async fetchChar(server: string, name: string) {
 		return this.channel.request<Char>("fetch-char", { server, name });
 	}
+	
+	// Close the channel when the profile service is paused
+	private pause() {
+		this.channel.close();
+	}
 }

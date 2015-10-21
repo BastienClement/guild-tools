@@ -1,4 +1,5 @@
 import akka.actor._
+import gtp3.Socket.{Disconnect, ForceStop, OutgoingFrame}
 import play.api.Logger
 import play.api.libs.concurrent.Akka
 import scala.concurrent.duration._
@@ -18,10 +19,16 @@ package object actors {
 	// Log DeadLetters
 	private class DeadLetterLogger extends Actor {
 		def receive = {
-			case DeadLetter(msg, from, to) =>
-				Logger.warn(s"DeadLetter from $from to $to -> $msg")
+			case DeadLetter(msg, from, to) => msg match {
+				case OutgoingFrame(_) => from ! ForceStop
+				case Disconnect => // noop
+				case _ => Logger.warn(s"DeadLetter from $from to $to -> $msg")
+			}
 		}
 	}
+
+	// An tagged ActorRef
+	type ActorTag[+T] = ActorRef
 
 	// Subscribe the logger to the event stream
 	private val DeadLetterLogger = Akka.system.actorOf(Props[DeadLetterLogger], "DeadlettersLogger")

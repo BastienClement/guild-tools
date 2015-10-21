@@ -37,7 +37,7 @@ export class Server extends EventEmitter {
 		let defer = this.connect_deferred = new Deferred<void>();
 		let socket = this.socket = new Socket(this.normalizeURL(url));
 
-		socket.verbose = true;
+		socket.verbose = (localStorage.getItem("socket.verbose") === "1");
 		socket.pipe(this);
 		socket.bind(this, {
 			"connected": "Connected",
@@ -157,8 +157,8 @@ export class Server extends EventEmitter {
 	}
 	
 	// Open a service channel
-	public openServiceChannel(ctype: string): ServiceChannel {
-		return new ServiceChannel(this, ctype);
+	public openServiceChannel(ctype: string, lazy: boolean = true): ServiceChannel {
+		return new ServiceChannel(this, ctype, lazy);
 	}
 
 	// Close the server connection
@@ -171,6 +171,7 @@ interface QueuedMessage<T> {
 	key: string;
 	data: any;
 	flags: number;
+	silent: boolean;
 	deferred: Deferred<T>
 }
 
@@ -189,7 +190,7 @@ export class ServiceChannel extends EventEmitter {
 	// Channel object
 	private channel: Channel;
 	
-	constructor(private server: Server, private name: string, lazy: boolean = false) {
+	constructor(private server: Server, private name: string, lazy: boolean) {
 		super();
 		if (!lazy) {
 			this.open();
@@ -230,7 +231,7 @@ export class ServiceChannel extends EventEmitter {
 			while (!this.queue.empty()) {
 				const item = this.queue.dequeue();
 				if (item.deferred) {
-					this.channel.request(item.key, item.data, item.flags).then(
+					this.channel.request(item.key, item.data, item.flags, item.silent).then(
 						(success) => item.deferred.resolve(success),
 						(failure) => item.deferred.reject(failure)
 					);
@@ -251,12 +252,12 @@ export class ServiceChannel extends EventEmitter {
 			this.channel.close(code, reason);
 	}
 	
-	public request<T>(key: string, data?: any, flags?: number): Promise<T> {
+	public request<T>(key: string, data?: any, flags?: number, silent?: boolean): Promise<T> {
 		if (this.channel) {
-			return this.channel.request<T>(key, data, flags);
+			return this.channel.request<T>(key, data, flags, silent);
 		} else {
 			const deferred = new Deferred<T>();
-			this.queue.enqueue({ key, data, flags, deferred });
+			this.queue.enqueue({ key, data, flags, silent, deferred });
 			this.open();
 			return deferred.promise;
 		}
@@ -266,7 +267,7 @@ export class ServiceChannel extends EventEmitter {
 		if (this.channel) {
 			return this.channel.send(key, data, flags);
 		} else {
-			this.queue.enqueue({ key, data, flags, deferred: null });
+			this.queue.enqueue({ key, data, flags, silent: false, deferred: null });
 			this.open();
 		}
 	}

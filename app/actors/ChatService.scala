@@ -1,7 +1,7 @@
 package actors
 
 import actors.ChatService._
-import akka.actor.ActorRef
+import channels.Chat
 import models._
 import models.mysql._
 import reactive.ExecutionContext
@@ -17,7 +17,7 @@ object ChatService extends StaticActor[ChatService, ChatServiceImpl]("ChatServic
 	case class UserAway(user: User, away: Boolean)
 	case class UserDisconnect(user: User)
 
-	private case class ChatSession(user: User, var away: Boolean, actors: mutable.Map[ActorRef, Boolean])
+	private case class ChatSession(user: User, var away: Boolean, actors: mutable.Map[ActorTag[Chat], Boolean])
 }
 
 trait ChatService extends PubSub[User] {
@@ -37,7 +37,7 @@ trait ChatService extends PubSub[User] {
 		}
 	}
 
-	override def subscribe(actor: ActorRef, user: User) = {
+	override def subscribe(actor: ActorTag[Chat], user: User) = {
 		super.subscribe(actor, user)
 		val act = actor -> false
 
@@ -53,7 +53,7 @@ trait ChatService extends PubSub[User] {
 		}
 	}
 
-	override def unsubscribe(actor: ActorRef) = {
+	override def unsubscribe(actor: ActorTag[Chat]) = {
 		super.unsubscribe(actor)
 		sessions.find {
 			case (user, session) => session.actors.contains(actor)
@@ -69,7 +69,7 @@ trait ChatService extends PubSub[User] {
 		}
 	}
 
-	def setAway(actor: ActorRef, away: Boolean) = {
+	def setAway(actor: ActorTag[Chat], away: Boolean) = {
 		for (session <- sessions.values find (_.actors.contains(actor))) {
 			session.actors.update(actor, away)
 			updateAway(session)

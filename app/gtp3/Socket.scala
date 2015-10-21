@@ -1,11 +1,12 @@
 package gtp3
 
-import akka.actor.{Actor, ActorRef, Props, Terminated}
+import akka.actor._
 import gt.Global
 import gtp3.Socket._
 import models.User
 import scala.annotation.tailrec
 import scala.collection.mutable
+import scala.compat.Platform
 
 object Socket {
 	// Construct Socket actors
@@ -22,6 +23,7 @@ object Socket {
 	case class Handshake(out: ActorRef)
 	case class Resume(out: ActorRef, seq: Int)
 	case object Disconnect
+	case object ForceStop
 
 	// Incoming and outgoing frames
 	case class IncomingFrame(buf: Array[Byte])
@@ -32,6 +34,10 @@ object Socket {
 
 	// The opener of a socket
 	case class Opener(ip: String, ua: Option[String])
+
+	// Request socket informations
+	case object RequestInfos
+	case class SocketInfos(user: User, state: String, open: Long, opener: Opener, channels: Seq[(Int, String)])
 }
 
 class Socket(val id: Long, val opener: Opener) extends Actor {
@@ -48,29 +54,40 @@ class Socket(val id: Long, val opener: Opener) extends Actor {
 
 	// Channels
 	private val channels = mutable.Map[Int, ActorRef]()
+	private val channels_type = mutable.Map[Int, String]()
 	private val channelid_pool = new NumberPool()
 
 	// Limit the number of emitter REQUEST_ACK commands
 	private var request_ack_cooldown = 0
 
 	// Socket is authenticated
-	var user: User = null
+	private val open_time = Platform.currentTime
+	private var user: User = null
+	private var state = "NEW"
 
 	def receive = {
 		// Initialize a new socket
 		case Handshake(o) =>
 			out = o
+			state = "OPEN"
 			self ! HandshakeFrame(GTP3Magic, Global.serverVersion.value, id)
 
 		// Resume a disconnected socket
 		case Resume(o, seq) =>
 			out = o
+			state = "OPEN"
 			ack(seq)
 			while (out_buffer.nonEmpty) self ! out_buffer.dequeue()
 			self ! SyncFrame(in_seq)
 
 		case Disconnect =>
+			state = "DISCONNECTED"
 			out = null
+
+		case ForceStop =>
+			state = "KILLED"
+			out ! Kill
+			self ! Kill
 
 		// Received a buffer from the WebSocket
 		case IncomingFrame(buffer) =>
@@ -108,29 +125,28 @@ class Socket(val id: Long, val opener: Opener) extends Actor {
 		case frame: Frame =>
 			// Special handling for sequenced frames
 			// Automatic tagging
-			frame.ifSequenced {
-				seq_frame =>
-					// Get buffer length
-					val buf_len = out_buffer.length
+			frame.ifSequenced { seq_frame =>
+				// Get buffer length
+				val buf_len = out_buffer.length
 
-					// Check limits
-					if (buf_len >= 256) {
-						throw new Exception("Output buffer is full")
-					} else if (buf_len > 32) {
-						if (request_ack_cooldown <= 0) {
-							self ! RequestAckFrame()
-							request_ack_cooldown = 3
-						} else {
-							request_ack_cooldown -= 1
-						}
+				// Check limits
+				if (buf_len >= 256) {
+					throw new Exception("Output buffer is full")
+				} else if (buf_len > 32) {
+					if (request_ack_cooldown <= 0) {
+						self ! RequestAckFrame()
+						request_ack_cooldown = 3
+					} else {
+						request_ack_cooldown -= 1
 					}
+				}
 
-					// The next sequence id
-					out_seq = (out_seq + 1) & 0xFFFF
-					seq_frame.seq = out_seq
+				// The next sequence id
+				out_seq = (out_seq + 1) & 0xFFFF
+				seq_frame.seq = out_seq
 
-					// Save the frame in the output queue
-					out_buffer.enqueue(seq_frame)
+				// Save the frame in the output queue
+				out_buffer.enqueue(seq_frame)
 			}
 
 			// Send the frame
@@ -142,6 +158,7 @@ class Socket(val id: Long, val opener: Opener) extends Actor {
 			val channel = context.actorOf(Channel.props(self, id, open.sender_channel, handler_props))
 			context.watch(channel)
 			channels += id -> channel
+			channels_type += id -> open.channel_type
 			self ! OpenSuccessFrame(0, open.sender_channel, id)
 
 		// A channel open request is rejected
@@ -156,8 +173,13 @@ class Socket(val id: Long, val opener: Opener) extends Actor {
 		case Terminated(channel) =>
 			for ((id, chan) <- channels if chan == channel) {
 				channels.remove(id)
+				channels_type.remove(id)
 				channelid_pool.release(id)
 			}
+
+		// Request socket informations
+		case RequestInfos =>
+			sender ! SocketInfos(user, state, open_time, opener, channels_type.toSeq)
 	}
 
 	/**

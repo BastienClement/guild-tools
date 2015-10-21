@@ -1,14 +1,12 @@
 package utils
 
-import scala.collection.mutable
-
 object Bindings {
 	def apply[S, T]() = new Bindings[S, T]
 }
 
 class Bindings[S, T] {
-	private val source_target = mutable.Map[S, T]()
-	private val target_source = mutable.Map[T, S]()
+	private var source_target = Map[S, T]()
+	private var target_source = Map[T, S]()
 
 	def add(b: (S, T)) = {
 		source_target += b
@@ -28,4 +26,7 @@ class Bindings[S, T] {
 		source_target -= s
 		target_source -= t
 	}
+
+	def toMap = source_target
+	def toReverseMap = target_source
 }
