@@ -8,8 +8,7 @@ import { Deferred } from "utils/deferred";
 import { Chat } from "services/chat";
 
 // Force loading of data providers elements
-import * as DataProviders from "elements/data";
-(DataProviders);
+import "elements/data";
 
 // Views loader
 type ViewPromise = Promise<PolymerConstructor<any>>;
