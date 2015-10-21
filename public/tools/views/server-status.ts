@@ -81,6 +81,7 @@ export class GtServerStatus extends PolymerElement {
 	
 	private async fetchServerInfos() {
 		this.serverInfos = await this.channel.request<ServerInfos>("server-infos", void 0, void 0, true);
+		this.set("serverInfos.version", this.serverInfos.version.slice(0, 15));
 	}
 	
 	private async fetchHostInfos() {
@@ -92,15 +93,16 @@ export class GtServerStatus extends PolymerElement {
 	}
 	
 	private async fetchSocketsInfos() {
-		this.socketsInfos = await this.channel.request<SocketInfos[]>("sockets-infos", void 0, void 0, true);
-		this.socketsInfos.forEach(infos => {
+		let sockets = await this.channel.request<SocketInfos[]>("sockets-infos", void 0, void 0, true);
+		sockets.forEach(infos => {
 			infos.channels.sort(([a], [b]) => {
 				return a - b;
 			});
 		});
-		this.socketsInfos.sort((a, b) => {
+		sockets.sort((a, b) => {
 			return b.uptime - a.uptime;
-		})
+		});
+		this.socketsInfos = sockets;
 	}
 	
 	private username(user: User) {
