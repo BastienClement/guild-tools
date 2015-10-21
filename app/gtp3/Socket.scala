@@ -60,7 +60,7 @@ class Socket(val id: Long, val opener: Opener) extends Actor {
 		// Initialize a new socket
 		case Handshake(o) =>
 			out = o
-			self ! HandshakeFrame(GTP3Magic, Global.serverVersion, id)
+			self ! HandshakeFrame(GTP3Magic, Global.serverVersion.value, id)
 
 		// Resume a disconnected socket
 		case Resume(o, seq) =>

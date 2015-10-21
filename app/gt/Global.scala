@@ -1,9 +1,11 @@
 package gt
 
 import scala.sys.process._
+import utils.CacheCell
+import scala.concurrent.duration._
 
 object Global {
-	val serverVersion = "git rev-parse HEAD".!!.trim
+	val serverVersion = CacheCell(5.minutes) { "git rev-parse HEAD".!!.trim }
 
 	// Char update job
 	/*scheduler.schedule(1500.seconds, 15.minutes) {
