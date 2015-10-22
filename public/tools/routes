@@ -1,4 +1,9 @@
 /dashboard                        views/dashboard/GtDashboard
+
 /profile(/:user)?                 views/profile/GtProfile
+
+/apply                            views/apply/GtApply
+/apply-guest                      views/apply/GtApplyRedirect
+
 /about                            views/about/GtAbout
 /server-status                    views/server-status/GtServerStatus

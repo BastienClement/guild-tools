@@ -23,7 +23,7 @@
 	
 		.infos {
 			&:not(:first-child) { margin-top: 6px; }
-			td { vertical-align: top; }
+			td { vertical-align: top; padding-bottom: 2px; }
 			td:first-child {
 				font-weight: 400;
 				width: 80px;
@@ -89,8 +89,9 @@
 		}
 	</style>
 	<template>
-		<div .col #left>
-			<gt-box .infos heading="Server" scrollable {hidden}="!channel_ready">
+		<div .col #left [if]="channel_ready">
+			<gt-box .infos heading="Server" scrollable>
+				<gt-button disabled><i>power_settings_new</i> Restart</gt-button>
 				<table>
 					<tr><td>Server</td><td>{{serverInfos.name}}</td></tr>
 					<tr><td>Version</td><td>{{serverInfos.version}}</td></tr>
@@ -99,7 +100,7 @@
 					<tr><td>Sockets</td><td>{{socketsInfos.length}}</td></tr>
 				</table>
 			</gt-box>
-			<gt-box .infos heading="Runtime" scrollable {hidden}="!channel_ready">
+			<gt-box .infos heading="Runtime" scrollable>
 				<gt-button (click)="runGC"><i>filter_tilt_shift</i> Run GC</gt-button>
 				<table>
 					<tr><td>Cores</td><td>{{runtimeInfos.cores}}</td></tr>
@@ -109,7 +110,7 @@
 					<tr><td>Max</td><td>{{formatMemory(runtimeInfos.memory_max)}}</td></tr>
 				</table>
 			</gt-box>
-			<gt-box .infos heading="Host" scrollable {hidden}="!channel_ready">
+			<gt-box .infos heading="Host" scrollable>
 				<table>
 					<tr><td>Server</td><td>{{hostInfos.name}}</td></tr>
 					<tr><td>Version</td><td>{{hostInfos.version}}</td></tr>
@@ -117,10 +118,9 @@
 				</table>
 			</gt-box>
 		</div>
-		<div .col #middle>
-			<gt-box #sockets heading="Open sockets" scrollable {hidden}="!channel_ready">
-				<gt-button (click)="fetchSocketsInfos"><i>refresh</i> Refresh</gt-button>
-				<gt-box nested [repeat]="socketsInfos">
+		<div .col #middle [if]="channel_ready">
+			<gt-box #sockets heading="Open sockets" scrollable>
+				<gt-box dark [repeat]="socketsInfos">
 					<div .heading>
 						<gt-button (click)="killSocket"><i>block</i> Kill</gt-button>
 						<i>settings_ethernet</i>

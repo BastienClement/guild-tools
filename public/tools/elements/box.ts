@@ -6,7 +6,7 @@ export class GtBox extends PolymerElement {
 	@Property public scrollable: string;
 	
 	@Property({ reflect: true })
-	public nested: boolean;
+	public dark: boolean;
 
 	@Property({ computed: "heading" })
 	private get "has-heading"(): boolean {
@@ -20,5 +20,5 @@ export class GtAlert extends PolymerElement {
 	@Property public icon: String;
 	
 	@Property({ reflect: true })
-	public nested: boolean;
+	public dark: boolean;
 }

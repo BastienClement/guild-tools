@@ -10,6 +10,8 @@ export interface User {
 	officer: boolean;
 	developer: boolean;
 	promoted: boolean;
+	member: boolean;
+	roster: boolean;
 }
 
 export interface Char {

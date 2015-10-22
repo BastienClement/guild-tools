@@ -1,0 +1,83 @@
+<dom-module id="gt-apply">
+	<style type="text/less">
+		:host {
+			display: flex;
+		}
+		
+		.col {
+			display: flex;
+			flex-direction: column;
+		}
+		
+		#actives {
+			width: 325px;
+			#do-apply { position: absolute; top: 6px; right: 0; }
+		}
+	</style>
+	<template>
+		<gt-box #actives heading="Open applications" scrollable>
+			<gt-button #do-apply><i>mode_edit</i>Apply</gt-button>
+			<gt-alert dark icon="error_outline">
+				Your current guild rank only let you access your own application
+			</gt-alert>
+			<gt-alert dark icon="done">
+				There is no open application to review at the moment
+			</gt-alert>
+		</gt-box>
+	</template>
+</dom-module>
+
+<dom-module id="gt-apply-redirect">
+	<style type="text/less">
+		:host {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+		
+		#layout { display: flex;}
+		#right { width: 400px; }
+		
+		i {
+			font-size: 100px;
+			margin-right: 30px;
+   			margin-top: 10px;
+			color: @light-blue;
+		}
+		
+		#title {
+			font: 300 24px "Roboto Condensed";
+			color: @light-blue;
+			margin-bottom: 8px;
+		}
+		
+		gt-button {
+			background: fade(@fs-blue, 15%);
+			border: 1px solid fade(@fs-blue, 10%);
+			padding: 0 12px;
+			margin: 0;
+			margin-top: 8px;
+			border-radius: 3px;
+			color: #fff !important;
+			transition: all .2s ease-out;
+			
+			&:hover {
+				background: fade(@fs-blue, 20%);
+				border: 1px solid fade(@fs-blue, 15%);
+			}
+		}
+	</style>
+	<template>
+		<div #layout>
+			<div #left>
+				<i>assignment_ind</i>
+			</div>
+			<div #right>
+				<div #title>Applying for a raider spot</div>
+				<p>From Scratch is always looking for awesome players wanting to join our main roster and challenge top-world guilds.</p>
+				<p>Everything you need to know about the recruiting process is available on the WebTools application on the main web site.</p>
+				<p><gt-button #apply>Apply now</gt-button></p>
+			</div>
+		</div>
+	</template>
+</dom-module>

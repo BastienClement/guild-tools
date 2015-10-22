@@ -134,9 +134,17 @@ export class GtTitleBar extends PolymerElement {
 			(<any>this).style.zIndex = 20;
 		}
 	}
-
+	
+	@Listener("panel.click")
+	private PanelClicked(ev: MouseEvent) {
+		if (this.panel) {
+			this.stopEvent(ev);
+			this.ClosePanel();
+		}
+	}    
+	
 	@Listener("panel.mouseleave")
-	private ClosePanel(ev: MouseEvent) {
+	private ClosePanel() {
 		if (this.panel) {
 			this.panel = false;
 			this.debounce("z-index-downgrade", () => { if (!this.panel) (<any>this).style.zIndex = 10; }, 300);
@@ -158,23 +166,24 @@ interface SidebarIcon {
 	icon: string;
 	key: string;
 	link: string;
+	hidden?: boolean;
 }
 
 @Element("gt-sidebar", "/assets/imports/app.html")
 export class GtSidebar extends PolymerElement {
 	@Property
-	private icons: SidebarIcon[] = [
+	private icons = (<SidebarIcon[]>[
 		{ icon: "widgets", key: "dashboard", link: "/dashboard" },
 		{ icon: "account_circle", key: "profile", link: "/profile" },
 		//{ icon: "mail", key: "messages", link: "/messages" },
 		{ icon: "today", key: "calendar", link: "/calendar" },
-		{ icon: "group_work", key: "roster", link: "/roster" },
+		//{ icon: "group_work", key: "roster", link: "/roster" },
 		//{ icon: "forum", key: "forum", link: "/forum" },
-		{ icon: "assignment_ind", key: "apply", link: "/apply" },
+		{ icon: "assignment_ind", key: "apply", link: this.app.user.roster ? "/apply" : "/apply-guest" },
 		//{ icon: "ondemand_video", key: "streams", link: "/streams" },
 		//{ icon: "brush", key: "whiteboard", link: "/whiteboard" },
 		//{ icon: "backup", key: "drive", link: "/drive" }
-	];
+	]).filter(t => !t.hidden);
 	
 	@Inject
 	@Bind({ activePath: "path" })
