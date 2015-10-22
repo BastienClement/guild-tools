@@ -99,7 +99,9 @@ export class Roster extends Service {
 			color: "64B4FF",
 			officer: false,
 			developer: false,
-			promoted: false
+			promoted: false,
+			member: false,
+			roster: false
 		};
 	}
 	

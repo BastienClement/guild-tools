@@ -14,6 +14,8 @@ export interface UserInformations {
 	officer: boolean;
 	developer: boolean;
 	promoted: boolean;
+	member: boolean;
+	roster: boolean;
 }
 
 @Component
