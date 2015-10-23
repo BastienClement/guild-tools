@@ -3,9 +3,9 @@ package utils
 import akka.actor.{Actor, ActorRef, Props, Terminated}
 import play.api.Play.current
 import play.api.libs.concurrent.Akka
-import utils.PubSub._
-
+import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
+import utils.PubSub._
 
 object PubSub {
 	private case class Watch(ps: PubSub[_], actor: ActorRef)
@@ -20,7 +20,7 @@ object PubSub {
 
 			case Terminated(actor) =>
 				for ((ps, actors) <- watching.find { case (p, a) => a.contains(actor) }) {
-					if (ps hasSubscriber actor) ps.unsubscribe(actor)
+					ps.unsubscribe(actor)
 					actors -= actor
 				}
 		}
@@ -31,27 +31,20 @@ object PubSub {
 
 trait PubSub[A] {
 	// Subscribers
-	private var subs = Map[ActorRef, A]()
-	private def hasSubscriber(actor: ActorRef) = subs.contains(actor)
+	private val subs = TrieMap[ActorRef, A]()
 
 	// Sub
 	def subscribe(actor: ActorRef, data: A): Unit = {
-		subs.synchronized {
-			subs += actor -> data
+		if (subs.putIfAbsent(actor, data).isEmpty) {
+			Watcher ! Watch(this, actor)
 		}
-		Watcher ! Watch(this, actor)
 	}
 
 	final def subscribe(data: A)(implicit actor: ActorRef): Unit = subscribe(actor, data)
 
 	// Unsub
-	def unsubscribe(actor: ActorRef): Unit = subs.synchronized {
-		subs -= actor
-	}
-
-	final def unsubscribe($dummy: Unit = ())(implicit actor: ActorRef): Unit = {
-		if (this hasSubscriber actor) unsubscribe(actor)
-	}
+	def unsubscribe(actor: ActorRef): Unit = subs.remove(actor)
+	final def unsubscribe($dummy: Unit = ())(implicit actor: ActorRef): Unit = unsubscribe(actor)
 
 	// Internal publishing loop
 	private def publish(msg: Any, s: Iterable[ActorRef]): Unit = for (sub <- s) sub ! msg
