@@ -132,11 +132,11 @@
 		}
 	</style>
 	<template>
-		<meta is="data-user" [id]="user" [user]="infos">
-		<meta is="data-main" [user] [main]>
-		<meta is="data-race" [id]="main.race" [name]="race_name">
-		<meta is="data-class" [id]="main.class" [name]="class_name">
-		<meta is="data-rank" [id]="infos.group" [name]="rank_name">
+		<meta is="roster-user" [id]="user" [user]="infos">
+		<meta is="roster-main" [user] [main]>
+		<meta is="roster-race" [id]="main.race" [name]="race_name">
+		<meta is="roster-class" [id]="main.class" [name]="class_name">
+		<meta is="roster-rank" [id]="infos.group" [name]="rank_name">
 		<gt-box>
 			<div #layout>
 				<bnet-thumb [char]="main"></bnet-thumb>
@@ -188,8 +188,8 @@
 		}
 	</style>
 	<template>
-		<meta is="data-user" [id]="user" [user]="infos">
-		<meta is="data-rank" [id]="infos.group" [name]="rank_name">
+		<meta is="roster-user" [id]="user" [user]="infos">
+		<meta is="roster-rank" [id]="infos.group" [name]="rank_name">
 		<gt-box heading="Profile" scrollable>
 			<gt-button [if]="editable"><i>edit</i> Edit</gt-button>
 			<div #username>
@@ -405,9 +405,9 @@
 		}
 	</style>
 	<template>
-		<meta is="data-char" [id] [char]>
-		<meta is="data-race" [id]="char.race" [name]="race-name">
-		<meta is="data-class" [id]="char.class" [name]="class-name">
+		<meta is="roster-char" [id] [char]>
+		<meta is="roster-race" [id]="char.race" [name]="race-name">
+		<meta is="roster-class" [id]="char.class" [name]="class-name">
 		<gt-box {inactive}="!char.active" dark>
 			<div #layout>
 				<bnet-thumb [char]></bnet-thumb>

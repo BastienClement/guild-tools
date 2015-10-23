@@ -9,6 +9,7 @@ package object gtp3 {
 	}
 
 	val ChannelValidators = Map[String, ChannelValidator](
+		"apply" -> Apply,
 		"auth" -> Auth,
 		"chat" -> Chat,
 		"master" -> Master,

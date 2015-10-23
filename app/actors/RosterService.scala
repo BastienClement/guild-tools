@@ -31,6 +31,13 @@ trait RosterService extends PubSub[User] {
 		Users.filter(_.id === id).head
 	}
 
+	// List of chars for a roster member
+	val roster_chars = CacheCell.async[Map[Int, Seq[Char]]](1.minutes) {
+		val users = for (user <- Users if user.group inSet AuthService.allowed_groups) yield user.id
+		val chars = for (char <- Chars.sortBy(c => (c.main.desc, c.active.desc, c.level.desc, c.ilvl.desc)) if char.owner.in(users)) yield char
+		chars.run.map(_.groupBy(_.owner))
+	}
+
 	// List of chars for a specific user
 	private val user_chars = Cache.async[Int, Seq[Char]](1.minutes) { owner =>
 		Chars.filter(_.owner === owner).sortBy(c => (c.main.desc, c.active.desc, c.level.desc, c.ilvl.desc)).run
@@ -41,12 +48,15 @@ trait RosterService extends PubSub[User] {
 	// resolved at a later time with the same char
 	private var inflightUpdates = Map[Int, Future[Char]]()
 
+	// Request a list of user from the roster
+	def roster_users: Future[Iterable[User]] = for (u <- users.value) yield u.values
+
 	// Request user informations
 	// This function query both the full roster cache or the out-of-roster generator
 	def user(id: Int): Future[User] = users.value.map(m => m(id)) recoverWith { case _ => outroster_users(id) }
 
 	// Request a list of chars for a specific owner
-	def chars(owner: Int): Future[Seq[Char]] = user_chars(owner)
+	def chars(owner: Int): Future[Seq[Char]] = roster_chars.value.map(c => c(owner)) recoverWith { case _ => user_chars(owner) }
 
 	// Construct a request for a char with a given id.
 	// If user is defined, also ensure that the char is owned by the user
@@ -59,6 +69,7 @@ trait RosterService extends PubSub[User] {
 	// Also clear the local cache for the owner of that char
 	private def notifyUpdate(char: Char): Char = {
 		user_chars.clear(char.owner)
+		roster_chars.clear()
 		this !# CharUpdate(char)
 		char
 	}

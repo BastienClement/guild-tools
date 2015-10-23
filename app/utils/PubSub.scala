@@ -5,6 +5,7 @@ import play.api.Play.current
 import play.api.libs.concurrent.Akka
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
+import scala.language.existentials
 import utils.PubSub._
 
 object PubSub {
@@ -54,6 +55,6 @@ trait PubSub[A] {
 	final protected def !#(msg: Any): Unit = publish(msg, subs.keys)
 
 	// Publish to subs with data matching a filter function
-	protected def publish(msg: Any)(filter: (A) => Boolean): Unit =
+	protected def publish(msg: Any, filter: (A) => Boolean): Unit =
 		publish(msg, for ((actor, data) <- subs if filter(data)) yield actor)
 }

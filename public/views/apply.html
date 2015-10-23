@@ -10,19 +10,158 @@
 		}
 		
 		#actives {
-			width: 325px;
+			width: 330px;
+			margin-right: 6px;
+			transition: all .2s ease-out;
 			#do-apply { position: absolute; top: 6px; right: 0; }
+		}
+		
+		@media (max-width: 1500px) {
+			#actives { width: 280px; }
+		}
+		
+		gt-apply-list-item:not(:last-child) {
+			margin-bottom: 6px;
+		}
+		
+		gt-apply-details {
+			flex: 1;
 		}
 	</style>
 	<template>
 		<gt-box #actives heading="Open applications" scrollable>
-			<gt-button #do-apply><i>mode_edit</i>Apply</gt-button>
-			<gt-alert dark icon="error_outline">
+			<gt-alert dark icon="error_outline" [if]="!app.user.member">
 				Your current guild rank only let you access your own application
 			</gt-alert>
-			<gt-alert dark icon="done">
+			<gt-alert dark icon="done" [if]="!applys.length">
 				There is no open application to review at the moment
 			</gt-alert>
+			<gt-apply-list-item [repeat]="applys" [apply]="item" (click)="SelectApply" {selected}="equals(selected, item)"></gt-apply-list-item>
+		</gt-box>
+		<gt-apply-details apply="11"></gt-apply-details>
+	</template>
+</dom-module>
+
+<dom-module id="gt-apply-list-item">
+	<style type="text/less">
+		:host {
+			display: block;
+		}
+		
+		gt-box {
+			padding: 6px;
+			overflow: hidden;
+			transition: all .2s ease-out;
+			:host([selected]) & {
+				background: fade(@fs-blue, 10%);
+				border: 1px solid fade(@fs-blue, 10%);
+			}
+		}
+		
+		#layout {
+			display: flex;
+			align-items: center;
+		}
+		
+		bnet-thumb {
+			width: 40px;
+			height: 40px;
+			margin-right: 8px;
+			transition: all .2s ease-out;
+		}
+		
+		@media (max-width: 1500px) {
+			bnet-thumb {
+				opacity: 0;
+				margin-left: -40px;
+				margin-right: 2px;
+			}
+		}
+		
+		#infos {
+			flex: 1;
+			padding-right: 6px;
+		}
+		
+		#name {
+			font-size: 16px;
+			margin-bottom: 3px;
+			display: block;
+			width: 100%;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		
+		#stage {
+			color: @fs-gray;
+			font-weight: 300;
+			font-family: "Roboto Condensed"
+		}
+		
+		#update {
+			text-align: right;
+			font-weight: 300;
+		}
+		
+		gt-timeago {
+			display: block;
+			&[with-margin] { margin-bottom: 3px; }
+		}
+		
+		#unread {
+			color: @light-blue;
+		}
+		
+		#chevron {
+			font-size: 24px;
+			margin-left: 6px;
+			color: @fs-gray;
+			display: block;
+			margin-top: 4px;
+			margin-right: -2px;
+			
+			opacity: 0.5;
+			transition: all .2s ease-out;
+			:host(:hover) & { opacity: 1; }
+			:host([selected]) & { opacity: 0.75; color: #fff; }
+		}
+	</style>
+	<template>
+		<gt-box dark>
+			<meta is="apply-data" [apply] [data]>
+			<meta is="apply-stage-name" [stage]="data.stage" [name]="stage_name">
+			<meta is="apply-unread" [apply] [unread]>
+			<meta is="roster-main" [user]="data.user" [main]>
+			<div #layout>
+				<bnet-thumb [char]="main"></bnet-thumb>
+				<div #infos>
+					<b #name {class-color}="main.class">{{main.name}}</b>
+					<b #stage>{{stage_name}}</b>
+				</div>
+				<div #update>
+					<gt-timeago [date]="data.updated" {with-margin}="unread"></gt-timeago>
+					<div #unread [if]="unread">Unread posts</div>
+				</div>
+				<i #chevron>chevron_right</i>
+			</div>
+		</gt-box>
+	</template>
+</dom-module>
+
+<dom-module id="gt-apply-details">
+	<style type="text/less">
+		:host {
+			display: block;
+			position: relative;
+		}
+		
+		gt-box {
+			.pos(absolute);
+		}
+	</style>
+	<template>
+		<gt-box #main heading=" " scrollable>
+			
 		</gt-box>
 	</template>
 </dom-module>

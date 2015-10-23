@@ -8,9 +8,6 @@ import { Deferred } from "utils/deferred";
 import { Chat } from "services/chat";
 import { User } from "services/roster";
 
-// Force loading of data providers elements
-import "elements/data";
-
 // Views loader
 type ViewPromise = Promise<PolymerConstructor<any>>;
 const views_cache = new Map<string, ViewPromise>();

@@ -16,4 +16,6 @@ libraryDependencies ++= Seq(
 	"org.scodec" %% "scodec-bits" % "1.0.10"
 )
 
+scalacOptions ++= Seq("-feature")
+
 pipelineStages := Seq(digest, gzip)

@@ -40,3 +40,17 @@ interface TraceurCompilerStatic {
 }
 
 declare const traceur: TraceurModule;
+
+interface PromiseResolver<T> {
+	resolve(value?: T | PromiseLike<T>): void;
+	reject(reason: any): void;
+	promise: Promise<T>;
+}
+
+interface PromiseConstructor {
+	defer<T>(): PromiseResolver<T>;
+}
+
+interface Promise<T> {
+	finally(finalized: () => void): Promise<T>;
+}

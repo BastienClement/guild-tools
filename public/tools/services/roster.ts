@@ -1,6 +1,8 @@
 import { Component } from "utils/di";
 import { Service } from "utils/service";
+import { join } from "utils/async";
 import { Server, ServiceChannel } from "client/server";
+import { PolymerElement, Provider, Inject, Property, On } from "elements/polymer";
 
 export interface User {
 	id: number;
@@ -45,6 +47,7 @@ interface UserRecord {
 export class Roster extends Service {
 	constructor(private server: Server) {
 		super();
+		this.preload();
 	}
 	
 	// Roster channel
@@ -58,6 +61,24 @@ export class Roster extends Service {
 	// Reflect the current state of the roster channel
 	@ServiceChannel.ReflectState("channel")
 	public available: boolean = false;
+	
+	// Preload roster users
+	private preloaded = false;
+	@join private async preload() {
+		if (this.preloaded) return false;
+		this.preloaded = true;
+		let data = await this.channel.request<[User, Char[]][]>("preload-roster");
+		for (let [user, chars] of data) {
+			this.UserUpdated(user, chars);
+		}
+		return true;
+	}
+	
+	// Request an update for a user
+	private async request(user: number) {
+		if (await this.preload() && this.users.has(user)) return;
+		this.channel.send("request-user", user);
+	}
 	
 	// --- Helpers ------------------------------------------------------------
 	
@@ -141,7 +162,7 @@ export class Roster extends Service {
 		}
 		
 		if (this.stale(record)) {
-			this.channel.send("request-user", user);
+			this.request(user);
 			this.touch(record, 30);
 		}
 		
@@ -318,5 +339,181 @@ export class Roster extends Service {
 	
 	public updateChar(char: number) {
 		return this.channel.request<boolean>("update-char", char);
+	}
+}
+
+/**
+ * Data provider for the main character of a user
+ */
+@Provider("roster-main")
+class MainProvider extends PolymerElement {
+	@Inject
+	@On({ "char-updated": "CharUpdated" })
+	private roster: Roster;
+
+	@Property({ observer: "update" })
+	public user: number;
+	
+	@Property({ notify: true })
+	public main: Char;
+
+	public update() {
+		this.main = this.roster.getMainCharacter(this.user);
+	}
+	
+	private CharUpdated(char: Char) {
+		if (char.owner == this.user && (char.main || char.id == this.main.id)) {
+			this.update();
+		}
+	}
+}
+
+/**
+ * Data provider for character details
+ */
+@Provider("roster-char")
+class CharProvider extends PolymerElement {
+	@Inject
+	@On({ "char-updated": "CharUpdated" })
+	private roster: Roster;
+
+	@Property({ observer: "update" })
+	public id: number;
+	
+	@Property({ notify: true })
+	public char: Char;
+
+	public update() {
+		this.char = this.roster.getCharacter(this.id);
+	}
+	
+	private CharUpdated(char: Char) {
+		if (char.id == this.char.id) {
+			this.update();
+		}
+	}
+}
+
+/**
+ * Provider for user details
+ */
+@Provider("roster-user")
+class UserProvider extends PolymerElement {
+	@Inject
+	@On({ "user-updated": "UserUpdated" })
+	private roster: Roster;
+
+	@Property({ observer: "update" })
+	public id: number;
+	
+	@Property({ observer: "update"})
+	public current: boolean;
+	
+	@Property({ notify: true })
+	public user: User;
+
+	public update() {
+		this.user = this.current ? this.app.user : this.roster.getUser(this.id);
+	}
+	
+	private UserUpdated(user: User) {
+		if (user.id == this.id) this.user = user;
+	}
+}
+
+/**
+ * Translate class id to names
+ */
+@Provider("roster-class")
+class ClassProvider extends PolymerElement {
+	@Property({ observer: "update" })
+	public id: number;
+	
+	@Property({ notify: true })
+	public name: string;
+
+	private class_name(id: number) {
+		switch (id) {
+			case 1: return "Warrior";
+			case 2: return "Paladin";
+			case 3: return "Hunter";
+			case 4: return "Rogue";
+			case 5: return "Priest";
+			case 6: return "Death Knight";
+			case 7: return "Shaman";
+			case 8: return "Mage";
+			case 9: return "Warlock";
+			case 10: return "Monk";
+			case 11: return "Druid";    
+			default: return "Unknown";    
+		}
+	}
+    
+	public update() {
+		this.name = this.class_name(this.id);
+	}
+}
+
+/**
+ * Translate race id to names
+ */
+@Provider("roster-race")
+class RaceProvider extends PolymerElement {
+	@Property({ observer: "update" })
+	public id: number;
+	
+	@Property({ notify: true })
+	public name: string;
+
+	private race_name(id: number) {
+		switch (id) {
+			case 1: return "Human";
+			case 2: return "Orc";
+			case 3: return "Dwarf";
+			case 4: return "Night Elf";
+			case 5: return "Undead";
+			case 6: return "Tauren";
+			case 7: return "Gnome";
+			case 8: return "Troll";
+			case 9: return "Goblin";
+			case 10: return "Blood Elf";
+			case 11: return "Draenei";
+			case 22: return "Worgen";
+			case 24: case 25: case 26:
+				return "Pandaren";
+			default: return "Unknown";    
+		}
+	}
+    
+	public update() {
+		this.name = this.race_name(this.id);
+	}
+}
+
+/**
+ * Translate rank id to names
+ */
+@Provider("roster-rank")
+class RankProvider extends PolymerElement {
+	@Property({ observer: "update" })
+	public id: number;
+	
+	@Property({ notify: true })
+	public name: string;
+
+	private rank_name(id: number) {
+		switch (id) {
+			case 10: return "Guest";
+			case 12: return "Casual";
+			case 8: return "Apply";
+			case 9: return "Member";
+			case 11: return "Officer";
+			case 13: return "Veteran";    
+			default: return "Unknown";    
+		}
+	}
+    
+	public update() {
+		this.name = this.rank_name(this.id);
 	}
 }

@@ -480,12 +480,19 @@ export function Element(selector: string, template?: string, ext?: string) {
 }
 
 /**
+ * Declare a Polymer data provider
+ */
+export function Provider(selector: string) {
+	return Element(selector, null, "meta");
+}
+
+/**
  * Delcare Polymer element dependencies
  */
-export function Dependencies(...dependencies: PolymerConstructor<any>[]) {
+export function Dependencies(...dependencies: (PolymerConstructor<any> | { prototype: Service })[]) {
 	return <T extends PolymerElement>(target: PolymerConstructor<T>) => {
-		const meta: PolymerMetadata<T> = Reflect.getMetadata("polymer:meta", target) || <any> {};
-		meta.dependencies = dependencies;
+		const meta: PolymerMetadata<T> = Reflect.getMetadata("polymer:meta", target) || <any>{};
+		meta.dependencies = <any> dependencies.filter(d => !(d.prototype instanceof Service));
 		Reflect.defineMetadata("polymer:meta", meta, target);
 	};
 }
