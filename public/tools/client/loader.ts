@@ -291,16 +291,23 @@ export class Loader {
 			wrapper = document.createElement("template");
 		};
 
+		// Note: we need to find all interesting nodes before promoting any one of them.
+		// If we promote [if] nodes before looking for [repeat] ones, it is possible for
+		// some of them to get nested inside the wrapper.content shadow tree when we
+		// attempt to querySelectorAll and they will not be returned.
+        
 		// <element [if]="{{cond}}">
 		let if_nodes = <NodeListOf<HTMLElement>> template.querySelectorAll("*[\\[if\\]]");
+		
+		// <element [repeat]="{{collection}}" filter sort observe>
+		let repeat_nodes = <NodeListOf<HTMLElement>> template.querySelectorAll("*[\\[repeat\\]]");
+		
 		for (let i = 0; i < if_nodes.length; ++i) {
 			node = if_nodes[i];
 			promote_attribute("[if]", "if", node.textContent, true);
 			promote_node("dom-if");
 		}
 
-		// <element [repeat]="{{collection}}" filter sort observe>
-		let repeat_nodes = <NodeListOf<HTMLElement>>  template.querySelectorAll("*[\\[repeat\\]]");
 		for (let i = 0; i < repeat_nodes.length; ++i) {
 			node = repeat_nodes[i];
 			promote_attribute("[repeat]", "items", "", true);
