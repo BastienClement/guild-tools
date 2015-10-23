@@ -11,7 +11,7 @@ import { ApplyService, Apply } from "services/apply";
 import { join } from "utils/async";
 
 const ApplyTabs: TabsGenerator = (view, path, user) => [
-	{ title: "Applications", link: "/apply", active: view == "views/apply/GtApply" },
+	{ title: "Applys", link: "/apply", active: view == "views/apply/GtApply" },
 	{ title: "Archives", link: "/apply/archives", active: view == "views/apply/GtApplyArchives" }
 ];
 

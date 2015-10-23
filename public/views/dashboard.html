@@ -79,7 +79,7 @@
 			</div>
 			<div #right>
 				<profile-user #profile [user]="app.user.id"></profile-user>
-				<gt-box #informations heading="Informations"></gt-box>
+				<gt-box #informations heading="Informations" hidden></gt-box>
 				<dashboard-onlines #onlines></dashboard-onlines>
 			</div>
 		</div>
@@ -220,7 +220,10 @@
 	</style>
 	<template>
 		<gt-box #shoutbox heading="Shoutbox" scrollable>
-			<div .message [repeat]="messages">
+			<div style="position: absolute; top: 60px; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; font-size: 60px;">
+				<i>build</i>
+			</div>
+			<div .message [repeat]="messages" hidden>
 				<span .left>
 					<gt-timeago .time [date]="item.date"></gt-timeago>
 					<span .actions>
