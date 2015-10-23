@@ -182,7 +182,10 @@ export class Roster extends Service {
 		if (!record) {
 			// Convert char list to Map
 			let char_map = new Map<number, Char>();
-			for (let char of chars) char_map.set(char.id, char);
+			for (let char of chars) {
+				char_map.set(char.id, char);
+				this.owners.set(char.id, user.id);
+			}
 			
 			// Create record object
 			record = {
@@ -277,8 +280,13 @@ export class Roster extends Service {
 		return this.lock(infos);
 	}
 	
-	public getUserCharacters(user: number) {
-		if (this.chars_cache.has(user)) return this.chars_cache.get(user);
+	public getUserCharacters(user: number, active?: boolean) {
+		const filter_active = (id: number) => this.getCharacter(id).active || !active;
+		
+		if (this.chars_cache.has(user)) {
+			return this.chars_cache.get(user).filter(filter_active);
+		}
+		
 		let chars = Array.from(this.getRecord(user).chars.keys());
 		chars.sort((a_id, b_id) => {
 			let a = this.getCharacter(a_id);
@@ -289,8 +297,9 @@ export class Roster extends Service {
 			else if (a.ilvl != b.ilvl) return b.ilvl - a.ilvl;
 			return a.name.localeCompare(b.name);
 		});
+		
 		this.chars_cache.set(user, chars);
-		return chars;
+		return chars.filter(filter_active);
 	}
 	
 	public getMainCharacter(user: number) {
@@ -363,6 +372,38 @@ class MainProvider extends PolymerElement {
 	
 	private CharUpdated(char: Char) {
 		if (char.owner == this.user && (char.main || char.id == this.main.id)) {
+			this.update();
+		}
+	}
+}
+
+/**
+ * Data provider for the list of a user's characters
+ */
+@Provider("roster-chars")
+class CharsProvider extends PolymerElement {
+	@Inject
+	@On({
+		"char-updated": "CharUpdated",
+		"char-deleted": "CharUpdated"
+	})
+	private roster: Roster;
+
+	@Property({ observer: "update" })
+	public user: number;
+	
+	@Property({ observer: "update" })
+	public active: boolean;
+	
+	@Property({ notify: true })
+	public chars: number[];
+
+	public update() {
+		this.chars = this.roster.getUserCharacters(this.user, this.active);
+	}
+	
+	private CharUpdated(char: Char) {
+		if (char.owner == this.user) {
 			this.update();
 		}
 	}

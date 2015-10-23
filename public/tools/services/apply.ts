@@ -114,3 +114,22 @@ class DataProvider extends PolymerElement {
 		this.data = await this.service.applyData(this.apply);
 	}
 }
+
+/**
+ * Application unread status
+ */
+@Provider("apply-unread")
+class UnreadProvider extends PolymerElement {
+	@Inject
+	private service: ApplyService;
+	
+	@Property({ observer: "update" })
+	public apply: number;
+	
+	@Property({ notify: true })
+	public unread: boolean;
+
+	@join public async update() {
+		this.unread = this.service.unreadState(this.apply);
+	}
+}

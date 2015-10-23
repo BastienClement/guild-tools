@@ -38,7 +38,7 @@
 			</gt-alert>
 			<gt-apply-list-item [repeat]="applys" [apply]="item" (click)="SelectApply" {selected}="equals(selected, item)"></gt-apply-list-item>
 		</gt-box>
-		<gt-apply-details apply="11"></gt-apply-details>
+		<gt-apply-details apply="7"></gt-apply-details>
 	</template>
 </dom-module>
 
@@ -127,11 +127,11 @@
 		}
 	</style>
 	<template>
+		<meta is="apply-data" [apply] [data]>
+		<meta is="apply-stage-name" [stage]="data.stage" [name]="stage_name">
+		<meta is="apply-unread" [apply] [unread]>
+		<meta is="roster-main" [user]="data.user" [main]>
 		<gt-box dark>
-			<meta is="apply-data" [apply] [data]>
-			<meta is="apply-stage-name" [stage]="data.stage" [name]="stage_name">
-			<meta is="apply-unread" [apply] [unread]>
-			<meta is="roster-main" [user]="data.user" [main]>
 			<div #layout>
 				<bnet-thumb [char]="main"></bnet-thumb>
 				<div #infos>
@@ -155,14 +155,157 @@
 			position: relative;
 		}
 		
-		gt-box {
+		:host > gt-box {
 			.pos(absolute);
+		}
+		
+		#tabs {
+			position: absolute;
+			top: 6px;
+			left: 0px;
+			display: flex;
+			
+			gt-button {
+				color: mix(@light-blue, white, 50%);
+				opacity: 0.8;
+				transition: all .2s ease-out;
+				
+				&:hover, &[active] {
+					opacity: 1;
+					color: white;
+				}
+			}
+		}
+		
+		#links {
+			position: absolute;
+			top: 6px;
+			right: 0;
+		}
+		
+		#side {
+			position: absolute;
+			top: 50px;
+			right: 0;
+			bottom: 0;
+			width: 270px;
+			background: none;
+			border: 0;
+			border-left: 2px solid fade(#426585, 50%);
+			
+			
+			h2 {
+				font: 300 18px "Roboto Condensed";
+				margin: 0 0 12px 0;
+			}
+			
+			ul {
+				margin: 12px 0;
+				padding: 0;
+				list-style: none;
+				font-weight: 300;
+				
+				li {
+					margin: 6px 0;
+				}
+				
+				span {
+					color: @light-blue;
+					display: inline-block;
+					width: 80px;
+				}
+			}
+			
+			gt-apply-details-char {
+				margin: 6px 0 0;
+			}
 		}
 	</style>
 	<template>
+		<meta is="apply-data" [apply] [data]>
+		<meta is="apply-stage-name" [stage]="data.stage" [name]="stage_name">
+		<meta is="roster-user" [id]="data.user" [user]>
+		<meta is="roster-main" [user]="data.user" [main]>
+		<meta is="roster-chars" [user]="data.user" [chars] active>
 		<gt-box #main heading=" " scrollable>
-			
+			<div #tabs>
+				<gt-button active>Discussion</gt-button>
+				<gt-button>Details</gt-button>
+			</div>
+			<div #links>
+				<gt-button [goto]="profileLink">View profile</gt-button>
+			</div>
+			<gt-box #side scrollable dark>
+				<h2>Application</h2>
+				<ul #meta>
+					<li>
+						<span>Username</span>
+						<b>{{user.name}}</b>
+					</li>
+					<li>
+						<span>Applied</span>
+						<gt-timeago [date]="data.date"></gt-timeago>
+					</li>
+					<li>
+						<span>Stage</span>
+						<b>{{stage_name}}</b>
+					</li>
+				</ul>
+				<h2>Characters</h2>
+				<gt-apply-details-char [repeat]="chars" [id]="item"></gt-apply-details-char>
+			</gt-box>
 		</gt-box>
+	</template>
+</dom-module>
+
+<dom-module id="gt-apply-details-char">
+	<style type="text/less">
+		:host {
+			display: block;
+			padding: 6px;
+			background: rgba(17, 17, 17, 0.1);
+			border: 1px solid rgba(17, 17, 17, 0.1);
+			transition: all .2s ease-out;
+			position: relative;
+			overflow: hidden;
+		}
+		
+		#name {
+			font: 400 18px "Roboto Condensed";
+		}
+		
+		#ilvl {
+			position: absolute;
+			top: 8px;
+			right: 8px;
+			font-weight: 300;
+			color: @fs-gray;
+		}
+		
+		#outlink-icon {
+			position: absolute;
+			bottom: 8px;
+			right: 8px;
+			color: @light-blue;
+			opacity: 0;
+			font-size: 11px;
+			transition: all .2s ease-out;
+			transform: translateY(20px);
+			
+			:host(:hover) & {
+				opacity: 0.8;
+				transform: translateY(0px);
+			}
+		}
+	</style>
+	<template>
+		<meta is="roster-char" [id] [char]>
+		<meta is="roster-race" [id]="char.race" [name]="race-name">
+		<meta is="roster-class" [id]="char.class" [name]="class-name">
+		<div #name {class-color}="char.class">{{char.name}}</div>
+		<div #server>{{serverName}}</b></div>
+		<div #ilvl><b>{{char.ilvl}}</b> ilvl</div>
+		<div #outlink-icon>Battle.net <i>open_in_new</i></div>
 	</template>
 </dom-module>
 
