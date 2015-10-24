@@ -126,8 +126,9 @@ export class ProfileAddChar extends PolymerElement {
 			
 			// Change the dialog background
 			let img = document.createElement("img");
+			let background: HTMLDivElement = this.$.background;
 			img.src = "http://eu.battle.net/static-render/eu/" + char.thumbnail.replace("avatar", "profilemain");
-			Polymer.dom(this.$.background).appendChild(img);
+			Polymer.dom(background).appendChild(img);
 			img.onload = () => {
 				this.char = char;
 				this.role = char.role;
