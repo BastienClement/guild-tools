@@ -1,12 +1,10 @@
-import { Deferred } from "utils/deferred";
-
 let instances = new Map<string, ServiceWorker>();
 
 export class ServiceWorker {
 	private worker: Worker;
 	
 	private next_rid = 0;
-	private requests = new Map<number, Deferred<any>>();
+	private requests = new Map<number, PromiseResolver<any>>();
 	
 	constructor(path: string) {
 		if (instances.has(path)) {
@@ -36,7 +34,7 @@ export class ServiceWorker {
 	}
 	
 	public request<T>(method: string, ...args: any[]): Promise<T> {
-		let defer = new Deferred<T>();
+		let defer = Promise.defer<T>();
 		let rid = this.next_rid++;
 		this.requests.set(rid, defer);
 		

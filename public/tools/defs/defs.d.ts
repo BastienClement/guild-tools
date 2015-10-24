@@ -50,8 +50,12 @@ interface PromiseResolver<T> {
 interface PromiseConstructor {
 	defer<T>(): PromiseResolver<T>;
 	onload<T extends { onload: Function; onerror?: Function }>(node: T): Promise<T>;
+	delay<T>(duration: number): Promise<void>;
+	require<T>(module_name: string, symbole?: string): Promise<T>;
 }
 
 interface Promise<T> {
 	finally(finalized: () => void): Promise<T>;
 }
+
+declare const microtask: Promise<void>;

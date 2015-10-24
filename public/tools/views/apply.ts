@@ -78,7 +78,6 @@ export class ApplyDetails extends PolymerElement {
 	private details: boolean;
 	
 	// The discussion feed data
-	@Property({ observer: "ScrollDown" })
 	private feed: ApplyMessage[];
 	
 	// The apply form data
@@ -88,6 +87,8 @@ export class ApplyDetails extends PolymerElement {
 	private async ApplyChanged() {
 		this.details = void 0;
 		this.feed = [];
+		await microtask;
+		if (!this.apply) return;
 		this.feed = await this.service.applyFeed(this.apply);
 	}
 	
@@ -103,25 +104,29 @@ export class ApplyDetails extends PolymerElement {
 	}
 	
 	// Scroll the discussion tab to the bottom
-	@throttled private ScrollDown() {
-		defer(() => {
-			let node = this.$.discussion.$.wrapper;
-			let bottom = node.scrollTop + node.clientHeight + 10;
-			if (node.scrollTop < 10 || bottom > node.scrollHeight) {
-				node.scrollTop = node.scrollHeight;
-			}
-		});
+	@throttled private async ScrollDown() {
+		let node = this.$.discussion.$.wrapper;
+		let bottom = node.scrollTop + node.clientHeight + 10;
+		if (node.scrollTop < 10 || bottom > node.scrollHeight) {
+			node.scrollTop = node.scrollHeight;
+		}
 	}
 	
 	@Listener("discussion.rendered")
-	private MessageRendered(ev: any) {
-		let scroll = this.ScrollDown.bind(this);
+	private async MessageRendered(ev: any) {
+		// Get every images in the message
 		let markdown = Polymer.dom(ev).rootTarget.$.markdown;
 		let imgs = markdown.querySelectorAll("img");
+		
+		// Scroll when they are loaded
 		for (let i = 0; i < imgs.length; i++) {
 			let img: HTMLImageElement = imgs[i];
-			Promise.onload(img).finally(scroll);
+			Promise.onload(img).finally(() => this.ScrollDown());
 		}
+		
+		// Scroll anyway at the end of the microtask
+		await microtask;
+		this.ScrollDown();
 	}
 	
 	// Generate the link to the user profile
@@ -134,7 +139,7 @@ export class ApplyDetails extends PolymerElement {
 ///////////////////////////////////////////////////////////////////////////////
 // <gt-apply>
 
-@View("apply", ApplyTabs)
+@View("apply", ApplyTabs, true)
 @Element("gt-apply", "/assets/views/apply.html")
 @Dependencies(GtBox, GtAlert, GtButton, GtDialog, ApplyListItem, ApplyDetails, Roster)
 export class GtApply extends PolymerElement {
@@ -143,15 +148,25 @@ export class GtApply extends PolymerElement {
 	
 	private applys: number[];
 	
-	@Property
+	@Property({ observer: "ApplySelected" })
 	private selected: number = null;
 	
 	private async init() {
+		let selected = this.selected;
+		this.selected = void 0;
 		this.applys = await this.service.openApplysList();
+		this.selected = selected;
+	}
+	
+	private ApplySelected() {
+		if (!this.applys) return;
+		if (!this.applys.some(a => a === this.selected)) {
+			this.selected = void 0;
+		}
 	}
 	
 	private SelectApply(ev: PolymerModelEvent<number>) {
-		this.selected = ev.model.item;
+		this.app.router.goto(`/apply/${ev.model.item}`);
 	}
 }
 

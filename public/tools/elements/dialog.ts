@@ -1,6 +1,5 @@
 import { Element, Property, Listener, PolymerElement } from "elements/polymer";
 import { Queue } from "utils/queue"
-import { Deferred } from "utils/deferred"
 
 /**
  * Modal dialog
@@ -53,7 +52,7 @@ export class GtDialog extends PolymerElement {
 	 */
 	public async hide(): Promise<void> {
 		let node = this.node.node;
-		let defer = new Deferred<void>();
+		let defer = Promise.defer<void>();
 		
 		const animation_listener = () => {
 			node.removeEventListener("animationend", animation_listener);

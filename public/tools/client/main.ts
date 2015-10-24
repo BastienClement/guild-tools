@@ -1,5 +1,4 @@
 import { Component, Injector } from "utils/di";
-import { Deferred } from "utils/deferred";
 import { Server, UserInformations } from "client/server";
 import { Router } from "client/router";
 import { Channel } from "gtp3/channel";
@@ -78,7 +77,7 @@ export class Application {
 		}
 		
 		// Start the authentication process
-		if (!fast) await Deferred.delay(500);
+		if (!fast) await Promise.delay(500);
 		await new AuthenticationDriver(this).start();
 		
 		// Ensure spinner is disabled
@@ -90,7 +89,7 @@ export class Application {
 		// Login transition
 		body.classList.add("no-loader");
 		body.classList.add("with-background");
-		if (!fast) await Deferred.delay(1100);
+		if (!fast) await Promise.delay(1100);
 		body.classList.add("app-loader");
 		
 		// Open master channel
@@ -130,7 +129,7 @@ export class Application {
 		this.spinner_enabled = false;
 
 		let last_dot = document.querySelector<HTMLSpanElement>("#loader .spinner b:last-child");
-		let trigger = new Deferred<void>();
+		let trigger = Promise.defer<void>();
 
 		const listener = () => {
 			trigger.resolve(null);
@@ -146,7 +145,7 @@ export class Application {
 		// Bypass the synchronization if loading.fast is set
 		if (localStorage.getItem("loading.fast") == "1") return Promise.resolve();
 
-		return trigger.promise.then(() => Deferred.delay(500));
+		return trigger.promise.then(() => Promise.delay(500));
 	}
 }
 
@@ -214,8 +213,8 @@ class AuthenticationDriver {
 			
 			let [prepare, phpbb_hash, crypto] = <[PrepareData, PhpBBHash, CryptoJS]> await Promise.all([
 				this.channel.request("prepare", user),
-				Deferred.require("phpbb_hash"),
-				Deferred.require("cryptojs")
+				Promise.require("phpbb_hash"),
+				Promise.require("cryptojs")
 			]);
 
 			let pass = crypto.SHA1(phpbb_hash(raw_pass, prepare.setting) + prepare.salt).toString();
@@ -235,7 +234,7 @@ class AuthenticationDriver {
 		if (!this.gt_login) await this.constructForm();
 		this.gt_login.error = error;
 		this.gt_login.autofocus();
-		return (this.gt_login.credentials = new Deferred<[string, string]>()).promise;
+		return (this.gt_login.credentials = Promise.defer<[string, string]>()).promise;
 	}
 
 	/**

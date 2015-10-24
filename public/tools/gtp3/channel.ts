@@ -1,5 +1,4 @@
 import { EventEmitter } from "utils/eventemitter";
-import { Deferred } from "utils/deferred";
 import { NumberPool } from "gtp3/numberpool";
 import { FrameType, Protocol } from "gtp3/protocol";
 import { Socket, ChannelRequest } from "gtp3/socket";
@@ -23,7 +22,7 @@ export class Channel extends EventEmitter {
 	private requestid_pool: NumberPool = new NumberPool(Protocol.InflightRequests);
 
 	// Pending requests
-	private requests: Map<number, Deferred<any>> = new Map<number, Deferred<any>>();
+	private requests: Map<number, PromiseResolver<any>> = new Map<number, PromiseResolver<any>>();
 
 	// Default message flags
 	private default_flags: number = PayloadFlags.COMPRESS;
@@ -62,13 +61,13 @@ export class Channel extends EventEmitter {
 		this.socket._send(frame, true);
 
 		// Create deferred
-		const deferred = new Deferred<T>();
+		const deferred = Promise.defer<T>();
 		this.requests.set(id, deferred);
 		
 		// Loading indicator
 		if (!silent) {
 			(<any>this.socket).emit("request-start");
-			Deferred.finally(deferred.promise, () => (<any>this.socket).emit("request-end"));
+			deferred.promise.finally(() => (<any>this.socket).emit("request-end"));
 		}
 		
 		return deferred.promise;

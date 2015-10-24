@@ -7,7 +7,7 @@ import { GtBox } from "elements/box";
 import { GtTimeago } from "elements/timeago";
 import { Roster, User, Char } from "services/roster";
 import { Profile } from "services/profile";
-import { throttle } from "utils/deferred";
+import { throttled } from "utils/async";
 
 const ProfileTabs: TabsGenerator = (view, path, user) => [
 	{ title: "Profile", link: "/profile", active: view == "views/profile/GtProfile" }
@@ -217,7 +217,7 @@ class ProfileChars extends PolymerElement {
 		if (char.owner == this.user) this.update();
 	}
 	
-	@throttle private update() {
+	@throttled private update() {
 		if (!this.user) return;
 		this.chars = this.roster.getUserCharacters(this.user);
 	}

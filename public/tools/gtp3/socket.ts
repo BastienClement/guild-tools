@@ -1,5 +1,4 @@
 import { Queue } from "utils/queue";
-import { Deferred } from "utils/deferred";
 import { EventEmitter } from "utils/eventemitter";
 
 import { Channel } from "gtp3/channel";
@@ -71,7 +70,7 @@ export class Socket extends EventEmitter {
 
 	// Available channels
 	private channels: Map<number, Channel> = new Map<number, Channel>();
-	private channels_pending: Map<number, Deferred<number>> = new Map<number, Deferred<number>>();
+	private channels_pending: Map<number, PromiseResolver<number>> = new Map<number, PromiseResolver<number>>();
 	private channelid_pool: NumberPool = new NumberPool(Protocol.ChannelsLimit);
 
 	// Last received frame sequence number
@@ -237,7 +236,7 @@ export class Socket extends EventEmitter {
 	 */
 	openChannel(channel_type: string, token: string = "", parent: number = 0): Promise<Channel> {
 		const id = this.channelid_pool.allocate();
-		const deferred = new Deferred<number>();
+		const deferred = Promise.defer<number>();
 		this.channels_pending.set(id, deferred);
 
 		// Timeout for server to send OPEN_SUCCESS or OPEN_FAILURE

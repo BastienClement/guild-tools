@@ -1,7 +1,6 @@
 import { Component } from "utils/di";
 import { Socket } from "gtp3/socket";
 import { Channel } from "gtp3/channel";
-import { Deferred } from "utils/deferred";
 import { Queue } from "utils/queue";
 import { EventEmitter } from "utils/eventemitter";
 import { Service, Notify } from "utils/service";
@@ -24,7 +23,7 @@ export class Server extends EventEmitter {
 	private socket: Socket;
 
 	// Deferred used for the initialization sequence
-	private connect_deferred: Deferred<void>;
+	private connect_deferred: PromiseResolver<void>;
 
 	// Server versions string
 	public version: string = null;
@@ -36,7 +35,7 @@ export class Server extends EventEmitter {
 
 	// Boostrap the server connection
 	connect(url: string): Promise<void> {
-		let defer = this.connect_deferred = new Deferred<void>();
+		let defer = this.connect_deferred = Promise.defer<void>();
 		let socket = this.socket = new Socket(this.normalizeURL(url));
 
 		socket.verbose = (localStorage.getItem("socket.verbose") === "1");
@@ -132,7 +131,7 @@ export class Server extends EventEmitter {
 		this.loading = state;
 		
 		// Lockout
-		await Deferred.delay(state ? 1500 : 500);
+		await Promise.delay(state ? 1500 : 500);
 		this.loading_transition = false;
 		
 		// Ensure that the loading state is still valid
@@ -154,8 +153,7 @@ export class Server extends EventEmitter {
 	public openChannel(ctype: string): Promise<Channel> {
 		this.RequestStart();
 		let promise = this.socket.openChannel(ctype);
-		Deferred.finally(promise, () => this.RequestEnd());
-		return promise;
+		return promise.finally(() => this.RequestEnd());
 	}
 	
 	// Open a service channel
@@ -174,7 +172,7 @@ interface QueuedMessage<T> {
 	data: any;
 	flags: number;
 	silent: boolean;
-	deferred: Deferred<T>
+	deferred: PromiseResolver<T>
 }
 
 export type DispatchHandler = (payload: any) => void;
@@ -258,7 +256,7 @@ export class ServiceChannel extends EventEmitter {
 		if (this.channel) {
 			return this.channel.request<T>(key, data, flags, silent);
 		} else {
-			const deferred = new Deferred<T>();
+			const deferred = Promise.defer<T>();
 			this.queue.enqueue({ key, data, flags, silent, deferred });
 			this.open();
 			return deferred.promise;

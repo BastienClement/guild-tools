@@ -21,6 +21,16 @@ Promise.onload = function (node) {
 	node.onload = function () { defer.resolve(node); };
 	node.onerror = function (e) { defer.reject(e); };
 	return defer.promise;
+};
+
+Promise.delay = function (delay) {
+	var defer = Promise.defer();
+	setTimeout(function () { defer.resolve(); }, delay);
+	return defer.promise;
+};
+
+Promise.require = function (module_name, symbole) {
+	return System.import(module_name).then(function (mod) { return symbole ? mod[symbole] : mod });
 }
 
 Promise.prototype.finally = function (finalizer) {

@@ -366,7 +366,9 @@ class MainProvider extends PolymerElement {
 	@Property({ notify: true })
 	public main: Char;
 
-	public update() {
+	@join public async update() {
+		await microtask;
+		if (!this.user) return;
 		this.main = this.roster.getMainCharacter(this.user);
 	}
 	
@@ -398,7 +400,9 @@ class CharsProvider extends PolymerElement {
 	@Property({ notify: true })
 	public chars: number[];
 
-	public update() {
+	@join public async update() {
+		await microtask;
+		if (!this.user) return;
 		this.chars = this.roster.getUserCharacters(this.user, this.active);
 	}
 	
@@ -424,7 +428,9 @@ class CharProvider extends PolymerElement {
 	@Property({ notify: true })
 	public char: Char;
 
-	public update() {
+	@join public async update() {
+		await microtask;
+		if (!this.id) return;
 		this.char = this.roster.getCharacter(this.id);
 	}
 	
@@ -453,7 +459,9 @@ class UserProvider extends PolymerElement {
 	@Property({ notify: true })
 	public user: User;
 
-	public update() {
+	@join public async update() {
+		await microtask;
+		if (!this.current && !this.id) return;
 		this.user = this.current ? this.app.user : this.roster.getUser(this.id);
 	}
 	

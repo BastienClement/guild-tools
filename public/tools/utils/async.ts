@@ -107,3 +107,26 @@ export function throttled(target: any, property: string) {
 		}
 	};    
 }
+
+/**
+ * Return an void promise that will be resolved
+ * at the end of the current microtask
+ */
+let microtask_defer: PromiseResolver<void>;
+export function microtask(): Promise<void> {
+	if (microtask_defer) {
+		return microtask_defer.promise;
+	} else {
+		microtask_defer = Promise.defer<void>();
+		defer(() => {
+			microtask_defer.resolve();
+			microtask_defer = null;
+		});
+		return microtask_defer.promise;    
+	}
+}
+
+// Make a magic global object microtask that return the same promise
+Object.defineProperty(window, "microtask", {
+	get: function() { return microtask(); }
+});

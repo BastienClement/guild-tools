@@ -4,7 +4,6 @@ import { GtButton } from "elements/widgets";
 import { Router } from "client/router";
 import { Server } from "client/server";
 import { Loader } from "client/loader";
-import { Deferred } from "utils/deferred";
 import { Chat } from "services/chat";
 import { User } from "services/roster";
 
@@ -18,7 +17,7 @@ function load_view(key: string) {
 	}
 	
 	let [, unit, name] = key.match(/^(.+)\/([^\/]+)$/);
-	let promise: ViewPromise = Deferred.require(unit, name);
+	let promise: ViewPromise = Promise.require(unit, name);
 	
 	promise.catch(e => views_cache.delete(key));
 	
@@ -44,12 +43,13 @@ export type TabsGenerator = (view: string, path: string, user: User) => Tab[];
 export interface ViewMetadata {
 	module: string;
 	tabs: TabsGenerator;
+	sticky: boolean;
 }
 
 // The @View annoation
-export function View(module: string, tabs: TabsGenerator) {
+export function View(module: string, tabs: TabsGenerator, sticky?: boolean) {
 	return <T extends PolymerElement>(target: PolymerConstructor<T>) => {
-		Reflect.defineMetadata("view:meta", { module, tabs }, target);
+		Reflect.defineMetadata("view:meta", { module, tabs, sticky }, target);
 	};
 }
 
@@ -223,14 +223,31 @@ export class GtView extends PolymerElement {
 	@Inject
 	@Watch({ activeView: "update" })
 	private router: Router;
+	private last_view: string = null;
 
 	private layer: number = 0;
 	private current: any = null;
 
 	private async update() {
+		let view_key = this.router.activeView;
+		let args = this.router.activeArguments;
+		
+		let view = view_key ? await load_view(view_key) : null;
+		let meta = view_key ? Reflect.getMetadata<ViewMetadata>("view:meta", view) : null;
+		
+		// If the view is the same and is sticky, do not remove the
+		// current element but update attributes values
+		if (view_key == this.last_view && meta && meta.sticky) {
+			for (let key in args) {
+				this.current.setAttribute(key, args[key] != void 0 ? args[key] : null);
+			}
+			return;
+		}
+		
 		document.body.classList.add("app-loader");
 		this.current = null;
 
+		// Remove every current children        
 		let views: Element[] = this.node.children;
 		let tasks: Promise<any>[] = views.map(e => {
 			return new Promise((res) => {
@@ -239,41 +256,47 @@ export class GtView extends PolymerElement {
 			}).then(() => this.node.removeChild(e));
 		});
 
-		let view_key = this.router.activeView;
+		this.last_view = view_key;
 		if (!view_key) return;
+		
+		// Prevent navigation during the transition
 		this.router.lock(true);
-
-		let view = await load_view(view_key);
+		
+		// Wait until everything is ready to create the view element
 		tasks.push(this.loader.loadElement(view));
-
 		await Promise.all(tasks);
+		
+		// Hide loader
 		document.body.classList.remove("app-loader");
 
-		let args = this.router.activeArguments;
+		// Construct the argument list        
 		let arg_string: string[] = [];
-
 		for (let key in args) {
 			if (args[key] != void 0) {
 				let arg_value = args[key].replace(/./g, (s) => `&#${s.charCodeAt(0)};`);
 				arg_string.push(` ${key}='${arg_value}'`);
 			}
 		}
-		
 
 		// Use a crazy HTML generation system to create the element since we need to have
 		// router-provided attributes defined before the createdCallback() method is called
-		let meta = Reflect.getMetadata<PolymerMetadata<any>>("polymer:meta", view);
-		factory.innerHTML = `<${meta.selector}${arg_string.join()}></${meta.selector}>`;
+		let element_meta = view_key ? Reflect.getMetadata<PolymerMetadata<any>>("polymer:meta", view) : null;
+		factory.innerHTML = `<${element_meta.selector}${arg_string.join()}></${element_meta.selector}>`;
 
 		// Element has been constructed by the HTML parser
 		let element = <any> factory.firstElementChild;
 
+		// Ensure the new element is over older ones no matter what        
 		element.style.zIndex = ++this.layer;
 
+		// Insert the element in the DOM        
 		this.current = element;
 		this.node.appendChild(element);
 
+		// Add active class two frames from now        
 		requestAnimationFrame(() => requestAnimationFrame(() => element.classList.add("active")));
+		
+		// Unlock router and allow navigation again
 		this.router.lock(false);
 	}
 }

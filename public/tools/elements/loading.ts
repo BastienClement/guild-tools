@@ -2,7 +2,6 @@ import { Element, Dependencies, Property, Listener, PolymerElement } from "eleme
 import * as Widget from "elements/widgets";
 import { GtBox } from "elements/box";
 import { GtDialog } from "elements/dialog";
-import { Deferred } from "utils/deferred";
 
 /**
  * Handle the user login credentials request
@@ -14,7 +13,7 @@ export class GtLogin extends PolymerElement {
 	 * Deferred to resolve with user credentials
 	 */
 	@Property({ observer: "CredentialsUpdated" })
-	credentials: Deferred<[string, string]>;
+	credentials: PromiseResolver<[string, string]>;
 
 	/**
 	 * Deferred to resolve with user credentials

@@ -1,5 +1,4 @@
 import { Component } from "utils/di";
-import { Deferred } from "utils/deferred";
 import { ServiceWorker } from "utils/worker";
 import { PolymerElement, PolymerConstructor, PolymerMetadata, apply_polymer_fns } from "elements/polymer";
 
@@ -56,7 +55,7 @@ export class Loader {
 		if (fetch) return cache_and_return(fetch(url).then((res) => res.text()))
 
 		// Fallback to XHR
-		let defer = new Deferred<string>();
+		let defer = Promise.defer<string>();
 		let xhr = new XMLHttpRequest();
 
 		xhr.open("GET", url, true);
@@ -150,7 +149,7 @@ export class Loader {
 		link.rel = "import";
 		link.href = url;
 
-		promise = Deferred.onload(link).then((el: any) => {
+		promise = Promise.onload(link).then((el: any) => {
 			const doc = el.import;
 			if (!doc) throw new Error(`HTML import of ${url} failed`);
 			return el.import;

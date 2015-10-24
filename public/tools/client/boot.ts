@@ -1,6 +1,7 @@
-import { Deferred } from "utils/deferred";
 import { Injector, Constructor } from "utils/di";
 import { Application } from "client/main";
+
+import "utils/async";
 
 /**
  * Fix the mess made by the HTMLImports shim
@@ -32,8 +33,8 @@ export default async function boot() {
 	
 	// Load the default injector and the Application constructor
 	const [injector, app_constructor] = <[Injector, Constructor<Application>]> await Promise.all<any>([
-		Deferred.require<Injector>("utils/di", "DefaultInjector"),
-		Deferred.require<Constructor<Application>>("client/main", "Application")
+		Promise.require<Injector>("utils/di", "DefaultInjector"),
+		Promise.require<Constructor<Application>>("client/main", "Application")
 	]);
 	
 	// Construct the Application

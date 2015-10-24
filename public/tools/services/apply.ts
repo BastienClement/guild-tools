@@ -1,6 +1,6 @@
 import { Component } from "utils/di";
 import { Service } from "utils/service";
-import { join, synchronized } from "utils/async";
+import { join, synchronized, microtask } from "utils/async";
 import { Server, ServiceChannel } from "client/server";
 import { PolymerElement, Provider, Inject, Property } from "elements/polymer";
 
@@ -127,6 +127,7 @@ class DataProvider extends PolymerElement {
 	public data: Apply;
 
 	@join public async update() {
+		if (await microtask, !this.apply) return;
 		this.data = await this.service.applyData(this.apply);
 	}
 }
@@ -146,6 +147,7 @@ class UnreadProvider extends PolymerElement {
 	public unread: boolean;
 
 	@join public async update() {
+		if (await microtask, !this.apply) return;
 		this.unread = this.service.unreadState(this.apply);
 	}
 }

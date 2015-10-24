@@ -2,7 +2,7 @@
 
 /profile(/:user)?                 views/profile/GtProfile
 
-/apply                            views/apply/GtApply
+/apply(/:selected)?               views/apply/GtApply
 /apply-guest                      views/apply/GtApplyRedirect
 
 /about                            views/about/GtAbout
