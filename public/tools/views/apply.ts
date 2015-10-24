@@ -87,9 +87,6 @@ export class ApplyDetails extends PolymerElement {
 	private async ApplyChanged() {
 		this.details = void 0;
 		this.feed = [];
-		await microtask;
-		if (!this.apply) return;
-		this.feed = await this.service.applyFeed(this.apply);
 	}
 	
 	// Tabs handlers
@@ -97,10 +94,13 @@ export class ApplyDetails extends PolymerElement {
 	private ShowDetails() { this.details = true; }
 	
 	// When data is available, decide which tab to activate
-	private DataAvailable() {
+	private async DataAvailable() {
 		if (this.details === void 0) {
 			this.details = !this.data.have_posts;
 		}
+		
+		if (!this.apply) return;
+		this.feed = await this.service.applyFeed(this.apply);
 	}
 	
 	// Scroll the discussion tab to the bottom

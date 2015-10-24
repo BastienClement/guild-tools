@@ -60,7 +60,10 @@ interface MarkedStatic {
      */
     setOptions(options: MarkedOptions): void;
 	
-	Renderer: { new (): MarkedRenderer };
+	/**
+	 * The default renderer
+	 */
+	Renderer: { new (options?: MarkedOptions): MarkedRenderer; prototype: MarkedRenderer };
 }
 
 interface MarkedOptions {
