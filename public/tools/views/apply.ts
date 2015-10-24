@@ -75,7 +75,7 @@ export class ApplyDetails extends PolymerElement {
 	private data: Apply;
 	
 	// Indicate if the details tab is activated
-	private details: boolean;
+	private tab: number;
 	
 	// The discussion feed data
 	private feed: ApplyMessage[];
@@ -88,20 +88,21 @@ export class ApplyDetails extends PolymerElement {
 	
 	// Called when the selected apply changes
 	private async ApplyChanged() {
-		this.details = void 0;
+		this.tab = void 0;
 		this.feed = [];
 		clearTimeout(this.seenTimeout);
 	}
 	
 	// Tabs handlers
-	private ShowDiscussion() { this.details = false; }
-	private ShowDetails() { this.details = true; }
+	private ShowDiscussion() { this.tab = 1; }
+	private ShowDetails() { this.tab = 2; }
+	private ShowManage() { this.tab = 3; }
 	
 	// When data is available, decide which tab to activate
 	private async DataAvailable() {
-		if (this.details === void 0) {
-			//this.details = !this.data.have_posts;
-			this.details = false;
+		if (this.tab === void 0) {
+			//this.tab = this.data.have_posts ? 1 : 2;
+			this.tab = 1;
 		}
 		
 		if (!this.apply) return;

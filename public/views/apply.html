@@ -307,8 +307,8 @@
 		<meta is="roster-chars" [user]="data.user" [chars] active>
 		<gt-box #main heading=" " scrollable>
 			<div #tabs>
-				<gt-button (click)="ShowDiscussion" {active}="!details">Discussion</gt-button>
-				<gt-button (click)="ShowDetails" {active}="details">Details</gt-button>
+				<gt-button (click)="ShowDiscussion" {active}="equals(tab, 1)">Discussion</gt-button>
+				<gt-button (click)="ShowDetails" {active}="equals(tab, 2)">Details</gt-button>
 			</div>
 			<div #links>
 				<gt-button [goto]="profileLink">View profile</gt-button>
@@ -332,10 +332,10 @@
 				<h2>Characters</h2>
 				<apply-details-char [repeat]="chars" [id]="item"></apply-details-char>
 			</gt-box>
-			<gt-box #discussion scrollable dark {active}="!details">
+			<gt-box #discussion scrollable dark {active}="equals(tab, 1)">
 				<apply-details-message [repeat]="feed" [message]="item"></apply-details-message>
 			</gt-box>
-			<gt-box #details scrollable dark {active}="details">
+			<gt-box #details scrollable dark {active}="equals(tab, 2)">
 			</gt-box>
 		</gt-box>
 	</template>
@@ -428,6 +428,12 @@
 			color: @fs-gray;
 		}
 		
+		#message {
+			flex: 1;
+			display: flex;
+			align-items: center;
+		}
+		
 		gt-box {
 			flex: 1;
 			box-shadow: none;
@@ -462,6 +468,10 @@
 				width: 135px;
 			}
 			
+			#message {
+				flex: none;
+			}
+			
 			gt-box {
 				border: 0;
 				background: none;
@@ -483,9 +493,11 @@
 				<div #name {class-color}="main.class">{{main.name}}</div>
 				<gt-timeago #date [date]="message.date"></gt-timeago>
 			</div>
-			<gt-box {dark}="message.secret">
-				<gt-markdown [src]="message.text"></gt-markdown>
-			</gt-box>
+			<div #message>
+				<gt-box {dark}="message.secret">
+					<gt-markdown [src]="message.text"></gt-markdown>
+				</gt-box>
+			</div>
 			<div .line></div>
 		</div>
 	</template>
