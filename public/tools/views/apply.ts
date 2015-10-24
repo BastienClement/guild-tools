@@ -100,11 +100,12 @@ export class ApplyDetails extends PolymerElement {
 	// When data is available, decide which tab to activate
 	private async DataAvailable() {
 		if (this.details === void 0) {
-			this.details = !this.data.have_posts;
+			//this.details = !this.data.have_posts;
+			this.details = false;
 		}
 		
 		if (!this.apply) return;
-		[this.feed, this.body] = await this.service.applyFeedBody(this.apply);
+		[this.feed, this.body] = await Promise.atLeast(200, this.service.applyFeedBody(this.apply));
 		
 		clearTimeout(this.seenTimeout);
 		if (this.service.unreadState(this.apply)) {

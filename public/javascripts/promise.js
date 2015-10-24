@@ -31,7 +31,13 @@ Promise.delay = function (delay) {
 
 Promise.require = function (module_name, symbole) {
 	return System.import(module_name).then(function (mod) { return symbole ? mod[symbole] : mod });
-}
+};
+
+Promise.atLeast = function (duration, promise) {
+	return Promise.all([Promise.delay(duration), promise]).then(function (res) {
+		return res[1];
+	});
+};
 
 Promise.prototype.finally = function (finalizer) {
 	this.then(finalizer, finalizer);

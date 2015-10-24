@@ -52,6 +52,7 @@ interface PromiseConstructor {
 	onload<T extends { onload: Function; onerror?: Function }>(node: T): Promise<T>;
 	delay<T>(duration: number): Promise<void>;
 	require<T>(module_name: string, symbole?: string): Promise<T>;
+	atLeast<T>(duration: number, promise: Promise<T>): Promise<T>;
 }
 
 interface Promise<T> {
