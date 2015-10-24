@@ -19,7 +19,14 @@ interface PolymerBase {
 
 interface ShadyDOMContructor {
 	(parent: Node | PolymerElement): ShadyDOM;
+	<T extends Event>(event: T): ShadyDOMEvent<T>;
 	flush(): void;
+}
+
+interface ShadyDOMEvent<T> {
+	event: T;
+	localTarget: any;
+	rootTarget: any;
 }
 
 interface ShadyDOM {

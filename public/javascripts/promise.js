@@ -16,6 +16,13 @@ Promise.defer = (function () {
 	}
 })();
 
+Promise.onload = function (node) {
+	var defer = Promise.defer();
+	node.onload = function () { defer.resolve(node); };
+	node.onerror = function (e) { defer.reject(e); };
+	return defer.promise;
+}
+
 Promise.prototype.finally = function (finalizer) {
 	this.then(finalizer, finalizer);
 	return this;

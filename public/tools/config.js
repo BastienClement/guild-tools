@@ -9,6 +9,7 @@ System.config({
 		"phpbb_hash": "/assets/javascripts/phpbb_hash.js",
 		"cryptojs": "/assets/javascripts/crypto.js",
 		"moment": "/assets/javascripts/moment.js",
+		"marked": "/assets/javascripts/marked.js",
 		"*": "/assets/modules/*.js"
 	},
 	shim: {

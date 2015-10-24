@@ -49,3 +49,61 @@ export function synchronized(target: any, property: string) {
 		}
 	}    
 }
+
+// -- Microtask async functions
+
+let defer_queue: [Function, PromiseResolver<any>][] = [];
+let defer_toggle = 1;
+let defer_node = (function() {
+	let observer = new MutationObserver(() => {
+		let queue = defer_queue;
+		defer_queue = [];
+		queue.forEach(([fn, deferred]) => {
+			try {
+				deferred.resolve(fn());
+			} catch (e) {
+				deferred.reject(e);
+			}
+		});
+	});
+
+	let node = document.createTextNode("");
+    observer.observe(node, { characterData: true });
+
+	return node;
+})();
+
+/**
+ * Execute the given function at the end of the current microtask
+ */
+export function defer<T>(fn: () => T): Promise<T> {
+	let defer = Promise.defer<T>();
+	if (defer_queue.push([fn, defer]) == 1) {
+		defer_toggle = -defer_toggle
+		defer_node.data = <any> defer_toggle;
+	}
+	return defer.promise;
+}
+
+/**
+ * Micro-throttle function
+ * The annotated function will not be executed more than once
+ * during a given microtask
+ */
+export function throttled(target: any, property: string) {
+	let fn = target[property];
+	if (typeof fn != "function")
+		throw new TypeError("@throttled must be applied to a function");
+
+	let throttled = false;
+	let result: any;
+	
+	return {
+		value: function() {
+			if (throttled) return result;
+			throttled = true;
+			defer(() => throttled = false);
+			return result = fn.apply(this, arguments);
+		}
+	};    
+}

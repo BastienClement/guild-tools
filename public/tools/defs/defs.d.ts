@@ -49,6 +49,7 @@ interface PromiseResolver<T> {
 
 interface PromiseConstructor {
 	defer<T>(): PromiseResolver<T>;
+	onload<T extends { onload: Function; onerror?: Function }>(node: T): Promise<T>;
 }
 
 interface Promise<T> {

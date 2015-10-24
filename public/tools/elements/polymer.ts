@@ -313,9 +313,14 @@ export function Element(selector: string, template?: string, ext?: string) {
 				if (committed) return;
 				else committed = true;
 				
-				// Define custom sugars            
-				this.node = Polymer.dom(this);
-				this.shadow = Polymer.dom(this.root);
+				// Define custom sugars
+				Object.defineProperty(this, "node", {
+					get: function() { return Polymer.dom(this); }
+				});
+				
+				Object.defineProperty(this, "shadow", {
+					get: function() { return Polymer.dom(this.root); }
+				});
 				
 				// Copy injected components on the final object
 				for (let key in props) {

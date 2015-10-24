@@ -5,10 +5,11 @@ import { GtButton } from "elements/widgets";
 import { GtDialog } from "elements/dialog";
 import { BnetThumb } from "elements/bnet";
 import { GtTimeago } from "elements/timeago";
+import { GtMarkdown } from "elements/markdown";
 import { Server } from "client/server";
 import { User, Char, Roster } from "services/roster";
 import { ApplyService, Apply, ApplyMessage } from "services/apply";
-import { join } from "utils/async";
+import { join, throttled, defer } from "utils/async";
 
 const ApplyTabs: TabsGenerator = (view, path, user) => [
 	{ title: "Applys", link: "/apply", active: view == "views/apply/GtApply" },
@@ -48,10 +49,10 @@ export class ApplyDetailsChar extends PolymerElement {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// <apply-details-char>
+// <apply-details-message>
 
 @Element("apply-details-message", "/assets/views/apply.html")
-@Dependencies(GtBox, BnetThumb, GtTimeago)
+@Dependencies(GtBox, BnetThumb, GtTimeago, GtMarkdown)
 export class ApplyDetailsMessage extends PolymerElement {
 	@Property public message: ApplyMessage;
 }
@@ -74,9 +75,13 @@ export class ApplyDetails extends PolymerElement {
 	private data: Apply;
 	
 	// Indicate if the details tab is activated
-	@Property
 	private details: boolean;
+	
+	// The discussion feed data
+	@Property({ observer: "ScrollDown" })
 	private feed: ApplyMessage[];
+	
+	// The apply form data
 	private form: any;
 	
 	// Called when the selected apply changes
@@ -84,7 +89,6 @@ export class ApplyDetails extends PolymerElement {
 		this.details = void 0;
 		this.feed = [];
 		this.feed = await this.service.applyFeed(this.apply);
-		console.log(this.feed);
 	}
 	
 	// Tabs handlers
@@ -95,6 +99,28 @@ export class ApplyDetails extends PolymerElement {
 	private DataAvailable() {
 		if (this.details === void 0) {
 			this.details = !this.data.have_posts;
+		}
+	}
+	
+	// Scroll the discussion tab to the bottom
+	@throttled private ScrollDown() {
+		defer(() => {
+			let node = this.$.discussion.$.wrapper;
+			let bottom = node.scrollTop + node.clientHeight + 10;
+			if (node.scrollTop < 10 || bottom > node.scrollHeight) {
+				node.scrollTop = node.scrollHeight;
+			}
+		});
+	}
+	
+	@Listener("discussion.rendered")
+	private MessageRendered(ev: any) {
+		let scroll = this.ScrollDown.bind(this);
+		let markdown = Polymer.dom(ev).rootTarget.$.markdown;
+		let imgs = markdown.querySelectorAll("img");
+		for (let i = 0; i < imgs.length; i++) {
+			let img: HTMLImageElement = imgs[i];
+			Promise.onload(img).finally(scroll);
 		}
 	}
 	
@@ -118,7 +144,7 @@ export class GtApply extends PolymerElement {
 	private applys: number[];
 	
 	@Property
-	private selected: number = null;
+	private selected: number = 7;
 	
 	private async init() {
 		this.applys = await this.service.openApplysList();

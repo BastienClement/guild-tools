@@ -85,6 +85,8 @@
 	</template>
 </dom-module>
 
+<!-- ////////////////////////////////////////////////////////////////////// -->
+
 <dom-module id="apply-list-item">
 	<style type="text/less">
 		:host {
@@ -191,6 +193,8 @@
 	</template>
 </dom-module>
 
+<!-- ////////////////////////////////////////////////////////////////////// -->
+
 <dom-module id="apply-details">
 	<style type="text/less">
 		:host {
@@ -236,7 +240,6 @@
 			border: 0;
 			border-left: 2px solid fade(#426585, 50%);
 			
-			
 			h2 {
 				font: 300 18px "Roboto Condensed";
 				margin: 0 0 12px 0;
@@ -281,9 +284,12 @@
 			}
 		}
 		
+		#discussion > * {
+			max-width: 900px;
+		}
+		
 		apply-details-message {
-			max-width: 800px;
-			margin: 0 auto 6px auto;
+			margin: 0 auto 12px auto;
 		}
 	</style>
 	<template>
@@ -322,11 +328,13 @@
 			<gt-box #discussion scrollable dark {active}="!details">
 				<apply-details-message [repeat]="feed" [message]="item"></apply-details-message>
 			</gt-box>
-			<gt-box #details scrollable dark {active}="!details">
+			<gt-box #details scrollable dark {active}="details">
 			</gt-box>
 		</gt-box>
 	</template>
 </dom-module>
+
+<!-- ////////////////////////////////////////////////////////////////////// -->
 
 <dom-module id="apply-details-char">
 	<style type="text/less">
@@ -383,18 +391,100 @@
 	</template>
 </dom-module>
 
+<!-- ////////////////////////////////////////////////////////////////////// -->
+
 <dom-module id="apply-details-message">
 	<style type="text/less">
 		:host {
 			display: block;
 		}
+		
+		#layout {
+			display: flex;
+		}
+		
+		#poster {
+			min-width: 135px;
+			padding: 6px 16px 6px 0;
+			position: relative;
+		}
+		
+		#name {
+			font: 400 18px "Roboto Condensed";
+			overflow: hidden;
+   			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+		
+		#date {
+			font-weight: 300;
+			color: @fs-gray;
+		}
+		
+		gt-box {
+			flex: 1;
+			box-shadow: none;
+			&:not([dark]) {
+				background: fade(@fs-blue, 10%);
+				border-color: fade(@fs-blue, 10%);
+			}
+		}
+		
+		#layout[system] {
+			padding: 6px 0;
+			
+			#poster, gt-box {
+				padding: 0;
+				display: inline-block;
+				flex: none;
+				position: static;
+			}
+			
+			#poster {
+				min-width: 0;
+				margin-right: 4px;
+				display: flex;
+				flex-direction: row-reverse;
+			}
+			
+			#name {
+				font: 400 1em "Roboto";
+			}
+			
+			#date {
+				width: 135px;
+			}
+			
+			gt-box {
+				border: 0;
+				background: none;
+				font-weight: 300;
+				margin-right: 12px;
+			}
+			
+			.line {
+				flex: 1;
+				margin-top: 8px;
+				border-top: 1px dashed fade(@light-blue, 30%);
+			}
+		}
 	</style>
 	<template>
-		<gt-box dark>
-			<b>{{message.text}}</b>
-		</gt-box>
+		<meta is="roster-main" [user]="message.user" [main]>
+		<div #layout {system}="message.system">
+			<div #poster>
+				<div #name {class-color}="main.class">{{main.name}}</div>
+				<gt-timeago #date [date]="message.date"></gt-timeago>
+			</div>
+			<gt-box {dark}="message.secret">
+				<gt-markdown [src]="message.text"></gt-markdown>
+			</gt-box>
+			<div .line></div>
+		</div>
 	</template>
 </dom-module>
+
+<!-- ////////////////////////////////////////////////////////////////////// -->
 
 <dom-module id="gt-apply-redirect">
 	<style type="text/less">
