@@ -144,7 +144,7 @@ export class GtApply extends PolymerElement {
 	private applys: number[];
 	
 	@Property
-	private selected: number = 7;
+	private selected: number = null;
 	
 	private async init() {
 		this.applys = await this.service.openApplysList();
