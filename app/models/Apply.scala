@@ -3,6 +3,7 @@ package models
 import java.sql.Timestamp
 import models.mysql._
 import utils.{PubSub, SmartTimestamp}
+import reactive.ExecutionContext
 
 // ============================================================================
 
@@ -43,15 +44,12 @@ object Applys extends TableQuery(new Applys(_)) with PubSub[User] {
 		} yield (apply, read < apply.updated)
 	})
 
-	// Fetch data for a specific application
-	val applyById = Compiled((id: Rep[Int]) => {
-		for (apply <- Applys if apply.id === id) yield apply
-	})
-
 	// Update the read state flag
 	def markAsRead(id: Int, user: User): Unit = {
-		ApplyReadStates insertOrUpdate ApplyReadState(user.id, id, SmartTimestamp.now)
-		this.publish(UnreadUpdated(id, false), u => u.id == user.id)
+		val query = ApplyReadStates insertOrUpdate ApplyReadState(user.id, id, SmartTimestamp.now)
+		query.run foreach {
+			_ => publish(UnreadUpdated(id, false), u => u.id == user.id)
+		}
 	}
 }
 

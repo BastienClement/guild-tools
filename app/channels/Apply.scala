@@ -19,7 +19,7 @@ class Apply(user: User) extends ChannelHandler {
 	}
 
 	akka {
-		case Applys.UnreadUpdated(apply, unread) => send("unread-updated", (apply, unread))
+		case Applys.UnreadUpdated(apply_id, unread) => send("unread-updated", (apply_id, unread))
 		case Applys.ApplyUpdated(apply) => send("apply-updated", apply)
 	}
 
@@ -27,26 +27,32 @@ class Apply(user: User) extends ChannelHandler {
 	request("open-list") { p => Applys.openForUser(user.id, user.member).result.run }
 
 	// Check that the current user can access a specific apply
-	def canAccess(apply: models.Apply) = apply match {
+	val canAccess: (Int, Int) => Boolean = {
 		// Access to an archived or pending apply require promoted
-		case a if a.stage > Applys.TRIAL || a.stage == Applys.PENDING => user.promoted
+		case (owner, stage) if stage > Applys.TRIAL || stage == Applys.PENDING => user.promoted
 		// Access to an open (not pending) apply require member or own apply
-		case a if a.stage > Applys.PENDING => user.member || a.user == user.id
+		case (owner, stage) if stage > Applys.PENDING => user.member || owner == user.id
 		// Other use cases are undefined thus not allowed
 		case _ => false
 	}
 
-	// Load apply data and ensure that the user can access it
-	def applyData(id: Int) = for (apply <- Applys.applyById(id).result.headOption.run) yield apply.filter(canAccess)
-
-	request("apply-data") { p => applyData(p.value.as[Int]) }
-
-	request("apply-feed") { p =>
+	// Load a specific application data
+	request("apply-data") { p =>
 		val id = p.value.as[Int]
-		for {
-			apply <- applyData(id)
-			_ = if (apply.isDefined) () else throw new Exception("Access to this application is denied")
-			feed <- ApplyFeed.forApply(id, user.member).result.run
-		} yield feed
+		for (apply <- Applys.filter(_.id === id).headOption) yield apply.filter(a => canAccess(a.user, a.stage))
 	}
+
+	// Request the message feed and body
+	request("apply-feed-body") { p =>
+		val id = p.value.as[Int]
+		val query = for {
+			(owner, stage, body) <- Applys.filter(_.id === id).map(a => (a.user, a.stage, a.data)).result.head
+			_ = if (canAccess(owner, stage)) () else throw new Exception("Access to this application is denied")
+			feed <- ApplyFeed.forApply(id, user.member).result
+		} yield (feed, body)
+		query.run
+	}
+
+	// Update the unread status for an application
+	message("set-seen") { p => Applys.markAsRead(p.value.as[Int], user) }
 }

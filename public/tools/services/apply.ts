@@ -2,7 +2,7 @@ import { Component } from "utils/di";
 import { Service } from "utils/service";
 import { join, synchronized, microtask } from "utils/async";
 import { Server, ServiceChannel } from "client/server";
-import { PolymerElement, Provider, Inject, Property } from "elements/polymer";
+import { PolymerElement, Provider, Inject, Property, On } from "elements/polymer";
 
 /**
  * An application meta-data
@@ -16,6 +16,9 @@ export interface Apply {
 	updated: string;
 }
 
+/**
+ * Message from the application feed
+ */
 export interface ApplyMessage {
 	id: number;
 	apply: number;
@@ -42,7 +45,12 @@ export class ApplyService extends Service {
 	private applys = new Map<number, Apply>();
 	private unread = new Map<number, boolean>();
 	
-	// Load open applys data
+	/**
+	 * Load and return the list of open applications available for
+	 * the current user.
+	 * This function also fetches the unread state of these applications.
+	 * Result is cached until the service is paused.
+	 */
 	@join public async openApplysList() {
 		let data = await this.channel.request<[Apply, boolean][]>("open-list");
 		let list: number[] = [];
@@ -55,12 +63,20 @@ export class ApplyService extends Service {
 		return list;
 	}
 	
-	// Check the unread state for an apply
+	/**
+	 * Check the unread state for an apply
+	 * At least on call to openApplysList() is required to populate the local cache
+	 * Note that the cache is cleared when the service is paused
+	 */
 	public unreadState(apply: number): boolean {
 		return this.unread.get(apply);
 	}
 	
-	// Return apply data
+	/**
+	 * Return application meta data (date, owner, stage, etc.)
+	 * It does not return the application body
+	 * This function uses the local cache if possible
+	 */
 	public async applyData(id: number) {
 		if (!this.applys.has(id)) {
 			let data = await this.channel.request<Apply>("apply-data", id);
@@ -70,13 +86,33 @@ export class ApplyService extends Service {
 		return this.applys.get(id);
 	}
 	
-	// Load the message feed to an application
-	public async applyFeed(id: number) {
-		return await this.channel.request<ApplyMessage[]>("apply-feed", id);
+	/**
+	 * Load the message feed and the body of an application
+	 */
+	public async applyFeedBody(id: number) {
+		return await this.channel.request<[ApplyMessage[], string]>("apply-feed-body", id);
 	}
 	
-	// Close the channel when the apply service is paused
-	// and clear local caches
+	/**
+	 * Send the set-seen message
+	 */
+	public setSeen(id: number) {
+		this.channel.send("set-seen", id);
+	}
+	
+	/**
+	 * Unread flag for an apply was updated
+	 */
+	@ServiceChannel.Dispatch("channel", "unread-updated", true)
+	private UnreadUpdated(apply: number, unread: boolean) {
+		this.unread.set(apply, unread);
+		this.emit("unread-updated", apply, unread);
+	}
+	
+	/**
+	 * Close the channel when the apply service is paused
+	 * Also clear local cached data
+	 */
 	private pause() {
 		this.channel.close();
 		this.applys.clear();
@@ -138,6 +174,7 @@ class DataProvider extends PolymerElement {
 @Provider("apply-unread")
 class UnreadProvider extends PolymerElement {
 	@Inject
+	@On({ "unread-updated": "UnreadUpdated" })
 	private service: ApplyService;
 	
 	@Property({ observer: "update" })
@@ -149,5 +186,9 @@ class UnreadProvider extends PolymerElement {
 	@join public async update() {
 		if (await microtask, !this.apply) return;
 		this.unread = this.service.unreadState(this.apply);
+	}
+	
+	private UnreadUpdated(apply: number) {
+		if (this.apply == apply) this.update();
 	}
 }

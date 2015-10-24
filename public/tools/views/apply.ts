@@ -81,12 +81,16 @@ export class ApplyDetails extends PolymerElement {
 	private feed: ApplyMessage[];
 	
 	// The apply form data
-	private form: any;
+	private body: string;
+	
+	// Timeout for sending the apply-seen message
+	private seenTimeout: any;
 	
 	// Called when the selected apply changes
 	private async ApplyChanged() {
 		this.details = void 0;
 		this.feed = [];
+		clearTimeout(this.seenTimeout);
 	}
 	
 	// Tabs handlers
@@ -100,7 +104,12 @@ export class ApplyDetails extends PolymerElement {
 		}
 		
 		if (!this.apply) return;
-		this.feed = await this.service.applyFeed(this.apply);
+		[this.feed, this.body] = await this.service.applyFeedBody(this.apply);
+		
+		clearTimeout(this.seenTimeout);
+		if (this.service.unreadState(this.apply)) {
+			this.seenTimeout = setTimeout(() => this.service.setSeen(this.apply), 2000);
+		}
 	}
 	
 	// Scroll the discussion tab to the bottom

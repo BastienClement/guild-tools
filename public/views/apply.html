@@ -150,11 +150,17 @@
 		
 		gt-timeago {
 			display: block;
-			&[with-margin] { margin-bottom: 3px; }
+			margin-bottom: 3px;
 		}
 		
 		#unread {
 			color: @light-blue;
+			margin: 0;
+			transition: all .2s ease-out;
+			&:not([unread]) {
+				margin-bottom: -19px;
+				opacity: 0;
+			}
 		}
 		
 		#chevron {
@@ -184,8 +190,8 @@
 					<b #stage>{{stage_name}}</b>
 				</div>
 				<div #update>
-					<gt-timeago [date]="data.updated" {with-margin}="unread"></gt-timeago>
-					<div #unread [if]="unread">Unread posts</div>
+					<gt-timeago [date]="data.updated"></gt-timeago>
+					<div #unread {unread}>Unread posts</div>
 				</div>
 				<i #chevron>chevron_right</i>
 			</div>
@@ -216,6 +222,7 @@
 				color: mix(@light-blue, white, 50%);
 				opacity: 0.8;
 				transition: all .2s ease-out;
+				margin-right: 0;
 				
 				&:hover, &[active] {
 					opacity: 1;
