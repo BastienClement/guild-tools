@@ -6,7 +6,9 @@ import utils.{PubSub, SmartTimestamp}
 
 // ============================================================================
 
-case class Apply(id: Int, user: Int, date: Timestamp, stage: Int, updated: Timestamp)
+case class Apply(id: Int, user: Int, date: Timestamp, stage: Int, have_posts: Boolean, updated: Timestamp) {
+	require(stage >= Applys.PENDING && stage <= Applys.ARCHIVED)
+}
 
 object Applys extends TableQuery(new Applys(_)) with PubSub[User] {
 	// Stages
@@ -17,13 +19,23 @@ object Applys extends TableQuery(new Applys(_)) with PubSub[User] {
 	final val ACCEPTED = 4
 	final val ARCHIVED = 5
 
+	// Stage id -> names
+	def stageName(stage: Int) = stage match {
+		case PENDING => "Pending"
+		case REVIEW => "Review"
+		case TRIAL => "Trial"
+		case REFUSED => "Refused"
+		case ACCEPTED => "Accepted"
+		case ARCHIVED => "Archived"
+		case _ => "Unknown"
+	}
+
 	// Events
 	case class UnreadUpdated(apply: Int, unread: Boolean)
 	case class ApplyUpdated(apply: Apply)
 
 	// Fetch every open applications visible by the user
-	def openForUser(user: User) = openForUserQuery(user.id, user.member).result
-	private val openForUserQuery = Compiled((user: Rep[Int], wide: Rep[Boolean]) => {
+	val openForUser = Compiled((user: Rep[Int], wide: Rep[Boolean]) => {
 		val default_read = SmartTimestamp(2000, 1, 1).toSQL
 		for {
 			apply <- Applys.sortBy(_.updated.desc) if apply.stage < Applys.REFUSED && (wide || apply.user === user)
@@ -32,8 +44,7 @@ object Applys extends TableQuery(new Applys(_)) with PubSub[User] {
 	})
 
 	// Fetch data for a specific application
-	def applyById(id: Int) = applyByIdQuery(id).result
-	private val applyByIdQuery = Compiled((id: Rep[Int]) => {
+	val applyById = Compiled((id: Rep[Int]) => {
 		for (apply <- Applys if apply.id === id) yield apply
 	})
 
@@ -50,16 +61,21 @@ class Applys(tag: Tag) extends Table[Apply](tag, "gt_apply") {
 	def date = column[Timestamp]("date")
 	def stage = column[Int]("stage")
 	def data = column[String]("data")
+	def have_posts = column[Boolean]("have_posts")
 	def updated = column[Timestamp]("updated")
 
-	def * = (id, user, date, stage, updated) <> (Apply.tupled, Apply.unapply)
+	def * = (id, user, date, stage, have_posts, updated) <> (Apply.tupled, Apply.unapply)
 }
 
 // ============================================================================
 
 case class ApplyFeedMessage(id: Int, apply: Int, user: Int, date: Timestamp, text: String, secret: Boolean, system: Boolean)
 
-object ApplyFeed extends TableQuery(new ApplyFeed(_))
+object ApplyFeed extends TableQuery(new ApplyFeed(_)) {
+	val forApply = Compiled((apply: Rep[Int], with_secret: Rep[Boolean]) => {
+		ApplyFeed.filter(m => m.apply === apply && (!m.secret || with_secret)).sortBy(m => m.date.asc)
+	})
+}
 
 class ApplyFeed(tag: Tag) extends Table[ApplyFeedMessage](tag, "gt_apply_feed") {
 	def id = column[Int]("id", O.PrimaryKey)

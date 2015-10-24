@@ -12,7 +12,18 @@ export interface Apply {
 	user: number;
 	date: string;
 	stage: number;
+	have_posts: boolean;
 	updated: string;
+}
+
+export interface ApplyMessage {
+	id: number;
+	apply: number;
+	user: number;
+	date: string;
+	text: string;
+	secret: boolean;
+	system: boolean;
 }
 
 /**
@@ -57,6 +68,11 @@ export class ApplyService extends Service {
 		}
 		
 		return this.applys.get(id);
+	}
+	
+	// Load the message feed to an application
+	public async applyFeed(id: number) {
+		return await this.channel.request<ApplyMessage[]>("apply-feed", id);
 	}
 	
 	// Close the channel when the apply service is paused

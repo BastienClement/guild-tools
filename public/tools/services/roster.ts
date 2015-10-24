@@ -392,7 +392,7 @@ class CharsProvider extends PolymerElement {
 	@Property({ observer: "update" })
 	public user: number;
 	
-	@Property({ observer: "update" })
+	@Property
 	public active: boolean;
 	
 	@Property({ notify: true })

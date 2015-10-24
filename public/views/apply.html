@@ -20,12 +20,50 @@
 			#actives { width: 280px; }
 		}
 		
-		gt-apply-list-item:not(:last-child) {
+		apply-list-item:not(:last-child) {
 			margin-bottom: 6px;
 		}
 		
-		gt-apply-details {
+		#main-box {
 			flex: 1;
+			position: relative;
+		}
+		
+		apply-details {
+			.pos(absolute);
+			z-index: 15;
+			animation: apply-slide-in .4s ease-out;
+			animation-fill-mode: both;
+			animation-delay: .2s;
+		}
+		
+		@keyframes apply-slide-in {
+			0% { transform: translateX(50px); opacity: 0; }
+			100% { transform: translateX(0px); opacity: 1; }
+		}
+		
+		#placeholder {
+			.pos(absolute);
+			z-index: 10;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			transition: all .2s ease-out;
+			
+			i {
+				font-size: 100px;
+				color: fade(@light-blue, 60%);
+				background: rgba(17, 17, 17, 0.08);
+				border: 2px dashed fade(@light-blue, 25%);
+				border-radius: 100%;
+				padding: 24px 22px 20px;
+				width: auto;
+				height: auto;
+			}
+			
+			&[hide] {
+				opacity: 0;
+			}
 		}
 	</style>
 	<template>
@@ -36,13 +74,18 @@
 			<gt-alert dark icon="done" [if]="!applys.length">
 				There is no open application to review at the moment
 			</gt-alert>
-			<gt-apply-list-item [repeat]="applys" [apply]="item" (click)="SelectApply" {selected}="equals(selected, item)"></gt-apply-list-item>
+			<apply-list-item [repeat]="applys" [apply]="item" (click)="SelectApply" {selected}="equals(selected, item)"></apply-list-item>
 		</gt-box>
-		<gt-apply-details apply="7"></gt-apply-details>
+		<div #main-box>
+			<apply-details [apply]="selected" [if]="selected"></apply-details>
+			<div #placeholder {hide}="selected">
+				<i>assignment_ind</i>
+			</div>
+		</div>
 	</template>
 </dom-module>
 
-<dom-module id="gt-apply-list-item">
+<dom-module id="apply-list-item">
 	<style type="text/less">
 		:host {
 			display: block;
@@ -95,7 +138,7 @@
 		#stage {
 			color: @fs-gray;
 			font-weight: 300;
-			font-family: "Roboto Condensed"
+			//font-family: "Roboto Condensed"
 		}
 		
 		#update {
@@ -148,14 +191,14 @@
 	</template>
 </dom-module>
 
-<dom-module id="gt-apply-details">
+<dom-module id="apply-details">
 	<style type="text/less">
 		:host {
 			display: block;
 			position: relative;
 		}
 		
-		:host > gt-box {
+		:host > gt-box { .gpu;
 			.pos(absolute);
 		}
 		
@@ -216,9 +259,31 @@
 				}
 			}
 			
-			gt-apply-details-char {
+			apply-details-char {
 				margin: 6px 0 0;
 			}
+		}
+		
+		#discussion, #details {
+			position: absolute;
+			top: 50px;
+			left: 0px;
+			bottom: 0;
+			right: 270px;
+			border: 0;
+			background: none;
+			opacity: 0;
+			z-index: 10;
+			transition: all .2s ease-out;
+			&[active] {
+				opacity: 1;
+				z-index: 15;
+			}
+		}
+		
+		apply-details-message {
+			max-width: 800px;
+			margin: 0 auto 6px auto;
 		}
 	</style>
 	<template>
@@ -229,8 +294,8 @@
 		<meta is="roster-chars" [user]="data.user" [chars] active>
 		<gt-box #main heading=" " scrollable>
 			<div #tabs>
-				<gt-button active>Discussion</gt-button>
-				<gt-button>Details</gt-button>
+				<gt-button (click)="ShowDiscussion" {active}="!details">Discussion</gt-button>
+				<gt-button (click)="ShowDetails" {active}="details">Details</gt-button>
 			</div>
 			<div #links>
 				<gt-button [goto]="profileLink">View profile</gt-button>
@@ -252,13 +317,18 @@
 					</li>
 				</ul>
 				<h2>Characters</h2>
-				<gt-apply-details-char [repeat]="chars" [id]="item"></gt-apply-details-char>
+				<apply-details-char [repeat]="chars" [id]="item"></apply-details-char>
+			</gt-box>
+			<gt-box #discussion scrollable dark {active}="!details">
+				<apply-details-message [repeat]="feed" [message]="item"></apply-details-message>
+			</gt-box>
+			<gt-box #details scrollable dark {active}="!details">
 			</gt-box>
 		</gt-box>
 	</template>
 </dom-module>
 
-<dom-module id="gt-apply-details-char">
+<dom-module id="apply-details-char">
 	<style type="text/less">
 		:host {
 			display: block;
@@ -271,7 +341,11 @@
 		}
 		
 		#name {
-			font: 400 18px "Roboto Condensed";
+			font: 300 18px "Roboto Condensed";
+		}
+		
+		#server {
+			font-weight: 300;
 		}
 		
 		#ilvl {
@@ -293,7 +367,7 @@
 			transform: translateY(20px);
 			
 			:host(:hover) & {
-				opacity: 0.8;
+				opacity: 0.9;
 				transform: translateY(0px);
 			}
 		}
@@ -306,6 +380,19 @@
 		<div #server>{{serverName}}</b></div>
 		<div #ilvl><b>{{char.ilvl}}</b> ilvl</div>
 		<div #outlink-icon>Battle.net <i>open_in_new</i></div>
+	</template>
+</dom-module>
+
+<dom-module id="apply-details-message">
+	<style type="text/less">
+		:host {
+			display: block;
+		}
+	</style>
+	<template>
+		<gt-box dark>
+			<b>{{message.text}}</b>
+		</gt-box>
 	</template>
 </dom-module>
 
@@ -356,7 +443,7 @@
 			</div>
 			<div #right>
 				<div #title>Applying for a raider spot</div>
-				<p>From Scratch is always looking for awesome players wanting to join our main roster and challenge top-world guilds.</p>
+				<p>From Scratch is always looking for awesome players wanting to join our main roster and attempt top-world ranking.</p>
 				<p>Everything you need to know about the recruiting process is available on the WebTools application on the main web site.</p>
 				<p><gt-button #apply>Apply now</gt-button></p>
 			</div>
