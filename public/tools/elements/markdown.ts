@@ -21,7 +21,7 @@ export class GtMarkdown extends PolymerElement {
 	public src: string;
 
 	public async update() {
-		this.$.markdown.innerHTML = parse(this.src, options);
+		Polymer.dom(this.$.markdown).innerHTML = parse(this.src, options);
 		await microtask;
 		this.fire("rendered");
 	}

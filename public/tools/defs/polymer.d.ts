@@ -19,14 +19,8 @@ interface PolymerBase {
 
 interface ShadyDOMContructor {
 	(parent: Node | PolymerElement): ShadyDOM;
-	<T extends Event>(event: T): ShadyDOMEvent<T>;
+	<T extends Event>(event: T): ShadyDOM;
 	flush(): void;
-}
-
-interface ShadyDOMEvent<T> {
-	event: T;
-	localTarget: any;
-	rootTarget: any;
 }
 
 interface ShadyDOM {
@@ -57,6 +51,11 @@ interface ShadyDOM {
 	classList: DOMTokenList;
 	
 	node: HTMLElement;
+	
+	// Event
+	event: any;
+	localTarget: any;
+	rootTarget: any;
 }
 
 declare var Polymer: Polymer;
