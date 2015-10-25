@@ -139,7 +139,8 @@
 		
 		#stage {
 			color: @fs-gray;
-			font-weight: 300;
+			//font-weight: 300;
+			font-size: 13px;
 			//font-family: "Roboto Condensed"
 		}
 		
@@ -357,9 +358,11 @@
 		
 		#name {
 			font: 300 18px "Roboto Condensed";
+			margin-bottom: 2px;
 		}
 		
 		#server {
+			font-size: 12px;
 			font-weight: 300;
 		}
 		
@@ -367,7 +370,8 @@
 			position: absolute;
 			top: 8px;
 			right: 8px;
-			font-weight: 300;
+			font-size: 13px;
+			//font-weight: 300;
 			color: @fs-gray;
 		}
 		
@@ -377,7 +381,7 @@
 			right: 8px;
 			color: @light-blue;
 			opacity: 0;
-			font-size: 11px;
+			font-size: 12px;
 			transition: all .2s ease-out;
 			transform: translateY(20px);
 			
@@ -411,8 +415,9 @@
 		}
 		
 		#poster {
-			min-width: 135px;
-			padding: 6px 16px 6px 0;
+			min-width: 125px;
+			max-width: 125px;
+			padding: 6px 16px 6px 6px;
 			position: relative;
 		}
 		
@@ -424,7 +429,8 @@
 		}
 		
 		#date {
-			font-weight: 300;
+			//font-weight: 300;
+			font-size: 12px;
 			color: @fs-gray;
 		}
 		
@@ -455,6 +461,7 @@
 			
 			#poster {
 				min-width: 0;
+				max-width: 9999px;
 				margin-right: 4px;
 				display: flex;
 				flex-direction: row-reverse;
@@ -465,7 +472,9 @@
 			}
 			
 			#date {
-				width: 135px;
+				width: 125px;
+				margin-top: 1px;
+				padding-left: 6px;
 			}
 			
 			#message {
