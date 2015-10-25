@@ -68,11 +68,11 @@
 <script>
 	var good = false;
 	var bowser = this.bowser || module.exports;
-	if (bowser.name == "Firefox") {
+	if (bowser.firefox) {
 		bowser.name = "Mozilla Firefox";
 		bowser.url = "http://getfirefox.com";
 		good = true;
-	} else if (bowser.name == "Chrome") {
+	} else if (bowser.chrome) {
 		bowser.name = "Google Chrome";
 		bowser.url = "http://www.google.com/chrome";
 		good = true;
@@ -89,22 +89,23 @@
 		To be as awesome as possible, GuildTools takes advantage of some of the latest web technologies that
 		may not yet be supported by your current browser.
 	</p>
-	<p id="good-1">
+	<p id="good">
 		Since you are already using <script>document.write(bowser.name);</script>, you simply need to update
 		your browser to the <a id="upgrade" href="">most-recent version</a> to access GuildTools.
 		<script>
 			document.getElementById("upgrade").href = bowser.url;
 		</script>
 	</p>
-	<p id="good-2">
-		Alternatively, you can download and install the <a href="http://app.fs-guild.net">FS GuildTools Application</a>.
-	</p>
 	<p id="bad">
 		Unfortunately, GuildTools is only developed and supported on
 		<a href="http://www.google.com/chrome">Google Chrome</a> and
-		<a href="http://getfirefox.com">Mozilla Firefox</a>. Alternatively, if you wish to keep
-		using <script>document.write(bowser.name);</script>, you can download  and install the
-		<a href="http://app.fs-guild.net">FS GuildTools Application</a>.
+		<a href="http://getfirefox.com">Mozilla Firefox</a>.
+		You should install one of these before using GuildTools.
+	</p>
+	<p>
+		Alternatively, in case you really wish to keep using <script>document.write(bowser.name);</script>,
+		you can choose to <a href="/" onclick="localStorage.setItem('unsupported.ignored', navigator.userAgent);">ignore</a>
+		this message and continue anyway.
 	</p>
 	<p class="user-agent"><script>document.write(bowser.name + " " + bowser.version);</script></p>
 	<p class="user-agent"><script>document.write(navigator.userAgent);</script></p>
@@ -119,7 +120,6 @@
 	if (good) {
 		remove("bad");
 	} else {
-		remove("good-1");
-		remove("good-2");
+		remove("good");
 	}
 </script>
