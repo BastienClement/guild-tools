@@ -285,6 +285,7 @@ export class ApplyDetails extends PolymerElement {
 @Dependencies(GtBox, GtAlert, GtButton, GtDialog, ApplyListItem, ApplyDetails, Roster)
 export class GtApply extends PolymerElement {
 	@Inject
+	@On({ "apply-updated": "ApplyUpdated" })
 	private service: ApplyService;
 	
 	private applys: number[];
@@ -297,6 +298,10 @@ export class GtApply extends PolymerElement {
 		this.selected = void 0;
 		this.applys = await this.service.openApplysList();
 		this.selected = selected;
+	}
+	
+	private async ApplyUpdated() {
+		this.applys = await this.service.openApplysList();
 	}
 	
 	private ApplySelected() {
