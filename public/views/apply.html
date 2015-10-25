@@ -466,25 +466,25 @@
 					<gt-button><i>edit_mode</i> New message</gt-button>
 				</div>
 				<div #reply-form>
-					<gt-textarea #reply-textarea [value]="messageBody"></gt-textarea>
+					<gt-textarea #reply-textarea [value]="messageBody" {disabled}="editorDisabled"></gt-textarea>
 					<div #reply-options>
 						<gt-label #reply-private>
-							<gt-checkbox [radio]="messageType" value="private"></gt-checkbox>
+							<gt-checkbox [radio]="messageType" value="private" {disabled}="editorDisabled"></gt-checkbox>
 							Private message
 							<div .help>
 								Only officers and guild members will be able to read the message.
 							</div>
 						</gt-label>
 						<gt-label #reply-public>
-							<gt-checkbox [radio]="messageType" value="public"></gt-checkbox>
+							<gt-checkbox [radio]="messageType" value="public" {disabled}="editorDisabled"></gt-checkbox>
 							Public message
 							<div .help>
 								Everyone will be able to read the message, this includes the apply himself. So, be nice!
 							</div>
 						</gt-label>
 						<div>
-							<gt-button fat collapse-left>Send</gt-button>
-							<gt-button collapse-left (click)="CloseEdit">Cancel</gt-button>
+							<gt-button fat collapse-left (click)="SendMessage" {disabled}="editorDisabled">Send</gt-button>
+							<gt-button collapse-left (click)="CloseEdit" {disabled}="editorDisabled">Cancel</gt-button>
 						</div>
 						<a>
 					</div>

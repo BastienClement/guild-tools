@@ -128,7 +128,9 @@ export class GtCheckbox extends PolymerElement {
 	
 	@Listener("click")
 	public click() {
-		if (this.value) {
+		if (this.disabled) {
+			return;
+		} else if (this.value) {
 			this.radio = this.value;
 		} else {
 			this.checked = !this.checked;
@@ -171,6 +173,8 @@ export class GtLabel extends PolymerElement {
 export class GtTextarea extends PolymerElement {
 	@Property({ notify: true, observer: "ValueChanged" })
 	public value: string;
+	
+	@Property public disabled: boolean;
 	
 	@Listener("textarea.keyup")
 	private InputUp(e: KeyboardEvent) {

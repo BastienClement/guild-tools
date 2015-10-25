@@ -181,6 +181,11 @@
 			vertical-align: -4px;
 			overflow: hidden;
 			position: relative;
+			transition: all .2s ease-out;
+		}
+		
+		:host([disabled]) {
+			opacity: 0.5;
 		}
 		
 		#box {
@@ -190,7 +195,7 @@
 			transition: all .2s ease-out;
 			border-radius: 2px;
 			
-			:host(:hover) &, :host([hover]) & {
+			:host(:hover:not([disabled])) &, :host([hover]:not([disabled])) & {
 				border-color: fade(@fs-blue, 40%);
 			}
 			
@@ -207,7 +212,7 @@
 			opacity: 0;
 			transition: all .2s ease-out;
 			
-			:host(:hover) &, :host([hover]) & {
+			:host(:hover:not([disabled])) &, :host([hover]:not([disabled])) & {
 				color: fade(@fs-blue, 90%);
 			}
 			
@@ -223,7 +228,7 @@
 			transform: scale(0);
 			transition: all .2s ease-out;
 			
-			:host(:hover) &, :host([hover]) & {
+			:host(:hover:not([disabled])) &, :host([hover]:not([disabled])) & {
 				background: fade(@fs-blue, 90%);
 			}
 			
@@ -258,11 +263,16 @@
 			background: rgba(17, 17, 17, 0.1);
 			resize: none;
 			outline: none;
+			transition: color .2s ease-out;
 			.custom-scrolls;
+		}
+		
+		:host([disabled]) textarea {
+			color: fade(#f1f1f1, 50%);
 		}
 	</style>
 	<template>
-		<textarea #textarea></textarea>
+		<textarea #textarea {disabled}></textarea>
 	</template>
 </dom-module>
 

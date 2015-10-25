@@ -188,10 +188,8 @@ export class Channel extends EventEmitter {
 		// Failure
 		const error: any = new Error(frame.message);
 		error.code = frame.code;
+		error.stack = frame.stack;
 		deferred.reject(error);
-		
-		// Display stack frame
-		console.error(new Error(frame.stack));
 	}
 
 	/**

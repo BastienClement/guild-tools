@@ -1,4 +1,4 @@
-import { Element, Dependencies, PolymerElement, Inject, Property, Listener, PolymerModelEvent } from "elements/polymer";
+import { Element, Dependencies, PolymerElement, Inject, Property, Listener, On, PolymerModelEvent } from "elements/polymer";
 import { View, TabsGenerator } from "elements/app";
 import { GtBox, GtAlert } from "elements/box";
 import { GtButton, GtCheckbox, GtLabel, GtTextarea } from "elements/widgets";
@@ -64,24 +64,55 @@ export class ApplyDetailsMessage extends PolymerElement {
 @Dependencies(GtBox, GtTimeago, ApplyDetailsChar, ApplyDetailsMessage, GtCheckbox, GtLabel, GtTextarea)
 export class ApplyDetails extends PolymerElement {
 	@Inject
+	@On({
+		"message-posted": "MessagePosted",
+		"unread-updated": "UnreadUpdated"
+	})
 	private service: ApplyService;
 	
-	// The apply ID4
+	/**
+	 * The application ID
+	 */
 	@Property({ observer: "ApplyChanged" })
 	public apply: number;
 	
-	// Apply meta-informations, loaded by a <meta> tag
+	/**
+	 * Apply meta-informations, loaded by a <meta> tag
+	 * We need to declare it here to attach an observer
+	 */
 	@Property({ observer: "DataAvailable" })
 	private data: Apply;
 	
-	// Indicate if the details tab is activated
+	/**
+	 * Track which tab is currently activated
+	 */
 	private tab: number;
 	
-	// The edit form is open
+	/**
+	 *  The edit form is open
+	 */
 	private editOpen: boolean;
+	
+	/**
+	 * Edit form disabled during message sending
+	 */
+	private editorDisabled: boolean;
+	
+	/**
+	 * The message body
+	 */
 	private messageBody: string;
+	
+	/**
+	 * Message type, can be "private" or "public"
+	 */
 	private messageType: string;
 	
+	/**
+	 * Generate a fake ApplyMessage for the preview function
+	 * It will be continuously updated with the content of the
+	 * edit box. 
+	 */
 	@Property({ computed: "messageBody messageType" })
 	private get messagePreview(): ApplyMessage {
 		defer(() => this.ScrollDown());
@@ -89,38 +120,56 @@ export class ApplyDetails extends PolymerElement {
 			id: 0,
 			apply: this.apply,
 			user: this.app.user.id,
-			date: Date().toString(),
+			date: new Date().toISOString(),
 			text: this.messageBody,
 			secret: this.messageType == "private",
 			system: false
 		};
 	};
 	
-	// The discussion feed data
+	/**
+	 * The discussion feed data
+	 */
 	private feed: ApplyMessage[];
 	
-	// The apply form data
+	/**
+	 * The apply form data
+	 */
 	private body: string;
 	
-	// Timeout for sending the apply-seen message
+	/**
+	 * Timeout for sending the apply-seen message
+	 * When application is changed before 2s, the set-seen message
+	 * is not sent
+	 */
 	private seenTimeout: any;
 	
-	// Called when the selected apply changes
+	/**
+	 * Called when the selected apply changes
+	 * Reset every state that may have changed
+	 */
 	private async ApplyChanged() {
 		this.tab = void 0;
 		this.editOpen = false;
+		this.editorDisabled = false;
 		this.messageBody = "";
 		this.messageType = "private";
 		this.feed = [];
 		clearTimeout(this.seenTimeout);
 	}
 	
-	// Tabs handlers
+	/**
+	 * Tab handlers
+	 */
 	private ShowDiscussion() { this.tab = 1; this.editOpen = false }
 	private ShowDetails() { this.tab = 2; this.editOpen = false }
 	private ShowManage() { this.tab = 3; this.editOpen = false }
 	
-	// When data is available, decide which tab to activate
+	/**
+	 * When data is available, decide which tab to activate
+	 * and load feed and body.
+	 * Also define the unread flag clearing timeout
+	 */
 	private async DataAvailable() {
 		if (this.tab === void 0) {
 			//this.tab = this.data.have_posts ? 1 : 2;
@@ -136,7 +185,11 @@ export class ApplyDetails extends PolymerElement {
 		}
 	}
 	
-	// Scroll the discussion tab to the bottom
+	/**
+	 * Scroll the discussion tab to the bottom
+	 * Attempt to be as smart as possible to prevent automatic scrolling
+	 * if user scrolled manually
+	 */
 	@throttled private async ScrollDown(force?: boolean) {
 		let node = this.$.discussion.$.wrapper;
 		let bottom = node.scrollTop + node.clientHeight + 200;
@@ -145,6 +198,10 @@ export class ApplyDetails extends PolymerElement {
 		}
 	}
 	
+	/**
+	 * Catch message rendered event and trigger automatic scrolldown
+	 * Also bind to messages images
+	 */
 	@Listener("discussion.rendered")
 	private async MessageRendered(ev: any) {
 		// Get every images in the message
@@ -162,19 +219,58 @@ export class ApplyDetails extends PolymerElement {
 		this.ScrollDown();
 	}
 	
-	// Open the new message editor
+	/**
+	 * Open the new message editor
+	 */
 	private async OpenEdit() {
 		this.editOpen = true;
 		await Promise.delay(200);
 		this.ScrollDown(true);
 	}
 	
-	// Close the new message editor
+	/**
+	 * Send message to server
+	 */
+	private async SendMessage() {
+		this.editorDisabled = true;
+		let success = await Promise.atLeast(500, this.service.postMessage(this.apply, this.messageBody, this.messageType != "public"));
+		if (success) {
+			this.messageBody = "";
+			this.messageType = "private";
+			this.editOpen = false;
+		}
+		this.editorDisabled = false;
+	}
+	
+	/**
+	 * Close the new message editor
+	 */
 	private CloseEdit() {
 		this.editOpen = false;
 	}
 	
-	// Generate the link to the user profile
+	/**
+	 * New message posted on a application feed
+	 */
+	private MessagePosted(message: ApplyMessage) {
+		if (message.apply == this.apply) {
+			this.push("feed", message);
+		}
+	}
+	
+	/**
+	 * Catch update to unread state for an open application
+	 * and cancel it
+	 */
+	private UnreadUpdated(apply: number, unread: boolean) {
+		if (apply == this.apply && unread) {
+			this.service.setSeen(apply);
+		}
+	}
+	
+	/**
+	 * Generate the link to the user profile
+	 */
 	@Property({ computed: "data.user" })
 	private get profileLink(): string {
 		return "/profile/" + this.data.user;

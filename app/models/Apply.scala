@@ -2,6 +2,7 @@ package models
 
 import java.sql.Timestamp
 import models.mysql._
+import scala.util.Success
 import utils.{PubSub, SmartTimestamp}
 import reactive.ExecutionContext
 
@@ -34,6 +35,17 @@ object Applys extends TableQuery(new Applys(_)) with PubSub[User] {
 	// Events
 	case class UnreadUpdated(apply: Int, unread: Boolean)
 	case class ApplyUpdated(apply: Apply)
+	case class MessagePosted(message: ApplyFeedMessage)
+
+	// Check that the current user can access a specific apply
+	def canAccess(owner: Int, stage: Int, user: User): Boolean = {
+		// Access to an archived or pending apply require promoted
+		if (stage > Applys.TRIAL || stage == Applys.PENDING) user.promoted
+		// Access to an open (not pending) apply require member or own apply
+		else if (stage > Applys.PENDING) user.member || owner == user.id
+		// Other use cases are undefined thus not allowed
+		else false
+	}
 
 	// Fetch every open applications visible by the user
 	val openForUser = Compiled((user: Rep[Int], wide: Rep[Boolean]) => {
@@ -49,6 +61,34 @@ object Applys extends TableQuery(new Applys(_)) with PubSub[User] {
 		val query = ApplyReadStates insertOrUpdate ApplyReadState(user.id, id, SmartTimestamp.now)
 		query.run foreach {
 			_ => publish(UnreadUpdated(id, false), u => u.id == user.id)
+		}
+	}
+
+	// Post a new message in an application
+	def postMessage(sender: User, apply_id: Int, message: String, secret: Boolean = true, system: Boolean = false) = {
+		val now = SmartTimestamp.now.toSQL
+		val msg = ApplyFeedMessage(0, apply_id, sender.id, now, message, secret, system)
+
+		val query = (for {
+			apply <- Applys.filter(_.id === apply_id).result.head
+			_ = if (canAccess(apply.user, apply.stage, sender)) () else throw new Exception("You are not allowed to access this application")
+			msg_id <- ApplyFeed += msg
+			_ <- Applys.filter(_.id === apply_id).map(a => (a.have_posts, a.updated)).update((true, now))
+			_ <- ApplyReadStates insertOrUpdate ApplyReadState(sender.id, apply_id, SmartTimestamp.now)
+			apply_updated <- Applys.filter(_.id === apply_id).result.head
+		} yield (apply_updated, msg_id)).transactionally
+
+		// Check that the user can access the message
+		def canAccessMessage(owner: Int, stage: Int, user: User, secret: Boolean) = {
+			canAccess(owner, stage, user) && (!secret || user.member)
+		}
+
+		DB.run(query) andThen {
+			case Success((apply, msg_id)) =>
+				def filter(u: User) = canAccessMessage(apply.user, apply.stage, u, secret)
+				publish(ApplyUpdated(apply), filter)
+				publish(MessagePosted(msg.copy(id = msg_id)), filter)
+				publish(UnreadUpdated(apply.id, true), u => u.id != sender.id && filter(u))
 		}
 	}
 }

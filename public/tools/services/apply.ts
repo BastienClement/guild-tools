@@ -97,6 +97,7 @@ export class ApplyService extends Service {
 	 * Send the set-seen message
 	 */
 	public setSeen(id: number) {
+		this.UnreadUpdated(id, false);
 		this.channel.send("set-seen", id);
 	}
 	
@@ -107,6 +108,34 @@ export class ApplyService extends Service {
 	private UnreadUpdated(apply: number, unread: boolean) {
 		this.unread.set(apply, unread);
 		this.emit("unread-updated", apply, unread);
+	}
+	
+	/**
+	 * An apply object was updated
+	 */
+	@ServiceChannel.Dispatch("channel", "apply-updated")
+	private ApplyUpdated(apply: Apply) {
+		this.applys.set(apply.id, apply);
+		this.emit("apply-updated", apply);
+	}
+	
+	/**
+	 * Post a new message in an application
+	 */
+	public async postMessage(apply: number, message: string, secret: boolean) {
+		try {
+			return await this.channel.request<boolean>("post-message", { apply, message, secret });
+		} catch (e) {
+			return false;
+		}
+	}
+	
+	/**
+	 * New message received in an application
+	 */
+	@ServiceChannel.Dispatch("channel", "message-posted")
+	private MessagePosted(message: ApplyMessage) {
+		this.emit("message-posted", message);
 	}
 	
 	/**
@@ -154,6 +183,7 @@ class StageNameProvider extends PolymerElement {
 @Provider("apply-data")
 class DataProvider extends PolymerElement {
 	@Inject
+	@On({ "apply-updated": "ApplyUpdated" })
 	private service: ApplyService;
 	
 	@Property({ observer: "update" })
@@ -165,6 +195,10 @@ class DataProvider extends PolymerElement {
 	@join public async update() {
 		if (await microtask, !this.apply) return;
 		this.data = await this.service.applyData(this.apply);
+	}
+	
+	private ApplyUpdated(apply: Apply) {
+		if (apply.id == this.apply) this.update();
 	}
 }
 
