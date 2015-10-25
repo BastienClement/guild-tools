@@ -1,8 +1,8 @@
 /dashboard                        views/dashboard/GtDashboard
 
-/profile(/:user)?                 views/profile/GtProfile
+/profile(/:[0-9]+:user)?          views/profile/GtProfile
 
-/apply(/:selected)?               views/apply/GtApply
+/apply(/:[0-9]+:selected)?        views/apply/GtApply
 /apply-guest                      views/apply/GtApplyRedirect
 
 /about                            views/about/GtAbout

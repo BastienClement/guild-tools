@@ -29,10 +29,12 @@ function compilePattern(path: string): [RegExp, string[]] {
 	path = path.replace(/\/$/, "").replace(/\(/g, "(?:");
 
 	// Extract tag names
-	let tags = (path.match(/[^?]:[a-z_0-9\-]+/g) || []).map(tag => tag.slice(2));
+	let tags = (path.match(/[^?]:(?:[^:]+:)?([a-z_0-9\-]+)/g) || []).map(tag => tag.slice(tag.lastIndexOf(":") + 1));
 
 	// Replace tags with capturing placeholders
-	path = path.replace(/([^?]):[a-z_0-9\-]+/g, "$1([^/]+)");
+	path = path.replace(/([^?]):(?:([^:]+):)?[a-z_0-9\-]+/g, (all, prefix, pattern) => {
+		return `${prefix}(${ pattern || "[^/]+" })`;
+	});
 
 	return [new RegExp(`^${path}/?$`), tags];
 }
