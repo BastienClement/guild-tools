@@ -52,6 +52,7 @@ class Apply(user: User) extends ChannelHandler {
 		val apply = p("apply").as[Int]
 		val body = p("message").as[String]
 		val secret = p("secret").as[Boolean]
+		if (secret && !user.member) throw new Exception("Apply cannot posts private messages")
 		Applys.postMessage(user, apply, body, secret) map (_ => true)
 	}
 }
