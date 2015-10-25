@@ -19,12 +19,12 @@
 			transition: all .2s ease-out;
 		}
 		
-		:host([collapse-right]:not(:first-child)) {
-			margin-right: 0;
+		:host([collapse-right]) {
+			margin-right: 0 !important;
 		}
 		
-		:host([collapse-left]:not(:first-child)) {
-			margin-left: 0;
+		:host([collapse-left]) {
+			margin-left: 0 !important;
 		}
 		
 		:host([disabled]) {
@@ -34,6 +34,27 @@
 		
 		:host(:hover:not([disabled])) {
 			color: @fs-blue;
+		}
+		
+		:host([fat]) {
+			background: fade(@fs-blue, 10%);
+			border: 1px solid fade(@fs-blue, 5%);
+			border-radius: 2px;
+			height: 32px;
+			margin: 2px 8px;
+			padding: 0 12px;
+			color: white !important;
+			box-shadow: 0px 1px 2px rgba(17, 17, 17, 0.1)
+		}
+		
+		:host([fat]:hover:not([disabled])) {
+			background: fade(@fs-blue, 15%);
+			border: 1px solid fade(@fs-blue, 10%);
+		}
+		
+		:host([fat][disabled]) {
+			opacity: 0.5;
+			box-shadow: none;
 		}
 		
 		::content i {
@@ -94,9 +115,12 @@
 			}
 			
 			#outer:not([data-valid]) & {
-				border-color: rgba(222, 50, 32, 0.5);
-				:host:hover & { border-color: rgba(222, 50, 32, 0.6); }
-				:host:focus & { border-color: rgba(222, 50, 32, 1); }
+				//border-color: rgba(222, 50, 32, 0.5);
+				//:host:hover & { border-color: rgba(222, 50, 32, 0.6); }
+				//:host:focus & { border-color: rgba(222, 50, 32, 1); }
+				border-color: rgba(233, 64, 25, 0.5);
+				:host:hover & { border-color: rgba(233, 64, 25, 0.6); }
+				:host:focus & { border-color: rgba(233, 64, 25, 1); }
 			}
 		}
 		
@@ -122,7 +146,8 @@
 			overflow: hidden;
     		text-overflow: ellipsis;
 			opacity: 1;
-			color: rgb(222, 50, 32);
+			//color: rgb(222, 50, 32);
+			color: rgba(233, 64, 25, 1);
 			margin-top: 8px;
 			transition: height .2s ease-out, opacity .3s ease-out, margin .2s ease-out;
 			
@@ -141,5 +166,116 @@
 			</span>
 			<div #error>{{error}}</div>
 		</label>
+	</template>
+</dom-module>
+
+<!-- ////////////////////////////////////////////////////////////////////// -->
+<!-- <gt-checkbox> -->
+	
+<dom-module id="gt-checkbox">
+	<style type="text/less">
+		:host {
+			display: inline-block;
+			width: 18px;
+			height: 18px;
+			vertical-align: -4px;
+			overflow: hidden;
+			position: relative;
+		}
+		
+		#box {
+			.pos(absolute);
+			z-index: 1;
+			border: 2px solid fade(@fs-blue, 25%);
+			transition: all .2s ease-out;
+			border-radius: 2px;
+			
+			:host(:hover) &, :host([hover]) & {
+				border-color: fade(@fs-blue, 40%);
+			}
+			
+			:host([value]) & {
+				border-radius: 50%;
+			}
+		}
+		
+		i {
+			.pos(absolute, -2px, 0, 0, 0);
+			z-index: 2;
+			font-size: 20px;
+			color: fade(@fs-blue, 75%);
+			opacity: 0;
+			transition: all .2s ease-out;
+			
+			:host(:hover) &, :host([hover]) & {
+				color: fade(@fs-blue, 90%);
+			}
+			
+			:host([checked]:not([value])) & {
+				opacity: 1;
+			}
+		}
+		
+		#dot {
+			.pos(absolute, 5px, 5px, 5px, 5px);
+			border-radius: 50%;
+			background: fade(@fs-blue, 75%);
+			transform: scale(0);
+			transition: all .2s ease-out;
+			
+			:host(:hover) &, :host([hover]) & {
+				background: fade(@fs-blue, 90%);
+			}
+			
+			:host([checked][value]) & {
+				transform: scale(1);
+			}
+		}
+	</style>
+	<template>
+		<div #box></div>
+		<i>check</i>
+		<div #dot></div>
+	</template>
+</dom-module>
+
+<!-- ////////////////////////////////////////////////////////////////////// -->
+<!-- <gt-textarea> -->
+	
+<dom-module id="gt-textarea">
+	<style type="text/less">
+		:host {
+			display: inline-block;
+		}
+		
+		textarea {
+			height: 100%;
+			width: 100%;
+			padding: 12px;
+			font: 400 14px "Roboto";
+			color: #f1f1f1;
+			border: 1px solid rgba(17, 17, 17, 0.1);
+			background: rgba(17, 17, 17, 0.1);
+			resize: none;
+			outline: none;
+			.custom-scrolls;
+		}
+	</style>
+	<template>
+		<textarea #textarea></textarea>
+	</template>
+</dom-module>
+
+<!-- ////////////////////////////////////////////////////////////////////// -->
+<!-- <gt-label> -->
+	
+<dom-module id="gt-label">
+	<style type="text/less">
+		:host {
+			display: inline-block;
+		}
+	</style>
+	<template>
+		<content></content>
 	</template>
 </dom-module>

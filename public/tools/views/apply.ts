@@ -1,7 +1,7 @@
 import { Element, Dependencies, PolymerElement, Inject, Property, Listener, PolymerModelEvent } from "elements/polymer";
 import { View, TabsGenerator } from "elements/app";
 import { GtBox, GtAlert } from "elements/box";
-import { GtButton } from "elements/widgets";
+import { GtButton, GtCheckbox, GtLabel, GtTextarea } from "elements/widgets";
 import { GtDialog } from "elements/dialog";
 import { BnetThumb } from "elements/bnet";
 import { GtTimeago } from "elements/timeago";
@@ -29,7 +29,7 @@ export class ApplyListItem extends PolymerElement {
 // <apply-details-char>
 
 @Element("apply-details-char", "/assets/views/apply.html")
-@Dependencies(GtBox, BnetThumb, GtTimeago)
+@Dependencies(GtBox, GtTimeago)
 export class ApplyDetailsChar extends PolymerElement {
 	@Property public id: number;
 	
@@ -52,7 +52,7 @@ export class ApplyDetailsChar extends PolymerElement {
 // <apply-details-message>
 
 @Element("apply-details-message", "/assets/views/apply.html")
-@Dependencies(GtBox, BnetThumb, GtTimeago, GtMarkdown)
+@Dependencies(GtBox, GtTimeago, GtMarkdown)
 export class ApplyDetailsMessage extends PolymerElement {
 	@Property public message: ApplyMessage;
 }
@@ -61,7 +61,7 @@ export class ApplyDetailsMessage extends PolymerElement {
 // <apply-details>
 
 @Element("apply-details", "/assets/views/apply.html")
-@Dependencies(GtBox, GtTimeago, ApplyDetailsChar, ApplyDetailsMessage)
+@Dependencies(GtBox, GtTimeago, ApplyDetailsChar, ApplyDetailsMessage, GtCheckbox, GtLabel, GtTextarea)
 export class ApplyDetails extends PolymerElement {
 	@Inject
 	private service: ApplyService;
@@ -77,6 +77,25 @@ export class ApplyDetails extends PolymerElement {
 	// Indicate if the details tab is activated
 	private tab: number;
 	
+	// The edit form is open
+	private editOpen: boolean;
+	private messageBody: string;
+	private messageType: string;
+	
+	@Property({ computed: "messageBody messageType" })
+	private get messagePreview(): ApplyMessage {
+		defer(() => this.ScrollDown());
+		return {
+			id: 0,
+			apply: this.apply,
+			user: this.app.user.id,
+			date: Date().toString(),
+			text: this.messageBody,
+			secret: this.messageType == "private",
+			system: false
+		};
+	};
+	
 	// The discussion feed data
 	private feed: ApplyMessage[];
 	
@@ -89,14 +108,17 @@ export class ApplyDetails extends PolymerElement {
 	// Called when the selected apply changes
 	private async ApplyChanged() {
 		this.tab = void 0;
+		this.editOpen = false;
+		this.messageBody = "";
+		this.messageType = "private";
 		this.feed = [];
 		clearTimeout(this.seenTimeout);
 	}
 	
 	// Tabs handlers
-	private ShowDiscussion() { this.tab = 1; }
-	private ShowDetails() { this.tab = 2; }
-	private ShowManage() { this.tab = 3; }
+	private ShowDiscussion() { this.tab = 1; this.editOpen = false }
+	private ShowDetails() { this.tab = 2; this.editOpen = false }
+	private ShowManage() { this.tab = 3; this.editOpen = false }
 	
 	// When data is available, decide which tab to activate
 	private async DataAvailable() {
@@ -115,10 +137,10 @@ export class ApplyDetails extends PolymerElement {
 	}
 	
 	// Scroll the discussion tab to the bottom
-	@throttled private async ScrollDown() {
+	@throttled private async ScrollDown(force?: boolean) {
 		let node = this.$.discussion.$.wrapper;
-		let bottom = node.scrollTop + node.clientHeight + 10;
-		if (node.scrollTop < 10 || bottom > node.scrollHeight) {
+		let bottom = node.scrollTop + node.clientHeight + 200;
+		if (force || node.scrollTop < 50 || bottom > node.scrollHeight) {
 			node.scrollTop = node.scrollHeight;
 		}
 	}
@@ -138,6 +160,18 @@ export class ApplyDetails extends PolymerElement {
 		// Scroll anyway at the end of the microtask
 		await microtask;
 		this.ScrollDown();
+	}
+	
+	// Open the new message editor
+	private async OpenEdit() {
+		this.editOpen = true;
+		await Promise.delay(200);
+		this.ScrollDown(true);
+	}
+	
+	// Close the new message editor
+	private CloseEdit() {
+		this.editOpen = false;
 	}
 	
 	// Generate the link to the user profile

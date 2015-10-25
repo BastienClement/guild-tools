@@ -139,9 +139,7 @@
 		
 		#stage {
 			color: @fs-gray;
-			//font-weight: 300;
 			font-size: 13px;
-			//font-family: "Roboto Condensed"
 		}
 		
 		#update {
@@ -223,7 +221,6 @@
 				color: mix(@light-blue, white, 50%);
 				opacity: 0.8;
 				transition: all .2s ease-out;
-				margin-right: 0;
 				
 				&:hover, &[active] {
 					opacity: 1;
@@ -247,6 +244,7 @@
 			background: none;
 			border: 0;
 			border-left: 2px solid fade(#426585, 50%);
+			transition: all .2s ease-out;
 			
 			h2 {
 				font: 300 18px "Roboto Condensed";
@@ -275,7 +273,13 @@
 			}
 		}
 		
-		#discussion, #details {
+		@media (max-width: 1500px) {
+			#side {
+				width: 240px;
+			}
+		}
+		
+		#discussion, #details, #manage {
 			position: absolute;
 			top: 50px;
 			left: 0px;
@@ -292,12 +296,130 @@
 			}
 		}
 		
+		@media (max-width: 1500px) {
+			#discussion, #details, #manage {
+				right: 240px;
+			}
+		}
+		
+		#discussion {
+			bottom: 37px;
+			&[editor-open] {
+				bottom: 250px;
+			}
+		}
+		
 		#discussion > * {
 			max-width: 900px;
 		}
 		
 		apply-details-message {
 			margin: 0 auto 12px auto;
+		}
+		
+		#preview-separator {
+			border-top: 1px dashed fade(@fs-blue, 30%);
+			margin: 18px auto 18px auto;
+			max-width: 892px;
+		}
+		
+		#reply {
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			right: 270px;
+			z-index: 30;
+			height: 36px;
+			background: fade(@fs-blue, 5%);
+			border-top: 1px solid fade(@fs-blue, 5%);
+			transition: all .2s ease-out;
+			overflow: hidden;
+			
+			&:not([visible]) {
+				bottom: -37px;
+			}
+			
+			&[open] {
+				height: 250px;
+			}
+			
+			&:hover:not([open]) {
+				background: fade(@fs-blue, 10%);
+			}
+		}
+		
+		@media (max-width: 1500px) {
+			#reply {
+				right: 240px;
+			}
+		}
+		
+		#reply-wrapper {
+			text-align: center;
+			margin-top: 0;
+			opacity: 1;
+			transition: all .2s ease-out;
+			transition-delay: .5s;
+			
+			gt-button {
+				color: white;
+			}
+			
+			#reply[open] & {
+				margin-bottom: -36px;
+				opacity: 0;
+				transition-delay: 0s;
+			}
+		}
+		
+		#reply-form {
+			max-width: 900px;
+			margin: auto;
+			display: flex;
+			padding: 0 18px;
+			height: 250px;
+    		align-items: center;
+			transform: translateY(11px);
+			transition: all .2s ease-out;
+			
+			#reply[open] & {
+				transform: translateY(0px);
+			}
+		
+			#reply-textarea {
+				flex: 1;
+				height: 200px;
+			}
+			
+			#reply-options {
+				width: 250px;
+				height: 200px;
+				margin-left: 18px;
+				display: flex;
+				flex-direction: column;
+				transition: all .2s ease-out;
+				padding-top: 6px;
+				
+				gt-label {
+					flex: 1;
+				}
+				
+				gt-checkbox {
+					margin-right: 6px;
+				}
+				
+				.help {
+					font-size: 12px;
+					color: @fs-gray;
+					margin-top: 8px;
+				}
+			}
+		}
+		
+		@media (max-width: 1500px) {
+			#reply-form #reply-options {
+				width: 175px;
+			}
 		}
 	</style>
 	<template>
@@ -308,8 +430,9 @@
 		<meta is="roster-chars" [user]="data.user" [chars] active>
 		<gt-box #main heading=" " scrollable>
 			<div #tabs>
-				<gt-button (click)="ShowDiscussion" {active}="equals(tab, 1)">Discussion</gt-button>
-				<gt-button (click)="ShowDetails" {active}="equals(tab, 2)">Details</gt-button>
+				<gt-button collapse-right (click)="ShowDiscussion" {active}="equals(tab, 1)">Discussion</gt-button>
+				<gt-button collapse-right (click)="ShowDetails" {active}="equals(tab, 2)">Details</gt-button>
+				<gt-button collapse-right (click)="ShowManage" {active}="equals(tab, 3)" [if]="app.user.promoted">Manage</gt-button>
 			</div>
 			<div #links>
 				<gt-button [goto]="profileLink">View profile</gt-button>
@@ -333,10 +456,43 @@
 				<h2>Characters</h2>
 				<apply-details-char [repeat]="chars" [id]="item"></apply-details-char>
 			</gt-box>
-			<gt-box #discussion scrollable dark {active}="equals(tab, 1)">
+			<gt-box #discussion scrollable dark {active}="equals(tab, 1)" {editor-open}="editOpen">
 				<apply-details-message [repeat]="feed" [message]="item"></apply-details-message>
+				<div #preview-separator [if]="editOpen"></div>
+				<apply-details-message [message]="messagePreview" [if]="editOpen"></apply-details-message>
 			</gt-box>
+			<div #reply {visible}="equals(tab, 1)" {open}="editOpen">
+				<div #reply-wrapper (click)="OpenEdit">
+					<gt-button><i>edit_mode</i> New message</gt-button>
+				</div>
+				<div #reply-form>
+					<gt-textarea #reply-textarea [value]="messageBody"></gt-textarea>
+					<div #reply-options>
+						<gt-label #reply-private>
+							<gt-checkbox [radio]="messageType" value="private"></gt-checkbox>
+							Private message
+							<div .help>
+								Only officers and guild members will be able to read the message.
+							</div>
+						</gt-label>
+						<gt-label #reply-public>
+							<gt-checkbox [radio]="messageType" value="public"></gt-checkbox>
+							Public message
+							<div .help>
+								Everyone will be able to read the message, this includes the apply himself. So, be nice!
+							</div>
+						</gt-label>
+						<div>
+							<gt-button fat collapse-left>Send</gt-button>
+							<gt-button collapse-left (click)="CloseEdit">Cancel</gt-button>
+						</div>
+						<a>
+					</div>
+				</div>
+			</div>
 			<gt-box #details scrollable dark {active}="equals(tab, 2)">
+			</gt-box>
+			<gt-box #manage scrollable dark {active}="equals(tab, 3)" [if]="app.user.promoted">
 			</gt-box>
 		</gt-box>
 	</template>
@@ -371,7 +527,6 @@
 			top: 8px;
 			right: 8px;
 			font-size: 13px;
-			//font-weight: 300;
 			color: @fs-gray;
 		}
 		
@@ -429,7 +584,6 @@
 		}
 		
 		#date {
-			//font-weight: 300;
 			font-size: 12px;
 			color: @fs-gray;
 		}
