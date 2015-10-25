@@ -78,9 +78,7 @@ export class ApplyDetails extends PolymerElement {
 	
 	/**
 	 * Apply meta-informations, loaded by a <meta> tag
-	 * We need to declare it here to attach an observer
 	 */
-	@Property({ observer: "DataAvailable" })
 	private data: Apply;
 	
 	/**
@@ -156,6 +154,15 @@ export class ApplyDetails extends PolymerElement {
 		this.messageType = "private";
 		this.feed = [];
 		clearTimeout(this.seenTimeout);
+		
+		if (!this.apply) return;
+		
+		this.tab = 1;
+		[this.feed, this.body] = await Promise.atLeast(200, this.service.applyFeedBody(this.apply));
+		
+		if (this.service.unreadState(this.apply)) {
+			this.seenTimeout = setTimeout(() => this.service.setSeen(this.apply), 2000);
+		}
 	}
 	
 	/**
@@ -164,26 +171,6 @@ export class ApplyDetails extends PolymerElement {
 	private ShowDiscussion() { this.tab = 1; this.editOpen = false }
 	private ShowDetails() { this.tab = 2; this.editOpen = false }
 	private ShowManage() { this.tab = 3; this.editOpen = false }
-	
-	/**
-	 * When data is available, decide which tab to activate
-	 * and load feed and body.
-	 * Also define the unread flag clearing timeout
-	 */
-	private async DataAvailable() {
-		if (this.tab === void 0) {
-			//this.tab = this.data.have_posts ? 1 : 2;
-			this.tab = 1;
-		}
-		
-		if (!this.apply) return;
-		[this.feed, this.body] = await Promise.atLeast(200, this.service.applyFeedBody(this.apply));
-		
-		clearTimeout(this.seenTimeout);
-		if (this.service.unreadState(this.apply)) {
-			this.seenTimeout = setTimeout(() => this.service.setSeen(this.apply), 2000);
-		}
-	}
 	
 	/**
 	 * Scroll the discussion tab to the bottom
