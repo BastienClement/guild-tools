@@ -48,12 +48,13 @@ object Applys extends TableQuery(new Applys(_)) with PubSub[User] {
 	}
 
 	// Fetch every open applications visible by the user
-	val openForUser = Compiled((user: Rep[Int], wide: Rep[Boolean]) => {
+	val openForUser = Compiled((user: Rep[Int], member: Rep[Boolean], promoted: Rep[Boolean]) => {
 		val default_read = SmartTimestamp(2000, 1, 1).toSQL
 		for {
-			apply <- Applys.sortBy(_.updated.desc) if apply.stage < Applys.REFUSED && (wide || apply.user === user)
+			apply <- Applys.sortBy(_.updated.desc) if apply.stage < Applys.REFUSED && (member || apply.user === user) && (apply.stage > Applys.PENDING || promoted)
+			last_msg = ApplyFeed.filter(m => m.apply === apply.id && (member || !m.secret)).map(_.date).max.getOrElse(default_read)
 			read = ApplyReadStates.filter(r => r.apply === apply.id && r.user === user).map(_.date).max.getOrElse(default_read)
-		} yield (apply, read < apply.updated)
+		} yield (apply, read < last_msg)
 	})
 
 	// Update the read state flag

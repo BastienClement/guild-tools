@@ -151,7 +151,7 @@ export class ApplyDetails extends PolymerElement {
 		this.editOpen = false;
 		this.editorDisabled = false;
 		this.messageBody = "";
-		this.messageType = "private";
+		this.messageType = this.app.user.member ? "private" : "public";
 		this.feed = [];
 		clearTimeout(this.seenTimeout);
 		
@@ -253,6 +253,11 @@ export class ApplyDetails extends PolymerElement {
 		if (apply == this.apply && unread) {
 			this.service.setSeen(apply);
 		}
+	}
+	
+	@Property({ computed: "editorDisabled app.user.member" })
+	private get privateMessageDisabled(): boolean {
+		return this.editorDisabled || !this.app.user.member;
 	}
 	
 	/**

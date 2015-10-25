@@ -25,7 +25,7 @@ class Apply(user: User) extends ChannelHandler {
 	}
 
 	// List of open applys that the user can access
-	request("open-list") { p => Applys.openForUser(user.id, user.member).result.run }
+	request("open-list") { p => Applys.openForUser(user.id, user.member, user.promoted).result.run }
 
 	// Load a specific application data
 	request("apply-data") { p =>
