@@ -48,7 +48,8 @@ package object models {
 				"promoted" -> user.promoted,
 				"developer" -> user.developer,
 				"member" -> user.member,
-				"roster" -> user.roster)
+				"roster" -> user.roster,
+				"fs" -> user.fs)
 		}
 	}
 

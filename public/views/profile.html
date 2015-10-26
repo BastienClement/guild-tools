@@ -175,7 +175,7 @@
 			
 			span {
 				display: inline-block;
-				width: 30%;
+				width: 35%;
 				font-family: "Roboto Condensed";
 			}
 		}
@@ -186,8 +186,31 @@
 			right: 0;
 			z-index: 10;
 		}
+		#access {
+			margin-top: 12px;
+   			margin-bottom: -4px;
+		}
 		
-		#btag {
+		#access b {
+			background: rgba(17, 17, 17, 0.2);
+			border-radius: 50%;
+			border: 2px dotted fade(@fs-blue, 50%);
+			display: inline-block;
+			padding: 1px 2px 3px;
+			height: 1em;
+			width: 1em;
+			box-sizing: content-box;
+			font-family: "Roboto Condensed";
+			color: @light-blue;
+			text-align: center;
+			vertical-align: middle;
+			
+			&:first-of-type {
+				margin-left: -2px;
+			}
+		}
+		
+		#rlname, #btag {
 			margin-top: 16px;
 		}
 	</style>
@@ -197,35 +220,51 @@
 		<gt-box heading="Profile" scrollable>
 			<gt-button [if]="editable"><i>edit</i> Edit</gt-button>
 			<div #username>
-				<i>face</i>
+				<i>person</i>
 				<span>Username</span>
 				<b>{{infos.name}}</b>
-			<div>
+			</div>
 			<div #rank>
 				<i>grade</i>
 				<span>Rank</span>
 				<b>{{rank_name}}</b>
-			<div>
+			</div>
+			<div #access>
+				<i>security</i>
+				<span>Access tags</span>
+				<b [if]="infos.developer">D</b>
+				<b [if]="infos.officer" {hidden}="infos.developer">O</b>
+				<b [if]="infos.promoted">P</b>
+				<b [if]="infos.member">M</b>
+				<b [if]="infos.roster">R</b>
+				<b [if]="infos.fs">G</b>
+				<span [if]="!infos.fs">&mdash;</b>
+			</div>
+			<div #rlname>
+				<i>face</i>
+				<span>Real-life name</span>
+				<b>&mdash;</b>
+			</div>
 			<div #bday>
 				<i>cake</i>
 				<span>Birthday</span>
 				<b>&mdash;</b>
-			<div>
+			</div>
 			<div #btag>
 				<i>gamepad</i>
 				<span>BattleTag</span>
 				<b>&mdash;</b>
-			<div>
+			</div>
 			<div #mail>
 				<i>local_post_office</i>
 				<span>E-mail</span>
 				<b>&mdash;</b>
-			<div>
+			</div>
 			<div #phone>
 				<i>local_phone</i>
 				<span>Phone</span>
 				<b>&mdash;</b>
-			<div>
+			</div>
 		</gt-box>
 	</template>
 </dom-module>

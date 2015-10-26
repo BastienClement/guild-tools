@@ -24,6 +24,7 @@ object AuthService extends StaticActor[AuthService, AuthServiceImpl]("AuthServic
 	val officier_groups = Set(11)
 	val member_groups = Set(9, 11)
 	val roster_groups = Set(8, 9, 11)
+	val fromscratch_groups = allowed_groups
 }
 
 trait AuthService {

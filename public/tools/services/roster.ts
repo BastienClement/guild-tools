@@ -14,6 +14,7 @@ export interface User {
 	promoted: boolean;
 	member: boolean;
 	roster: boolean;
+	fs: boolean;
 }
 
 export interface Char {
@@ -122,7 +123,8 @@ export class Roster extends Service {
 			developer: false,
 			promoted: false,
 			member: false,
-			roster: false
+			roster: false,
+			fs: false
 		};
 	}
 	

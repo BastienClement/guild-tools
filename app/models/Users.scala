@@ -11,6 +11,7 @@ case class User(id: Int, name: String, group: Int, color: String) {
 	lazy val promoted = developer || officer
 	lazy val member = promoted || AuthService.member_groups.contains(group)
 	lazy val roster = promoted || AuthService.roster_groups.contains(group)
+	lazy val fs = AuthService.fromscratch_groups.contains(group)
 
 	def ready: Future[Boolean] = Chars.filter(_.owner === id).headOption.map(_.isDefined)
 }
