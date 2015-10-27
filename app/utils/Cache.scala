@@ -31,7 +31,7 @@ class Cache[K, T] private(expire: FiniteDuration)(generator: (K) => T) extends C
 	Cache.register(this)
 
 	// Cells from this collection
-	private var cells = Map[K, CacheCell[T]]()
+	@volatile private[this] var cells = Map[K, CacheCell[T]]()
 
 	// Fetch or create a cell for a given key
 	// Thread-safe

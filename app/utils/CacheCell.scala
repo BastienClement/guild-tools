@@ -28,10 +28,10 @@ object CacheCell {
 
 class CacheCell[T] private(ttl: FiniteDuration)(generator: => T) {
 	// This cell value
-	private var _value: Option[T] = None
+	@volatile private[this] var _value: Option[T] = None
 
 	// Cell expiration deadline
-	private var expiration: Deadline = Deadline.now
+	@volatile private[this] var expiration: Deadline = Deadline.now
 
 	// Get internal value or generate it if not available
 	def value: T = if (hasValue) _value.get else gen()
@@ -44,7 +44,7 @@ class CacheCell[T] private(ttl: FiniteDuration)(generator: => T) {
 	// Explicitly set a new value for this cell
 	// This version take a function to compute the new value from the old one
 	// Example: foo := (_ + 1)
-	def :=(f: (T) => T): Unit = {
+	def :=(f: (T) => T): Unit = this.synchronized {
 		_value = Some(f(_value.get))
 	}
 
@@ -58,7 +58,7 @@ class CacheCell[T] private(ttl: FiniteDuration)(generator: => T) {
 	def hasValue: Boolean = _value.isDefined && expiration.hasTimeLeft()
 
 	// Generate a new value
-	private def gen(): T = this.synchronized {
+	private[this] def gen(): T = this.synchronized {
 		// Race-condition
 		// Value was generated while waiting for synchronization
 		if (hasValue) return _value.get
