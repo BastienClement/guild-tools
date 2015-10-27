@@ -1,11 +1,13 @@
 package controllers
 
 import akka.actor.Props
+import com.google.inject.Inject
+import gt.GuildTools
 import gtp3.WSActor
 import play.api.Play.current
 import play.api.mvc.{Action, Controller, WebSocket}
 
-object Application extends Controller {
+class Application @Inject() (gt: GuildTools) extends Controller {
 	def catchall(path: String) = client
 
 	def client = Action {

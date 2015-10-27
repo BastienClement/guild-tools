@@ -4,7 +4,7 @@ import actors.SocketManager
 import akka.actor.Props
 import akka.pattern._
 import akka.util.Timeout
-import gt.Global
+import gt.GuildTools
 import gtp3.Socket.{RequestInfos, SocketInfos}
 import gtp3._
 import play.api.libs.json.{JsNull, Json}
@@ -40,10 +40,10 @@ class ServerStatus extends ChannelHandler {
 	// Server software infos
 	request("server-infos") { _ =>
 		Json.obj(
-			"name" -> Global.serverName,
-			"version" -> Global.serverVersion.value,
-			"start" -> Global.serverStart,
-			"uptime" -> Global.serverUptime
+			"name" -> GuildTools.serverName,
+			"version" -> GuildTools.serverVersion.value,
+			"start" -> GuildTools.serverStart,
+			"uptime" -> GuildTools.serverUptime
 		)
 	}
 

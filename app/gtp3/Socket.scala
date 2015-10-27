@@ -1,7 +1,7 @@
 package gtp3
 
 import akka.actor._
-import gt.Global
+import gt.GuildTools
 import gtp3.Socket._
 import models.User
 import scala.annotation.tailrec
@@ -70,7 +70,7 @@ class Socket(val id: Long, val opener: Opener) extends Actor {
 		case Handshake(o) =>
 			out = o
 			state = "OPEN"
-			self ! HandshakeFrame(GTP3Magic, Global.serverVersion.value, id)
+			self ! HandshakeFrame(GTP3Magic, GuildTools.serverVersion.value, id)
 
 		// Resume a disconnected socket
 		case Resume(o, seq) =>

@@ -8,7 +8,7 @@ import reactive._
 import scala.concurrent.Future
 
 trait Wishlist {
-	this: WebTools.type =>
+	this: WebTools =>
 
 	private val wishlistBosses = Seq(
 		"Assault", "Iron Reaver", "Kormrok",

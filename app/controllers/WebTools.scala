@@ -10,7 +10,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import utils.Cache
 
-object WebTools extends Controller with Wishlist {
+class WebTools extends Controller with Wishlist {
 	// The wrapper request with user informations and session token
 	class UserRequest[A](val user: User, val token: String, val set_cookie: Boolean, val request: Request[A]) extends WrappedRequest[A](request)
 

@@ -10,7 +10,7 @@ import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.api.mvc.{Action, Controller, RequestHeader}
 import utils.SmartTimestamp
 
-object Api extends Controller {
+class Api extends Controller {
 	def catchall(path: String) = Action {
 		NotFound(Json.obj("error" -> "Undefined API call"))
 	}

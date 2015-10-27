@@ -18,4 +18,6 @@ libraryDependencies ++= Seq(
 
 scalacOptions ++= Seq("-feature")
 
+routesGenerator := InjectedRoutesGenerator
+
 pipelineStages := Seq(digest, gzip)

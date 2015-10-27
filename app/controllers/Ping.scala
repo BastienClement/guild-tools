@@ -4,7 +4,7 @@ import channels.NewsFeed
 import play.api.Play._
 import play.api.mvc.{Action, Controller}
 
-object Ping extends Controller {
+class Ping extends Controller {
 	private val secret = current.configuration.getString("ping.secret") getOrElse ""
 	private val sources = current.configuration.getStringSeq("ping.sources") getOrElse Nil
 
