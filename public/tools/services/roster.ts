@@ -39,6 +39,7 @@ export interface Char {
 interface UserRecord {
 	infos: User;
 	chars: Map<number, Char>;
+	fake: boolean;
 }
 
 /**
@@ -77,7 +78,9 @@ export class Roster extends Service {
 	
 	// Request an update for a user
 	private async request(user: number) {
-		if (await this.preload() && this.users.has(user)) return;
+		if (await this.preload() && this.users.has(user) && !this.users.get(user).fake) {
+			return;
+		}
 		this.channel.send("request-user", user);
 	}
 	
@@ -158,7 +161,8 @@ export class Roster extends Service {
 		if (!record) {
 			record = {
 				infos: this.fakeUser(user),
-				chars: new Map()
+				chars: new Map(),
+				fake: true
 			};
 			this.users.set(user, record);
 		}
@@ -192,7 +196,8 @@ export class Roster extends Service {
 			// Create record object
 			record = {
 				infos: user,
-				chars: char_map
+				chars: char_map,
+				fake: false
 			};
 			
 			// Save it
@@ -236,6 +241,7 @@ export class Roster extends Service {
 		
 		// Record the last update of the record
 		this.chars_cache.delete(user.id);
+		record.fake = false;
 		this.touch(record);
 	}
 	
