@@ -46,7 +46,7 @@ class Apply(user: User) extends ChannelHandler {
 	}
 
 	// Update the unread status for an application
-	message("set-seen") { p => ApplicationReadStates.markAsRead(p.value.as[Int], user) }
+	request("set-seen") { p => ApplicationReadStates.markAsRead(p.value.as[Int], user) }
 
 	// Post a new message in an application
 	request("post-message") { p =>
