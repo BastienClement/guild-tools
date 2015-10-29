@@ -1,5 +1,6 @@
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
+import models.application.{ApplicationMessage, Application}
 import play.api.Play
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.json._
@@ -53,8 +54,8 @@ package object models {
 		}
 	}
 
-	implicit val applyJsonFormat = Json.format[Apply]
-	implicit val applyFeedMessageJsonFormat = Json.format[ApplyFeedMessage]
+	implicit val applyJsonFormat = Json.format[Application]
+	implicit val applyFeedMessageJsonFormat = Json.format[ApplicationMessage]
 	implicit val charJsonFormat = Json.format[Char]
 	implicit val eventJsonFormat = Json.format[CalendarEvent]
 	implicit val answerJsonFormat = Json.format[CalendarAnswer]

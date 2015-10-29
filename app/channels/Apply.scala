@@ -4,7 +4,9 @@ import akka.actor.Props
 import gtp3._
 import models._
 import models.mysql._
-import reactive._
+import models.application._
+import reactive.ExecutionContext
+import ApplicationEvents._
 
 object Apply extends ChannelValidator {
 	def open(request: ChannelRequest) = {
@@ -15,45 +17,43 @@ object Apply extends ChannelValidator {
 
 class Apply(user: User) extends ChannelHandler {
 	init {
-		Applys.subscribe(user)
+		ApplicationEvents.subscribe(user)
 	}
 
 	akka {
-		case Applys.UnreadUpdated(apply_id, unread) => send("unread-updated", (apply_id, unread))
-		case Applys.ApplyUpdated(apply) => send("apply-updated", apply)
-		case Applys.MessagePosted(message) => send("message-posted", message)
+		case UnreadUpdated(apply_id, unread) => send("unread-updated", (apply_id, unread))
+		case ApplyUpdated(apply) => send("apply-updated", apply)
+		case MessagePosted(message) => send("message-posted", message)
 	}
 
 	// List of open applys that the user can access
-	request("open-list") { p => Applys.openForUser(user).result.run }
+	request("open-list") { p => Applications.listOpenForUser(user).result.run }
 
 	// Load a specific application data
-	request("apply-data") { p =>
+	/*request("apply-data") { p =>
 		val id = p.value.as[Int]
-		for (apply <- Applys.filter(_.id === id).headOption) yield {
-			apply.filter(a => Applys.canAccess(a.user, a.stage, user))
-		}
-	}
+		Applications.getDataVerified(id, user.id, user.member, user.promoted).result.head.run
+	}*/
 
 	// Request the message feed and body
 	request("apply-feed-body") { p =>
 		val id = p.value.as[Int]
 		val query = for {
-			(owner, stage, body) <- Applys.filter(_.id === id).map(a => (a.user, a.stage, a.data)).result.head
-			_ = if (Applys.canAccess(owner, stage, user)) () else throw new Exception("Access to this application is denied")
-			feed <- Applys.feedForApply(id, user.member).result
+			body_opt <- Applications.getDataVerified(id, user.id, user.member, user.promoted).result.headOption
+			body = body_opt.getOrElse(throw new Exception("Access to this application is denied"))
+			feed <- ApplicationFeed.forApplicationSorted(id, user.member).result
 		} yield (feed, body)
 		query.run
 	}
 
 	// Update the unread status for an application
-	message("set-seen") { p => Applys.markAsRead(user, p.value.as[Int]).run }
+	message("set-seen") { p => ApplicationReadStates.markAsRead(p.value.as[Int], user).run }
 
 	// Post a new message in an application
 	request("post-message") { p =>
 		val apply = p("apply").as[Int]
 		val body = p("message").as[String]
 		val secret = p("secret").as[Boolean]
-		for (_ <- Applys.postMessage(user, apply, body, secret).run) yield true
+		for (_ <- ApplicationFeed.postMessage(user, apply, body, secret).run) yield true
 	}
 }

@@ -1,5 +1,6 @@
 @import models._
-@(applications: Seq[(Apply, Boolean)])(implicit user: User)
+@import models.application
+@(applications: Seq[(application.Application, Boolean)])(implicit user: User)
 @wt.layout("apply") {
 	<h2>Candidatures ouvertes</h2>
 	@for((application, unread) <- applications) {

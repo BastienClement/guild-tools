@@ -52,7 +52,7 @@ trait PubSub[A] {
 
 	// Publish to all subs
 	protected def publish(msg: Any): Unit = publish(msg, subs.keys)
-	final protected def !#(msg: Any): Unit = publish(msg, subs.keys)
+	protected def !#(msg: Any): Unit = publish(msg, subs.keys)
 
 	// Publish to subs with data matching a filter function
 	protected def publish(msg: Any, filter: (A) => Boolean): Unit =
