@@ -21,7 +21,7 @@ package object models {
 		@inline def headOption = DB.run(q.result.headOption)
 	}
 
-	implicit class DBActionExecutior[R](val q: DBIOAction[R, NoStream, Nothing]) extends AnyVal {
+	implicit class DBIOActionExecutor[R](val q: DBIOAction[R, NoStream, Nothing]) extends AnyVal {
 		@inline def run = DB.run(q)
 		@inline def await = DB.run(q).await
 	}

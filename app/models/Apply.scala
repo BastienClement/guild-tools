@@ -3,7 +3,6 @@ package models
 import java.sql.Timestamp
 import models.mysql._
 import reactive.ExecutionContext
-import scala.util.Success
 import utils.{PubSub, SmartTimestamp}
 
 // ============================================================================
@@ -59,9 +58,11 @@ object Applys extends TableQuery(new Applys(_)) with PubSub[User] {
 	})
 
 	// Update the read state flag
-	def markAsRead(user: User, apply_id: Int): Unit = {
-		val query = ApplyReadStates insertOrUpdate ApplyReadState(user.id, apply_id, SmartTimestamp.now)
-		for (_ <- query.run) publish(UnreadUpdated(apply_id, false), u => u.id == user.id)
+	def markAsRead(user: User, apply_id: Int) = {
+		for {
+			r <- ApplyReadStates insertOrUpdate ApplyReadState(user.id, apply_id, SmartTimestamp.now)
+			_ = publish(UnreadUpdated(apply_id, false), u => u.id == user.id)
+		} yield ()
 	}
 
 	// Return messages in the discussion feed
@@ -71,45 +72,64 @@ object Applys extends TableQuery(new Applys(_)) with PubSub[User] {
 
 	// Post a new message in an application
 	def postMessage(sender: User, apply_id: Int, message: String, secret: Boolean = true, system: Boolean = false) = {
-		val now = SmartTimestamp.now.toSQL
-		val msg = ApplyFeedMessage(0, apply_id, sender.id, now, message, secret, system)
-
 		// Attempt to send a private message, but the user is not a member
 		if (secret && !sender.member)
 			throw new Exception("You are not allowed to post private messages on applications")
 
-		val query = (for {
-		// Fetch the application and ensure that the user can access it
+		val now = SmartTimestamp.now.toSQL
+		val msg = ApplyFeedMessage(0, apply_id, sender.id, now, message, secret, system)
+
+		val post_message_query = for {
+			// Fetch the application and ensure that the user can access it
 			apply <- Applys.filter(_.id === apply_id).result.head
-			_ = if (canAccess(apply.user, apply.stage, sender)) () else throw new Exception("You are not allowed to access this application")
+			_ = if (!canAccess(apply.user, apply.stage, sender)) throw new Exception("You are not allowed to access this application")
 
 			// Insert the message in the database
-			msg_id <- ApplyFeed += msg
+			msg_id <- (ApplyFeed returning ApplyFeed.map(_.id)) += msg
 
 			// Set have_posts and updated field for the application
 			_ <- Applys.filter(_.id === apply_id).map(a => (a.have_posts, a.updated)).update((true, now))
 
 			// Adjust application object fields to match what we just changed
 			apply_updated = apply.copy(have_posts = true, updated = now)
+		} yield (apply_updated, msg_id)
 
-			// Register the thread as read for the poster
-			_ <- ApplyReadStates insertOrUpdate ApplyReadState(sender.id, apply_id, SmartTimestamp.now)
-		} yield (apply_updated, msg_id)).transactionally
-
-		// Check that the user can access the message
-		// User can access a message if he can access the application that contains it and
-		// is member of the message is not secret
-		def canAccessMessage(owner: Int, stage: Int, user: User, secret: Boolean) = {
-			canAccess(owner, stage, user) && (!secret || user.member)
-		}
-
-		DB.run(query) andThen {
-			case Success((apply, msg_id)) =>
-				def filter(u: User) = canAccessMessage(apply.user, apply.stage, u, secret)
+		for {
+			(apply, msg_id) <- post_message_query.transactionally
+			_ = {
+				// Only send event to users that can access application and are members if the message is secret
+				def filter(user: User) = canAccess(apply.user, apply.stage, user) && (!secret || user.member)
 				publish(ApplyUpdated(apply), filter)
 				publish(MessagePosted(msg.copy(id = msg_id)), filter)
-				publish(UnreadUpdated(apply.id, true), u => u.id != sender.id && filter(u))
-		}
+				publish(UnreadUpdated(apply.id, true), filter)
+			}
+		} yield (apply, msg_id)
+	}
+
+	def changeState(user: User, application: Int, stage: Int) = {
+		if (stage < PENDING || stage > ARCHIVED)
+			throw new IllegalArgumentException("Invalid stage")
+
+		if (!user.promoted)
+			throw new IllegalAccessException("Unpromoted user cannot change application state")
+
+		val query = for {
+			// Fetch the current application and ensure that it is not already in the requested stage
+			apply <- Applys.filter(_.id === application).result.head
+			_ = if (apply.stage == stage) throw new IllegalStateException("Application is already in the given stage")
+
+			// Update the application
+			_ <- Applys.filter(_.id === application).map(_.stage).update(stage)
+
+			// Send the update message in the feed
+			update_message = s"${user.name} changed the application stage from ${stageName(apply.stage)} to ${stageName(stage)}"
+			_ <- postMessage(user, application, update_message, false, true)
+
+			// Remove any read state relative to the application
+			_ <- ApplyReadStates.filter(_.apply === apply.id).delete
+		} yield apply
+
+		query
 	}
 }
 

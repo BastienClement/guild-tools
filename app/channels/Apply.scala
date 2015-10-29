@@ -47,13 +47,13 @@ class Apply(user: User) extends ChannelHandler {
 	}
 
 	// Update the unread status for an application
-	message("set-seen") { p => Applys.markAsRead(user, p.value.as[Int]) }
+	message("set-seen") { p => Applys.markAsRead(user, p.value.as[Int]).run }
 
 	// Post a new message in an application
 	request("post-message") { p =>
 		val apply = p("apply").as[Int]
 		val body = p("message").as[String]
 		val secret = p("secret").as[Boolean]
-		for (_ <- Applys.postMessage(user, apply, body, secret)) yield true
+		for (_ <- Applys.postMessage(user, apply, body, secret).run) yield true
 	}
 }

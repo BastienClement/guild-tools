@@ -7,7 +7,7 @@ import play.api.libs.json.{JsNull, Json}
 import reactive._
 import scala.concurrent.Future
 
-trait Wishlist {
+trait WishlistController {
 	this: WebTools =>
 
 	private val wishlistBosses = Seq(
@@ -44,7 +44,7 @@ trait Wishlist {
 
 				// Insert data into database
 				val query = sqlu"INSERT INTO poll_whishlist SET user = ${request.user.id}, data = $data ON DUPLICATE KEY UPDATE data = VALUES(data)"
-				DB.run(query) map { _ => Ok("OK") } recover { case e => println(e); throw e }
+				DB.run(query) map { _ => Ok("OK") } recover { case _ => BadRequest("NOK") }
 		}
 	}
 
