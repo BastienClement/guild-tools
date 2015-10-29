@@ -36,7 +36,7 @@ object ApplicationFeed extends TableQuery(new ApplicationFeed(_)) {
 		 * - Adjust application object fields to match what we have just changed
 		 */
 		val action = for {
-			application_opt <- Applications.getByIdVerified(apply_id, sender.id, sender.member, sender.promoted).result.headOption
+			application_opt <- Applications.getByIdChecked(apply_id, sender.id, sender.member, sender.promoted).result.headOption
 			application = application_opt.getOrElse(throw new Exception("You are not allowed to access this application"))
 			msg_id <- (ApplicationFeed returning ApplicationFeed.map(_.id)) += msg
 			_ <- Applications.filter(_.id === apply_id).map(a => (a.have_posts, a.updated)).update((true, now))

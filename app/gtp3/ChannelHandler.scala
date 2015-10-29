@@ -4,10 +4,12 @@ import akka.actor._
 import gtp3.Channel._
 import gtp3.ChannelHandler._
 import org.apache.commons.lang3.exception.ExceptionUtils
+import models.DB
 import reactive._
 import scala.concurrent.Future
 import scala.language.implicitConversions
 import scala.util.{Failure => TFailure, Success => TSuccess}
+import slick.dbio.{NoStream, DBIOAction}
 
 trait ChannelValidator {
 	def open(request: ChannelRequest): Unit
@@ -30,6 +32,10 @@ object ChannelHandler {
 
 	implicit def FuturePayloadConverter[T: PayloadBuilder] = new FuturePayloadBuilder[Future[T]] {
 		def build(f: Future[T]): Future[Payload] = f map { q => Payload(q) }
+	}
+
+	implicit def FuturePayloadDBIOAction[T: PayloadBuilder] = new FuturePayloadBuilder[DBIOAction[T, NoStream, Nothing]] {
+		def build(a: DBIOAction[T, NoStream, Nothing]): Future[Payload] = DB.run(a) map { q => Payload(q) }
 	}
 
 	implicit val FuturePayloadIdentity = new FuturePayloadBuilder[Future[Payload]] {

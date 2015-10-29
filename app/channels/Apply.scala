@@ -27,7 +27,7 @@ class Apply(user: User) extends ChannelHandler {
 	}
 
 	// List of open applys that the user can access
-	request("open-list") { p => Applications.listOpenForUser(user).result.run }
+	request("open-list") { p => Applications.listOpenForUser(user).result }
 
 	// Load a specific application data
 	/*request("apply-data") { p =>
@@ -38,22 +38,21 @@ class Apply(user: User) extends ChannelHandler {
 	// Request the message feed and body
 	request("apply-feed-body") { p =>
 		val id = p.value.as[Int]
-		val query = for {
-			body_opt <- Applications.getDataVerified(id, user.id, user.member, user.promoted).result.headOption
+		for {
+			body_opt <- Applications.getDataChecked(id, user.id, user.member, user.promoted).result.headOption
 			body = body_opt.getOrElse(throw new Exception("Access to this application is denied"))
 			feed <- ApplicationFeed.forApplicationSorted(id, user.member).result
 		} yield (feed, body)
-		query.run
 	}
 
 	// Update the unread status for an application
-	message("set-seen") { p => ApplicationReadStates.markAsRead(p.value.as[Int], user).run }
+	message("set-seen") { p => ApplicationReadStates.markAsRead(p.value.as[Int], user) }
 
 	// Post a new message in an application
 	request("post-message") { p =>
 		val apply = p("apply").as[Int]
 		val body = p("message").as[String]
 		val secret = p("secret").as[Boolean]
-		for (_ <- ApplicationFeed.postMessage(user, apply, body, secret).run) yield true
+		for (_ <- ApplicationFeed.postMessage(user, apply, body, secret)) yield true
 	}
 }

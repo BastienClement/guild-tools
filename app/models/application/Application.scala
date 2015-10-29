@@ -25,7 +25,7 @@ object Applications extends TableQuery(new Applications(_)) {
 	/** Fetch every open applications visible by the user and their unread status */
 	val listOpen = Compiled((user_id: Rep[Int], member: Rep[Boolean], promoted: Rep[Boolean]) => {
 		for {
-			application <- Applications.sortBy(_.updated.desc) if canAccess(user_id, member, promoted)(application)
+			application <- Applications.sortBy(_.updated.desc).filter(canAccess(user_id, member, promoted))
 			unread = ApplicationReadStates.isUnread.extract(application.id, user_id, member)
 		} yield (application, unread)
 	})
@@ -39,7 +39,7 @@ object Applications extends TableQuery(new Applications(_)) {
 	})
 
 	/** Fetch application by id and check that the user can access it */
-	val getByIdVerified = Compiled((id: Rep[Int], user: Rep[Int], member: Rep[Boolean], promoted: Rep[Boolean]) => {
+	val getByIdChecked = Compiled((id: Rep[Int], user: Rep[Int], member: Rep[Boolean], promoted: Rep[Boolean]) => {
 		getById.extract(id).filter(canAccess(user, member, promoted))
 	})
 
@@ -49,8 +49,8 @@ object Applications extends TableQuery(new Applications(_)) {
 	})
 
 	/** Fetch application body data by id and check that the user can access it */
-	val getDataVerified = Compiled((id: Rep[Int], user: Rep[Int], member: Rep[Boolean], promoted: Rep[Boolean]) => {
-		getByIdVerified.extract(id, user, member, promoted).map(_.data)
+	val getDataChecked = Compiled((id: Rep[Int], user: Rep[Int], member: Rep[Boolean], promoted: Rep[Boolean]) => {
+		getByIdChecked.extract(id, user, member, promoted).map(_.data)
 	})
 
 	/*
