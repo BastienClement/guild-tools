@@ -357,6 +357,10 @@ export class Roster extends Service {
 	public updateChar(char: number) {
 		return this.channel.request<boolean>("update-char", char);
 	}
+	
+	public changeRole(char: number, role: String) {
+		return this.channel.request<boolean>("change-role", { char, role });
+	}
 }
 
 /**

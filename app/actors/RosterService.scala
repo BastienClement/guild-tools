@@ -171,6 +171,17 @@ trait RosterService extends PubSub[User] {
 	def enableChar(id: Int, user: Option[User] = None): Future[Char] = changeEnabledState(id, user, true)
 	def disableChar(id: Int, user: Option[User] = None): Future[Char] = changeEnabledState(id, user, false)
 
+	def changeRole(id: Int, role: String, user: Option[User] = None): Future[Char] = DB.run {
+		if (!Chars.validateRole(role)) throw new Exception("Invalid role")
+		val char_query = getOwnChar(id, user)
+		for {
+			_ <- char_query.filter(_.role =!= role).map(_.role).update(role)
+			char <- char_query.result.head
+		} yield {
+			this.notifyUpdate(char)
+		}
+	}
+
 	// Remove an existing character from the database
 	def removeChar(id: Int, user: Option[User] = None): Future[Char] = DB.run {
 		for {

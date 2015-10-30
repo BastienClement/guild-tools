@@ -46,4 +46,5 @@ class Roster(val user: User) extends ChannelHandler {
 	request("enable-char") { p => RosterService.enableChar(p.as[Int], update_user) }
 	request("remove-char") { p => RosterService.removeChar(p.as[Int], update_user) }
 	request("update-char") { p => RosterService.refreshChar(p.as[Int], update_user) }
+	request("change-role") { p => RosterService.changeRole(p("char").as[Int], p("role").as[String], update_user) }
 }

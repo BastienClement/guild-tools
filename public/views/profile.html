@@ -479,9 +479,9 @@
 			</div>
 			<div #actions {hidden}="!editable">
 				<div #roles {disabled}="!char.active">
-					<img src="/assets/images/roles/TANK.png" role="TANK" (click)="roleClicked" {active}="equals(char.role, 'TANK')">
-					<img src="/assets/images/roles/HEALING.png" role="HEALING" (click)="roleClicked" {active}="equals(char.role, 'HEALING')">
-					<img src="/assets/images/roles/DPS.png" role="DPS" (click)="roleClicked" {active}="equals(char.role, 'DPS')">
+					<img #role-tank src="/assets/images/roles/TANK.png" {active}="equals(char.role, 'TANK')">
+					<img #role-healing src="/assets/images/roles/HEALING.png" {active}="equals(char.role, 'HEALING')">
+					<img #role-dps src="/assets/images/roles/DPS.png" {active}="equals(char.role, 'DPS')">
 				</div>
 				<span {hidden}="!char.active">
 					<gt-button #btn-main {hidden}="char.main">Main</gt-button>

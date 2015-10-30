@@ -58,17 +58,23 @@ class ProfileCharsCard extends PolymerElement {
 		return dt > 1000 * 60 * 15;
 	}
 	
-	@Listener("btn-disable.click")
-	public Disable() { this.roster.disableChar(this.id); }
+	// Role
 	
-	@Listener("btn-enable.click")
-	public Enable() { this.roster.enableChar(this.id); }
+	private SetRole(role: string) {
+		if (this.char.role == role) return;
+		this.roster.changeRole(this.id, role);
+	}
 	
-	@Listener("btn-main.click")
-	public Promote() { this.roster.promoteChar(this.id); }
+	@Listener("role-tank.click") public SetRoleTank() { this.SetRole("TANK"); }
+	@Listener("role-healing.click") public SetRoleHealing() { this.SetRole("HEALING"); }
+	@Listener("role-dps.click") public SetRoleDPS() { this.SetRole("DPS"); }
 	
-	@Listener("btn-remove.click")
-	public Remove() { this.roster.removeChar(this.id); }
+	// Control buttons
+	
+	@Listener("btn-disable.click") public Disable() { this.roster.disableChar(this.id); }
+	@Listener("btn-enable.click") public Enable() { this.roster.enableChar(this.id); }
+	@Listener("btn-main.click") public Promote() { this.roster.promoteChar(this.id); }
+	@Listener("btn-remove.click") public Remove() { this.roster.removeChar(this.id); }
 	
 	@Listener("btn-update.click")
 	public async Update() {
