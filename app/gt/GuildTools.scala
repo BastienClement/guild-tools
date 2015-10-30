@@ -34,13 +34,18 @@ class GuildTools @Inject() (lifecycle: ApplicationLifecycle) {
 		val path = Play.configuration.getString("dev.path").get
 		val pwd = Play.configuration.getString("dev.dir").get
 		val tsc = Play.configuration.getString("dev.tsc").get
+		val opt = Play.configuration.getString("dev.tscOptions").getOrElse("-w")
+		val node = Play.configuration.getString("dev.node").getOrElse("node")
 
-		println("TSC   - Starting Typescript compiler...")
-		val process = Process(Seq(tsc, "-w"), new File(s"$pwd/public/tools"), "PATH" -> path) run ProcessLogger { line =>
+		println("TSC   - Starting Typescript compiler")
+		val process = Process(Seq(node, tsc, opt), new File(s"$pwd/public/tools"), "PATH" -> path) run ProcessLogger { line =>
 			println("TSC   - " + line)
 		}
 
-		stopHook { process.destroy() }
+		stopHook {
+			println("TSC   - Stopping Typescript compiler")
+			process.destroy()
+		}
 	}
 
 	def setupCharacterRefresher(): Unit = {
