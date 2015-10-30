@@ -1,87 +1,20 @@
 @()
-<!DOCTYPE html>
-<meta charset="UTF-8">
-<title>Guild Tools</title>
-<link rel="shortcut icon" href='@routes.Assets.versioned("images/favicon.ico")'>
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css?family=Roboto:300,400|Roboto+Condensed:300|Roboto+Mono:300" rel="stylesheet">
+@error() {
+	<script src='@routes.Assets.versioned("javascripts/bowser.js")'></script>
+	<script>
+			var good = false;
+			var bowser = this.bowser || module.exports;
+			if (bowser.firefox) {
+				bowser.name = "Mozilla Firefox";
+				bowser.url = "http://getfirefox.com";
+				good = true;
+			} else if (bowser.chrome) {
+				bowser.name = "Google Chrome";
+				bowser.url = "http://www.google.com/chrome";
+				good = true;
+			}
+	</script>
 
-<style>
-	html, body {
-		height: 100% ;
-		width: 100% ;
-		margin: 0 ;
-		padding: 0 ;
-	}
-
-	body {
-		overflow: hidden;
-		background-color: #2e3740;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		font: 300 15px Roboto;
-		color: #f1f1f1;
-		line-height: 1.4em;
-	}
-
-	content {
-		width: 550px;
-		position: relative;
-		padding-left: 100px;
-	}
-
-	i.material-icons {
-		position: absolute;
-		top: 50px;
-		left: 0;
-		font-size: 70px;
-		color: #8eafce;
-	}
-
-	h1 {
-		font: 300 24px "Roboto Condensed";
-		margin: 0 0 25px ;
-	}
-
-	.user-agent {
-		color: #A7AEB3;
-		font: 300 10px "Roboto Mono";
-	}
-
-	.cloak {
-		display: none;
-	}
-
-	a {
-		color: #8eafce;
-		text-decoration: none;
-		transition: color .2s ease-out;
-	}
-
-	a:hover {
-		color: #64B4FF;
-	}
-</style>
-
-<script src='@routes.Assets.versioned("javascripts/bowser.js")'></script>
-<script>
-	var good = false;
-	var bowser = this.bowser || module.exports;
-	if (bowser.firefox) {
-		bowser.name = "Mozilla Firefox";
-		bowser.url = "http://getfirefox.com";
-		good = true;
-	} else if (bowser.chrome) {
-		bowser.name = "Google Chrome";
-		bowser.url = "http://www.google.com/chrome";
-		good = true;
-	}
-</script>
-
-<content>
-	<i class="material-icons">error_outline</i>
-	<h1>:(</h1>
 	<p>
 		It looks like you are using an unsupported browser.
 	</p>
@@ -93,7 +26,7 @@
 		Since you are already using <script>document.write(bowser.name);</script>, you simply need to update
 		your browser to the <a id="upgrade" href="">most-recent version</a> to access GuildTools.
 		<script>
-			document.getElementById("upgrade").href = bowser.url;
+				document.getElementById("upgrade").href = bowser.url;
 		</script>
 	</p>
 	<p id="bad">
@@ -104,22 +37,23 @@
 	</p>
 	<p>
 		Alternatively, in case you really wish to keep using <script>document.write(bowser.name);</script>,
-		you can choose to <a href="/" onclick="localStorage.setItem('unsupported.ignored', navigator.userAgent);">ignore</a>
+		you can choose to <a href="/" onclick="localStorage.setItem('unsupported.ignored', navigator.userAgent);">
+		ignore</a>
 		this message and continue anyway.
 	</p>
-	<p class="user-agent"><script>document.write(bowser.name + " " + bowser.version);</script></p>
-	<p class="user-agent"><script>document.write(navigator.userAgent);</script></p>
-</content>
+	<p class="mono gray"><script>document.write(bowser.name + " " + bowser.version);</script></p>
+	<p class="mono gray"><script>document.write(navigator.userAgent);</script></p>
 
-<script>
-	function remove(id) {
-		var node = document.getElementById(id);
-		node.parentNode.removeChild(node);
-	}
+	<script>
+			function remove(id) {
+				var node = document.getElementById(id);
+				node.parentNode.removeChild(node);
+			}
 
-	if (good) {
-		remove("bad");
-	} else {
-		remove("good");
-	}
-</script>
+			if (good) {
+				remove("bad");
+			} else {
+				remove("good");
+			}
+	</script>
+}

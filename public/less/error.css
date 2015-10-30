@@ -1,0 +1,61 @@
+@import url("https://fonts.googleapis.com/icon?family=Material+Icons");
+@import url("https://fonts.googleapis.com/css?family=Roboto:300,400|Roboto+Condensed:300|Roboto+Mono:300");
+
+html, body {
+    height: 100% ;
+    width: 100% ;
+    margin: 0 ;
+    padding: 0 ;
+}
+
+body {
+    overflow: hidden;
+    background-color: #2e3740;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font: 300 15px Roboto;
+    color: #f1f1f1;
+    line-height: 1.4em;
+}
+
+content {
+    width: 550px;
+    position: relative;
+    padding-left: 100px;
+}
+
+i.material-icons {
+    position: absolute;
+    top: 50px;
+    left: 0;
+    font-size: 70px;
+    color: #8eafce;
+}
+
+h1 {
+    font: 300 24px "Roboto Condensed";
+    margin: 0 0 25px ;
+}
+
+.mono {
+    font: 300 10px "Roboto Mono";
+}
+
+.gray {
+    color: #A7AEB3;
+}
+
+.cloak {
+    display: none;
+}
+
+a {
+    color: #8eafce;
+    text-decoration: none;
+    transition: color .2s ease-out;
+}
+
+a:hover {
+    color: #64B4FF;
+}

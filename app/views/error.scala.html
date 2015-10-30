@@ -1,0 +1,12 @@
+@(title: String = "Guild Tools")(content: Html)
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>@title</title>
+<link rel="shortcut icon" href='@routes.Assets.versioned("images/favicon.ico")'>
+<link rel="stylesheet" href='@routes.Assets.versioned("less/error.css")'>
+
+<content>
+	<i class="material-icons">error_outline</i>
+	<h1>:(</h1>
+	@content
+</content>

@@ -86,6 +86,7 @@ class Applications(tag: Tag) extends Table[Application](tag, "gt_apply") {
 	def user = column[Int]("user")
 	def date = column[Timestamp]("date")
 	def stage = column[Int]("stage")
+	def data_type = column[Int]("data_type")
 	def data = column[String]("data")
 	def have_posts = column[Boolean]("have_posts")
 	def updated = column[Timestamp]("updated")

@@ -1,6 +1,8 @@
 import { Element, Property, Listener, Dependencies, Inject, On, Watch, Bind,
 	PolymerElement, PolymerModelEvent, PolymerMetadata, PolymerConstructor } from "elements/polymer";
 import { GtButton } from "elements/widgets";
+import { GtDialog } from "elements/dialog";
+import { GtBox } from "elements/box";
 import { Router } from "client/router";
 import { Server } from "client/server";
 import { Loader } from "client/loader";
@@ -305,7 +307,7 @@ export class GtView extends PolymerElement {
 // <gt-app>
 
 @Element("gt-app", "/assets/imports/app.html")
-@Dependencies(GtTitleBar, GtSidebar, GtView)
+@Dependencies(GtTitleBar, GtSidebar, GtView, GtDialog, GtButton)
 export class GtApp extends PolymerElement {
 	@Property
 	public is_app: boolean = APP;
@@ -313,11 +315,68 @@ export class GtApp extends PolymerElement {
 	public titlebar: GtTitleBar;
 	public sidebar: GtSidebar;
 	public view: GtView;
-
+	
+	@Inject
+	@On({
+		"reconnect": "Reconnecting",
+		"connected": "Connected",
+		"disconnected": "Disconnected",
+		"closed": "Closed",
+		"version-changed": "VersionChanged",
+		"reset": "Reset"
+	})
+	private server: Server;
+	
+	public disconnected: GtDialog;
+	private dead: boolean = false;
+	private cause: number = 0;
+	private details: string = null;
+    
 	private ready() {
 		this.titlebar = this.$.title;
 		this.sidebar = this.$.side;
 		this.view = this.$.view;
+		this.disconnected = this.$.disconnected;
+	}
+	
+	public showDisconnected(state: boolean) {
+		if (this.dead) return;
+		if (state) this.disconnected.show(true);
+		else setTimeout(() => !this.dead && this.disconnected.hide(), 1000);
+	}
+	
+	public showDead(cause: number, details: string = null) {
+		if (this.dead) return;
+		this.dead = true;
+		this.cause = cause;
+		this.details = details;
+		if (!this.disconnected.shown)
+			this.disconnected.show(true);    
+	}
+	
+	private Connected() {
+		this.showDisconnected(false);
+	}
+	
+	private Reconnecting() {
+		this.showDisconnected(true);
+	}
+	
+	private Disconnected() {
+		this.showDead(1);
+	}
+	
+	private VersionChanged() {
+		this.showDead(2);
+	}
+	
+	private Reset() {
+		this.showDead(3);
+	}
+	
+	private Closed(reason: string) {
+		// broken
+		//this.showDead(4, reason || "The WebSocket was closed");
 	}
 
 	private scrolled = false;

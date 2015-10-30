@@ -51,11 +51,123 @@
 				bottom: 1px;
 			}
 		}
+		
+		#disconnected {
+			#cover {
+				.pos(fixed, -1000px, -1000px, -1000px, -1000px);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				background: rgba(39, 48, 58, 0.6);
+				transition: background .3s ease-out;
+				&[dead] { background: rgba(39, 48, 58, 1); }
+			}
+			
+			.spinner {
+				margin: 0 auto 36px;
+				width: 50px;
+				display: flex;
+				justify-content: space-between;
+				
+				div {
+					width: 12px;
+					height: 12px;
+					background-color: #f1f1f1;
+					border-radius: 100%;
+					display: inline-block;
+					animation: sk-bouncedelay 1.4s infinite ease-in-out both;
+					&:nth-child(1) { animation-delay: -0.32s; }
+					&:nth-child(2) { animation-delay: -0.16s; }
+				}
+			}
+			
+			#reconnecting {
+				font: 300 18px "Roboto Condensed";
+				span { padding-left: 14px; }
+			}
+			
+			#dead {
+				font-size: 15px;
+				width: 500px;
+				font-weight: 300;
+				line-height: 1.6em;
+				
+				h3 {
+					font: 300 50px "Roboto Condensed";
+					margin: 0 0 25px 0;
+					color: @light-blue;
+				}
+			}
+			
+			#buttons {
+				padding-top: 18px;
+				border-top: 2px solid fade(@fs-blue, 20%);
+				margin-bottom: 90px;
+			}
+			
+			.details {
+				font: 400 13px "Roboto Mono";
+				color: @fs-gray;
+			}
+		}
+		
+		@keyframes sk-bouncedelay {
+			0%, 80%, 100% { transform: scale(0); }
+			40% { transform: scale(1.0); }
+		}
 	</style>
 	<template>
 		<gt-title-bar #title {is_app}></gt-title-bar>
 		<gt-sidebar #side {is_app}></gt-sidebar>
 		<gt-view #view (scroll)="ViewScroll" {is_app}></gt-view>
+		<gt-dialog #disconnected sticky>
+			<div #cover {dead}>
+				<div #reconnecting [if]="!dead">
+					<div .spinner><div></div><div></div><div></div></div>
+					<span>Reconnecting...</span>
+				</div>
+				<div #dead [if]="dead">
+					<h3>:(</h3>
+					<div [if]="equals(cause, 0)">
+						<p>An unknown error occured.</p>
+					</div>
+					<div [if]="equals(cause, 1)">
+						<p>You have been disconnected from the server.</p>
+						<p>
+							The connection could not be restored. There may be a problem with your
+							internet access or the server may be temporarily down or unavailable.
+						</p>
+					</div>
+					<div [if]="equals(cause, 2)">
+						<p>
+							Unfortunately, your connection could not be restored because the GuildTools
+							server is now running a different version of the application.
+						</p>
+						<p>
+							Reloading the application will fix the issue.
+						</p>
+					</div>
+					<div [if]="equals(cause, 3)">
+						<p>You have been disconnected from the server.</p>
+						<p>
+							The connection with the server has been successfully reestablished but
+							it was impossible to resume your previous session.
+						</p>
+					</div>
+					<div [if]="equals(cause, 4)">
+						<p>The server closed the connection for the following reason:</p>
+						<p .details>{{details}}</p>
+					</div>
+					<p>
+						If the problem persits, you should notify a GuildTools developer.
+					</p>
+					<p #buttons>
+						<gt-button fat collapse-left onclick="document.location.reload()">Reload</gt-button>
+						<gt-button collapse-left disabled>Send report</gt-button>
+					</p>
+				</div>
+			</div>
+		</gt-dialog>
 	</template>
 </dom-module>
 

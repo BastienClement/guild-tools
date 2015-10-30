@@ -116,8 +116,9 @@ export class Socket extends EventEmitter {
 
 		// Reconnect on error or socket closed
 		let closed_once = false;
-		ws.onerror = ws.onclose = () => {
+		ws.onerror = ws.onclose = (e) => {
 			if (closed_once) return;
+			if (e.wasClean) this.emit("closed", e.reason);
 			closed_once = true;
 			this.reconnect();
 		};
@@ -205,7 +206,7 @@ export class Socket extends EventEmitter {
 		this.state = SocketState.Closed;
 
 		// Emit event
-		this.emit("disconnect");
+		this.emit("disconnected");
 
 		// Actually close the WebSocket
 		this.ws.close();

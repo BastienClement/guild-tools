@@ -21,6 +21,13 @@ export class GtDialog extends PolymerElement {
 	 */
 	@Property
 	public sticky: boolean;
+	
+	/**
+	 * True if the dialog is currently shown
+	 */
+	public get shown(): boolean {
+		return GtDialog.visible === this;
+	}
 
 	/**
 	 * Show the dialog if no other modal is opened

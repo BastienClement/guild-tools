@@ -66,9 +66,10 @@ export class Server extends EventEmitter {
 	// The socket is connected to the server
 	private Connected(version: string) {
 		// Check if the server was updated
-		if (this.version && this.version != version) {
-			/**** FIXME ****/
-			//error("Server updated", "test");
+		if (version && this.version && this.version != version) {
+			this.emit("version-changed");
+			this.socket.close();
+			return;
 		}
 
 		this.version = version;
@@ -77,15 +78,6 @@ export class Server extends EventEmitter {
 			this.connect_deferred.resolve();
 			this.connect_deferred = null;
 		}
-
-		/**** FIXME ****/
-		//status(null);
-	}
-
-	// Connection to the server was interrupted
-	private Reconnecting() {
-		/**** FIXME ****/
-		//status("Reconnecting...", true);
 	}
 
 	// The socket is definitively closed
@@ -93,14 +85,12 @@ export class Server extends EventEmitter {
 		if (this.connect_deferred) {
 			this.connect_deferred.reject(new Error(`[${code}] ${reason}`));
 		}
-
-		/**** FIXME ****/
-		//error("Disconnected", "You were disconnected from the server.");
 	}
 
 	// Connection with the server was re-established but the session was lost
 	private Reset() {
 		// There is no way to do that properly on GT6, we'll need to reload the whole app
+		this.socket.close();
 	}
 
 	// Incomming channel request

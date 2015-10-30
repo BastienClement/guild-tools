@@ -8,17 +8,12 @@ import play.api.Play.current
 import play.api.mvc.{Action, Controller, WebSocket}
 
 class Application @Inject() (gt: GuildTools) extends Controller {
+	def client = Action { Ok(views.html.client.render()) }
 	def catchall(path: String) = client
-
-	def client = Action {
-		Ok(views.html.client.render())
-	}
 
 	def gtp3 = WebSocket.acceptWithActor[Array[Byte], Array[Byte]] { request => out =>
 		Props(new WSActor(out, request))
 	}
 
-	def unsupported = Action {
-		Ok(views.html.unsupported.render())
-	}
+	def unsupported = Action { Ok(views.html.unsupported.render()) }
 }
