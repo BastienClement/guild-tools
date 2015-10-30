@@ -84,27 +84,25 @@ object PayloadBuilder extends PayloadBuilderMiddlePriority {
 	// Some Writes for tuple types
 	trait ProductWrites {
 		// Encode (A, B) with a Writes[T] available for every element as a JS array
-		implicit def WritesProduct2[A: Writes, B: Writes] = new Writes[(A, B)] {
+		implicit protected def WritesProduct2[A: Writes, B: Writes] = new Writes[(A, B)] {
 			def writes(prod: (A, B)): JsValue = Json.arr(prod._1, prod._2)
 		}
 
 		// Encode (A, B, C) with a Writes[T] available for every element as a JS array
-		implicit def WritesProduct3[A: Writes, B: Writes, C: Writes] = new Writes[(A, B, C)] {
+		implicit protected def WritesProduct3[A: Writes, B: Writes, C: Writes] = new Writes[(A, B, C)] {
 			def writes(prod: (A, B, C)): JsValue = Json.arr(prod._1, prod._2, prod._3)
 		}
 
 		// Encode (A, B, C, D) with a Writes[T] available for every element as a JS array
-		implicit def WritesProduct4[A: Writes, B: Writes, C: Writes, D: Writes] = new Writes[(A, B, C, D)] {
+		implicit protected def WritesProduct4[A: Writes, B: Writes, C: Writes, D: Writes] = new Writes[(A, B, C, D)] {
 			def writes(prod: (A, B, C, D)): JsValue = Json.arr(prod._1, prod._2, prod._3, prod._4)
 		}
 
 		// Encode (A, B, C, D, E) with a Writes[T] available for every element as a JS array
-		implicit def WritesProduct5[A: Writes, B: Writes, C: Writes, D: Writes, E: Writes] = new Writes[(A, B, C, D, E)] {
+		implicit protected def WritesProduct5[A: Writes, B: Writes, C: Writes, D: Writes, E: Writes] = new Writes[(A, B, C, D, E)] {
 			def writes(prod: (A, B, C, D, E)): JsValue = Json.arr(prod._1, prod._2, prod._3, prod._4, prod._5)
 		}
 	}
-
-	object ProductWrites extends ProductWrites
 }
 
 // Intermediate priority builders

@@ -11,6 +11,7 @@ import utils.{Cache, SmartTimestamp}
 private[actors] class AuthServiceImpl extends AuthService
 
 object AuthService extends StaticActor[AuthService, AuthServiceImpl]("AuthService") {
+	/** The set of every groups allowed to login */
 	val allowed_groups = Set(
 		8, // Apply
 		12, // Casual
@@ -20,15 +21,29 @@ object AuthService extends StaticActor[AuthService, AuthServiceImpl]("AuthServic
 		13 // Veteran
 	)
 
+	/** The set of every user having developer rights */
 	val developer_users = Set(1647)
+
+	/** The set of every groups considered officer */
 	val officier_groups = Set(11)
+
+	/** The set of every groups considered guild members */
 	val member_groups = Set(9, 11)
+
+	/** The set of every groups forming the guild roster */
 	val roster_groups = Set(8, 9, 11)
+
+	/** The set of every groups considered part of the guild */
 	val fromscratch_groups = allowed_groups
 }
 
+/**
+ * A static actor providing auth and login services.
+ */
 trait AuthService {
-	// Perform user authentication based on the session token
+	/**
+	 * Returns the user corresponding to a session token.
+	 */
 	def auth(session: String): Future[User] = {
 		val sess_query = Sessions.filter(_.token === session)
 		sess_query.map(_.user).head flatMap { user_id =>
@@ -37,10 +52,10 @@ trait AuthService {
 		}
 	}
 
-	// Cache of hash setting for every user. A random setting is generated if the user cannot be found.
-	// NOTE: The intended security is flawed. The idea was that no failure would make it impossible to know whether
-	// the user or password is wrong in case the login fail. The issue is that a fake setting is case-sensitive to
-	// the username while a real setting is not.
+	/**
+	 * Cache of hash setting for every user.
+	 * @todo Fix case-sensitiveness if user cannot be found
+	 */
 	private val setting_cache = Cache.async[String, String](1.minute) { user =>
 		val password = for (u <- Users if u.name === user || u.name_clean === user.toLowerCase) yield u.pass
 		password.head map { pass =>
@@ -50,13 +65,18 @@ trait AuthService {
 		}
 	}
 
-	// Query the setting cache
-	def setting(user: String): Future[String] = setting_cache(user)
+	/**
+	 * Returns the user's hash settings.
+	 * If the user cannot be found, a random string is generated instead.
+	 */
+	def setting(username: String): Future[String] = setting_cache(username)
 
-	// Perform user authentication
-	def login(name: String, password: String, salt: String, ip: Option[String], ua: Option[String]): Future[String] = {
+	/**
+	 * Perform user authentication and return a new session token.
+	 */
+	def login(username: String, password: String, salt: String, ip: Option[String], ua: Option[String]): Future[String] = {
 		val user_credentials = for {
-			u <- Users if (u.name === name || u.name_clean === name.toLowerCase) && (u.group inSet allowed_groups)
+			u <- Users if (u.name === username || u.name_clean === username.toLowerCase) && (u.group inSet allowed_groups)
 		} yield (u.pass, u.id)
 
 		user_credentials.headOption flatMap {
@@ -69,7 +89,10 @@ trait AuthService {
 		}
 	}
 
-	// Create a session for a given user
+	/**
+	 * Create a session for a given user.
+	 * Unlink `login`, this method does not perform authentication and always succeed.
+	 */
 	def createSession(user: Int, ip: Option[String], ua: Option[String]): Future[String] = {
 		def attempt(count: Int = 1): Future[String] = {
 			val token = utils.randomToken()
@@ -86,7 +109,10 @@ trait AuthService {
 		attempt()
 	}
 
-	// Remove a session from the database
+	/**
+	 * Remove a session from the database.
+	 * @todo Kill every socket open with this session
+	 */
 	def logout(session: String): Future[Unit] = DB.run {
 		for (_ <- Sessions.filter(_.token === session).delete) yield ()
 	}

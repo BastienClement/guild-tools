@@ -1,7 +1,7 @@
 package channels
 
 import actors.ChatService
-import actors.ChatService.{UserAway, UserConnect, UserDisconnect}
+import actors.ChatService.{UserAway, UserConnected, UserDisconnected}
 import akka.actor.Props
 import gtp3._
 import models.User
@@ -25,9 +25,9 @@ class Chat(val user: User) extends ChannelHandler {
 	}
 
 	akka {
-		case UserConnect(u) => send("connected", u.id)
+		case UserConnected(u) => send("connected", u.id)
 		case UserAway(u, away) => send("away-changed", (u.id, away))
-		case UserDisconnect(u) => send("disconnected", u.id)
+		case UserDisconnected(u) => send("disconnected", u.id)
 	}
 
 	message("set-away") { payload =>
