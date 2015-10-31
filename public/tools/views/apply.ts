@@ -37,7 +37,7 @@ export class ApplyDetailsChar extends PolymerElement {
 	
 	@Property({ computed: "char.server" })
 	private get serverName(): string {
-		return this.char.server.replace("-", " ").replace(/\b([a-z])([a-z]+)/g, (all, first, tail) => {
+		return this.char.server.replace(/-/g, " ").replace(/\b([a-z])([a-z]+)/g, (all, first, tail) => {
 			return (tail.length > 2) ? first.toUpperCase() + tail : first + tail;
 		});
 	}
