@@ -64,7 +64,7 @@ trait BattleNet {
 
 			Char(
 				id = 0,
-				name = name,
+				name = (char \ "name").as[String],
 				server = server,
 				owner = 0,
 				main = false,
