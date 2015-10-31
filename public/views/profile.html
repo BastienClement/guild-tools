@@ -640,7 +640,7 @@
 		}
 		
 		#actions {
-			margin-top: 32px;
+			margin: 32px 0 0 0 !important;
 			display: flex;
 			justify-content: flex-end;
 			
@@ -665,7 +665,7 @@
 					<div #load>
 						<gt-button #load-btn [disabled]="!canLoad" (click)="load"><i>file_download</i> Load</gt-button>
 					</div>
-					<div #bottom {disabled}="!char">
+					<div #bottom {disabled}="confirmDisabled">
 						<div #roles-label>
 							Character main role
 						</div>
@@ -676,11 +676,11 @@
 						</div>
 						<div #actions>
 							<gt-button (click)="close">Cancel</gt-button>
-							<gt-button [disabled]="!char" (click)="confirm">Confirm</gt-button>
+							<gt-button [disabled]="confirmDisabled" (click)="confirm">Confirm</gt-button>
 						</div>
 					</div>
 				</div>
 			</gt-box>
 		</gt-dialog>
-	</template>
+	</template>4
 </dom-module>

@@ -105,6 +105,7 @@ export class ProfileAddChar extends PolymerElement {
 	
 	private char: Char;
 	private load_done = false;
+	private inflight = false;
 	
 	// Check if the user can load a character (required fields filled and not already loaded)
 	@Property({ computed: "server name load_done" })
@@ -176,9 +177,31 @@ export class ProfileAddChar extends PolymerElement {
 		this.$.name.focus();
 	}
 	
+	@Property({ computed: "char inflight" })
+	private get confirmDisabled(): boolean {
+		return !this.char || this.inflight;
+	}
+	
 	// Add the character to the user account
-	private confirm() {
+	private async confirm() {
+		let server = this.$.server.value;
+		let name = this.$.name.value;
+		let role = this.role;
+		let owner = this.owner;
 		
+		this.inflight = true;
+		try {
+			await this.profile.registerChar(server, name, role, owner);
+			this.close();
+		} catch (e) {
+			let input: GtInput = this.$.name;
+			input.error = e.message;
+			input.value = "";
+			input.focus();
+			this.load_done = false;
+		} finally {
+			this.inflight = false;
+		}
 	}
 	
 	// Close the dialog

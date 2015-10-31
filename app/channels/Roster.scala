@@ -1,7 +1,7 @@
 package channels
 
 import actors.RosterService
-import actors.RosterService.{CharDeleted, CharUpdate}
+import actors.RosterService.{CharDeleted, CharUpdated}
 import akka.actor.Props
 import gtp3._
 import models._
@@ -17,7 +17,7 @@ class Roster(val user: User) extends ChannelHandler {
 	}
 
 	akka {
-		case CharUpdate(char) => send("char-updated", char)
+		case CharUpdated(char) => send("char-updated", char)
 		case CharDeleted(char) => send("char-deleted", char)
 	}
 
@@ -31,7 +31,7 @@ class Roster(val user: User) extends ChannelHandler {
 	}
 
 	message("request-user") { p =>
-		val id = p.value.as[Int]
+		val id = p.as[Int]
 		for {
 			user <- RosterService.user(id)
 			chars <- RosterService.chars(id)
@@ -41,10 +41,34 @@ class Roster(val user: User) extends ChannelHandler {
 	// Allow promoted user to bypass own-character restrictions
 	val update_user = if (user.promoted) None else Some(user)
 
-	request("promote-char") { p => RosterService.promoteChar(p.as[Int], update_user) }
-	request("disable-char") { p => RosterService.disableChar(p.as[Int], update_user) }
-	request("enable-char") { p => RosterService.enableChar(p.as[Int], update_user) }
-	request("remove-char") { p => RosterService.removeChar(p.as[Int], update_user) }
-	request("update-char") { p => RosterService.refreshChar(p.as[Int], update_user) }
-	request("change-role") { p => RosterService.changeRole(p("char").as[Int], p("role").as[String], update_user) }
+	request("promote-char") { p =>
+		val char = p.as[Int]
+		RosterService.promoteChar(char, update_user)
+	}
+
+	request("disable-char") { p =>
+		val char = p.as[Int]
+		RosterService.disableChar(char, update_user)
+	}
+
+	request("enable-char") { p =>
+		val char = p.as[Int]
+		RosterService.enableChar(char, update_user)
+	}
+
+	request("remove-char") { p =>
+		val char = p.as[Int]
+		RosterService.removeChar(char, update_user)
+	}
+
+	request("update-char") { p =>
+		val char = p.as[Int]
+		RosterService.refreshChar(char, update_user)
+	}
+
+	request("change-role") { p =>
+		val char = p("char").as[Int]
+		val role = p("role").as[String]
+		RosterService.changeRole(char, role, update_user)
+	}
 }

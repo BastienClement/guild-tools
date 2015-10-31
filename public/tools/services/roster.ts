@@ -257,10 +257,14 @@ export class Roster extends Service {
 		
 		// Update
 		let old = record.chars.get(char.id);
-		if (!old || this.update(old, char)) {
+		if (!old) {
+			record.chars.set(char.id, char);
 			this.owners.set(char.id, char.owner);
-			this.emit("char-updated", this.lock(char));
+		} else if (!this.update(old, char)) {
+			return;
 		}
+		
+		this.emit("char-updated", this.lock(char));
 		
 		this.chars_cache.delete(char.owner);
 		this.touch(record);
@@ -277,7 +281,7 @@ export class Roster extends Service {
 		this.owners.delete(char.id);
 		this.emit("char-deleted", char);
 		
-		this.chars_cache.delete(record.infos.id);
+		this.chars_cache.delete(char.owner);
 		this.touch(record);
 	}
 	

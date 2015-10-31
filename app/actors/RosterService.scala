@@ -1,7 +1,7 @@
 package actors
 
 import actors.BattleNet.BnetFailure
-import actors.RosterService.{CharDeleted, CharUpdate}
+import actors.RosterService.{CharDeleted, CharUpdated}
 import models._
 import models.mysql._
 import reactive.ExecutionContext
@@ -13,7 +13,7 @@ import utils.{Cache, CacheCell, PubSub}
 private[actors] class RosterServiceImpl extends RosterService
 
 object RosterService extends StaticActor[RosterService, RosterServiceImpl]("RosterService") {
-	case class CharUpdate(char: Char)
+	case class CharUpdated(char: Char)
 	case class CharDeleted(char: Char)
 }
 
@@ -70,7 +70,7 @@ trait RosterService extends PubSub[User] {
 	private def notifyUpdate(char: Char): Char = {
 		user_chars.clear(char.owner)
 		roster_chars.clear()
-		this !# CharUpdate(char)
+		this !# CharUpdated(char)
 		char
 	}
 
@@ -140,7 +140,7 @@ trait RosterService extends PubSub[User] {
 		def update_char(id: Int, main: Boolean) =
 			Chars.filter(char => char.id === id && char.main === !main).map(_.main).update(main)
 
-		(for {
+		val query = for {
 			// Fetch new and old main chars
 			new_main <- getOwnChar(id, user).result.head
 			old_main <- Chars.filter(char => char.main === true && char.owner === new_main.owner).result.head
@@ -153,7 +153,9 @@ trait RosterService extends PubSub[User] {
 			_ = if (new_updated + old_updated == 2) () else throw new Exception("Failed to update chars")
 		} yield {
 			(notifyUpdate(new_main.copy(main = true)), notifyUpdate(old_main.copy(main = false)))
-		}).transactionally
+		}
+
+		query.transactionally
 	}
 
 	// Common database query for enableChar() and disableChar()
@@ -196,28 +198,32 @@ trait RosterService extends PubSub[User] {
 	}
 
 	// Add a new character for a specific user
-	def addChar(server: String, name: String, owner: User, role: Option[String]): Future[Char] = {
+	def registerChar(server: String, name: String, owner: Int, role: Option[String]): Future[Char] = {
 		for {
 			char <- BattleNet.fetchChar(server, name)
-			res <- addChar(char, owner, role)
+			res <- registerChar(char, owner, role)
 		} yield {
-			this !# CharUpdate(res)
 			res
 		}
 	}
 
-	def addChar(char: Char, owner: User, role: Option[String]): Future[Char] = DB.run {
-		val count_main = Chars.filter(c => c.owner === owner.id && c.main === true).size.result
-		(for {
+	def registerChar(char: Char, owner: Int, role: Option[String]): Future[Char] = DB.run {
+		val count_main = Chars.filter(c => c.owner === owner && c.main === true).size.result
+		val query = for {
 			// Count the number of main for this user
 			pre_count <- count_main
 			// Construct the char for insertion with correct role, owner and main flag
-			final_char = char.copy(role = role.getOrElse(char.role), owner = owner.id, main = pre_count < 1)
+			insert_char = char.copy(role = role.getOrElse(char.role), owner = owner, main = pre_count < 1)
 			// Insert this char
-			_ <- Chars += final_char
+			insert_id <- (Chars returning Chars.map(_.id)) += insert_char
 			// Ensure we have exactly one main for this user now
 			post_count <- count_main
-			_ = if (post_count == 1) () else throw new Exception("Failed to register new character")
-		} yield final_char).transactionally
+		} yield {
+			if (post_count != 1) throw new Exception("Failed to register new character")
+			val final_char = insert_char.copy(id = insert_id)
+			this.notifyUpdate(final_char)
+			final_char
+		}
+		query.transactionally
 	}
 }

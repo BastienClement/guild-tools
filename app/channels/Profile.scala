@@ -80,11 +80,13 @@ class Profile(val user: User) extends ChannelHandler {
 		val server = p("server").as[String]
 		val name = p("name").as[String]
 		val role = p("role").asOpt[String].filter(Chars.validateRole)
+		val owner = if (user.promoted) p("owner").asOpt[Int].getOrElse(user.id) else user.id
+
 		last_char match {
 			case Some(char) if char.server == server && char.name == name =>
-				RosterService.addChar(char, user, role)
+				RosterService.registerChar(char, owner, role)
 			case _ =>
-				RosterService.addChar(server, name, user, role)
+				RosterService.registerChar(server, name, owner, role)
 		}
 	}
 }

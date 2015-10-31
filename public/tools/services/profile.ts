@@ -16,13 +16,17 @@ export class Profile extends Service {
 	private channel = this.server.openServiceChannel("profile");
 	
 	// Check if a character is already registered to a user
-	public async checkAvailability(server: string, name: string) {
+	public checkAvailability(server: string, name: string) {
 		return this.channel.request<boolean>("is-char-available", { server, name });
 	}
 	
 	// Fetch a specific char from Battle.net
-	public async fetchChar(server: string, name: string) {
+	public fetchChar(server: string, name: string) {
 		return this.channel.request<Char>("fetch-char", { server, name });
+	}
+	
+	public registerChar(server: string, name: string, role: string, owner: number) {
+		return this.channel.request<void>("register-char", { server, name, role, owner });
 	}
 	
 	// Close the channel when the profile service is paused
