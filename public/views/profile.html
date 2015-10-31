@@ -91,10 +91,10 @@
 		<div #right>
 			<gt-box heading="Actions" #actions scrollable>
 				<div .buttons>
-					<gt-button><i>mail</i> Send message</gt-button>
-					<gt-button><i>textsms</i> Open talk</gt-button>
-					<gt-button><i>settings</i> Settings</gt-button>
-					<gt-button [if]="app.user.promoted"><i>build</i> Manage</gt-button>
+					<gt-button disabled><i>mail</i> Send message</gt-button>
+					<gt-button disabled><i>textsms</i> Open talk</gt-button>
+					<gt-button disabled><i>settings</i> Settings</gt-button>
+					<gt-button [if]="app.user.promoted" disabled><i>build</i> Manage</gt-button>
 				</div>
 			</gt-box>
 		</div>
