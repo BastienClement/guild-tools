@@ -56,6 +56,7 @@ export function synchronized(target: any, property: string) {
 	return {
 		value: async function() {
 			while (locks.has(this)) await locks.get(this);
+			
 			let defer = Promise.defer<void>();
 			locks.set(this, defer.promise);
 			
@@ -138,8 +139,9 @@ export function microtask(): Promise<void> {
 	} else {
 		microtask_defer = Promise.defer<void>();
 		defer(() => {
-			microtask_defer.resolve();
+			let deferred = microtask_defer;
 			microtask_defer = null;
+			deferred.resolve();
 		});
 		return microtask_defer.promise;    
 	}
