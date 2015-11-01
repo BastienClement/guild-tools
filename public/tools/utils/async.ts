@@ -1,7 +1,7 @@
 /**
- * Automatically join multiple threads calling the same async procedure.
- * Each of them will end up waiting on the same promise and the function
- * will only be called once.
+ * Automatically join multiple threads calling the same async procedure
+ * during the same microtask. Each of them will end up waiting on the
+ * same promise and the function will only be called once.
  */
 export function join(target: any, property: string) {
 	let fn: () => Promise<any> = target[property];
@@ -11,13 +11,32 @@ export function join(target: any, property: string) {
 		throw new TypeError("@join must be applied to a zero-argument async function");
 
 	let results = new WeakMap<any, Promise<any>>();
-    
+	let clean = new WeakMap<any, boolean>();
+	
 	return {
 		value: function() {
-			if (results.has(this)) return results.get(this);
-			let result: Promise<any> = fn.call(this);
-			results.set(this, result);
-			return result.finally(() => results.delete(this));
+			if (results.has(this)) {
+				clean.set(this, false);
+				return results.get(this);
+			}
+			
+			let result = Promise.defer<any>();
+			results.set(this, result.promise);
+			clean.set(this, false);
+			
+			const loop = () => {
+				if (clean.get(this)) {
+					results.delete(this);
+					clean.delete(this);
+					fn.call(this).then((r: any) => result.resolve(r), (e: any) => result.reject(e));
+				} else {
+					clean.set(this, true);
+					defer(loop);
+				}
+			};
+			
+			defer(loop);
+			return result.promise;
 		}
 	}    
 }
