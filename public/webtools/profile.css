@@ -1,0 +1,96 @@
+.chars {
+	display: flex;
+	flex-wrap: wrap;
+	box-sizing: border-box;
+}
+
+.chars * {
+	box-sizing: inherit;
+}
+
+.char {
+	width: 415px;
+	height: 85px;
+	position: relative;
+	padding: 10px 10px 10px 92px ;
+	margin-right: 20px;
+	margin-bottom: 16px;
+
+	background: rgba(99, 180, 255, 0.1);
+	border: 1px solid rgba(99, 180, 255, 0.1);
+	box-shadow: 0 1px 1px rgba(17, 17, 17, 0.3);
+
+	transform: translateZ(0);
+	backface-visibility: hidden;
+}
+
+.char:nth-child(2n) {
+	margin-right: 0;
+}
+
+.char .top {
+	margin-top: -3px;
+}
+
+.char .name {
+	font-size: 16px;
+	width: 170px ;
+}
+
+.char .thumb {
+	position: absolute;
+	top: 0 ;
+	left: 0 ;
+	bottom: 0 ;
+	width: 84px;
+	border-right: 1px solid rgba(99, 180, 255, 0.1);
+}
+
+.char .thumb img {
+	width: 83px;
+	height: 83px;
+}
+
+.char strong {
+	font-weight: 400;
+}
+
+.char .realm {
+	color: rgb(142, 175, 206);
+	float: right;
+	font-weight: 300;
+}
+
+.char .top i {
+	font-size: 14px;
+	margin-left: 5px;
+}
+
+.middle {
+	font-size: 13px;
+	font-weight: 300;
+}
+
+.actions {
+	text-align: right;
+	margin: 8px -10px 0;
+	border-top: 1px solid rgba(99, 180, 255, 0.1);
+	padding: 8px 10px 0;
+}
+
+.actions a {
+	padding: 0 6px;
+}
+
+.actions a:last-child {
+	padding-right: 0;
+}
+
+.actions a:hover {
+	color: #fff;
+}
+
+.actions span {
+	color: #A7AEB3;
+	font-weight: 300;
+}

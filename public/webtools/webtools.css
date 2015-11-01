@@ -13,7 +13,12 @@ body {
 
 a {
     text-decoration: none;
+	transition: all .2s ease-out;
     color: #8EAFCE;
+}
+
+a:hover {
+	color: #64B4FF;
 }
 
 aside h1 {
@@ -176,3 +181,16 @@ body .c10, body .c10 a {
     margin-right: 5px;
     font-size: 20px;
 }
+
+body .c0, body .c0 a { color: #64B4FF !important; }
+body .c1, body .c1 a { color: #C79C6E !important; }
+body .c2, body .c2 a { color: #F58CBA !important; }
+body .c3, body .c3 a { color: #ABD473 !important; }
+body .c4, body .c4 a { color: #FFF569 !important; }
+body .c5, body .c5 a { color: #FFFFFF !important; }
+body .c6, body .c6 a { color: #ff2f42 !important; }
+body .c7, body .c7 a { color: #218cf5 !important; }
+body .c8, body .c8 a { color: #69CCF0 !important; }
+body .c9, body .c9 a { color: #a48ee3 !important; }
+body .c10, body .c10 a { color: #00FF96 !important; }
+body .c11, body .c11 a { color: #FF7D0A !important; }

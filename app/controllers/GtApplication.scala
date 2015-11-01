@@ -7,7 +7,7 @@ import gtp3.WSActor
 import play.api.Play.current
 import play.api.mvc.{Action, Controller, WebSocket}
 
-class Application @Inject() (gt: GuildTools) extends Controller {
+class GtApplication @Inject() (gt: GuildTools) extends Controller {
 	def client = Action { Ok(views.html.client.render()) }
 	def catchall(path: String) = client
 

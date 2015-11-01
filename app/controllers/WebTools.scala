@@ -11,7 +11,7 @@ import scala.concurrent.duration._
 import utils.Cache
 
 class WebTools extends Controller
-	with WishlistController with ApplicationController
+	with ProfileController with WishlistController with ApplicationController
 {
 	// The wrapper request with user informations and session token
 	class UserRequest[A](val user: User, val token: String, val set_cookie: Boolean, val request: Request[A]) extends WrappedRequest[A](request)
@@ -99,6 +99,6 @@ class WebTools extends Controller
 		}
 	}
 
-	def main = UserAction { request => Ok(views.html.wt.main.render(request.user)) }
-	def catchall(path: String) = Action { Redirect("/wt/") }
+	def main = Action { Redirect("/wt/profile") }
+	def catchall(path: String) = main
 }
