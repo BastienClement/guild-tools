@@ -192,6 +192,7 @@ trait RosterService extends PubSub[User] {
 			_ = if (count > 0) () else throw new Exception("Failed to delete this character")
 		} yield {
 			user_chars.clear(char.owner)
+			roster_chars.clear()
 			this !# CharDeleted(char)
 			char
 		}
