@@ -291,8 +291,8 @@ export class Roster extends Service {
 		return this.lock(infos);
 	}
 	
-	public getUserCharacters(user: number, active?: boolean) {
-		const filter_active = (id: number) => this.getCharacter(id).active || !active;
+	public getUserCharacters(user: number, inactive?: boolean) {
+		const filter_active = (id: number) => inactive || this.getCharacter(id).active;
 		
 		if (this.chars_cache.has(user)) {
 			return this.chars_cache.get(user).filter(filter_active);
@@ -409,8 +409,8 @@ class CharsProvider extends PolymerElement {
 	@Property({ observer: "update" })
 	public user: number;
 	
-	@Property
-	public active: boolean;
+	@Property({ reflect: true })
+	public inactive: boolean;
 	
 	@Property({ notify: true })
 	public chars: number[];
@@ -418,7 +418,7 @@ class CharsProvider extends PolymerElement {
 	@join public async update() {
 		await microtask;
 		if (!this.user) return;
-		this.chars = this.roster.getUserCharacters(this.user, this.active);
+		this.chars = this.roster.getUserCharacters(this.user, this.inactive);
 	}
 	
 	private CharUpdated(char: Char) {

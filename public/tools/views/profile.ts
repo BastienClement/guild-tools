@@ -248,7 +248,7 @@ class ProfileChars extends PolymerElement {
 	
 	@throttled private update() {
 		if (!this.user) return;
-		this.chars = this.roster.getUserCharacters(this.user);
+		this.chars = this.roster.getUserCharacters(this.user, true);
 	}
 	
 	private AddChar() {
