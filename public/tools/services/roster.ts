@@ -1,6 +1,6 @@
 import { Component } from "utils/di";
 import { Service } from "utils/service";
-import { join } from "utils/async";
+import { join, synchronized } from "utils/async";
 import { Server, ServiceChannel } from "client/server";
 import { PolymerElement, Provider, Inject, Property, On } from "elements/polymer";
 
@@ -66,21 +66,20 @@ export class Roster extends Service {
 	
 	// Preload roster users
 	private preloaded = false;
-	@join private async preload() {
+	@synchronized private async preload() {
 		if (this.preloaded) return false;
-		this.preloaded = true;
 		let data = await this.channel.request<[User, Char[]][]>("preload-roster");
 		for (let [user, chars] of data) {
 			this.UserUpdated(user, chars);
 		}
+		this.preloaded = true;
 		return true;
 	}
 	
 	// Request an update for a user
 	private async request(user: number) {
-		if (await this.preload() && this.users.has(user) && !this.users.get(user).fake) {
-			return;
-		}
+		if (!this.preloaded) await this.preload();
+		if (this.users.has(user) && !this.users.get(user).fake) return;
 		this.channel.send("request-user", user);
 	}
 	
