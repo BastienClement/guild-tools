@@ -1,0 +1,22 @@
+@(step: Int)(content: Html)(implicit user: User)
+@wt.layout("apply") {
+	<h2>Postuler chez From Scratch</h2>
+	<link rel="stylesheet" href='@routes.Assets.versioned("webtools/application.css")'>
+
+	<div class="line">
+		@for((label, id) <- Seq("", "Charte de guilde", "Candidature", "Approbation", "Délibérations", "Période d'essai", "Terminé").zipWithIndex) {
+			@if(id > 0) {
+				<div class="step @if(id < step || step == 6) { done } @if(id == step && id != 6) { cur }">
+					<div class="before"></div>
+					<div class="center">
+						<div class="num">@{id}</div><br>
+					</div>
+					<div class="after"></div>
+					<div class="label">@label</div>
+				</div>
+			}
+		}
+	</div>
+
+	@content
+}

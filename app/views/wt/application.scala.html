@@ -1,0 +1,36 @@
+@import models._
+@import models.application
+@()(implicit user: User)
+@wt.application_layout(1) {
+	<h2>Etape 1: Charte de guilde</h2>
+	<div style="margin-top: 24px;">
+		Bienvenue dans le module de suivi de candidature !<br><br>
+		Avant de poursuivre la procédure de postulation, prenez le temps de lire attentivement notre charte de guilde ci-dessous.<br>
+		From Scratch est une guilde visant le top world. C'est pourquoi nous exigeons un investissement important de la part de nos membres.<br>
+		Assurez vous que ceci soit compatible avec vos attentes et ambitions personnelles.<br><br>
+		Nous sommes toujours à la recherche d'excellents joueurs, quelque soit la classe et la spé.
+	</div>
+
+	@wt.application_charter.render()
+
+	<script>
+			var $ = jQuery;
+			$("#charte").find("button").click(function() {
+				$(this).addClass("checked");
+				if (!$("#charte").find("button:not(.checked)").length) {
+					$("#continue-btn").attr({ disabled: false });
+				}
+			});
+	</script>
+
+	<div class="continue">
+		<p>
+			<i class="material-icons">info</i>
+			Pour continuer, il est nécessaire d'avoir cliqué sur "Lu et Approuvé" sur toutes les sections de la charte de guilde.
+		</p>
+		<button id="continue-btn" disabled onclick="load_page('apply', 'step=2')">
+			<i class="material-icons">chevron_right</i>
+			Continuer
+		</button>
+	</div>
+}

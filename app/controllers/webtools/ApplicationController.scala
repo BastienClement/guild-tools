@@ -1,19 +1,17 @@
 package controllers.webtools
 
 import controllers.WebTools
-import models._
-import models.application.Applications
-import models.mysql._
-import reactive._
+import play.api.mvc.Action
+import scala.concurrent.Future
 
 trait ApplicationController {
 	this: WebTools =>
 
-	def applyMember = UserAction.async { req =>
-		val user = req.user
-		if (!user.member) throw Deny
-		for (applys <- Applications.listOpenForUser(user).result.run) yield {
-			Ok(views.html.wt.applications.render(applys, user))
-		}
+	def apply = UserAction.async { req =>
+		Future.successful(Ok(views.html.wt.application.render(req.user)))
+	}
+
+	def charter = Action {
+		Ok(views.html.wt.application_charter.render())
 	}
 }
