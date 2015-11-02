@@ -46,8 +46,11 @@ width: 250px;
 			@menu_item("Accès limité", "lock", "#", "")
 		} else {
 			@menu_item("Personnages", "account_circle", "/wt/chars", "chars")
-			@menu_item("Événements", "event", "/wt/events", "events")
-			@menu_item("Candidature", "assignment_ind", "/wt/application", "apply")
+
+			@if(req.chars.nonEmpty) {
+				@menu_item("Événements", "event", "/wt/events", "events")
+				@menu_item("Candidature", "assignment_ind", "/wt/application", "apply")
+			}
 
 			@if(req.user.roster) {
 				@menu_item("Wishlist", "favorite", "/wt/wishlist", "wishlist")
