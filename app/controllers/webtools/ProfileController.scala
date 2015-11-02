@@ -32,32 +32,30 @@ trait ProfileController {
 	this: WebTools =>
 	import ProfileController._
 
-	def profile = UserAction.async { request =>
-		val user = request.user
-		val get = request.queryString
+	def profile = UserAction.async { req =>
+		val user = req.user
+		val get = req.queryString
 
-		val action = get.get("action") match {
+		get.get("action") match {
 			case Some(a) =>
 				val char = get("char").head.toInt
-				a.head match {
+				val action = a.head match {
 					case "enable" => RosterService.enableChar(char)
 					case "disable" => RosterService.disableChar(char)
 					case "set-main" => RosterService.promoteChar(char)
 					case "remove" => RosterService.removeChar(char)
 					case _ => ResolvedUnitFuture
 				}
+				for (_ <- action) yield Redirect("/wt/profile")
 
-			case None => ResolvedUnitFuture
-		}
-
-		for {
-			_ <- action
-			chars <- RosterService.chars(user.id)
-			sn <- server_names.value
-			cn <- class_names.value
-			rn <- races_names.value
-		} yield {
-			Ok(views.html.wt.main.render(chars, sn, cn, rn, user))
+			case None =>
+				for {
+					sn <- server_names.value
+					cn <- class_names.value
+					rn <- races_names.value
+				} yield {
+					Ok(views.html.wt.profile.render(req.chars, sn, cn, rn, user))
+				}
 		}
 	}
 }

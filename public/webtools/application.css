@@ -1,70 +1,72 @@
 .line {
-    display: flex;
-    padding-top: 16px;
-    padding-bottom: 40px;
-
-    margin: 0 -16px 0 -24px;
+	display: flex;
+	padding-top: 16px;
+	padding-bottom: 37px;
+	margin: 0 -16px 0 -24px;
 }
 
 .step {
-    flex: 1;
-    text-align: center;
-    display: flex;
-    align-items: center;
+	flex: 1;
+	text-align: center;
+	display: flex;
+	align-items: center;
+	position: relative;
 }
 
 .step .before, .step .after {
-    flex: 1;
-    border-top: 3px solid rgba(99, 180, 255, 0.3);
+	flex: 1;
+	border-top: 3px solid rgba(99, 180, 255, 0.3);
 }
 
 .step.done .before, .step.done .after, .step.cur .before, .step.done .num {
-    border-color: rgba(99, 180, 255, 0.8);
-    color: #eee;
+	border-color: rgba(99, 180, 255, 0.8);
+	color: #eee;
 }
 
 .step.cur .num {
-    border-left-color: rgba(99, 180, 255, 0.8);
-    color: #fff;
+	border-left-color: rgba(99, 180, 255, 0.8);
+	color: #fff;
 }
 
 .step .center {
-    width: 50px;
+	width: 50px;
 }
 
 .step .label {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    margin-top: 10px;
-    font-weight: 300;
-    color: #8EAFCE
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	margin-top: 10px;
+	font-weight: 400;
+	color: #8EAFCE
 }
 
 .step.cur .label {
-    color: #eee;
+	color: #eee;
 }
 
 .num {
-    border: 3px solid rgba(99, 180, 255, 0.3);
-    font-size: 24px;
-    font-weight: 600;
-    border-radius: 100%;
-    width: 50px;
-    height: 50px;
-    line-height: 42px;
-    text-align: center;
-    display: inline-block;
-    color: #8EAFCE;
+	border: 3px solid rgba(99, 180, 255, 0.3);
+	font-size: 24px;
+	font-weight: 500;
+	border-radius: 100%;
+	width: 50px;
+	height: 50px;
+	line-height: 42px;
+	text-align: center;
+	display: inline-block;
+	color: #8EAFCE;
+	box-sizing: border-box;
 }
 
 div.continue {
-    width: 500px;
-    margin: auto;
+	width: 500px;
+	margin: auto;
+	margin-top: 24px;
 }
 
 div.continue button {
-    display: block;
-    margin: 24px auto 0 auto;
+	display: block;
+	margin: 24px auto 0 auto;
 }

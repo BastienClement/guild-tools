@@ -1,7 +1,7 @@
 @import models._
 @import models.application
 @()(implicit user: User)
-@wt.application_layout(1) {
+@wt.application.layout(1) {
 	<h2>Etape 1: Charte de guilde</h2>
 	<div style="margin-top: 24px;">
 		Bienvenue dans le module de suivi de candidature !<br><br>
@@ -11,16 +11,18 @@
 		Nous sommes toujours à la recherche d'excellents joueurs, quelque soit la classe et la spé.
 	</div>
 
-	@wt.application_charter.render()
+	@wt.application.charter.render(true)
 
 	<script>
-			var $ = jQuery;
-			$("#charte").find("button").click(function() {
+		(function($) {
+			var charter = $("#charter");
+			charter.find("button").click(function() {
 				$(this).addClass("checked");
-				if (!$("#charte").find("button:not(.checked)").length) {
+				if (!charter.find("button:not(.checked)").length) {
 					$("#continue-btn").attr({ disabled: false });
 				}
 			});
+		})(jQuery);
 	</script>
 
 	<div class="continue">
@@ -28,7 +30,7 @@
 			<i class="material-icons">info</i>
 			Pour continuer, il est nécessaire d'avoir cliqué sur "Lu et Approuvé" sur toutes les sections de la charte de guilde.
 		</p>
-		<button id="continue-btn" disabled onclick="load_page('apply', 'step=2')">
+		<button id="continue-btn" disabled onclick="document.location.href = '/wt/application/step1?validate';">
 			<i class="material-icons">chevron_right</i>
 			Continuer
 		</button>

@@ -17,7 +17,9 @@ GET         /wt/profile                    controllers.WebTools.profile
 GET         /wt/wishlist                   controllers.WebTools.wishlist
 POST        /wt/wishlist                   controllers.WebTools.wishlistSave
 GET         /wt/wishlist/:boss             controllers.WebTools.wishlistBoss(boss)
-GET         /wt/application                controllers.WebTools.apply
+GET         /wt/application                controllers.WebTools.dispatch
+GET         /wt/application/step1          controllers.WebTools.step1
+GET         /wt/application/step2          controllers.WebTools.step2
 GET         /wt/application/charter        controllers.WebTools.charter
 GET         /wt/*path                      controllers.WebTools.catchall(path)
 

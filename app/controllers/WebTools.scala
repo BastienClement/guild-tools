@@ -14,7 +14,7 @@ class WebTools extends Controller
 	with ProfileController with WishlistController with ApplicationController
 {
 	// The wrapper request with user informations and session token
-	class UserRequest[A](val user: User, val token: String, val set_cookie: Boolean, val request: Request[A]) extends WrappedRequest[A](request)
+	class UserRequest[A](val user: User, val chars: Seq[Char], val token: String, val set_cookie: Boolean, val request: Request[A]) extends WrappedRequest[A](request)
 
 	// Indicate that the user is correctly authenticated but doesn't have access to the requested page
 	object Deny extends Exception
@@ -79,7 +79,8 @@ class WebTools extends Controller
 		def transform[A](implicit request: Request[A]) = {
 			for {
 				(user, token, set_token) <- cookieUser recoverWith { case _ => ssoUser }
-			} yield new UserRequest(user, token, set_token, request)
+				chars <- RosterService.chars(user.id)
+			} yield new UserRequest(user, chars, token, set_token, request)
 		}
 
 		// Action wrapper

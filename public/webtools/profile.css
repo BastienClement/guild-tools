@@ -58,7 +58,7 @@
 .char .realm {
 	color: rgb(142, 175, 206);
 	float: right;
-	font-weight: 300;
+	/*font-weight: 300;*/
 }
 
 .char .top i {
@@ -68,7 +68,7 @@
 
 .middle {
 	font-size: 13px;
-	font-weight: 300;
+	/*font-weight: 300;*/
 }
 
 .actions {
@@ -92,5 +92,16 @@
 
 .actions span {
 	color: #A7AEB3;
-	font-weight: 300;
+	/*font-weight: 300;*/
+}
+
+#no-char-box {
+	background: rgba(99, 180, 255, 0.00);
+	border: 1px solid rgba(99, 180, 255, 0.1);
+	color: #A7AEB3;
+	padding: 150px 0;
+	width: 100%;
+	margin-bottom: 12px;
+	text-align: center;
+	border-radius: 3px;
 }

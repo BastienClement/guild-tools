@@ -1,4 +1,12 @@
-@()
+@(buttons: Boolean)
+@check_btn = {
+	@if(buttons) {
+		<button>
+			<i class="material-icons">check</i>
+			Lu et Approuvé
+		</button>
+	}
+}
 <link rel="stylesheet" href='@routes.Assets.versioned("webtools/charter.css")'>
 <ol id="charter">
 	<li>
@@ -12,10 +20,7 @@
 			<li>Utiliser et maîtriser Weak Auras.</li>
 			<li>Utiliser et maîtriser Big Wigs.</li>
 		</ul>
-		<button>
-			<i class="material-icons">check</i>
-			Lu et Approuvé
-		</button>
+		@check_btn
 	</li>
 	<li>
 		<div class="title">2. Attitude</div>
@@ -28,10 +33,7 @@
 			<li>Être prêt à progresser, ne pas arriver en conquérant, on a tous toujours des choses à apprendre.</li>
 			<li>Être prêt à ne pas participer à tous les boss en progress, les compositions sont faites en fonction du niveau des joueurs disponibles mais également des besoins des fights, penser à la guilde avant tout.</li>
 		</ul>
-		<button>
-			<i class="material-icons">check</i>
-			Lu et Approuvé
-		</button>
+		@check_btn
 	</li>
 	<li>
 		<div class="title">3. Relationnel</div>
@@ -41,10 +43,7 @@
 			<li>Les gens feront toujours l'amalgame entre vous et votre tag, il vous sera donc demandé de le représenter au mieux.</li>
 			<li>Aucun whine ne sera toléré quant à l'attribution des loot, ces derniers seront gérés par les Officiers de manière à optimiser le raid le mieux possible.</li>
 		</ul>
-		<button>
-			<i class="material-icons">check</i>
-			Lu et Approuvé
-		</button>
+		@check_btn
 	</li>
 	<li>
 		<div class="title">4. Disponibilités</div>
@@ -56,10 +55,7 @@
 			<li>Nous attendons 100% de taux de présence de la part de nos membres en progress.</li>
 			<li>En période de farm, une présence de 1 à 4 soirs par semaine sera nécessaire, soirs qui seront désigné en fonction des membres.</li>
 		</ul>
-		<button>
-			<i class="material-icons">check</i>
-			Lu et Approuvé
-		</button>
+		@check_btn
 	</li>
 	<li style="padding-bottom: 1px;">
 		<div class="title">5. Objectifs</div>
@@ -67,9 +63,6 @@
 			<li>Comme vous l'aurez compris, nous sommes une guilde à ambition "Top World" et nous nous en donnons les moyens, sachez donc dans quoi vous vous embarquez avant de tenter l'expérience à nos côtés.</li>
 			<li>Si vous n'êtes pas sûrs à 100% de respecter la charte ci-dessus, ou n'êtes pas capables de vous projeter dans votre vie, merci de ne pas nous faire perdre de temps et de passer votre chemin.</li>
 		</ul>
-		<button>
-			<i class="material-icons">check</i>
-			Lu et Approuvé
-		</button>
+		@check_btn
 	</li>
 </ol>

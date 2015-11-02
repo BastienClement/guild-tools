@@ -73,6 +73,10 @@ aside a {
     padding: 8px;
 }
 
+aside li.active a:hover {
+	color: #fff;
+}
+
 .fullpage {
     display: flex;
     height: 400px;
@@ -118,7 +122,7 @@ aside a {
 }
 
 #content p {
-    font-weight: 300;
+    font-weight: 400;
     color: #8EAFCE;
     margin-bottom: 16px;
     position: relative;

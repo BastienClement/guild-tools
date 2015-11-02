@@ -1,41 +1,41 @@
 #charter {
-    margin-top: 16px;
-    background: rgba(99, 180, 255, 0.1);
-    border: 1px solid rgba(99, 180, 255, 0.1);
-    border-width: 0 1px;
-    box-shadow: 0 1px 1px rgba(17, 17, 17, 0.3);
-    padding: 0;
-    list-style: none;
+	margin-top: 16px;
+	background: rgba(99, 180, 255, 0.1);
+	border: 1px solid rgba(99, 180, 255, 0.1);
+	border-width: 0 1px;
+	box-shadow: 0 1px 1px rgba(17, 17, 17, 0.3);
+	padding: 0;
+	list-style: none;
 }
 
 #charter .title {
-    font-family: "Roboto Condensed";
-    font-size: 16px;
-    background: rgba(99, 180, 255, 0.2);
-    padding: 8px;
-    border: 1px solid rgba(99, 180, 255, 0.1);
-    border-width: 1px 0;
+	font-family: "Roboto Condensed";
+	font-size: 16px;
+	background: rgba(99, 180, 255, 0.2);
+	padding: 8px;
+	border: 1px solid rgba(99, 180, 255, 0.1);
+	border-width: 1px 0;
 }
 
 #charter ul {
-    padding: 12px 16px;
+	padding: 12px 16px;
 }
 
 #charter ul li {
-    margin: 4px 0 4px 16px;
-    list-style-type: square;
+	margin: 4px 0 4px 16px;
+	list-style-type: square;
 }
 
 #charter button {
-    display: block;
-    margin: 0 16px 16px auto;
-    opacity: 0.5;
-    transition: all .3s ease-out;
-    outline: none;
+	display: block;
+	margin: 0 16px 16px auto;
+	opacity: 0.5;
+	transition: all .3s ease-out;
+	outline: none;
 }
 
 #charter button.checked {
-    opacity: 1;
-    color: #AAFF00;
-    border-color: rgba(200, 255, 0, 0.3);
+	opacity: 1;
+	color: #AAFF00;
+	border-color: rgba(200, 255, 0, 0.3);
 }
