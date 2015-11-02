@@ -1,5 +1,6 @@
 @import models._
-@(bosses: Seq[String], data: String)(implicit user: User)
+@import controllers.WebTools.UserRequest
+@(bosses: Seq[String], data: String)(implicit req: UserRequest[AnyContent])
 @wt.layout("wishlist") {
 
 	<h2>Wishlist Hellfire Citadel</h2>

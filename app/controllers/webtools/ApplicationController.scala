@@ -17,12 +17,12 @@ trait ApplicationController {
 		if (req.getQueryString("validate").isDefined) {
 			Redirect("/wt/application/step2").withSession(req.session + ("charter" -> "1"))
 		} else {
-			Ok(views.html.wt.application.step1.render(req.user))
+			Ok(views.html.wt.application.step1.render(req))
 		}
 	}
 
 	def step2 = UserAction { req =>
-		Ok(views.html.wt.application.step2.render(req.user))
+		Ok(views.html.wt.application.step2.render(req))
 	}
 
 	/**

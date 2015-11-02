@@ -1,4 +1,5 @@
-@(step: Int)(content: Html)(implicit user: User)
+@import controllers.WebTools.UserRequest
+@(step: Int)(content: Html)(implicit req: UserRequest[AnyContent])
 @wt.layout("apply") {
 	<h2>Postuler chez From Scratch</h2>
 	<link rel="stylesheet" href='@routes.Assets.versioned("webtools/application.css")'>

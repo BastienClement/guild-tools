@@ -54,7 +54,7 @@ trait ProfileController {
 					cn <- class_names.value
 					rn <- races_names.value
 				} yield {
-					Ok(views.html.wt.profile.render(req.chars, sn, cn, rn, user))
+					Ok(views.html.wt.profile.render(sn, cn, rn, req))
 				}
 		}
 	}

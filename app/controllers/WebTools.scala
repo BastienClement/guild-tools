@@ -1,6 +1,7 @@
 package controllers
 
 import actors._
+import controllers.WebTools._
 import controllers.webtools._
 import models._
 import models.mysql._
@@ -10,9 +11,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import utils.Cache
 
-class WebTools extends Controller
-	with ProfileController with WishlistController with ApplicationController
-{
+object WebTools {
 	// The wrapper request with user informations and session token
 	class UserRequest[A](val user: User, val chars: Seq[Char], val token: String, val set_cookie: Boolean, val request: Request[A]) extends WrappedRequest[A](request)
 
@@ -21,7 +20,11 @@ class WebTools extends Controller
 
 	// Indicate that the authentication failed
 	object AuthFailed extends Exception
+}
 
+class WebTools extends Controller
+	with ProfileController with WishlistController with ApplicationController
+{
 	// The ActionBuilder for WebTools actions
 	object UserAction extends ActionBuilder[UserRequest] {
 		// A phpBB session

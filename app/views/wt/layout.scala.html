@@ -1,5 +1,5 @@
-@import models._
-@(section: String)(content: Html)(implicit user: User)
+@import controllers.WebTools.UserRequest
+@(section: String)(content: Html)(implicit req: UserRequest[AnyContent])
 <!DOCTYPE html>
 <meta charset="utf-8">
 
@@ -42,14 +42,14 @@ width: 250px;
 <aside>
 	<h1>From Scratch WebTools</h1>
 	<ul>
-		@if(user == null) {
+		@if(req.user == null) {
 			@menu_item("Accès limité", "lock", "#", "")
 		} else {
 			@menu_item("Personnages", "account_circle", "/wt/chars", "chars")
 			@menu_item("Événements", "event", "/wt/events", "events")
 			@menu_item("Candidature", "assignment_ind", "/wt/application", "apply")
 
-			@if(user.roster) {
+			@if(req.user.roster) {
 				@menu_item("Wishlist", "favorite", "/wt/wishlist", "wishlist")
 			}
 		}

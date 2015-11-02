@@ -1,6 +1,7 @@
 package controllers.webtools
 
 import controllers.WebTools
+import controllers.WebTools.Deny
 import models._
 import models.mysql._
 import play.api.libs.json.{JsNull, Json}
@@ -16,16 +17,16 @@ trait WishlistController {
 		"Iskar", "Zakuun", "Xhul'horac",
 		"Socrethar", "Velhari", "Mannoroth")
 
-	def wishlist = UserAction.async { request =>
-		if (!request.user.roster) throw Deny
+	def wishlist = UserAction.async { req =>
+		if (!req.user.roster) throw Deny
 
 		// Simple query for the database, no need for complex TableQuery objects
-		val query = sql"SELECT data FROM poll_whishlist WHERE user = ${request.user.id}".as[String].head
+		val query = sql"SELECT data FROM poll_whishlist WHERE user = ${req.user.id}".as[String].head
 
 		for {
 			data <- DB.run(query) recover { case _ => "{}" }
 		} yield {
-			Ok(views.html.wt.wishlist.render(wishlistBosses, data, request.user))
+			Ok(views.html.wt.wishlist.render(wishlistBosses, data, req))
 		}
 	}
 
@@ -48,8 +49,8 @@ trait WishlistController {
 		}
 	}
 
-	def wishlistBoss(boss: String) = UserAction.async { request =>
-		if (!request.user.roster) throw Deny
+	def wishlistBoss(boss: String) = UserAction.async { req =>
+		if (!req.user.roster) throw Deny
 		if (!wishlistBosses.contains(boss)) throw Deny
 
 		val query = sql"""
@@ -68,7 +69,7 @@ trait WishlistController {
 				Json.arr(u, c, boss_data.getOrElse(JsNull))
 			}
 			val json = Json.stringify(Json.toJson(data))
-			Ok(views.html.wt.wishlist_boss.render(boss, json, request.user))
+			Ok(views.html.wt.wishlist_boss.render(boss, json, req))
 		}
 	}
 }

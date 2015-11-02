@@ -1,5 +1,6 @@
 @import models._
-@(chars: Seq[Char], server_names: Map[String, String], class_names: Map[Int, String], race_names: Map[Int, String])(implicit user: User)
+@import controllers.WebTools.UserRequest
+@(server_names: Map[String, String], class_names: Map[Int, String], race_names: Map[Int, String])(implicit req: UserRequest[AnyContent])
 @wt.layout("chars") {
 	<h2>Mes personnages</h2>
 	<link rel="stylesheet" href='@routes.Assets.versioned("webtools/profile.css")'>
@@ -11,7 +12,7 @@
 	</p>
 
 	<div class="chars">
-		@for(char <- chars) {
+		@for(char <- req.chars) {
 			<div class="char">
 				<div class="thumb">
 					<img src="http://eu.battle.net/static-render/eu/@char.thumbnail" @if(!char.active) { style="opacity: 0.3" }>
@@ -42,7 +43,7 @@
 			</div>
 		}
 
-		@if(chars.isEmpty) {
+		@if(req.chars.isEmpty) {
 			<div id="no-char-box">
 				Aucun personnage n'est associé à votre compte pour le moment !
 			</div>
