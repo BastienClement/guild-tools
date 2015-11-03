@@ -12,7 +12,7 @@ import scala.concurrent.Future
 trait ApplicationController {
 	this: WebTools =>
 
-	def ApplicationActionIgnore(ignore: Boolean)(action: (UserRequest[AnyContent], Application) => Future[Result]): Action[AnyContent] = {
+	private def ApplicationActionIgnore(ignore: Boolean)(action: (UserRequest[AnyContent], Application) => Future[Result]): Action[AnyContent] = {
 		val FutureRedirect = Future.successful(Redirect("/wt/application"))
 		UserAction.async { req =>
 			if (req.chars.isEmpty) throw Deny
@@ -24,18 +24,18 @@ trait ApplicationController {
 		}
 	}
 
-	def ApplicationActionAsync(action: (UserRequest[AnyContent], Application) => Future[Result]): Action[AnyContent] = {
+	private def ApplicationActionAsync(action: (UserRequest[AnyContent], Application) => Future[Result]): Action[AnyContent] = {
 		ApplicationActionIgnore(false)(action)
 	}
 
-	def ApplicationAction(action: (UserRequest[AnyContent], Application) => Result): Action[AnyContent] = {
+	private def ApplicationAction(action: (UserRequest[AnyContent], Application) => Result): Action[AnyContent] = {
 		ApplicationActionIgnore(false) { case (r, a) => Future.successful(action(r, a)) }
 	}
 
 	/**
 	  * Dispatches the user to the correct stage page.
 	  */
-	def dispatch = ApplicationActionIgnore(true) { case (req, application) =>
+	def application_dispatch = ApplicationActionIgnore(true) { case (req, application) =>
 		Future.successful {
 			Redirect {
 				(if (req.session.data.contains("ignore")) null else application) match {
@@ -56,7 +56,7 @@ trait ApplicationController {
 	/**
 	  * Guild charter stage
 	  */
-	def step1 = UserAction { req =>
+	def application_step1 = UserAction { req =>
 		if (req.chars.isEmpty) throw Deny
 		if (req.getQueryString("validate").isDefined) {
 			Redirect("/wt/application/step2").withSession(req.session + ("charter" -> "1"))
@@ -68,7 +68,7 @@ trait ApplicationController {
 	/**
 	  * Application form
 	  */
-	def step2 = UserAction { req =>
+	def application_step2 = UserAction { req =>
 		if (req.chars.isEmpty) throw Deny
 		req.session.data.contains("charter") match {
 			case true => Ok(views.html.wt.application.step2.render(req))
@@ -79,7 +79,7 @@ trait ApplicationController {
 	/**
 	  * Application is in Pending stage.
 	  */
-	def step3 = ApplicationAction {
+	def application_step3 = ApplicationAction {
 		case (_, application) if application == null || application.stage != Stage.Pending.id => Redirect("/wt/application")
 		case (req, _) => Ok(views.html.wt.application.step4.render(req))
 	}
@@ -87,7 +87,7 @@ trait ApplicationController {
 	/**
 	  * Applicantion is in Review stage.
 	  */
-	def step4 = ApplicationAction {
+	def application_step4 = ApplicationAction {
 		case (_, application) if application == null || application.stage != Stage.Review.id => Redirect("/wt/application")
 		case (req, _) => Ok(views.html.wt.application.step4.render(req))
 	}
@@ -95,7 +95,7 @@ trait ApplicationController {
 	/**
 	  * Applicant is in trial.
 	  */
-	def step5 = ApplicationAction {
+	def application_step5 = ApplicationAction {
 		case (_, application) if application == null || application.stage != Stage.Trial.id => Redirect("/wt/application")
 		case (req, _) => Ok(views.html.wt.application.step5.render(req))
 	}
@@ -104,7 +104,7 @@ trait ApplicationController {
 	  * Archived application.
 	  * Used for Refused, Accepted and Archived
 	  */
-	def step6 = ApplicationAction {
+	def application_step6 = ApplicationAction {
 		case (_, application) if application == null || application.stage < Stage.Refused.id => Redirect("/wt/application")
 		case (req, _) => Ok(views.html.wt.application.step6.render(req))
 	}
@@ -112,10 +112,10 @@ trait ApplicationController {
 	/**
 	  * User is a guild member. Display placeholder page.
 	  */
-	def member = UserAction { req => Ok(views.html.wt.application.member.render(req)) }
+	def application_member = UserAction { req => Ok(views.html.wt.application.member.render(req)) }
 
 	/**
 	  * Only outputs the guild charter for inclusion into WordPress.
 	  */
-	def charter = Action {Ok(views.html.wt.application.charter.render(false))}
+	def application_charter = Action {Ok(views.html.wt.application.charter.render(false))}
 }
