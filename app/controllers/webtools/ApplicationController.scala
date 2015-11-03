@@ -1,17 +1,48 @@
 package controllers.webtools
 
 import controllers.WebTools
-import controllers.WebTools.Deny
-import play.api.mvc.Action
+import controllers.WebTools.{Deny, UserRequest}
+import models._
+import models.application.{Application, Applications, Stage}
+import models.mysql._
+import play.api.mvc.{Action, AnyContent, Result}
+import reactive.ExecutionContext
+import scala.concurrent.Future
 
 trait ApplicationController {
 	this: WebTools =>
 
-	def dispatch = UserAction { req =>
-		if (req.chars.isEmpty) throw Deny
-		req.session.data match {
-			case session if session.contains("charter") => Redirect("/wt/application/step2")
-			case _ => Redirect("/wt/application/step1")
+	def ApplicationAction(ignore: Boolean)(action: (UserRequest[AnyContent], Application) => Future[Result]): Action[AnyContent] = {
+		val FutureRedirect = Future.successful(Redirect("/wt/application"))
+		UserAction.async { req =>
+			if (req.chars.isEmpty) throw Deny
+			Applications.lastForUser(req.user.id).result.headOption.run flatMap {
+				case Some(a) => action(req, a)
+				case None if ignore => action(req, null)
+				case _ => FutureRedirect
+			}
+		}
+	}
+
+	def ApplicationAction(action: (UserRequest[AnyContent], Application) => Future[Result]): Action[AnyContent] = {
+		ApplicationAction(false)(action)
+	}
+
+	def dispatch = ApplicationAction(true) { case (req, application) =>
+		Future.successful {
+			Redirect {
+				(if (req.session.data.contains("ignore")) null else application) match {
+					//case _ if req.user.member => "/wt/application/step6"
+
+					case null if req.session.data.contains("charter") => "/wt/application/step2"
+					case null => "/wt/application/step1"
+
+					case a if a.stage > Stage.Trial.id => "/wt/application/step6"
+					case a if a.stage == Stage.Trial.id => "/wt/application/step5"
+					case a if a.stage == Stage.Review.id => "/wt/application/step4"
+					case a if a.stage == Stage.Pending.id => "/wt/application/step3"
+				}
+			}
 		}
 	}
 
@@ -29,10 +60,11 @@ trait ApplicationController {
 		Ok(views.html.wt.application.step2.render(req))
 	}
 
+	/** User is a guild member */
+	def roster = UserAction { req => Ok(views.html.wt.application.roster.render(req)) }
+
 	/**
-	 * Only outputs the guild charter for inclusion into WordPress
-	 */
-	def charter = Action {
-		Ok(views.html.wt.application.charter.render(false))
-	}
+	  * Only outputs the guild charter for inclusion into WordPress
+	  */
+	def charter = Action {Ok(views.html.wt.application.charter.render(false))}
 }

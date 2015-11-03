@@ -98,7 +98,8 @@ class WebTools extends Controller
 
 			result recover {
 				case Deny => Redirect("/wt/")
-				case AuthFailed => Ok(views.html.wt.unauthenticated.render())
+				case AuthFailed =>
+					Ok(views.html.wt.unauthenticated.render(null))
 			}
 		}
 	}

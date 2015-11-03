@@ -39,7 +39,7 @@ class Apply(user: User) extends ChannelHandler {
 	request("apply-feed-body") { p =>
 		val id = p.value.as[Int]
 		for {
-			body_opt <- Applications.getDataChecked(id, user.id, user.member, user.promoted).result.headOption
+			body_opt <- Applications.dataChecked(id, user.id, user.member, user.promoted).result.headOption
 			body = body_opt.getOrElse(throw new Exception("Access to this application is denied"))
 			feed <- ApplicationFeed.forApplicationSorted(id, user.member).result
 		} yield (feed, body)

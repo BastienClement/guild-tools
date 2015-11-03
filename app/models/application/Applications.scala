@@ -44,13 +44,18 @@ object Applications extends TableQuery(new Applications(_)) {
 	})
 
 	/** Fetch application body data by id */
-	val getData = Compiled((id: Rep[Int]) => {
+	val data = Compiled((id: Rep[Int]) => {
 		getById.extract(id).map(_.data)
 	})
 
 	/** Fetch application body data by id and check that the user can access it */
-	val getDataChecked = Compiled((id: Rep[Int], user: Rep[Int], member: Rep[Boolean], promoted: Rep[Boolean]) => {
+	val dataChecked = Compiled((id: Rep[Int], user: Rep[Int], member: Rep[Boolean], promoted: Rep[Boolean]) => {
 		getByIdChecked.extract(id, user, member, promoted).map(_.data)
+	})
+
+	/** Fetch last application for a user */
+	val lastForUser = Compiled((user: Rep[Int]) => {
+		Applications.sortBy(_.id.desc).filter(_.user === user).take(1)
 	})
 
 	/*

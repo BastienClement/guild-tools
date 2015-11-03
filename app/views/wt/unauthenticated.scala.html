@@ -1,4 +1,5 @@
-@()
+@import controllers.WebTools.UserRequest
+@()(implicit req: UserRequest[AnyContent])
 @wt.layout("") {
 	<div class="fullpage">
 		<div>

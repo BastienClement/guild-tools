@@ -42,7 +42,7 @@ width: 250px;
 <aside>
 	<h1>From Scratch WebTools</h1>
 	<ul>
-		@if(req.user == null) {
+		@if(section == "") {
 			@menu_item("Accès limité", "lock", "#", "")
 		} else {
 			@menu_item("Personnages", "account_circle", "/wt/chars", "chars")
