@@ -38,12 +38,12 @@ object AuthService extends StaticActor[AuthService, AuthServiceImpl]("AuthServic
 }
 
 /**
- * A static actor providing auth and login services.
- */
+  * A static actor providing auth and login services.
+  */
 trait AuthService {
 	/**
-	 * Returns the user corresponding to a session token.
-	 */
+	  * Returns the user corresponding to a session token.
+	  */
 	def auth(session: String): Future[User] = {
 		val sess_query = Sessions.filter(_.token === session)
 		sess_query.map(_.user).head flatMap { user_id =>
@@ -53,9 +53,9 @@ trait AuthService {
 	}
 
 	/**
-	 * Cache of hash setting for every user.
-	 * @todo Fix case-sensitiveness if user cannot be found
-	 */
+	  * Cache of hash setting for every user.
+	  * @todo Fix case-sensitiveness if user cannot be found
+	  */
 	private val setting_cache = Cache.async[String, String](1.minute) { user =>
 		val password = for (u <- Users if u.name === user || u.name_clean === user.toLowerCase) yield u.pass
 		password.head map { pass =>
@@ -66,14 +66,14 @@ trait AuthService {
 	}
 
 	/**
-	 * Returns the user's hash settings.
-	 * If the user cannot be found, a random string is generated instead.
-	 */
+	  * Returns the user's hash settings.
+	  * If the user cannot be found, a random string is generated instead.
+	  */
 	def setting(username: String): Future[String] = setting_cache(username)
 
 	/**
-	 * Perform user authentication and return a new session token.
-	 */
+	  * Perform user authentication and return a new session token.
+	  */
 	def login(username: String, password: String, salt: String, ip: Option[String], ua: Option[String]): Future[String] = {
 		val user_credentials = for {
 			u <- Users if (u.name === username || u.name_clean === username.toLowerCase) && (u.group inSet allowed_groups)
@@ -90,9 +90,9 @@ trait AuthService {
 	}
 
 	/**
-	 * Create a session for a given user.
-	 * Unlink `login`, this method does not perform authentication and always succeed.
-	 */
+	  * Create a session for a given user.
+	  * Unlink `login`, this method does not perform authentication and always succeed.
+	  */
 	def createSession(user: Int, ip: Option[String], ua: Option[String]): Future[String] = {
 		def attempt(count: Int = 1): Future[String] = {
 			val token = utils.randomToken()
@@ -110,9 +110,9 @@ trait AuthService {
 	}
 
 	/**
-	 * Remove a session from the database.
-	 * @todo Kill every socket open with this session
-	 */
+	  * Remove a session from the database.
+	  * @todo Kill every socket open with this session
+	  */
 	def logout(session: String): Future[Unit] = DB.run {
 		for (_ <- Sessions.filter(_.token === session).delete) yield ()
 	}

@@ -5,8 +5,8 @@ import play.api.libs.json.{Format, JsValue, Json}
 import scala.language.implicitConversions
 
 /**
- * An application stage.
- */
+  * An application stage.
+  */
 sealed class Stage private (val id: Int, val name: String)
 
 object Stage {

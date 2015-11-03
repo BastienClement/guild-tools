@@ -10,17 +10,23 @@ import utils.SmartTimestamp
 case class ApplicationMessage(id: Int, apply: Int, user: Int, date: Timestamp, text: String, secret: Boolean, system: Boolean)
 
 object ApplicationFeed extends TableQuery(new ApplicationFeed(_)) {
-	/** Fetch application feed for an application */
+	/**
+	  * Fetch application feed for an application
+	  */
 	val forApplication = Compiled((application: Rep[Int], with_secret: Rep[Boolean]) => {
 		for (msg <- ApplicationFeed if msg.apply === application && (with_secret || !msg.secret)) yield msg
 	})
 
-	/** Fetch application feed for an application. Return sorted results */
+	/**
+	  * Fetch application feed for an application. Return sorted results
+	  */
 	val forApplicationSorted = Compiled((application: Rep[Int], with_secret: Rep[Boolean]) => {
 		forApplication.extract(application, with_secret).sortBy(_.date.asc)
 	})
 
-	/** Post a new message in an application */
+	/**
+	  * Post a new message in an application
+	  */
 	def postMessage(sender: User, apply_id: Int, message: String, secret: Boolean = true, system: Boolean = false) = {
 		// Attempt to send a private message, but the user is not a member
 		if (secret && !sender.member)
@@ -30,11 +36,11 @@ object ApplicationFeed extends TableQuery(new ApplicationFeed(_)) {
 		val msg = ApplicationMessage(0, apply_id, sender.id, now, message, secret, system)
 
 		/**
-		 * - Fetch the application and ensure that the user can access it
-		 * - Insert the message in the database
-		 * - Set have_posts and updated field for the application
-		 * - Adjust application object fields to match what we have just changed
-		 */
+		  * - Fetch the application and ensure that the user can access it
+		  * - Insert the message in the database
+		  * - Set have_posts and updated field for the application
+		  * - Adjust application object fields to match what we have just changed
+		  */
 		val action = for {
 			application_opt <- Applications.getByIdChecked(apply_id, sender.id, sender.member, sender.promoted).result.headOption
 			application = application_opt.getOrElse(throw new Exception("You are not allowed to access this application"))

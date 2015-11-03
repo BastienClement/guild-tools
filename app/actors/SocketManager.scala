@@ -1,8 +1,8 @@
 package actors
 
 import akka.actor._
-import gtp3.{WSActor, Socket}
 import gtp3.Socket.{ForceStop, Opener}
+import gtp3.{Socket, WSActor}
 import java.security.SecureRandom
 import reactive.AsFuture
 import scala.annotation.tailrec
@@ -30,8 +30,8 @@ trait SocketManager extends TypedActor.Receiver {
 	private val self = TypedActor(context.system).getActorRefFor(TypedActor.self[SocketManager])
 
 	/**
-	 * Generate a new socket ID
-	 */
+	  * Generates a new socket ID.
+	  */
 	@tailrec
 	private def nextSocketID: Long = {
 		val id = rand.nextLong()
@@ -40,8 +40,8 @@ trait SocketManager extends TypedActor.Receiver {
 	}
 
 	/**
-	 * Decrement the socket counter for this origin
-	 */
+	  * Decrements the socket counter for this origin.
+	  */
 	def disconnected(socket: ActorTag[Socket]): Unit = {
 		sockets.getSource(socket) match {
 			case Some(id) =>
@@ -56,8 +56,8 @@ trait SocketManager extends TypedActor.Receiver {
 	}
 
 	/**
-	 * Allocate a new socket for a given actor
-	 */
+	  * Allocates a new socket for a given actor.
+	  */
 	def allocate(actor: ActorTag[WSActor], opener: Opener): Future[ActorTag[Socket]] = AsFuture {
 		val id = nextSocketID
 
@@ -70,8 +70,8 @@ trait SocketManager extends TypedActor.Receiver {
 	}
 
 	/**
-	 * Rebind a socket to the given actor and return this socket
-	 */
+	  * Rebinds a socket to the given actor and return this socket.
+	  */
 	def rebind(actor: ActorTag[WSActor], opener: Opener, id: Long, seq: Int): Future[ActorTag[Socket]] = {
 		sockets.getTarget(id) match {
 			case Some(socket) => AsFuture {
@@ -89,15 +89,15 @@ trait SocketManager extends TypedActor.Receiver {
 	}
 
 	/**
-	 * Kill an open socket
-	 */
+	  * Kills an open socket.
+	  */
 	def killSocket(id: Long) = {
 		for (socket <- sockets.getTarget(id)) socket ! ForceStop
 	}
 
 	/**
-	 * Get the list of open sockets
-	 */
+	  * Returns the list of open sockets.
+	  */
 	def socketsMap = Future.successful(sockets.toMap)
 
 	def onReceive(message: Any, sender: ActorRef) = message match {

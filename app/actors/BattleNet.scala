@@ -15,23 +15,23 @@ object BattleNet extends StaticActor[BattleNet, BattleNetImpl]("BattleNet") {
 	private val key = current.configuration.getString("bnet.apiKey") getOrElse ""
 
 	/**
-	 * A Battle.net request failure.
-	 * In addition to the `reason` message provided by Battle.net, the full WSResponse object is provided.
-	 */
+	  * A Battle.net request failure.
+	  * In addition to the `reason` message provided by Battle.net, the full WSResponse object is provided.
+	  */
 	case class BnetFailure(response: WSResponse) extends Exception((response.json \ "reason").asOpt[String].getOrElse("Unknown reason"))
 }
 
 /**
- * Battle.net API client.
- */
+  * Battle.net API client.
+  */
 trait BattleNet {
 	/**
-	 * Executes a Battle.net query.
-	 * The URl is automatically prefixed with `https://eu.api.battle.net/wow`.
-	 * @param api           the API to query
-	 * @param user_params   any additional user-provided GET parameters
-	 * @return              the JsValue returned by Battle.net
-	 */
+	  * Executes a Battle.net query.
+	  * The URl is automatically prefixed with `https://eu.api.battle.net/wow`.
+	  * @param api           the API to query
+	  * @param user_params   any additional user-provided GET parameters
+	  * @return              the JsValue returned by Battle.net
+	  */
 	def query(api: String, user_params: (String, String)*): Future[JsValue] = {
 		val params = user_params :+ ("apikey" -> key)
 		val request = WS.url(s"https://eu.api.battle.net/wow$api").withQueryString(params: _*).withRequestTimeout(10000)
@@ -43,11 +43,11 @@ trait BattleNet {
 	}
 
 	/**
-	 * Fetches a character from Battle.net.
-	 * @param server    the server name slug
-	 * @param name      the character name
-	 * @return          a Char corresponding to the fetched character
-	 */
+	  * Fetches a character from Battle.net.
+	  * @param server    the server name slug
+	  * @param name      the character name
+	  * @return          a Char corresponding to the fetched character
+	  */
 	def fetchChar(server: String, name: String): Future[Char] = {
 		query(s"/character/$server/$name", "fields" -> "items,talents") map { char =>
 			// Extract talents

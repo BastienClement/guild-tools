@@ -11,19 +11,19 @@ trait Collectable {
 
 trait Collector[T <: Collectable] {
 	/**
-	 * All instances currently living
-	 */
+	  * All instances currently living
+	  */
 	private val instances = mutable.WeakHashMap[T, Unit]()
 
 	/**
-	 * Track garbage collector status
-	 */
+	  * Track garbage collector status
+	  */
 	private var collector_started = false
 	private var collector: Cancellable = _
 
 	/**
-	 * Register a new item for garbage collection
-	 */
+	  * Register a new item for garbage collection
+	  */
 	def register(col: T) = this.synchronized {
 		instances(col) = ()
 		if (!collector_started) {
