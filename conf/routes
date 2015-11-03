@@ -20,6 +20,11 @@ GET         /wt/wishlist/:boss             controllers.WebTools.wishlistBoss(bos
 GET         /wt/application                controllers.WebTools.dispatch
 GET         /wt/application/step1          controllers.WebTools.step1
 GET         /wt/application/step2          controllers.WebTools.step2
+GET         /wt/application/step3          controllers.WebTools.step3
+GET         /wt/application/step4          controllers.WebTools.step4
+GET         /wt/application/step5          controllers.WebTools.step5
+GET         /wt/application/step6          controllers.WebTools.step6
+GET         /wt/application/member         controllers.WebTools.member
 GET         /wt/application/charter        controllers.WebTools.charter
 GET         /wt/*path                      controllers.WebTools.catchall(path)
 

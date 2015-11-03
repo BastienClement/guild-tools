@@ -12,7 +12,7 @@ import scala.concurrent.Future
 trait ApplicationController {
 	this: WebTools =>
 
-	def ApplicationAction(ignore: Boolean)(action: (UserRequest[AnyContent], Application) => Future[Result]): Action[AnyContent] = {
+	def ApplicationActionIgnore(ignore: Boolean)(action: (UserRequest[AnyContent], Application) => Future[Result]): Action[AnyContent] = {
 		val FutureRedirect = Future.successful(Redirect("/wt/application"))
 		UserAction.async { req =>
 			if (req.chars.isEmpty) throw Deny
@@ -24,15 +24,22 @@ trait ApplicationController {
 		}
 	}
 
-	def ApplicationAction(action: (UserRequest[AnyContent], Application) => Future[Result]): Action[AnyContent] = {
-		ApplicationAction(false)(action)
+	def ApplicationActionAsync(action: (UserRequest[AnyContent], Application) => Future[Result]): Action[AnyContent] = {
+		ApplicationActionIgnore(false)(action)
 	}
 
-	def dispatch = ApplicationAction(true) { case (req, application) =>
+	def ApplicationAction(action: (UserRequest[AnyContent], Application) => Result): Action[AnyContent] = {
+		ApplicationActionIgnore(false) { case (r, a) => Future.successful(action(r, a)) }
+	}
+
+	/**
+	  * Dispatches the user to the correct stage page.
+	  */
+	def dispatch = ApplicationActionIgnore(true) { case (req, application) =>
 		Future.successful {
 			Redirect {
 				(if (req.session.data.contains("ignore")) null else application) match {
-					//case _ if req.user.member => "/wt/application/step6"
+					case _ if req.user.member => "/wt/application/member"
 
 					case null if req.session.data.contains("charter") => "/wt/application/step2"
 					case null => "/wt/application/step1"
@@ -46,6 +53,9 @@ trait ApplicationController {
 		}
 	}
 
+	/**
+	  * Guild charter stage
+	  */
 	def step1 = UserAction { req =>
 		if (req.chars.isEmpty) throw Deny
 		if (req.getQueryString("validate").isDefined) {
@@ -55,16 +65,57 @@ trait ApplicationController {
 		}
 	}
 
+	/**
+	  * Application form
+	  */
 	def step2 = UserAction { req =>
 		if (req.chars.isEmpty) throw Deny
-		Ok(views.html.wt.application.step2.render(req))
+		req.session.data.contains("charter") match {
+			case true => Ok(views.html.wt.application.step2.render(req))
+			case false => Redirect("/wt/application/step1")
+		}
 	}
 
-	/** User is a guild member */
-	def roster = UserAction { req => Ok(views.html.wt.application.roster.render(req)) }
+	/**
+	  * Application is in Pending stage.
+	  */
+	def step3 = ApplicationAction {
+		case (_, application) if application == null || application.stage != Stage.Pending.id => Redirect("/wt/application")
+		case (req, _) => Ok(views.html.wt.application.step4.render(req))
+	}
 
 	/**
-	  * Only outputs the guild charter for inclusion into WordPress
+	  * Applicantion is in Review stage.
+	  */
+	def step4 = ApplicationAction {
+		case (_, application) if application == null || application.stage != Stage.Review.id => Redirect("/wt/application")
+		case (req, _) => Ok(views.html.wt.application.step4.render(req))
+	}
+
+	/**
+	  * Applicant is in trial.
+	  */
+	def step5 = ApplicationAction {
+		case (_, application) if application == null || application.stage != Stage.Trial.id => Redirect("/wt/application")
+		case (req, _) => Ok(views.html.wt.application.step5.render(req))
+	}
+
+	/**
+	  * Archived application.
+	  * Used for Refused, Accepted and Archived
+	  */
+	def step6 = ApplicationAction {
+		case (_, application) if application == null || application.stage < Stage.Refused.id => Redirect("/wt/application")
+		case (req, _) => Ok(views.html.wt.application.step6.render(req))
+	}
+
+	/**
+	  * User is a guild member. Display placeholder page.
+	  */
+	def member = UserAction { req => Ok(views.html.wt.application.member.render(req)) }
+
+	/**
+	  * Only outputs the guild charter for inclusion into WordPress.
 	  */
 	def charter = Action {Ok(views.html.wt.application.charter.render(false))}
 }

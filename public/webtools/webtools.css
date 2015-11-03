@@ -98,6 +98,10 @@ aside li.active a:hover {
     margin-bottom: 40px;
 }
 
+.fullpage span {
+    font-size: 14px;
+}
+
 #content {
     padding: 16px 16px 16px 24px;
     flex: 1;
