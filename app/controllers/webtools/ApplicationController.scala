@@ -12,28 +12,47 @@ import scala.concurrent.Future
 trait ApplicationController {
 	this: WebTools =>
 
+	/**
+	  * Creates an ApplicationAction, optionally ignoring the failure to fetch the application data.
+	  * Only the last application for the user, if it exists, is fetched and given to the underlying action.
+	  * If no application can be fetched and `ignore` is not set, the user will be redirected to /wt/application.
+	  * If `ignore` is set, the underlying action will be executed but the application parameter will be null.
+	  * @param ignore   whether to ignore failure
+	  * @param action   the original action to execute
+	  * @return         an Action to be executed by Play
+	  */
 	private def ApplicationActionIgnore(ignore: Boolean)(action: (UserRequest[AnyContent], Application) => Future[Result]): Action[AnyContent] = {
-		val FutureRedirect = Future.successful(Redirect("/wt/application"))
 		UserAction.async { req =>
 			if (req.chars.isEmpty) throw Deny
 			Applications.lastForUser(req.user.id).result.headOption.run flatMap {
 				case Some(a) => action(req, a)
 				case None if ignore => action(req, null)
-				case _ => FutureRedirect
+				case _ => Future.successful(Redirect("/wt/application"))
 			}
 		}
 	}
 
+	/**
+	  * Creates an ApplicationAction based on a asynchronous actions.
+	  */
 	private def ApplicationActionAsync(action: (UserRequest[AnyContent], Application) => Future[Result]): Action[AnyContent] = {
 		ApplicationActionIgnore(false)(action)
 	}
 
+	/**
+	  * Creates an ApplicationAction providing application data in addition to the UserRequest object.
+	  * ApplicationAction also check that the user has at least one char registered with his account.
+	  */
 	private def ApplicationAction(action: (UserRequest[AnyContent], Application) => Result): Action[AnyContent] = {
 		ApplicationActionIgnore(false) { case (r, a) => Future.successful(action(r, a)) }
 	}
 
 	/**
 	  * Dispatches the user to the correct stage page.
+	  * - If the user is a member, redirect to /wt/application/member (dummy page for members)
+	  * - If there is no application, redirect to step 2 if charter is read, else to step1
+	  * - If there is an application, redirect to the corresponding state
+	  * - If the session data contain the "ignore" key, act as if no application were available
 	  */
 	def application_dispatch = ApplicationActionIgnore(true) { case (req, application) =>
 		Future.successful {
@@ -54,7 +73,9 @@ trait ApplicationController {
 	}
 
 	/**
-	  * Guild charter stage
+	  * Guild charter stage.
+	  * If this action is called with a ?validate GET parameter, the `charter` key is added to the current
+	  * session and the user is redirected to step 2.
 	  */
 	def application_step1 = UserAction { req =>
 		if (req.chars.isEmpty) throw Deny
@@ -66,7 +87,7 @@ trait ApplicationController {
 	}
 
 	/**
-	  * Application form
+	  * Application form.
 	  */
 	def application_step2 = UserAction { req =>
 		if (req.chars.isEmpty) throw Deny
@@ -85,7 +106,7 @@ trait ApplicationController {
 	}
 
 	/**
-	  * Applicantion is in Review stage.
+	  * Application is in Review stage.
 	  */
 	def application_step4 = ApplicationAction {
 		case (_, application) if application == null || application.stage != Stage.Review.id => Redirect("/wt/application")
@@ -117,5 +138,5 @@ trait ApplicationController {
 	/**
 	  * Only outputs the guild charter for inclusion into WordPress.
 	  */
-	def application_charter = Action {Ok(views.html.wt.application.charter.render(false))}
+	def application_charter = Action { Ok(views.html.wt.application.charter.render(false)) }
 }
