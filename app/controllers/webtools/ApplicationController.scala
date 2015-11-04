@@ -5,9 +5,11 @@ import controllers.WebTools.{Deny, UserRequest}
 import models._
 import models.application.{Application, Applications, Stage}
 import models.mysql._
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Result}
 import reactive.ExecutionContext
 import scala.concurrent.Future
+import scala.util.{Failure, Success, Try}
 
 trait ApplicationController {
 	this: WebTools =>
@@ -58,7 +60,7 @@ trait ApplicationController {
 		Future.successful {
 			Redirect {
 				(if (req.session.data.contains("ignore")) null else application) match {
-					case _ if req.user.member => "/wt/application/member"
+					case _ if req.user.member && req.cookies.get("ignore_member").isEmpty => "/wt/application/member"
 
 					case null if req.session.data.contains("charter") => "/wt/application/step2"
 					case null => "/wt/application/step1"
@@ -92,8 +94,27 @@ trait ApplicationController {
 	def application_step2 = UserAction { req =>
 		if (req.chars.isEmpty) throw Deny
 		req.session.data.contains("charter") match {
-			case true => Ok(views.html.wt.application.step2.render(req))
 			case false => Redirect("/wt/application/step1")
+			case true =>
+				val main = req.chars.find(_.main).getOrElse(throw Deny)
+				val alts = req.chars.filter(c => c.active && !c.main)
+				Ok(views.html.wt.application.step2.render(main, alts, req))
+		}
+	}
+
+	/**
+	  * The user submitted his application.
+	  */
+	def application_submit = UserAction { req =>
+		req.body.asFormUrlEncoded.flatMap(_.get("data")).flatMap(_.headOption) match {
+			case None => Ok("Une erreur est survenue lors de la lecture des données de postulation.")
+			case Some(data) =>
+				Try { Json.parse(data) } match {
+					case Failure(_) => Ok("Une erreur est survenue lors de la validation des données de postulation.")
+					case Success(_) =>
+						println(data)
+						Ok("OK")
+				}
 		}
 	}
 

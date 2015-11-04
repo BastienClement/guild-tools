@@ -1,5 +1,5 @@
 @import controllers.WebTools.UserRequest
-@(server_names: Map[String, String], class_names: Map[Int, String], race_names: Map[Int, String])(implicit req: UserRequest[AnyContent])
+@()(implicit req: UserRequest[AnyContent])
 @wt.layout("chars") {
 	<h2>Mes personnages</h2>
 	<link rel="stylesheet" href='@routes.Assets.versioned("webtools/profile.css")'>
@@ -23,12 +23,12 @@
 					} else {
 						@if(!char.active) { <i class="material-icons">cloud_off</i> }
 					}
-					<span class="realm">@server_names(char.server)</span>
+					<span class="realm">@req.names.s(char.server)</span>
 				</div>
 				<div class="middle">
 					<strong>@char.level</strong>
-					@race_names(char.race)
-					@class_names(char.clazz)
+					@req.names.r(char.race)
+					@req.names.c(char.clazz)
 						&ndash;
 					@char.ilvl ilvl
 				</div>

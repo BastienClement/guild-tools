@@ -70,3 +70,128 @@ div.continue button {
 	display: block;
 	margin: 24px auto 0 auto;
 }
+
+.form {
+	background: rgba(99, 180, 255, 0.1);
+	border: 1px solid rgba(99, 180, 255, 0.1);
+	box-shadow: 0 1px 1px rgba(17, 17, 17, 0.3);
+	padding: 16px;
+	margin-top: 16px;
+}
+
+#content .form h3 {
+	margin-top: 0;
+}
+
+label {
+	display: flex;
+	margin: 8px 0;
+	position: relative;
+	/*font-weight: 300;*/
+}
+
+label > span {
+	width: 210px;
+	margin-right: 10px;
+	padding-top: 3px;
+}
+
+label span .note {
+	display: block;
+	color: #A7AEB3;
+	font-size: 13px;
+	font-weight: 300;
+}
+
+input, select {
+	width: 250px;
+	height: 28px;
+	font-family: "Roboto";
+	font-size: 14px;
+	background: rgba(17, 17, 17, 0.15);
+	border: 1px solid rgba(17, 17, 17, 0.15);
+	color: #fff;
+	padding: 4px 8px;
+	outline: none;
+}
+
+textarea {
+	font-family: "Roboto";
+	font-size: 14px;
+	background: rgba(17, 17, 17, 0.15);
+	border: 1px solid rgba(17, 17, 17, 0.15);
+	color: #fff;
+	width: 400px;
+	height: 80px;
+	padding: 8px;
+	max-width: 600px;
+	resize: none;
+	outline: none;
+}
+
+#birth input:nth-child(2) {
+	width: 40px;
+	margin-right: 5px;
+}
+
+#birth input:nth-child(3) {
+	width: 40px;
+	margin-right: 5px;
+}
+
+#birth input:nth-child(4) {
+	width: 60px;
+	margin-right: 5px;
+}
+
+.char {
+	width: 330px;
+	height: 58px;
+	position: relative;
+	padding: 10px;
+	padding-left: 68px;
+	margin-right: 20px;
+	margin-bottom: 16px;
+
+	background: rgba(99, 180, 255, 0.1);
+	border: 1px solid rgba(99, 180, 255, 0.1);
+	box-shadow: 0 1px 1px rgba(17, 17, 17, 0.3);
+
+	box-sizing: border-box;
+}
+
+.char .name {
+	font-size: 16px;
+	width: 170px;
+	margin-top: -1px;
+}
+
+.char .details {
+	font-size: 13px;
+}
+
+.char .thumb {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	bottom: 0px;
+	width: 57px;
+	border-right: 1px solid rgba(99, 180, 255, 0.1);
+}
+
+.char .thumb img {
+	width: 56px;
+	height: 56px;
+}
+
+.char strong {
+	font-weight: 400;
+}
+
+.char .realm {
+	color: rgb(142, 175, 206);
+	float: right;
+	position: relative;
+	font-weight: 300;
+	top: -2px;
+}

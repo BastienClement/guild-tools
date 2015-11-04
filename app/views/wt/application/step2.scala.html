@@ -1,6 +1,196 @@
 @import controllers.WebTools.UserRequest
-@()(implicit req: UserRequest[AnyContent])
+@(main: Char, alts: Seq[Char])(implicit req: UserRequest[AnyContent])
 @wt.application.layout(2) {
 	<h2>Etape 2: Candidature</h2>
 
+	<div class="form">
+		<h3>Personnage principal</h3>
+		<div class="char">
+			<div class="thumb">
+				<img src="http://eu.battle.net/static-render/eu/@main.thumbnail">
+			</div>
+			<div class="top">
+				<span class="name c@main.clazz">@main.name</span>
+				<span class="realm">@req.names.s(main.server)</span>
+			</div>
+			<div class="details">
+				<strong>@main.level</strong>
+				@req.names.r(main.race)
+				@req.names.c(main.clazz)
+					&ndash;
+				@main.ilvl ilvl
+			</div>
+		</div>
+		<p style="margin-top: 16px;">
+			<i class="material-icons">info</i>
+			Le système de postulation utilise automatiquement les personnages associés à votre compte.<br>
+			Si le personnage ci-dessus n'est pas le bon, vous pouvez le changer sur la page
+			<a href="/wt/profile">Personnages</a>.
+		</p>
+		<label>
+			<span>Spécialisation</span>
+			<input type="text">
+		</label>
+		<label>
+			<span>
+				Temps joué sur ce personnage
+				<span class="note">/played au niveau maximum</span>
+			</span>
+			<input type="text">
+		</label>
+	</div>
+
+	<div class="form">
+		<h3>Personnages secondaires</h3>
+		@for(char <- alts) {
+			<div class="char" style="float: left;">
+				<div class="thumb">
+					<img src="http://eu.battle.net/static-render/eu/@char.thumbnail">
+				</div>
+				<div class="top">
+					<span class="name c@char.clazz">@char.name</span>
+					<span class="realm">@req.names.s(char.server)</span>
+				</div>
+				<div class="details">
+					<strong>@char.level</strong>
+					@req.names.r(char.race)
+					@req.names.c(char.clazz)
+						&ndash;
+					@char.ilvl ilvl
+				</div>
+			</div>
+		}
+		<div style="clear: both;"></div>
+		@if(alts.length < 3) {
+			<p>
+				<i class="material-icons">info</i>
+				@if(alts.length < 1) {
+					Vous n'avez enregistré aucun personnage secondaire, vous pouvez le faire depuis la page
+					<a href="#" onclick="load_page('chars')">Personnages</a>.
+				} else {
+					Vous n'avez
+					@alts.length match {
+						case 1 => { qu'un alt enregistré }
+						case 2 => { que deux alts enregistrés }
+					}
+					avec votre compte.
+					Vous pouvez en ajouter depuis la page <a href="/wt/profile">Personnages</a>.
+				}
+				<br>
+				Souvenez-vous que la charte de guilde demande aux membres de jouer activement au moins trois alts.
+			</p>
+		}
+		<label>
+			<span>
+				Précisions diverses
+				<span class="note">Spécialisations jouées, etc.</span>
+			</span>
+			<textarea></textarea>
+		</label>
+	</div>
+
+	<div class="form">
+		<h3>Informations personnelles</h3>
+		<label>
+			<span>Prénom</span>
+			<input type="text">
+		</label>
+		<label>
+			<span>Battle-Tag</span>
+			<input type="text">
+		</label>
+		<label>
+			<span>Age</span>
+			<input type="text">
+		</label>
+		<label>
+			<span>
+				Situation personnelle
+				<span class="note">Emploi, situation familiale, etc.</span>
+			</span>
+			<textarea></textarea>
+		</label>
+		<label>
+			<span>Horaires de jeu et contraintes particulières</span>
+			<textarea></textarea>
+		</label>
+		<label>
+			<span>Précisions diverses</span>
+			<textarea></textarea>
+		</label>
+	</div>
+
+	<div class="form">
+		<h3>Expérience PVE</h3>
+		<label>
+			<span>Vos anciennes guildes</span>
+			<textarea style="height: 130px;"></textarea>
+		</label>
+		<label>
+			<span>Vos performances passées</span>
+			<textarea style="height: 130px;"></textarea>
+		</label>
+	</div>
+
+	<div class="form">
+		<h3>Autre</h3>
+		<label>
+			<span>
+				Screenshot de votre UI en raid
+				<span class="note">Veillez à mettre en évidence un maximum de choses</span>
+			</span>
+			<input type="text" placeholder="http://" style="width: 400px;">
+		</label>
+		<label>
+			<span>
+				Vos motivations
+				<span class="note">Pourquoi apply chez nous plutôt qu'ailleurs ? Pourquoi maintenant ?</span>
+			</span>
+			<textarea></textarea>
+		</label>
+		<label>
+			<span>Autre chose à dire ? C'est le moment !</span>
+			<textarea style="height: 150px;"></textarea>
+		</label>
+	</div>
+
+	<script>
+			function submit() {
+				var data = [];
+
+				var blocks = document.querySelectorAll("div.form");
+				for (var i = 0; i < blocks.length; i++) {
+					data.push(["-", blocks[i].querySelector("h3").innerText]);
+
+					var labels = blocks[i].querySelectorAll("label");
+					for (var j = 0; j < labels.length; j++) {
+						var question = labels[j].querySelector("span").innerText.split("\n")[0];
+						var field = labels[j].querySelector("input") || labels[j].querySelector("textarea");
+						data.push([question, field.value.trim()]);
+					}
+				}
+
+				console.log(data);
+
+				/*jQuery.post("/tools/apply.php", { apply: JSON.stringify(data) }, function(res) {
+					if (res == "OK") {
+						load_page('apply', '');
+					} else {
+						alert(res);
+						document.getElementById("apply-btn").disabled = false;
+					}
+				});*/
+			}
+	</script>
+
+	<div class="continue">
+		<p style="margin-top: 25px;">
+			<i class="material-icons">thumb_up</i>
+			Avant d'envoyez ta postulation, prends le temps de la relire attentivement. Une fois envoyée, il ne sera plus possible de la modifier.
+		</p>
+		<button id="apply-btn" onclick="submit(); this.disabled = true;">
+			<i class="material-icons">check</i>
+			Valider
+		</button>
+	</div>
 }

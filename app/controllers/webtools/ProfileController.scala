@@ -10,21 +10,6 @@ import scala.concurrent.duration._
 import utils.CacheCell
 
 object ProfileController {
-	private val server_names = CacheCell.async[Map[String, String]](10.minutes) {
-		val query = sql"""SELECT slug, name FROM gt_realms""".as[(String, String)]
-		DB.run(query).map(_.toMap)
-	}
-
-	private val class_names = CacheCell.async[Map[Int, String]](10.minutes) {
-		val query = sql"""SELECT id, name FROM gt_classes""".as[(Int, String)]
-		DB.run(query).map(_.toMap)
-	}
-
-	private val races_names = CacheCell.async[Map[Int, String]](10.minutes) {
-		val query = sql"""SELECT id, name FROM gt_races""".as[(Int, String)]
-		DB.run(query).map(_.toMap)
-	}
-
 	private val ResolvedUnitFuture = Future.successful(())
 }
 
@@ -49,13 +34,7 @@ trait ProfileController {
 				for (_ <- action) yield Redirect("/wt/profile")
 
 			case None =>
-				for {
-					sn <- server_names.value
-					cn <- class_names.value
-					rn <- races_names.value
-				} yield {
-					Ok(views.html.wt.profile.render(sn, cn, rn, req))
-				}
+				Future.successful(Ok(views.html.wt.profile.render(req)))
 		}
 	}
 }

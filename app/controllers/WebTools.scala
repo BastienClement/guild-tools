@@ -9,11 +9,14 @@ import play.api.mvc._
 import reactive._
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import utils.Cache
+import utils.{Cache, CacheCell}
 
 object WebTools {
+	case class NamesCollection(s: Map[String, String], c: Map[Int, String], r: Map[Int, String])
+
 	// The wrapper request with user informations and session token
-	class UserRequest[A](val user: User, val chars: Seq[Char], val token: String, val set_cookie: Boolean, val request: Request[A]) extends WrappedRequest[A](request)
+	class UserRequest[A](val user: User, val chars: Seq[Char], val names: NamesCollection,
+			val token: String, val set_cookie: Boolean, val request: Request[A]) extends WrappedRequest[A](request)
 
 	// Indicate that the user is correctly authenticated but doesn't have access to the requested page
 	object Deny extends Exception
@@ -23,8 +26,15 @@ object WebTools {
 }
 
 class WebTools extends Controller
-	with ProfileController with WishlistController with ApplicationController
-{
+with ProfileController with WishlistController with ApplicationController {
+	val names = CacheCell.async(10.minutes) {
+		for {
+			sn <- DB.run(sql"SELECT slug, name FROM gt_realms".as[(String, String)]).map(_.toMap)
+			cn <- DB.run(sql"SELECT id, name FROM gt_classes".as[(Int, String)]).map(_.toMap)
+			rn <- DB.run(sql"SELECT id, name FROM gt_races".as[(Int, String)]).map(_.toMap)
+		} yield NamesCollection(sn, cn, rn)
+	}
+
 	// The ActionBuilder for WebTools actions
 	object UserAction extends ActionBuilder[UserRequest] {
 		// A phpBB session
@@ -83,7 +93,8 @@ class WebTools extends Controller
 			for {
 				(user, token, set_token) <- cookieUser recoverWith { case _ => ssoUser }
 				chars <- RosterService.chars(user.id)
-			} yield new UserRequest(user, chars, token, set_token, request)
+				names_col <- names.value
+			} yield new UserRequest(user, chars, names_col, token, set_token, request)
 		}
 
 		// Action wrapper
@@ -103,6 +114,6 @@ class WebTools extends Controller
 		}
 	}
 
-	def main = Action { Redirect("/wt/profile") }
+	def main = Action {Redirect("/wt/profile")}
 	def catchall(path: String) = main
 }
