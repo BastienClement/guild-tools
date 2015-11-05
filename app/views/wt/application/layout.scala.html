@@ -5,7 +5,7 @@
 	<link rel="stylesheet" href='@routes.Assets.versioned("webtools/application.css")'>
 
 	<div class="line">
-		@for((label, id) <- Seq("", "Charte de guilde", "Candidature", "Approbation", "Délibérations", "Période d'essai", "Terminé").zipWithIndex) {
+		@for((label, id) <- Seq("", "Charte de guilde", "Candidature", "Vérification", "Délibérations", "Période d'essai", "Terminé").zipWithIndex) {
 			@if(id > 0) {
 				<div class="step @if(id < step || step == 6) { done } @if(id == step && id != 6) { cur }">
 					<div class="before"></div>
