@@ -1,22 +1,26 @@
 package controllers.webtools
 
-import controllers.WebTools
-import controllers.WebTools.Deny
+import controllers.webtools.WtController.Deny
 import models._
 import models.mysql._
 import play.api.libs.json.{JsNull, Json}
+import play.api.mvc.Controller
 import reactive._
 import scala.concurrent.Future
 
-trait WishlistController {
-	this: WebTools =>
-
+class WishlistController extends Controller with WtController {
+	/**
+	  * List of bosses in the wishlist
+	  */
 	private val wishlistBosses = Seq(
 		"Assault", "Iron Reaver", "Kormrok",
 		"Council", "Kilrogg", "Gorefiend",
 		"Iskar", "Zakuun", "Xhul'horac",
 		"Socrethar", "Velhari", "Mannoroth")
 
+	/**
+	  * Own wishlist form
+	  */
 	def wishlist = UserAction.async { req =>
 		if (!req.user.roster) throw Deny
 
@@ -30,6 +34,9 @@ trait WishlistController {
 		}
 	}
 
+	/**
+	  * Save the user wishlist
+	  */
 	def wishlistSave = UserAction.async { request =>
 		if (!request.user.roster) throw Deny
 		(for {
@@ -49,6 +56,9 @@ trait WishlistController {
 		}
 	}
 
+	/**
+	  * Display every players wishes for a specific boss.
+	  */
 	def wishlistBoss(boss: String) = UserAction.async { req =>
 		if (!req.user.roster) throw Deny
 		if (!wishlistBosses.contains(boss)) throw Deny

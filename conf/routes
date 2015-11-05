@@ -12,21 +12,21 @@ GET         /api/*path                     controllers.Api.catchall(path)
 
 GET         /ping/dashboard/feed           controllers.Ping.dashboardFeed
 
-GET         /wt/                           controllers.WebTools.main
-GET         /wt/profile                    controllers.WebTools.profile
-GET         /wt/wishlist                   controllers.WebTools.wishlist
-POST        /wt/wishlist                   controllers.WebTools.wishlistSave
-GET         /wt/wishlist/:boss             controllers.WebTools.wishlistBoss(boss)
-GET         /wt/application                controllers.WebTools.application_dispatch
-GET         /wt/application/step1          controllers.WebTools.application_step1
-GET         /wt/application/step2          controllers.WebTools.application_step2
-GET         /wt/application/step3          controllers.WebTools.application_step3
-GET         /wt/application/step4          controllers.WebTools.application_step4
-GET         /wt/application/step5          controllers.WebTools.application_step5
-GET         /wt/application/step6          controllers.WebTools.application_step6
-GET         /wt/application/member         controllers.WebTools.application_member
-GET         /wt/application/charter        controllers.WebTools.application_charter
-GET         /wt/*path                      controllers.WebTools.catchall(path)
+GET         /wt/                           controllers.webtools.WebTools.main
+GET         /wt/profile                    controllers.webtools.ProfileController.profile
+GET         /wt/wishlist                   controllers.webtools.WishlistController.wishlist
+POST        /wt/wishlist                   controllers.webtools.WishlistController.wishlistSave
+GET         /wt/wishlist/:boss             controllers.webtools.WishlistController.wishlistBoss(boss)
+GET         /wt/application                controllers.webtools.ApplicationController.dispatch
+GET         /wt/application/step1          controllers.webtools.ApplicationController.step1
+GET         /wt/application/step2          controllers.webtools.ApplicationController.step2
+GET         /wt/application/step3          controllers.webtools.ApplicationController.step3
+GET         /wt/application/step4          controllers.webtools.ApplicationController.step4
+GET         /wt/application/step5          controllers.webtools.ApplicationController.step5
+GET         /wt/application/step6          controllers.webtools.ApplicationController.step6
+GET         /wt/application/member         controllers.webtools.ApplicationController.member
+GET         /wt/application/charter        controllers.webtools.ApplicationController.charter
+GET         /wt/*path                      controllers.webtools.WebTools.catchall(path)
 
 GET         /                              controllers.GtApplication.client
 GET         /unsupported                   controllers.GtApplication.unsupported

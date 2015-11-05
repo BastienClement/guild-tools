@@ -1,19 +1,16 @@
 package controllers.webtools
 
-import controllers.WebTools
-import controllers.WebTools.{Deny, UserRequest}
+import controllers.webtools.WtController.{Deny, UserRequest}
 import models._
 import models.application.{Application, Applications, Stage}
 import models.mysql._
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, Result}
+import play.api.mvc.{Controller, Action, AnyContent, Result}
 import reactive.ExecutionContext
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
-trait ApplicationController {
-	this: WebTools =>
-
+class ApplicationController extends Controller with WtController {
 	/**
 	  * Creates an ApplicationAction, optionally ignoring the failure to fetch the application data.
 	  * Only the last application for the user, if it exists, is fetched and given to the underlying action.
@@ -56,7 +53,7 @@ trait ApplicationController {
 	  * - If there is an application, redirect to the corresponding state
 	  * - If the session data contain the "ignore" key, act as if no application were available
 	  */
-	def application_dispatch = ApplicationActionIgnore(true) { case (req, application) =>
+	def dispatch = ApplicationActionIgnore(true) { case (req, application) =>
 		Future.successful {
 			Redirect {
 				(if (req.session.data.contains("ignore")) null else application) match {
@@ -79,7 +76,7 @@ trait ApplicationController {
 	  * If this action is called with a ?validate GET parameter, the `charter` key is added to the current
 	  * session and the user is redirected to step 2.
 	  */
-	def application_step1 = UserAction { req =>
+	def step1 = UserAction { req =>
 		if (req.chars.isEmpty) throw Deny
 		if (req.getQueryString("validate").isDefined) {
 			Redirect("/wt/application/step2").withSession(req.session + ("charter" -> "1"))
@@ -91,7 +88,7 @@ trait ApplicationController {
 	/**
 	  * Application form.
 	  */
-	def application_step2 = UserAction { req =>
+	def step2 = UserAction { req =>
 		if (req.chars.isEmpty) throw Deny
 		req.session.data.contains("charter") match {
 			case false => Redirect("/wt/application/step1")
@@ -105,7 +102,7 @@ trait ApplicationController {
 	/**
 	  * The user submitted his application.
 	  */
-	def application_submit = UserAction { req =>
+	def submit = UserAction { req =>
 		req.body.asFormUrlEncoded.flatMap(_.get("data")).flatMap(_.headOption) match {
 			case None => Ok("Une erreur est survenue lors de la lecture des données de postulation.")
 			case Some(data) =>
@@ -121,7 +118,7 @@ trait ApplicationController {
 	/**
 	  * Application is in Pending stage.
 	  */
-	def application_step3 = ApplicationAction {
+	def step3 = ApplicationAction {
 		case (_, application) if application == null || application.stage != Stage.Pending.id => Redirect("/wt/application")
 		case (req, _) => Ok(views.html.wt.application.step4.render(req))
 	}
@@ -129,7 +126,7 @@ trait ApplicationController {
 	/**
 	  * Application is in Review stage.
 	  */
-	def application_step4 = ApplicationAction {
+	def step4 = ApplicationAction {
 		case (_, application) if application == null || application.stage != Stage.Review.id => Redirect("/wt/application")
 		case (req, _) => Ok(views.html.wt.application.step4.render(req))
 	}
@@ -137,16 +134,16 @@ trait ApplicationController {
 	/**
 	  * Applicant is in trial.
 	  */
-	def application_step5 = ApplicationAction {
+	def step5 = ApplicationAction {
 		case (_, application) if application == null || application.stage != Stage.Trial.id => Redirect("/wt/application")
 		case (req, _) => Ok(views.html.wt.application.step5.render(req))
 	}
 
 	/**
 	  * Archived application.
-	  * Used for Refused, Accepted and Archived
+	  * Used for Refused, Accepted and Archived stages.
 	  */
-	def application_step6 = ApplicationAction {
+	def step6 = ApplicationAction {
 		case (_, application) if application == null || application.stage < Stage.Refused.id => Redirect("/wt/application")
 		case (req, _) => Ok(views.html.wt.application.step6.render(req))
 	}
@@ -154,10 +151,14 @@ trait ApplicationController {
 	/**
 	  * User is a guild member. Display placeholder page.
 	  */
-	def application_member = UserAction { req => Ok(views.html.wt.application.member.render(req)) }
+	def member = UserAction { req =>
+		Ok(views.html.wt.application.member.render(req))
+	}
 
 	/**
 	  * Only outputs the guild charter for inclusion into WordPress.
 	  */
-	def application_charter = Action { Ok(views.html.wt.application.charter.render(false)) }
+	def charter = Action {
+		Ok(views.html.wt.application.charter.render(false))
+	}
 }

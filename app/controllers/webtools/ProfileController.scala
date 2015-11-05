@@ -1,29 +1,20 @@
 package controllers.webtools
 
 import actors.RosterService
-import controllers.WebTools
-import models._
-import models.mysql._
+import play.api.mvc.Controller
 import reactive.ExecutionContext
 import scala.concurrent.Future
-import scala.concurrent.duration._
-import utils.CacheCell
 
-object ProfileController {
+class ProfileController extends Controller with WtController {
 	private val ResolvedUnitFuture = Future.successful(())
-}
 
-trait ProfileController {
-	this: WebTools =>
-	import ProfileController._
-
+	/**
+	  * Player characters list
+	  */
 	def profile = UserAction.async { req =>
-		val user = req.user
-		val get = req.queryString
-
-		get.get("action") match {
+		req.queryString.get("action") match {
 			case Some(a) =>
-				val char = get("char").head.toInt
+				val char = req.queryString.get("char").get.head.toInt
 				val action = a.head match {
 					case "enable" => RosterService.enableChar(char)
 					case "disable" => RosterService.disableChar(char)
