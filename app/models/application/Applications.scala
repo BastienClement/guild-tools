@@ -5,6 +5,7 @@ import models.{User, _}
 import models.application.ApplicationEvents.ApplyUpdated
 import models.mysql._
 import reactive.ExecutionContext
+import scala.util.Success
 import utils.SmartTimestamp
 
 case class Application(id: Int, user: Int, date: Timestamp, stage: Int, have_posts: Boolean, updated: Timestamp)
@@ -37,23 +38,23 @@ object Applications extends TableQuery(new Applications(_)) {
 	def listOpenForUser(user: User) = listOpen(user.id, user.member, user.promoted)
 
 	/** Fetch application by id */
-	val getById = Compiled((id: Rep[Int]) => {
+	val byId = Compiled((id: Rep[Int]) => {
 		for (a <- Applications if a.id === id) yield a
 	})
 
 	/** Fetch application by id and check that the user can access it */
-	val getByIdChecked = Compiled((id: Rep[Int], user: Rep[Int], member: Rep[Boolean], promoted: Rep[Boolean]) => {
-		getById.extract(id).filter(canAccess(user, member, promoted))
+	val byIdChecked = Compiled((id: Rep[Int], user: Rep[Int], member: Rep[Boolean], promoted: Rep[Boolean]) => {
+		byId.extract(id).filter(canAccess(user, member, promoted))
 	})
 
 	/** Fetch application body data by id */
 	val data = Compiled((id: Rep[Int]) => {
-		getById.extract(id).map(_.data)
+		byId.extract(id).map(a => (a.data_type, a.data))
 	})
 
 	/** Fetch application body data by id and check that the user can access it */
 	val dataChecked = Compiled((id: Rep[Int], user: Rep[Int], member: Rep[Boolean], promoted: Rep[Boolean]) => {
-		getByIdChecked.extract(id, user, member, promoted).map(_.data)
+		byIdChecked.extract(id, user, member, promoted).map(a => (a.data_type, a.data))
 	})
 
 	/** Fetch last application for a user */
@@ -64,15 +65,27 @@ object Applications extends TableQuery(new Applications(_)) {
 	/**
 	  * Create a new application
 	  */
-	def create(user: Int, data_type: Int, data: String) = {
+	def create(user: User, data_type: DataType, data: String) = {
+		// Current time
 		val now = SmartTimestamp.now.toSQL
+
+		// The default application stage
 		val stage = Stage.Pending.id
-		val q = Applications.map(a => (a.user, a.date, a.data_type, a.data, a.stage, a.have_posts, a.updated))
-		val insert = (q returning Applications.map(_.id)) += (user, now, data_type, data, stage, false, now)
-		for (id <- insert.run) yield {
-			val application = Application(id, user, now, stage, false, now)
-			ApplicationEvents.publish(ApplyUpdated(application), u => canAccess(u, application))
-			application
+
+		// INSERT query
+		val mapping = Applications.map(a => (a.user, a.date, a.data_type, a.data, a.stage, a.have_posts, a.updated))
+		val insert = (mapping returning Applications.map(_.id)) += (user.id, now, data_type, data, stage, false, now)
+
+		// Create application then post created message in it
+		val query = for {
+			id <- insert
+			(application, _) <- ApplicationFeed.postMessage(user, id, "created the application", false, true)
+		} yield application
+
+		// Execute action, then broadcast ApplyUpdated event
+		query.run andThen {
+			case Success(application) =>
+				ApplicationEvents.publish(ApplyUpdated(application), u => canAccess(u, application))
 		}
 	}
 
@@ -109,7 +122,7 @@ class Applications(tag: Tag) extends Table[Application](tag, "gt_apply") {
 	def user = column[Int]("user")
 	def date = column[Timestamp]("date")
 	def stage = column[Int]("stage")
-	def data_type = column[Int]("data_type")
+	def data_type = column[DataType]("data_type")
 	def data = column[String]("data")
 	def have_posts = column[Boolean]("have_posts")
 	def updated = column[Timestamp]("updated")

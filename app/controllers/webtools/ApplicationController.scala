@@ -2,7 +2,7 @@ package controllers.webtools
 
 import controllers.webtools.WtController.{Deny, UserRequest}
 import models._
-import models.application.{Application, Applications, Stage}
+import models.application.{DataType, Application, Applications, Stage}
 import models.mysql._
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -115,7 +115,7 @@ class ApplicationController extends Controller with WtController {
 			case Some(data) =>
 				Try { Json.parse(data) } match {
 					case Failure(_) => error("Une erreur est survenue lors de la validation des données de postulation.")
-					case Success(_) => for (_ <- Applications.create(req.user.id, 0, data)) yield {
+					case Success(_) => for (_ <- Applications.create(req.user, DataType.JsonData, data)) yield {
 						Ok("OK").withSession(req.session - "charter")
 					}
 				}
