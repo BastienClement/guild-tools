@@ -1,8 +1,11 @@
 package models.application
 
 import java.sql.Timestamp
-import models.User
+import models.{User, _}
+import models.application.ApplicationEvents.ApplyUpdated
 import models.mysql._
+import reactive.ExecutionContext
+import utils.SmartTimestamp
 
 case class Application(id: Int, user: Int, date: Timestamp, stage: Int, have_posts: Boolean, updated: Timestamp)
 
@@ -57,6 +60,21 @@ object Applications extends TableQuery(new Applications(_)) {
 	val lastForUser = Compiled((user: Rep[Int]) => {
 		Applications.sortBy(_.id.desc).filter(_.user === user).take(1)
 	})
+
+	/**
+	  * Create a new application
+	  */
+	def create(user: Int, data_type: Int, data: String) = {
+		val now = SmartTimestamp.now.toSQL
+		val stage = Stage.Pending.id
+		val q = Applications.map(a => (a.user, a.date, a.data_type, a.data, a.stage, a.have_posts, a.updated))
+		val insert = (q returning Applications.map(_.id)) += (user, now, data_type, data, stage, false, now)
+		for (id <- insert.run) yield {
+			val application = Application(id, user, now, stage, false, now)
+			ApplicationEvents.publish(ApplyUpdated(application), u => canAccess(u, application))
+			application
+		}
+	}
 
 	/*
 	def changeState(user: User, application: Int, stage: Int) = {

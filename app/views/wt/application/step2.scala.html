@@ -170,16 +170,14 @@
 					}
 				}
 
-				console.log(data);
-
-				/*jQuery.post("/tools/apply.php", { apply: JSON.stringify(data) }, function(res) {
+				jQuery.post("/wt/application/step2", { data: JSON.stringify(data) }, function(res) {
 					if (res == "OK") {
-						load_page('apply', '');
+						document.location.href = "/wt/application";
 					} else {
 						alert(res);
 						document.getElementById("apply-btn").disabled = false;
 					}
-				});*/
+				});
 			}
 	</script>
 

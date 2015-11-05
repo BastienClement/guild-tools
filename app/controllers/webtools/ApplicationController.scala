@@ -5,7 +5,7 @@ import models._
 import models.application.{Application, Applications, Stage}
 import models.mysql._
 import play.api.libs.json.Json
-import play.api.mvc.{Controller, Action, AnyContent, Result}
+import play.api.mvc._
 import reactive.ExecutionContext
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
@@ -102,15 +102,22 @@ class ApplicationController extends Controller with WtController {
 	/**
 	  * The user submitted his application.
 	  */
-	def submit = UserAction { req =>
+	def submit = UserAction.async { req =>
+		// Ensure that the user can submit an application
+		if (req.chars.isEmpty) throw Deny
+		if (!req.session.data.contains("charter")) throw Deny
+
+		def error(msg: String) = Future.successful(Ok(msg))
+
+		// Save application data
 		req.body.asFormUrlEncoded.flatMap(_.get("data")).flatMap(_.headOption) match {
-			case None => Ok("Une erreur est survenue lors de la lecture des données de postulation.")
+			case None => error("Une erreur est survenue lors de la lecture des données de postulation.")
 			case Some(data) =>
 				Try { Json.parse(data) } match {
-					case Failure(_) => Ok("Une erreur est survenue lors de la validation des données de postulation.")
-					case Success(_) =>
-						println(data)
-						Ok("OK")
+					case Failure(_) => error("Une erreur est survenue lors de la validation des données de postulation.")
+					case Success(_) => for (_ <- Applications.create(req.user.id, 0, data)) yield {
+						Ok("OK").withSession(req.session - "charter")
+					}
 				}
 		}
 	}
@@ -120,7 +127,7 @@ class ApplicationController extends Controller with WtController {
 	  */
 	def step3 = ApplicationAction {
 		case (_, application) if application == null || application.stage != Stage.Pending.id => Redirect("/wt/application")
-		case (req, _) => Ok(views.html.wt.application.step4.render(req))
+		case (req, _) => Ok(views.html.wt.application.step3.render(req))
 	}
 
 	/**
