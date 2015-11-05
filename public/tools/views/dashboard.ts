@@ -46,7 +46,7 @@ class DashboardNews extends PolymerElement {
 	@On({ "news-available": "update" })
 	@Bind({ "available": true })
 	private newsfeed: NewsFeed;
-	
+
 	public available: boolean;
 	private news: NewsData[] = this.newsfeed.getNews();
 
@@ -55,7 +55,7 @@ class DashboardNews extends PolymerElement {
 	}
 
 	private filters: NewsFilters;
-	
+
 	init() {
 		try {
 			let filters = localStorage.getItem("dashboard.news.filters");
@@ -116,36 +116,36 @@ class DashboardNews extends PolymerElement {
 @Dependencies()
 class DashboardShoutbox extends PolymerElement {
 	/**
-	 * The chat service 
+	 * The chat service
 	 */
 	@Inject
 	private chat: Chat;
-	
+
 	/**
 	 * Shoutbox backlog
 	 */
 	private messages: ChatMessage[];
-	
+
 	/**
 	 * Track the readiness of the shoutbox data
 	 */
-	@Property({ reflect: true})
+	@Property({ reflect: true })
 	private loading: boolean;
-	
+
 	private async attached() {
 		// Display loading indicator
 		this.loading = true;
-		
+
 		// Register the interest for this room
 		this.chat.setInterest(SHOUTBOX_ROOM, this, true);
-		
+
 		// Request the shoutbox messages backlog
 		const msgs = await this.chat.requestBacklog(SHOUTBOX_ROOM);
-		
+
 		this.messages = msgs;
 		this.loading = false;
 	}
-	
+
 	private detached() {
 		this.chat.setInterest(SHOUTBOX_ROOM, this, false);
 	}
@@ -155,22 +155,22 @@ class DashboardShoutbox extends PolymerElement {
 // <dashboard-onlines-user>
 
 @Element("dashboard-onlines-user", "/assets/views/dashboard.html")
-@Dependencies(BnetThumb)    
+@Dependencies(BnetThumb)
 class DashboardOnlinesUser extends PolymerElement {
 	@Inject
 	@On({ "away-changed": "UpdateAway" })
 	private chat: Chat;
-	
+
 	/**
 	 * The user represented by this element
 	 */
 	@Property public user: number;
-	
+
 	/**
 	 * Away state
 	 */
 	@Property public away: boolean = this.chat.isAway(this.user);
-	
+
 	/**
 	 * The away-state of a user has changed
 	 */
@@ -178,7 +178,7 @@ class DashboardOnlinesUser extends PolymerElement {
 		// Only update if the user is the good one
 		if (user == this.user) this.away = away;
 	}
-	
+
 	/**
 	 * Click on the element navigate to the user profile
 	 */
@@ -198,12 +198,12 @@ class DashboardOnlines extends PolymerElement {
 	@Inject
 	@On(["connected", "disconnected"])
 	private chat: Chat;
-	
+
 	/**
 	 * The sorted list of users used for display
 	 */
 	private onlines: number[] = this.chat.onlinesUsers;
-	
+
 	/**
 	 * A new user is now connected to GT
 	 */
@@ -212,7 +212,7 @@ class DashboardOnlines extends PolymerElement {
 		while (i < l && this.onlines[i] < user) i++;
 		this.splice("onlines", i, 0, user);
 	}
-	
+
 	/**
 	 * A previously connected user just disconnected
 	 */
@@ -230,7 +230,7 @@ class DashboardOnlines extends PolymerElement {
 // <gt-dashboard>
 
 @View("dashboard", () => [{ title: "Dashboard", link: "/dashboard", active: true }])
-@Element("gt-dashboard", "/assets/views/dashboard.html")    
+@Element("gt-dashboard", "/assets/views/dashboard.html")
 @Dependencies(DashboardNews, DashboardShoutbox, DashboardOnlines, ProfileUser)
 export class GtDashboard extends PolymerElement {
 	@Inject

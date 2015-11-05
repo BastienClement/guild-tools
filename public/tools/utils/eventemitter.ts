@@ -162,7 +162,7 @@ export class EventEmitter {
 				if (pipe.filters && pipe.filters.has(event) === pipe.blacklist) return;
 				pipe.emitter.emit(event, ...args);
 			});
-	
+
 			// Catch-all listeners
 			let listeners = this.listeners.get("*");
 			if (listeners) {
@@ -172,10 +172,10 @@ export class EventEmitter {
 					if (listener.once) listeners.delete(listener);
 				});
 			}
-	
+
 			// Results array
 			const results: any[] = [];
-	
+
 			// Get registered listeners
 			listeners = this.listeners.get(event);
 			if (listeners) {
@@ -189,7 +189,7 @@ export class EventEmitter {
 					}
 				});
 			}
-	
+
 			// Return the results array
 			return results;
 		});

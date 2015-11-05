@@ -4,7 +4,7 @@ import { Element, Property, Dependencies, PolymerElement } from "elements/polyme
 export class GtBox extends PolymerElement {
 	@Property public heading: string;
 	@Property public scrollable: string;
-	
+
 	@Property({ reflect: true })
 	public dark: boolean;
 
@@ -18,7 +18,7 @@ export class GtBox extends PolymerElement {
 @Dependencies(GtBox)
 export class GtAlert extends PolymerElement {
 	@Property public icon: String;
-	
+
 	@Property({ reflect: true })
 	public dark: boolean;
 }

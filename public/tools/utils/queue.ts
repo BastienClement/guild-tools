@@ -78,7 +78,7 @@ export class Queue<T> {
 		}
 		return this;
 	}
-	
+
 	/**
 	 * Check if the element is present inside the queue
 	 */

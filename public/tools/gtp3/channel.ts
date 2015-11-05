@@ -28,7 +28,7 @@ export class Channel extends EventEmitter {
 	private default_flags: number = PayloadFlags.COMPRESS;
 
 	constructor(public socket: Socket,
-				public name: string,
+	            public name: string,
 	            public local_id: number,
 	            public remote_id: number) {
 		super();
@@ -42,7 +42,7 @@ export class Channel extends EventEmitter {
 		let [payload, flags] = await Payload.encode(data, initial_flags);
 
 		// Build frame
-		const frame = Frame.encode(MessageFrame, 0 , this.remote_id, message, flags, payload);
+		const frame = Frame.encode(MessageFrame, 0, this.remote_id, message, flags, payload);
 		this.socket._send(frame, true);
 	}
 
@@ -57,19 +57,19 @@ export class Channel extends EventEmitter {
 		let [payload, flags] = await Payload.encode(data, initial_flags);
 
 		// Build frame
-		const frame = Frame.encode(RequestFrame, 0 , this.remote_id, request, id, flags, payload);
+		const frame = Frame.encode(RequestFrame, 0, this.remote_id, request, id, flags, payload);
 		this.socket._send(frame, true);
 
 		// Create deferred
 		const deferred = Promise.defer<T>();
 		this.requests.set(id, deferred);
-		
+
 		// Loading indicator
 		if (!silent) {
 			(<any>this.socket).emit("request-start");
 			deferred.promise.finally(() => (<any>this.socket).emit("request-end"));
 		}
-		
+
 		return deferred.promise;
 	}
 
@@ -160,14 +160,14 @@ export class Channel extends EventEmitter {
 		const frame = Frame.encode(FailureFrame, 0, this.remote_id, request, 0, error);
 		this.socket._send(frame);
 	}
-	
+
 	private getRequestDeferred(request_id: number) {
 		const deferred = this.requests.get(request_id);
 		if (!deferred) return;
-		
+
 		this.requests.delete(request_id);
 		this.requestid_pool.release(request_id);
-		
+
 		return deferred;
 	}
 
@@ -226,7 +226,7 @@ export class Channel extends EventEmitter {
 	_pause(buffer_size: number): void {
 		this.emit("pause", buffer_size);
 	}
-	
+
 	/**
 	 * Emit the Pause event when buffer grow
 	 */

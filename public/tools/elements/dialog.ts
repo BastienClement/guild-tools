@@ -21,7 +21,7 @@ export class GtDialog extends PolymerElement {
 	 */
 	@Property
 	public sticky: boolean;
-	
+
 	/**
 	 * True if the dialog is currently shown
 	 */
@@ -49,7 +49,7 @@ export class GtDialog extends PolymerElement {
 		this.node.classList.add("visible");
 		this.$.slider.classList.add("slide-in");
 		Polymer.dom.flush();
-		
+
 		this.fire("show");
 		return Promise.resolve();
 	}
@@ -60,47 +60,47 @@ export class GtDialog extends PolymerElement {
 	public async hide(): Promise<void> {
 		let node = this.node.node;
 		let defer = Promise.defer<void>();
-		
+
 		const animation_listener = () => {
 			node.removeEventListener("animationend", animation_listener);
 			defer.resolve();
 			this.close();
 		}
-		
+
 		node.classList.add("fade-out");
 		node.addEventListener("animationend", animation_listener);
-		
+
 		return defer.promise;
 	}
-	
+
 	private close() {
 		let node = this.node.node;
-		
+
 		this.$.slider.classList.remove("slide-in");
 		node.classList.remove("visible");
 		node.classList.remove("fade-out");
-		
+
 		if (GtDialog.visible == this) {
 			GtDialog.visible = null;
 		}
-		
+
 		this.fire("hide");
-		
+
 		if (GtDialog.queue.length() > 0) {
 			GtDialog.queue.dequeue().show(true);
 		}
 	}
-	
+
 	@Listener("click")
 	private BackgroundClick() {
 		if (!this.sticky) this.hide();
 	}
-	
+
 	@Listener("content.click")
 	private ContentClick(e: Event) {
 		this.stopEvent(e);
 	}
-	
+
 	private detached() {
 		if (GtDialog.visible === this) {
 			this.close();

@@ -19,7 +19,7 @@ function fix_imports_shim() {
 				});
 			}
 		}
-	}	
+	}
 }
 
 /**
@@ -30,16 +30,16 @@ function fix_imports_shim() {
 export default async function boot() {
 	// Fix the html imports shim
 	fix_imports_shim();
-	
+
 	// Load the default injector and the Application constructor
 	const [injector, app_constructor] = <[Injector, Constructor<Application>]> await Promise.all<any>([
 		Promise.require<Injector>("utils/di", "DefaultInjector"),
 		Promise.require<Constructor<Application>>("client/main", "Application")
 	]);
-	
+
 	// Construct the Application
 	const app = injector.get(app_constructor);
-	
+
 	try {
 		// Assign to global object and call main()
 		(<any> window).GuildTools = app;

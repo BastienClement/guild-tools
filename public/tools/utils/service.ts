@@ -11,33 +11,33 @@ export class Service extends EventEmitter {
 	private attachedListeners = new WeakSet<Object>();
 	private attachedCount = 0;
 	private attachedState = true;
-	
+
 	constructor() {
 		super();
-        const that = <any>this;
-		
-        defer(() => {
-            const table = Reflect.getMetadata<DispatchTable>("servicechannel:dispatch", this);
-            if (table) {
-                table.forEach((mapping, source) => {
-                    that[source].on("message", (msg: string, payload: any) => {
-                        const handler = mapping.get(msg);
-                        if (handler) {
-                            handler.call(this, payload);
-                        } else {
-                            console.error("Unknown message:", msg, payload);
-                        }
-                    });
-                });
-            }
+		const that = <any>this;
 
-            const state = Reflect.getMetadata<[string, string][]>("servicechannel:state", this);
-            if (state) {
-                for (let [source, target] of state) {
-                    that[source].on("state", (s: boolean) => that[target] = s);
-                }
-            }
-        });
+		defer(() => {
+			const table = Reflect.getMetadata<DispatchTable>("servicechannel:dispatch", this);
+			if (table) {
+				table.forEach((mapping, source) => {
+					that[source].on("message", (msg: string, payload: any) => {
+						const handler = mapping.get(msg);
+						if (handler) {
+							handler.call(this, payload);
+						} else {
+							console.error("Unknown message:", msg, payload);
+						}
+					});
+				});
+			}
+
+			const state = Reflect.getMetadata<[string, string][]>("servicechannel:state", this);
+			if (state) {
+				for (let [source, target] of state) {
+					that[source].on("state", (s: boolean) => that[target] = s);
+				}
+			}
+		});
 	}
 
 	/**
@@ -70,7 +70,7 @@ export class Service extends EventEmitter {
 				if (that.pause) that.pause();
 			}
 		}
-    }
+	}
 }
 
 /**

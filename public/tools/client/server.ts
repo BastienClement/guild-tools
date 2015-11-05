@@ -28,7 +28,7 @@ export class Server extends EventEmitter {
 
 	// Server versions string
 	public version: string = null;
-	
+
 	// Track loading state
 	@Notify public loading: boolean = false;
 	private request_count: number = 0;
@@ -54,7 +54,7 @@ export class Server extends EventEmitter {
 
 		return defer.promise;
 	}
-	
+
 	// Transform placeholder token in the WS host
 	private normalizeURL(url: string): string {
 		for (let key of ["hostname", "port", "host"]) {
@@ -98,33 +98,33 @@ export class Server extends EventEmitter {
 		// Todo
 		throw new Error("Unimplemented")
 	}
-	
+
 	private RequestStart() {
 		this.request_count++;
 		if (this.request_count > 0) {
 			this.updateLoading(true);
 		}
 	}
-	
+
 	private RequestEnd() {
 		this.request_count--;
 		if (this.request_count < 1) {
 			this.updateLoading(false);
 		}
 	}
-	
+
 	private async updateLoading(state: boolean) {
 		// Follow the transition lockout
 		if (this.loading_transition) return
 		this.loading_transition = true;
-		
+
 		// Update loading state
 		this.loading = state;
-		
+
 		// Lockout
 		await Promise.delay(state ? 1500 : 500);
 		this.loading_transition = false;
-		
+
 		// Ensure that the loading state is still valid
 		if (state && this.request_count < 1) this.updateLoading(false);
 		else if (!state && this.request_count > 0) this.updateLoading(true);
@@ -146,7 +146,7 @@ export class Server extends EventEmitter {
 		let promise = this.socket.openChannel(ctype);
 		return promise.finally(() => this.RequestEnd());
 	}
-	
+
 	// Open a service channel
 	public openServiceChannel(ctype: string, lazy: boolean = true): ServiceChannel {
 		return new ServiceChannel(this, ctype, lazy);
@@ -172,44 +172,44 @@ export type DispatchTable = Map<string, Map<string, DispatchHandler>>;
 export class ServiceChannel extends EventEmitter {
 	// Outgoing queue
 	private queue = new Queue<QueuedMessage<any>>();
-	
+
 	// Channel status
 	private first_open: boolean = true;
 	private open_pending: boolean = false;
 	private closed: boolean = true;
-	
+
 	// Channel object
 	private channel: Channel;
-	
+
 	constructor(private server: Server, private name: string, lazy: boolean) {
 		super();
 		if (!lazy) {
 			this.open();
 		}
 	}
-	
+
 	public async open() {
 		if (this.channel || this.open_pending) return;
 		this.closed = false;
 		this.open_pending = true;
-		
+
 		try {
 			// Open the actual channel
 			const chan = await this.server.openChannel(this.name);
 			this.channel = chan;
-			
+
 			// Emit a reset event if this is not the first time this channel is opened
 			if (this.first_open) {
 				this.first_open = false;
 			} else {
 				this.emit("reset");
 			}
-			
+
 			this.emit("state", true);
-			
+
 			// Pipe every event to this emitter except reset and close
 			chan.pipe(this, "!", "reset", "close");
-			
+
 			// Handle close
 			chan.on("close", () => {
 				this.channel = null;
@@ -217,7 +217,7 @@ export class ServiceChannel extends EventEmitter {
 				if (this.closed) return;
 				this.open();
 			});
-			
+
 			// Flush queue
 			while (!this.queue.empty()) {
 				const item = this.queue.dequeue();
@@ -236,13 +236,13 @@ export class ServiceChannel extends EventEmitter {
 			this.open_pending = false;
 		}
 	}
-	
+
 	public close(code?: number, reason?: string) {
 		this.closed = true;
 		if (this.channel)
 			this.channel.close(code, reason);
 	}
-	
+
 	public request<T>(key: string, data?: any, flags?: number, silent?: boolean): Promise<T> {
 		if (this.channel) {
 			return this.channel.request<T>(key, data, flags, silent);
@@ -253,7 +253,7 @@ export class ServiceChannel extends EventEmitter {
 			return deferred.promise;
 		}
 	}
-	
+
 	public send(key: string, data?: any, flags?: number) {
 		if (this.channel) {
 			return this.channel.send(key, data, flags);
@@ -270,18 +270,18 @@ export class ServiceChannel extends EventEmitter {
 				table = new Map();
 				Reflect.defineMetadata("servicechannel:dispatch", table, target);
 			}
-			
+
 			let mapping = table.get(source);
 			if (!mapping) {
 				mapping = new Map();
 				table.set(source, mapping);
 			}
-			
+
 			const fn = <DispatchHandler> (<any> target)[property];
-			mapping.set(message, splat ? function (p) { fn.apply(this, p); } : fn);
+			mapping.set(message, splat ? function(p) { fn.apply(this, p); } : fn);
 		}
 	}
-	
+
 	static ReflectState(source: string) {
 		return (target: Service, property: string) => {
 			let list = Reflect.getMetadata<[string, string][]>("servicechannel:state", target);

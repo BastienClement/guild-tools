@@ -81,7 +81,7 @@ export class Loader {
 	public loadLess(url: string): Promise<void> {
 		let promise = imported_less.get(url);
 		if (promise) return promise;
-		
+
 		promise = (async() => {
 			let source = await this.fetch(url);
 			let css = await this.compileLess(source);
@@ -91,7 +91,7 @@ export class Loader {
 			style.setAttribute("data-source", url);
 			document.head.appendChild(style);
 		})();
-		
+
 		imported_less.set(url, promise);
 		return promise;
 	}
@@ -111,12 +111,12 @@ export class Loader {
 		for (let i = 1; i < parts.length; ++i) {
 			if (i % 2 == 1) dyn_imports.push(this.fetch(parts[i]));
 		}
-		
+
 		let dyn_sources = await Promise.all(dyn_imports);
 		for (let i = 0; i < dyn_sources.length; i++) {
 			parts[i * 2 + 1] = dyn_sources[i];
 		}
-		
+
 		// Recursive handling of deep @import (dynamic)
 		return this.lessImportDynamics(parts.join(""));
 	}
@@ -125,16 +125,17 @@ export class Loader {
 	 * Compile LESS source to CSS
 	 */
 	private lessWorker = new ServiceWorker("/assets/modules/workers/less.js");
+
 	public async compileLess(source: string): Promise<string> {
 		// Prepend the
 		source = `
 			@import (dynamic) "/assets/less/lib.less";
 			${source}
 		`;
-		
+
 		let source_css = await this.lessImportDynamics(source);
 		let result_css = await this.lessWorker.request<string>("compile", source_css);
-		
+
 		return StyleFix.fix(result_css, true);
 	}
 
@@ -167,28 +168,28 @@ export class Loader {
 	public async loadElement<T extends PolymerElement>(element: PolymerConstructor<T>): Promise<PolymerConstructor<T>> {
 		// Read Polymer metadata
 		let meta = Reflect.getMetadata<PolymerMetadata<T>>("polymer:meta", element);
-		
+
 		// Check if the element was already loaded once
 		if (meta.loaded) {
 			return element;
 		}
-		
+
 		// Ensure that Polymer is loaded
 		if (!polymer_loaded) {
 			polymer_loaded = true;
-			
+
 			//if (localStorage.getItem("polymer.useShadowDOM") == "1")
 			(<any>window).Polymer = { dom: "shadow" };
-			
+
 			// Load polymer
 			await this.loadDocument(POLYMER_PATH);
-			
+
 			// Load auto-load elements
 			for (let i = 0; i < polymer_autoload.length; i++) {
 				await this.loadElement(polymer_autoload[i]);
 			}
 			polymer_autoload = null;
-			
+
 			// Load the requested element
 			return this.loadElement(element);
 		} else if (!Polymer.is) {
@@ -205,11 +206,11 @@ export class Loader {
 		// Load and compile the element template
 		if (meta.template) {
 			let document = await this.loadDocument(meta.template);
-			
+
 			// Find the <dom-module> element
 			let domModule = document.querySelector<HTMLElement>(`dom-module[id=${meta.selector}]`);
 			if (!domModule) throw new Error(`no <dom-module> found for element <${meta.selector}> in file '${meta.template}'`);
-			
+
 			// Compile LESS
 			let less_styles = <NodeListOf<HTMLStyleElement>> domModule.querySelectorAll(`style[type="text/less"]`);
 			if (less_styles.length > 0) {
@@ -232,7 +233,7 @@ export class Loader {
 				await Promise.all(jobs);
 			}
 
-			// Compile template            
+			// Compile template
 			let template = domModule.getElementsByTagName("template")[0];
 			if (template) {
 				this.compilePolymerSugars(template.content);
@@ -243,7 +244,7 @@ export class Loader {
 		meta.constructor = Polymer(meta.proto);
 		return element;
 	}
-	
+
 	/**
 	 * Register an element to auto load when polymer is loaded
 	 */
@@ -294,13 +295,13 @@ export class Loader {
 		// If we promote [if] nodes before looking for [repeat] ones, it is possible for
 		// some of them to get nested inside the wrapper.content shadow tree when we
 		// attempt to querySelectorAll and they will not be returned.
-        
+
 		// <element [if]="{{cond}}">
 		let if_nodes = <NodeListOf<HTMLElement>> template.querySelectorAll("*[\\[if\\]]");
-		
+
 		// <element [repeat]="{{collection}}" filter sort observe>
 		let repeat_nodes = <NodeListOf<HTMLElement>> template.querySelectorAll("*[\\[repeat\\]]");
-		
+
 		for (let i = 0; i < if_nodes.length; ++i) {
 			node = if_nodes[i];
 			promote_attribute("[if]", "if", node.textContent, true);
@@ -380,6 +381,7 @@ export class Loader {
 	 * the old node.
 	 */
 	private dummy_node = document.createElement("div");
+
 	private compileAttributeBindings(node: HTMLElement, attrs: [string, string, string][]) {
 		// Removes attributes that are not {} bindings
 		attrs = attrs.filter(attr => attr[0][0] == "{");
@@ -390,11 +392,11 @@ export class Loader {
 		for (let attr of attrs) {
 			tag = tag.replace(attr[0], `${attr[2]}$`);
 		}
-		
+
 		// Replace the element name by <div>
 		// Without this, an instance of the element is incorrectly created
 		tag = tag.replace(/^<[^\s]+/, "<div");
-        
+
 		// Instatiate
 		this.dummy_node.innerHTML = tag;
 		let new_node = <HTMLElement> this.dummy_node.firstChild;

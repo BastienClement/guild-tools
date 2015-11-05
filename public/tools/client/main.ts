@@ -15,22 +15,21 @@ const KEY_AUTH_SESSION = "auth.session";
  */
 @Component
 export class Application {
-    constructor(
-        public server: Server,
-		public loader: Loader,
-		public router: Router,
-		public injector: Injector) { }
+	constructor(public server: Server,
+	            public loader: Loader,
+	            public router: Router,
+	            public injector: Injector) { }
 
 	/**
 	 * The root Application Node
 	 */
 	public root: GtApp = null;
-	
+
 	/**
 	 * App is running in standalone mode
 	 */
 	public standalone: boolean = APP;
-	
+
 	/**
 	 * The current user
 	 */
@@ -40,7 +39,7 @@ export class Application {
 	 * The master channel
 	 */
 	public master: Channel = null;
-	
+
 	/**
 	 * Access the current view element
 	 */
@@ -55,19 +54,19 @@ export class Application {
 		let fast = localStorage.getItem("loading.fast") == "1";
 		let socket_endpoint = this.loader.fetch("/api/socket_url");
 		let body = document.body;
-		
-		// Connect to server and load main less file        
+
+		// Connect to server and load main less file
 		await Promise.all([
 			this.loader.loadLess("/assets/less/guildtools.less"),
 			socket_endpoint.then(ep => this.server.connect(ep))
 		]);
-		
+
 		// Preload GtApp and views
 		let app_views_promise = Promise.all<any>([
 			this.loader.loadElement(GtApp),
 			this.router.loadRoutes("/assets/tools/routes")
 		]);
-		
+
 		// Display the title bar
 		let loader_title = document.getElementById("loader-titlebar");
 		if (APP) {
@@ -75,41 +74,41 @@ export class Application {
 		} else {
 			loader_title.remove();
 		}
-		
+
 		// Start the authentication process
 		if (!fast) await Promise.delay(500);
 		await new AuthenticationDriver(this).start();
-		
+
 		// Ensure spinner is disabled
 		await this.stopSpinner();
-		
+
 		// Hide the loading title bar
 		if (GtApp) loader_title.style.opacity = "0";
-		
+
 		// Login transition
 		body.classList.add("no-loader");
 		body.classList.add("with-background");
 		if (!fast) await Promise.delay(1100);
 		body.classList.add("app-loader");
-		
+
 		// Open master channel
 		let master_channel_promise = this.server.openChannel("master");
-		
+
 		// Await every required promises
 		await Promise.all<any>([
 			master_channel_promise.then(c => this.master = c),
 			app_views_promise
 		]);
-		
+
 		// Create the main container element
 		body.appendChild(this.root = new GtApp());
-		
+
 		// Remove the loading title bar
 		if (GtApp) loader_title.remove();
-		
+
 		console.log("loading done");
 		//setInterval(() => this.server.ping(), 10000);
-		
+
 		this.router.fallback = "/dashboard";
 		this.router.update();
 	}
@@ -165,7 +164,7 @@ class AuthenticationDriver {
 	public async start(): Promise<void> {
 		this.channel = await this.app.server.openChannel("auth");
 		let session = localStorage.getItem(KEY_AUTH_SESSION);
-		
+
 		// Authentication loop
 		while (true) {
 			// Check session if available
@@ -176,12 +175,12 @@ class AuthenticationDriver {
 					break;
 				} else {
 					session = null;
-				}    
+				}
 			}
-			
+
 			session = await this.login();
 		}
-		
+
 		this.channel.close();
 		if (this.gt_login) {
 			await this.gt_login.close();
@@ -210,7 +209,7 @@ class AuthenticationDriver {
 			type PrepareData = { setting: string, salt: string };
 			type PhpBBHash = (pass: string, setting: string) => string;
 			type CryptoJS = { SHA1: (str: string) => Object };
-			
+
 			let [prepare, phpbb_hash, crypto] = <[PrepareData, PhpBBHash, CryptoJS]> await Promise.all([
 				this.channel.request("prepare", user),
 				Promise.require("phpbb_hash"),
@@ -224,7 +223,7 @@ class AuthenticationDriver {
 			} catch (e) {
 				error = e.message;
 			}
-		}    
+		}
 	}
 
 	/**
@@ -243,7 +242,7 @@ class AuthenticationDriver {
 	private async constructForm(): Promise<void> {
 		await this.loader.loadElement(GtLogin);
 		await this.app.stopSpinner();
-		
+
 		this.gt_login = new GtLogin();
 		document.body.classList.add("with-background");
 		document.body.classList.add("no-loader");

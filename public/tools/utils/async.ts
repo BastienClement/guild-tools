@@ -6,24 +6,24 @@
 export function join(target: any, property: string) {
 	let fn: () => Promise<any> = target[property];
 	let ret_t = Reflect.getMetadata("design:returntype", target, property);
-	
+
 	if (typeof fn != "function" || fn.length !== 0 || (ret_t && ret_t !== Promise))
 		throw new TypeError("@join must be applied to a zero-argument async function");
 
 	let results = new WeakMap<any, Promise<any>>();
 	let clean = new WeakMap<any, boolean>();
-	
+
 	return {
 		value: function() {
 			if (results.has(this)) {
 				clean.set(this, false);
 				return results.get(this);
 			}
-			
+
 			let result = Promise.defer<any>();
 			results.set(this, result.promise);
 			clean.set(this, false);
-			
+
 			const loop = () => {
 				if (clean.get(this)) {
 					results.delete(this);
@@ -34,11 +34,11 @@ export function join(target: any, property: string) {
 					defer(loop);
 				}
 			};
-			
+
 			defer(loop);
 			return result.promise;
 		}
-	}    
+	};
 }
 
 /**
@@ -47,19 +47,19 @@ export function join(target: any, property: string) {
 export function synchronized(target: any, property: string) {
 	let fn: () => Promise<any> = target[property];
 	let ret_t = Reflect.getMetadata("design:returntype", target, property);
-	
+
 	if (typeof fn != "function" || (ret_t && ret_t !== Promise))
 		throw new TypeError("@synchronized must be applied to an async function");
-	
+
 	let locks = new WeakMap<any, Promise<void>>();
 
 	return {
 		value: async function() {
 			while (locks.has(this)) await locks.get(this);
-			
+
 			let defer = Promise.defer<void>();
 			locks.set(this, defer.promise);
-			
+
 			try {
 				return await fn.apply(this, arguments);
 			} finally {
@@ -67,7 +67,7 @@ export function synchronized(target: any, property: string) {
 				defer.resolve();
 			}
 		}
-	}    
+	};
 }
 
 // -- Microtask async functions
@@ -88,7 +88,7 @@ let defer_node = (function() {
 	});
 
 	let node = document.createTextNode("");
-    observer.observe(node, { characterData: true });
+	observer.observe(node, { characterData: true });
 
 	return node;
 })();
@@ -117,7 +117,7 @@ export function throttled(target: any, property: string) {
 
 	let throttled = false;
 	let result: any;
-	
+
 	return {
 		value: function() {
 			if (throttled) return result;
@@ -125,7 +125,7 @@ export function throttled(target: any, property: string) {
 			defer(() => throttled = false);
 			return result = fn.apply(this, arguments);
 		}
-	};    
+	};
 }
 
 /**
@@ -143,7 +143,7 @@ export function microtask(): Promise<void> {
 			microtask_defer = null;
 			deferred.resolve();
 		});
-		return microtask_defer.promise;    
+		return microtask_defer.promise;
 	}
 }
 

@@ -4,7 +4,7 @@ module compressWorker {
 	function deflate(buf: ArrayBuffer) {
 		return pako.deflate(new Uint8Array(buf)).buffer;
 	}
-	
+
 	function inflate(buf: ArrayBuffer) {
 		return pako.inflate(new Uint8Array(buf)).buffer;
 	}
@@ -17,4 +17,4 @@ module compressWorker {
 			res: res
 		}, <any>[res]);
 	};
-}    
+}

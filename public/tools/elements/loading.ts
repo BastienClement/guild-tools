@@ -76,7 +76,7 @@ export class GtLogin extends PolymerElement {
 		this.credentials.resolve([this.$.username.value, this.$.password.value]);
 		this.credentials = null;
 	}
-	
+
 	@Listener("btn.click")
 	private BtnClick() {
 		this.$.form.submit();

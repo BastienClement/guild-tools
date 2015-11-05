@@ -91,12 +91,12 @@ export class GtInput extends PolymerElement {
 			}
 		}
 	}
-	
+
 	@Listener("input.keyup")
 	private InputUp(e: KeyboardEvent) {
 		this.debounce("value-changed", () => this.value = this.$.input.value, 200);
 	}
-	
+
 	public click() {
 		this.focus();
 	}
@@ -104,8 +104,13 @@ export class GtInput extends PolymerElement {
 	/**
 	 * Reflect input focused state to the outer <label> element
 	 */
-	@Listener("input.focus") private InputFocus() { this.toggleAttribute("focused", true); }
-	@Listener("input.blur") private InputBlur() { this.toggleAttribute("focused", false); }
+	@Listener("input.focus") private InputFocus() {
+		this.toggleAttribute("focused", true);
+	}
+
+	@Listener("input.blur") private InputBlur() {
+		this.toggleAttribute("focused", false);
+	}
 }
 
 /**
@@ -116,16 +121,16 @@ export class GtInput extends PolymerElement {
 export class GtCheckbox extends PolymerElement {
 	@Property({ reflect: true })
 	public disabled: boolean;
-	
+
 	@Property({ reflect: true, notify: true, observer: "RadioChanged" })
 	public radio: string;
-	
+
 	@Property({ reflect: true })
 	public value: string;
-	
+
 	@Property({ reflect: true, notify: true })
 	public checked: boolean;
-	
+
 	@Listener("click")
 	public click() {
 		if (this.disabled) {
@@ -136,7 +141,7 @@ export class GtCheckbox extends PolymerElement {
 			this.checked = !this.checked;
 		}
 	}
-	
+
 	private RadioChanged() {
 		this.checked = this.radio == this.value;
 	}
@@ -152,13 +157,13 @@ export class GtLabel extends PolymerElement {
 		let control: any = this.node.querySelector("gt-input, gt-checkbox");
 		if (control && control != ev.target) control.click();
 	}
-	
+
 	@Listener("mouseenter")
 	private enter(ev: Event) {
 		let control: any = this.node.querySelector("gt-input, gt-checkbox");
 		if (control) control.setAttribute("hover", true);
 	}
-	
+
 	@Listener("mouseleave")
 	private leaver(ev: Event) {
 		let control: any = this.node.querySelector("gt-input, gt-checkbox");
@@ -173,19 +178,19 @@ export class GtLabel extends PolymerElement {
 export class GtTextarea extends PolymerElement {
 	@Property({ notify: true, observer: "ValueChanged" })
 	public value: string;
-	
+
 	@Property public disabled: boolean;
-	
+
 	@Listener("textarea.keyup")
 	private InputUp(e: KeyboardEvent) {
 		this.debounce("value-changed", () => this.value = this.$.textarea.value, 200);
 	}
-	
+
 	@Listener("textarea.change")
 	private Changed() {
 		this.value = this.$.textarea.value;
 	}
-	
+
 	private ValueChanged() {
 		if (this.$.textarea.value != this.value) {
 			this.$.textarea.value = this.value;
@@ -209,7 +214,7 @@ export class GtButton extends PolymerElement {
 	 * If set, clicking the button will trigger the submit event in the enclosing GtForm
 	 */
 	@Property public submit: boolean;
-	
+
 	/**
 	 * If set, clicking the button will trigger navigation
 	 */
@@ -222,13 +227,13 @@ export class GtButton extends PolymerElement {
 	private "event-filter"(e: Event) {
 		// Button is disabled
 		if (this.disabled) return this.stopEvent(e);
-		
+
 		// Button is a link
 		if (this.goto) {
 			this.app.router.goto(this.goto);
 			return;
 		}
-		
+
 		// Button is a form submit action
 		if (this.submit) {
 			const form = this.host(GtForm);

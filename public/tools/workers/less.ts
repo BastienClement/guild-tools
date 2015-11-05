@@ -1,6 +1,6 @@
 var window = self;
 window.document = <any> {
-    getElementsByTagName: function(tagName: string) {
+	getElementsByTagName: function(tagName: string) {
 		if (tagName === 'script') {
 			return [{ dataset: {} }];
 		} else if (tagName === 'style') {
@@ -21,7 +21,7 @@ module LessWorker {
 				self.postMessage({
 					$: "res",
 					rid: m.data.rid,
-					res: css 
+					res: css
 				}, void 0);
 			});
 	};

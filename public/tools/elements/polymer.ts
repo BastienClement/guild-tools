@@ -11,7 +11,7 @@ export class PolymerElement {
 	//protected root: DocumentFragment;
 	protected node: ShadyDOM;
 	protected shadow: ShadyDOM;
-	
+
 	/**
 	 * Reference to the GT Application object
 	 */
@@ -278,7 +278,7 @@ export function Element(selector: string, template?: string, ext?: string) {
 	return <T extends PolymerElement>(target: PolymerConstructor<T>) => {
 		// Register the element selector
 		target.prototype.is = selector;
-		
+
 		// Register the extension of native element
 		if (ext) target.prototype.extends = ext;
 
@@ -286,7 +286,7 @@ export function Element(selector: string, template?: string, ext?: string) {
 		target.prototype.createdCallback = function() {
 			// Construct a dummy object for obtaining default properties values
 			let props = Object.create(null);
-			
+
 			// Perform injections
 			// Since this is the first thing done, we can be sure that injected objects are available
 			// at any moment inside the object (including Polymer own initialization)
@@ -296,15 +296,15 @@ export function Element(selector: string, template?: string, ext?: string) {
 					props[binding.property] = DefaultInjector.get(binding.ctor);
 				}
 			}
-			
+
 			// Automatically inject the Application
 			props.app = DefaultInjector.get<Application>(Application);
-			
+
 			// Call the original constructor
 			// Elements *must not* extends the default TypeScript constructor
 			// By default, only properties initialization is performed
 			target.call(props);
-			
+
 			// Since Polymer sometimes calls ready() before returning from
 			// callbackCreated, this method ensure that the initialization
 			// is complete before calling ready()
@@ -312,16 +312,16 @@ export function Element(selector: string, template?: string, ext?: string) {
 			const init_commit = () => {
 				if (committed) return;
 				else committed = true;
-				
+
 				// Define custom sugars
 				Object.defineProperty(this, "node", {
 					get: function() { return Polymer.dom(this); }
 				});
-				
+
 				Object.defineProperty(this, "shadow", {
 					get: function() { return Polymer.dom(this.root); }
 				});
-				
+
 				// Copy injected components on the final object
 				for (let key in props) {
 					if (this[key] === void 0 && !this.properties[key]) {
@@ -329,13 +329,13 @@ export function Element(selector: string, template?: string, ext?: string) {
 						delete props[key];
 					}
 				}
-				
+
 				// If a custom initializer is defined, call it
 				// When this function is called, default argument values are not
 				// yet available. On the other hand, this function can override them.
 				if (this.init) this.init();
 			};
-			
+
 			// Hook the ready callback and apply default values obtained
 			// from the constructor. Deferring this to the ready event
 			// ensure that polymer properly notify listeners.
@@ -343,7 +343,7 @@ export function Element(selector: string, template?: string, ext?: string) {
 			this.ready = () => {
 				// Ensure initialization is done
 				init_commit();
-				
+
 				// Copy default values
 				for (let key in props) {
 					// Ensure no one define the value before
@@ -351,16 +351,16 @@ export function Element(selector: string, template?: string, ext?: string) {
 						this[key] = props[key];
 					}
 				}
-				
+
 				// Call the old ready function
 				if (ready) ready.call(this);
 			};
-			
+
 			// Call polymer constructor
 			// Elements *must not* use the created() callback either.
 			// Use init() instead
 			Polymer.Base.createdCallback.apply(this, arguments);
-			
+
 			// Finalize intialization
 			init_commit();
 		};
@@ -452,17 +452,17 @@ export function Element(selector: string, template?: string, ext?: string) {
 		};
 
 		// Get metadata object or create it
-		meta = Reflect.getMetadata("polymer:meta", target) || <any> {};
+		meta = Reflect.getMetadata("polymer:meta", target) || <any> {};
 		meta.selector = selector;
 		meta.template = template;
 		meta.base = target;
 		meta.proto = target.prototype;
 		meta.loaded = false;
-		
+
 		// Copy it on the proxy
 		Reflect.defineMetadata("polymer:meta", meta, proxy);
 		Reflect.deleteMetadata("polymer:meta", target);
-		
+
 		// Transpose remaining metadatas
 		for (let key of Reflect.getOwnMetadataKeys(target)) {
 			Reflect.defineMetadata(key, Reflect.getMetadata(key, target), proxy);
@@ -474,7 +474,7 @@ export function Element(selector: string, template?: string, ext?: string) {
 				proxy[key] = (<PolymerProxy<T>> target)[key];
 			}
 		}
-		
+
 		// There is no attached template, load the element as soon as polymer is loaded
 		if (!template) {
 			DefaultInjector.get<Loader>(Loader).registerPolymerAutoload(proxy);
@@ -522,15 +522,15 @@ export function Property<T>(target?: any, property?: string, config: PolymerProp
 	if (!(target instanceof PolymerElement)) {
 		return (t: any, p: string) => Property(t, p, target);
 	}
-	
+
 	if (!target.properties) target.properties = {};
-	
+
 	// Alias reflect -> reflectToAttribute
 	if (config.reflect) {
 		(<any> config).reflectToAttribute = true;
 	}
 
-	// Transform getter to match Poylmer computed property style    
+	// Transform getter to match Poylmer computed property style
 	if (config.computed) {
 		try {
 			const generator = Object.getOwnPropertyDescriptor(target, property).get;
@@ -543,7 +543,7 @@ export function Property<T>(target?: any, property?: string, config: PolymerProp
 			throw e;
 		}
 	}
-	
+
 	// Get type from Typescript annotations
 	if (typeof config == "object" && !(<any> config).type) {
 		(<any> config).type = Reflect.getMetadata<any>("design:type", target, property);
@@ -588,7 +588,7 @@ function normalize_mapping(mapping: ExtendedMapping): EventMapping {
 		return norm;
 	} else {
 		return mapping;
-	}    
+	}
 }
 
 /**
@@ -683,7 +683,7 @@ export function apply_polymer_fns() {
 		e.preventDefault();
 		return false;
 	};
-	
+
 	/**
 	 * Equals function
 	 */

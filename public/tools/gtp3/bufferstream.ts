@@ -1,5 +1,6 @@
 export class UInt64 {
 	constructor(public hi: number, public lo: number) {}
+
 	static Zero: UInt64 = new UInt64(0, 0);
 }
 
@@ -29,11 +30,25 @@ class BufferStream {
 }
 
 export class BufferReader extends BufferStream {
-	bool(): boolean { return this.uint8() != 0; }
-	uint8(): number { return this.data.getUint8(this.skip(1)); }
-	uint16(): number { return this.data.getUint16(this.skip(2), false); }
-	uint32(): number { return this.data.getUint32(this.skip(4), false); }
-	uint64(): UInt64 { return new UInt64(this.uint32(), this.uint32()); }
+	bool(): boolean {
+		return this.uint8() != 0;
+	}
+
+	uint8(): number {
+		return this.data.getUint8(this.skip(1));
+	}
+
+	uint16(): number {
+		return this.data.getUint16(this.skip(2), false);
+	}
+
+	uint32(): number {
+		return this.data.getUint32(this.skip(4), false);
+	}
+
+	uint64(): UInt64 {
+		return new UInt64(this.uint32(), this.uint32());
+	}
 
 	buffer(): ArrayBuffer {
 		const len = this.uint16();
@@ -47,11 +62,26 @@ export class BufferWriter extends BufferStream {
 		super(new ArrayBuffer(size));
 	}
 
-	bool(v: boolean) { this.uint8(v ? 1 : 0); }
-	uint8(v: number) { this.data.setUint8(this.skip(1), v); }
-	uint16(v: number) { this.data.setUint16(this.skip(2), v, false); }
-	uint32(v: number) { this.data.setUint32(this.skip(4), v, false); }
-	uint64(v: UInt64) { this.uint32(v.hi); this.uint32(v.lo); }
+	bool(v: boolean) {
+		this.uint8(v ? 1 : 0);
+	}
+
+	uint8(v: number) {
+		this.data.setUint8(this.skip(1), v);
+	}
+
+	uint16(v: number) {
+		this.data.setUint16(this.skip(2), v, false);
+	}
+
+	uint32(v: number) {
+		this.data.setUint32(this.skip(4), v, false);
+	}
+
+	uint64(v: UInt64) {
+		this.uint32(v.hi);
+		this.uint32(v.lo);
+	}
 
 	buffer(v: ArrayBuffer) {
 		const len = v.byteLength;

@@ -58,7 +58,7 @@ export class Router extends EventEmitter {
 	 * User will be redirected to this path if no view matches the current path
 	 */
 	public fallback: string;
-	
+
 	/**
 	 * Prevent navigation if set
 	 */
@@ -71,7 +71,7 @@ export class Router extends EventEmitter {
 
 	/**
 	 * Load routes from a definition file
-	 */    
+	 */
 	public async loadRoutes(path: string) {
 		let routes = await this.loader.fetch(path);
 		let entries = routes.match(/^\s*\S+\s+\S+\s*$/gm).map(l => l.match(/\S+/g));
@@ -79,12 +79,13 @@ export class Router extends EventEmitter {
 			let [pattern, tags] = compilePattern(entry[0]);
 			let view = entry[1];
 			this.routes.push({ pattern, tags, view });
-		};
+		}
+		;
 	}
 
 	/**
 	 * Update the router state to match the current path
-	 */    
+	 */
 	public update() {
 		// Current path
 		let path = location.pathname;
@@ -125,16 +126,16 @@ export class Router extends EventEmitter {
 
 	/**
 	 * Navigation
-	 */    
+	 */
 	public goto(path: string, replace: boolean = false) {
 		if (this.locked) return;
-		
+
 		if (replace) history.replaceState(null, "", path);
 		else history.pushState(null, "", path);
-		
+
 		this.update();
 	}
-	
+
 	/**
 	 * Change the locked state
 	 */

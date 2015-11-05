@@ -32,16 +32,16 @@ export class ApplyListItem extends PolymerElement {
 @Dependencies(GtBox, GtTimeago)
 export class ApplyDetailsChar extends PolymerElement {
 	@Property public id: number;
-	
+
 	private char: Char;
-	
+
 	@Property({ computed: "char.server" })
 	private get serverName(): string {
 		return this.char.server.replace(/-/g, " ").replace(/\b([a-z])([a-z]+)/g, (all, first, tail) => {
 			return (tail.length > 2) ? first.toUpperCase() + tail : first + tail;
 		});
 	}
-	
+
 	@Listener("click")
 	private OnClick() {
 		window.open(`http://eu.battle.net/wow/en/character/${this.char.server}/${this.char.name}/advanced`);
@@ -69,47 +69,47 @@ export class ApplyDetails extends PolymerElement {
 		"unread-updated": "UnreadUpdated"
 	})
 	private service: ApplyService;
-	
+
 	/**
 	 * The application ID
 	 */
 	@Property({ observer: "ApplyChanged" })
 	public apply: number;
-	
+
 	/**
 	 * Apply meta-informations, loaded by a <meta> tag
 	 */
 	private data: Apply;
-	
+
 	/**
 	 * Track which tab is currently activated
 	 */
 	private tab: number;
-	
+
 	/**
 	 *  The edit form is open
 	 */
 	private editOpen: boolean;
-	
+
 	/**
 	 * Edit form disabled during message sending
 	 */
 	private editorDisabled: boolean;
-	
+
 	/**
 	 * The message body
 	 */
 	private messageBody: string;
-	
+
 	/**
 	 * Message type, can be "private" or "public"
 	 */
 	private messageType: string;
-	
+
 	/**
 	 * Generate a fake ApplyMessage for the preview function
 	 * It will be continuously updated with the content of the
-	 * edit box. 
+	 * edit box.
 	 */
 	@Property({ computed: "messageBody messageType" })
 	private get messagePreview(): ApplyMessage {
@@ -124,24 +124,24 @@ export class ApplyDetails extends PolymerElement {
 			system: false
 		};
 	};
-	
+
 	/**
 	 * The discussion feed data
 	 */
 	private feed: ApplyMessage[];
-	
+
 	/**
 	 * The apply form data
 	 */
 	private body: string;
-	
+
 	/**
 	 * Timeout for sending the apply-seen message
 	 * When application is changed before 2s, the set-seen message
 	 * is not sent
 	 */
 	private seenTimeout: any;
-	
+
 	/**
 	 * Called when the selected apply changes
 	 * Reset every state that may have changed
@@ -154,24 +154,35 @@ export class ApplyDetails extends PolymerElement {
 		this.messageType = this.app.user.member ? "private" : "public";
 		this.feed = [];
 		clearTimeout(this.seenTimeout);
-		
+
 		if (!this.apply) return;
-		
+
 		this.tab = 1;
 		[this.feed, this.body] = await Promise.atLeast(200, this.service.applyFeedBody(this.apply));
-		
+
 		if (this.service.unreadState(this.apply)) {
 			this.seenTimeout = setTimeout(() => this.service.setSeen(this.apply), 2000);
 		}
 	}
-	
+
 	/**
 	 * Tab handlers
 	 */
-	private ShowDiscussion() { this.tab = 1; this.editOpen = false }
-	private ShowDetails() { this.tab = 2; this.editOpen = false }
-	private ShowManage() { this.tab = 3; this.editOpen = false }
-	
+	private ShowDiscussion() {
+		this.tab = 1;
+		this.editOpen = false
+	}
+
+	private ShowDetails() {
+		this.tab = 2;
+		this.editOpen = false
+	}
+
+	private ShowManage() {
+		this.tab = 3;
+		this.editOpen = false
+	}
+
 	/**
 	 * Scroll the discussion tab to the bottom
 	 * Attempt to be as smart as possible to prevent automatic scrolling
@@ -184,7 +195,7 @@ export class ApplyDetails extends PolymerElement {
 			node.scrollTop = node.scrollHeight;
 		}
 	}
-	
+
 	/**
 	 * Catch message rendered event and trigger automatic scrolldown
 	 * Also bind to messages images
@@ -194,18 +205,18 @@ export class ApplyDetails extends PolymerElement {
 		// Get every images in the message
 		let markdown = Polymer.dom(ev).rootTarget.$.markdown;
 		let imgs = markdown.querySelectorAll("img");
-		
+
 		// Scroll when they are loaded
 		for (let i = 0; i < imgs.length; i++) {
 			let img: HTMLImageElement = imgs[i];
 			Promise.onload(img).finally(() => this.ScrollDown());
 		}
-		
+
 		// Scroll anyway at the end of the microtask
 		await microtask;
 		this.ScrollDown();
 	}
-	
+
 	/**
 	 * Open the new message editor
 	 */
@@ -214,7 +225,7 @@ export class ApplyDetails extends PolymerElement {
 		await Promise.delay(200);
 		this.ScrollDown(true);
 	}
-	
+
 	/**
 	 * Send message to server
 	 */
@@ -228,14 +239,14 @@ export class ApplyDetails extends PolymerElement {
 		}
 		this.editorDisabled = false;
 	}
-	
+
 	/**
 	 * Close the new message editor
 	 */
 	private CloseEdit() {
 		this.editOpen = false;
 	}
-	
+
 	/**
 	 * New message posted on a application feed
 	 */
@@ -244,7 +255,7 @@ export class ApplyDetails extends PolymerElement {
 			this.push("feed", message);
 		}
 	}
-	
+
 	/**
 	 * Catch update to unread state for an open application
 	 * and cancel it
@@ -254,12 +265,12 @@ export class ApplyDetails extends PolymerElement {
 			this.service.setSeen(apply);
 		}
 	}
-	
+
 	@Property({ computed: "editorDisabled app.user.member" })
 	private get privateMessageDisabled(): boolean {
 		return this.editorDisabled || !this.app.user.member;
 	}
-	
+
 	/**
 	 * Generate the link to the user profile
 	 */
@@ -279,30 +290,30 @@ export class GtApply extends PolymerElement {
 	@Inject
 	@On({ "apply-updated": "ApplyUpdated" })
 	private service: ApplyService;
-	
+
 	private applys: number[];
-	
+
 	@Property({ observer: "ApplySelected" })
 	private selected: number = null;
-	
+
 	private async init() {
 		let selected = this.selected;
 		this.selected = void 0;
 		this.applys = await this.service.openApplysList();
 		this.selected = selected;
 	}
-	
+
 	private async ApplyUpdated() {
 		this.applys = await this.service.openApplysList();
 	}
-	
+
 	private ApplySelected() {
 		if (!this.applys) return;
 		if (!this.applys.some(a => a === this.selected)) {
 			this.selected = void 0;
 		}
 	}
-	
+
 	private SelectApply(ev: PolymerModelEvent<number>) {
 		this.app.router.goto(`/apply/${ev.model.item}`);
 	}

@@ -350,7 +350,7 @@ export class Socket extends EventEmitter {
 	private receiveHandshake(frame: HandshakeFrame): void {
 		if (this.state != SocketState.Open || frame.magic != Protocol.GTP3)
 			return this.protocolError();
-        
+
 		if (this.id !== UInt64.Zero) this.reset();
 		this.id = frame.sockid;
 
@@ -392,10 +392,10 @@ export class Socket extends EventEmitter {
 				break;
 			}
 		}
-		
+
 		// Check if we can emit a resume event
 		const out_buffer_len = this.out_buffer.length();
-		
+
 		if (this.paused && out_buffer_len < Protocol.BufferPauseLimit) {
 			this.channels.forEach(chan => chan._receive(out_buffer_len));
 			this.paused = false;
@@ -565,7 +565,7 @@ export class Socket extends EventEmitter {
 			bytes[1] = this.out_seq & 0xFF;
 
 			// Push the frame in the output buffer for later replay
-			this.out_buffer.enqueue({frame: frame, seq: this.out_seq});
+			this.out_buffer.enqueue({ frame: frame, seq: this.out_seq });
 		}
 
 		if (this.state == SocketState.Ready) {
