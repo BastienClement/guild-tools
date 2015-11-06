@@ -133,7 +133,8 @@ export class ApplyDetails extends PolymerElement {
 	/**
 	 * The apply form data
 	 */
-	private body: string;
+	private body_type: number;
+	private body: any;
 
 	/**
 	 * Timeout for sending the apply-seen message
@@ -158,7 +159,14 @@ export class ApplyDetails extends PolymerElement {
 		if (!this.apply) return;
 
 		this.tab = 1;
-		[this.feed, this.body] = await Promise.atLeast(200, this.service.applyFeedBody(this.apply));
+		let [feed, [body_type, body]] = await Promise.atLeast(200, this.service.applyFeedBody(this.apply));
+		
+		this.feed = feed;
+		this.body_type = body_type;
+		switch (body_type) {
+			case 0: this.body = null; break;
+			case 1: this.body = JSON.parse(body); break;
+		}
 
 		if (this.service.unreadState(this.apply)) {
 			this.seenTimeout = setTimeout(() => this.service.setSeen(this.apply), 2000);

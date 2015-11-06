@@ -289,7 +289,7 @@
 			background: none;
 			opacity: 0;
 			z-index: 10;
-			transition: all .2s ease-out;
+			//transition: bottom .2s ease-out;
 			&[active] {
 				opacity: 1;
 				z-index: 15;
@@ -421,6 +421,55 @@
 				width: 175px;
 			}
 		}
+		
+		.no-data {
+			.pos(absolute);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			color: @light-blue;
+			
+			i {
+				font-size: 21px;
+				margin-right: 8px;
+				margin-top: 1px;
+			}
+		}
+		
+		.json-data {
+			& > div:not([heading]) > h3 { display: none; }
+			& > div[heading] > .row { display: none; }
+			& > div:first-child > h3 { margin-top: 0; }
+			
+			h3 {
+				font-weight: 300;
+				font: 300 16px "Roboto Condensed";
+				margin-top: 12px 0 0 0;
+			}
+			
+			.row {
+				display: flex;
+				margin-top: 3px;
+				
+				& > * {
+					padding: 8px;
+				}
+				
+				.label {
+					background: rgba(17, 17, 17, 0.15);
+					border: 1px solid rgba(17, 17, 17, 0.15);
+					width: 250px;
+					font: 400 14px "Roboto Condensed";
+				}
+				
+				.data {
+					background: rgba(17, 17, 17, 0.05);
+					border: 1px solid rgba(17, 17, 17, 0.10);
+					border-left: 0;
+					flex: 1;
+				}
+			}
+		}
 	</style>
 	<template>
 		<meta is="apply-data" [apply] [data]>
@@ -479,7 +528,7 @@
 							<gt-checkbox [radio]="messageType" value="public" {disabled}="editorDisabled"></gt-checkbox>
 							<span>Public message</span>
 							<div .help>
-								Everyone will be able to read the message, this includes the apply himself. So, be nice!
+								Everyone will be able to read the message, including the apply.
 							</div>
 						</gt-label>
 						<div>
@@ -491,8 +540,22 @@
 				</div>
 			</div>
 			<gt-box #details scrollable dark {active}="equals(tab, 2)">
+				<div .no-data [if]="equals(body_type, 0)">
+					<i>highlight_off</i>
+					<div>Details are not available for this application...</div>
+				</div>
+				<div .json-data [if]="equals(body_type, 1)">
+					<div .json-item [repeat]="body" {heading}="equals(item.0, '-')">
+						<h3>{{item.1}}</h3>
+						<div .row>
+							<div .label>{{item.0}}</div>
+							<gt-markdown .data [src]="item.1"></gt-markdown>
+						</div>
+					</div>
+				</div>
 			</gt-box>
 			<gt-box #manage scrollable dark {active}="equals(tab, 3)" [if]="app.user.promoted">
+				Manage
 			</gt-box>
 		</gt-box>
 	</template>

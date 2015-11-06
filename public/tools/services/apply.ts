@@ -90,7 +90,7 @@ export class ApplyService extends Service {
 	 * Load the message feed and the body of an application
 	 */
 	public async applyFeedBody(id: number) {
-		return await this.channel.request<[ApplyMessage[], string]>("apply-feed-body", id);
+		return await this.channel.request<[ApplyMessage[], [number, string]]>("apply-feed-body", id);
 	}
 	
 	/**
