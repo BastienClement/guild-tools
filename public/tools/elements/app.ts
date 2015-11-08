@@ -7,7 +7,7 @@ import { Router } from "client/router";
 import { Server } from "client/server";
 import { Loader } from "client/loader";
 import { Chat } from "services/chat";
-import { User } from "services/roster";
+import { User, Roster } from "services/roster";
 
 // Views loader
 type ViewPromise = Promise<PolymerConstructor<any>>;
@@ -334,6 +334,10 @@ export class GtApp extends PolymerElement {
 		"reset": "Reset"
 	})
 	private server: Server;
+	
+	// Inject roster service for early preloading
+	@Inject
+	private roster: Roster;
 
 	public disconnected: GtDialog;
 	private dead: boolean = false;

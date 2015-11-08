@@ -1,7 +1,101 @@
 <dom-module id="gt-streams">
 	<style type="text/less">
+		:host {
+			position: relative;
+		}
+		
+		@left-width: 250px;
+		
+		#live-list {
+			position: absolute;
+			top: 0;
+			left: 0;
+			bottom: 0;
+			width: @left-width;
+		}
 	</style>
 	<template>
-		Streams
+		<meta is="streams-list" [list]="streams">
+		<gt-box #live-list scrollable heading="Live Streams">
+			<div [repeat]="streams">
+				<gt-streams-item [stream]="item"></gt-streams-item>
+			</div>
+		</gt-box>
+	</template>
+</dom-module>
+
+<dom-module id="gt-streams-item">
+	<style type="text/less">
+		:host {
+			display: block;
+		}
+		
+		#layout {
+			display: flex;
+		}
+		
+		#live {
+			#light {
+				width: 10px;
+				height: 10px;
+				background-color: @fs-gray;
+				border-radius: 100%;
+				opacity: 0.5;
+				transition: all .2s ease-out;
+				box-shadow: 0 0 5px 0 rgba(255, 0, 0, 0);
+    			display: inline-block;
+			}
+			
+			&[live] #light {
+				opacity: 1.0;
+				background-color: red;
+				box-shadow: 0 0 5px 2px rgba(255, 0, 0, 0.5);
+			}
+			
+			padding-right: 8px;
+		}
+		
+		#name {
+			flex: 1;
+		}
+		
+		#locked {
+			color: @light-blue;
+		}
+		
+		#viewers {
+			padding-left: 8px;
+		}
+	</style>
+	<template>
+		<meta is="roster-main" [user]="stream.user" [main]>
+		<gt-box dark>
+			<div #layout>
+				<div #live {live}="stream.live"><div #light></div></div>
+				<div #name {class-color}="main.class">{{main.name}}</div>
+				<div #locked><i>lock</i></div>
+				<div #viewers>
+					<b>{{stream.viewers.length}}</b>
+					<i>person</i>
+				</div>
+			</div>
+		</gt-box>
+	</template>
+</dom-module>
+
+
+<dom-module id="gt-streams-settings">
+	<style type="text/less">
+	</style>
+	<template>
+		Settings
+	</template>
+</dom-module>
+
+<dom-module id="gt-streams-whitelist">
+	<style type="text/less">
+	</style>
+	<template>
+		Whitelist
 	</template>
 </dom-module>

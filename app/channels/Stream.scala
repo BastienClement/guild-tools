@@ -14,25 +14,31 @@ object Stream extends ChannelValidator {
 class Stream(val user: User) extends ChannelHandler {
 	init {
 		Events.subscribe(user)
+
+		// Send actives list
+		for (list <- StreamService.listActiveStreams().map(_ map formatStream)) {
+			send("list", list)
+		}
 	}
 
 	akka {
-		case Events.StreamNotify(stream) =>
-			send("notify", (stream.meta.user, stream.live, stream.viewersIds))
+		case Events.StreamNotify(stream) => send("notify", formatStream(stream))
+		case Events.StreamInactive(stream) => send("offline", stream.meta.user)
+	}
 
-		case Events.StreamInactive(stream) =>
-			send("offline", stream.meta.user)
+	/**
+	  * Format the stream for the client-side.
+	  * Ensure that we do not expose sensitive informations.
+	  */
+	def formatStream(stream: StreamService.ActiveStream) = {
+		(stream.meta.user, stream.live, stream.meta.progress, stream.viewersIds)
 	}
 
 	/**
 	  * Requests the list of currently available streams.
 	  */
 	request("streams-list") { p =>
-		for (streams <- StreamService.listActiveStreams()) yield {
-			for (stream <- streams) yield {
-				(stream.meta.user, stream.live, stream.meta.progress, stream.viewersIds)
-			}
-		}
+		StreamService.listActiveStreams().map(_ map formatStream)
 	}
 
 	/**

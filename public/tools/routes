@@ -6,6 +6,8 @@
 /apply-guest                      views/apply/GtApplyRedirect
 
 /streams                          views/streams/GtStreams
+/streams/settings                 views/streams/GtStreamsSettings
+/streams/whitelist                views/streams/GtStreamsWhitelist
 
 /about                            views/about/GtAbout
 /server-status                    views/server-status/GtServerStatus
