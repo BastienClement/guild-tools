@@ -120,6 +120,7 @@ object StreamService extends StaticActor[StreamService, StreamServiceImpl]("Stre
 		  */
 		def sendInactive() = {
 			Events !# Events.StreamInactive(this)
+			StreamList.remove(meta.token)
 		}
 
 		/**
