@@ -7,6 +7,7 @@ import models.{User, _}
 import reactive._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
+import scala.concurrent.Future
 import scala.concurrent.duration.{Deadline, _}
 import utils._
 
@@ -145,6 +146,7 @@ object StreamService extends StaticActor[StreamService, StreamServiceImpl]("Stre
 		  */
 		def startWatching(client: String, user: User, remote: String) = {
 			viewers.put(client, Viewer(user, remote))
+			sendNotify()
 		}
 
 		/**
@@ -226,15 +228,26 @@ trait StreamService {
 	  */
 	// TODO: allow Promoted users to watch multiple streams.
 	def createTicket(owner_id: Int, user: User) = {
-		for {
-			stream <- Streams.filter(_.user === owner_id).head
-			if !stream.progress || whitelist.contains(user.id)
-			_ = if (!StreamList.isActive(stream.token)) throw new Exception("Stream is offline")
-			ticket_id = utils.randomToken()
-			ticket = Ticket(ticket_id, user, stream.token, 15.seconds.fromNow)
-		} yield {
-			TicketsCollection.put(ticket_id, ticket)
-			ticket
+		if (viewers.contains(user.id)) {
+			Future.failed(new Exception("You are not allowed to watch multiple streams at the same time."))
+		} else {
+			for {
+				stream <- Streams.filter(_.user === owner_id).head recover {
+					case _ => throw new Exception("The requested stream does not exists.")
+				}
+			} yield {
+				if (stream.progress && !whitelist.contains(user.id))
+					throw new Exception("Access to this stream is currently restricted.")
+
+				if (!StreamList.isActive(stream.token))
+					throw new Exception("The requested stream is currently offline")
+
+				val ticket_id = utils.randomToken()
+				val ticket = Ticket(ticket_id, user, stream.token, 15.seconds.fromNow)
+
+				TicketsCollection.put(ticket_id, ticket)
+				ticket
+			}
 		}
 	}
 
@@ -264,10 +277,10 @@ trait StreamService {
 	  */
 	def stop(stream_id: String, client: String): Unit = {
 		for (stream <- StreamList.get(stream_id)) {
-			stream.stopWatching(client)
 			for (viewer <- stream.clientDetails(client)) {
 				viewers -= viewer.user.id
 			}
+			stream.stopWatching(client)
 		}
 	}
 

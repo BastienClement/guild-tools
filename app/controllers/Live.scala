@@ -6,9 +6,12 @@ import models.live.Streams
 import models.mysql._
 import play.api.mvc.{Action, Controller}
 import reactive.ExecutionContext
+import scala.collection.concurrent.TrieMap
 import scala.concurrent.Future
 
 class Live extends Controller {
+	val client_stream = TrieMap[String, String]()
+
 	/**
 	  * Consumes ticket and open stream proxy.
 	  */
@@ -25,6 +28,7 @@ class Live extends Controller {
 			case Some((stream_id, remote, client)) =>
 				(for (ticket <- StreamService.consumeTicket(stream_id)) yield {
 					StreamService.play(ticket.stream, ticket.user, remote, client)
+					client_stream.put(client, ticket.stream)
 					Redirect(s"rtmp://127.0.0.1/live/${ ticket.stream }")
 				}) recover {
 					case _ => Forbidden("1")
@@ -45,7 +49,7 @@ class Live extends Controller {
 
 		infos match {
 			case Some((stream_id, remote, client)) =>
-				StreamService.stop(stream_id, client)
+				StreamService.stop(client_stream.remove(client).get, client)
 			case None => // noop
 		}
 

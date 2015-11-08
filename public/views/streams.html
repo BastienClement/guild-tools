@@ -43,10 +43,10 @@
 		<meta is="streams-list" [list]="streams">
 		<gt-box #live-list scrollable heading="Live Streams">
 			<gt-alert icon="pause_circle_outline" dark {hidden}="!equals(streams.length, 0)">
-				No one is streaming at the moment.
+				Nobody is streaming...
 			</gt-alert>
 			<div [repeat]="streams">
-				<gt-streams-item (click)="SelectStream" [stream]="item" {active}="equals(selected, item)"></gt-streams-item>
+				<gt-streams-item (click)="SelectStream" [stream]="item" {active}="StreamIsActive(item.user, selected)"></gt-streams-item>
 			</div>
 		</gt-box>
 		<div #main-box>
@@ -132,7 +132,7 @@
 			<div #layout>
 				<div #live {live}="stream.live"><div #light></div></div>
 				<div #name {class-color}="main.class">{{main.name}}</div>
-				<div #locked><i>lock</i></div>
+				<div #locked {hidden}="!stream.progress"><i>lock</i></div>
 				<div #viewers>
 					<b>{{stream.viewers.length}}</b>
 					<i>person</i>
@@ -150,10 +150,24 @@
 		:host > iframe {
 			height: 100%;
 			width: 100%;
-			border: 0;
+			background: rgba(99, 180, 255, 0.1);
+			border: 1px solid #395066;
+			box-shadow: 0 1px 1px rgba(17, 17, 17, 0.3);
+			box-sizing: border-box;
+		}
+		
+		:host {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+		
+		gt-alert {
+			max-width: 500px;
 		}
 	</style>
 	<template>
+		<gt-alert dark icon="error_outline" [if]="error">{{error}}</gt-alert>
 	</template>
 </dom-module>
 

@@ -16,7 +16,7 @@ const StreamsTabs: TabsGenerator = (view, path, user) => [
 // <gt-streams-player>
 
 @Element("gt-streams-player", "/assets/views/streams.html")
-@Dependencies()
+@Dependencies(GtAlert)
 export class GtStreamsPlayer extends PolymerElement {
 	@Inject private service: Streams;
 	
@@ -24,12 +24,17 @@ export class GtStreamsPlayer extends PolymerElement {
 	public stream: ActiveStream;
 	
 	private player: HTMLIFrameElement = null;
+	private error: String = null;
 	
 	private async update() {
+		this.error = null;
+		
 		if (this.player) {
 			this.player.remove();
 			this.player = null;
 		}
+		
+		await Promise.delay(500);
 		
 		if (this.stream) {
 			try {
@@ -40,10 +45,8 @@ export class GtStreamsPlayer extends PolymerElement {
 				this.player = player;
 				this.shadow.appendChild(player);
 			} catch (e) {
-				console.log(e);
+				this.error = e.message;
 			}
-			
-			console.log(this.stream);
 		}
 	}
 }
@@ -78,8 +81,11 @@ export class GtStreams extends PolymerElement {
 	
 	private SelectStream(ev: PolymerModelEvent<ActiveStream>) {
 		let stream = ev.model.item;
-		if (this.selected == stream) this.selected = null;
-		else this.selected = stream;
+		this.selected = (this.selected && this.selected.user == stream.user) ? null : stream;
+	}
+	
+	private StreamIsActive(user: number) {
+		return this.selected && this.selected.user == user;
 	}
 }
 
