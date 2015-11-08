@@ -95,6 +95,13 @@ export class Streams extends Service {
 		return Array.from(this.streams);
 	}
 	
+	/**
+	 * Request stream ticket
+	 */
+	public requestTicket(stream: number) {
+		return this.channel.request<string>("request-ticket", stream)
+	}
+	
 	private resume() {
 		this.channel.open();
 	}

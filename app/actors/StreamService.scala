@@ -233,7 +233,7 @@ trait StreamService {
 			ticket_id = utils.randomToken()
 			ticket = Ticket(ticket_id, user, stream.token, 15.seconds.fromNow)
 		} yield {
-			TicketsCollection.put(stream.token, ticket)
+			TicketsCollection.put(ticket_id, ticket)
 			ticket
 		}
 	}

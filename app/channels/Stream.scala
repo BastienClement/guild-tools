@@ -42,13 +42,14 @@ class Stream(val user: User) extends ChannelHandler {
 	}
 
 	/**
-	  * Request a stream token.
+	  * Request a stream ticket.
 	  */
-	request("request-token") { p =>
-		val stream = p("stream").as[Int]
-		(for (ticket <- StreamService.createTicket(stream, user)) yield {
+	request("request-ticket") { p =>
+		(for (ticket <- StreamService.createTicket(p.as[Int], user)) yield {
 			ticket.id
-		}) recover { case _ => throw new Exception("Unable to create the streaming ticket") }
+		}) recover {
+			case _ => throw new Exception("Unable to create the streaming ticket")
+		}
 	}
 
 	/**

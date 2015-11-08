@@ -45,6 +45,7 @@ GET         /wt/*path                      controllers.webtools.WebTools.catchal
 
 # Simple pages
 GET         /unsupported                   controllers.GtApplication.unsupported
+GET         /clappr/:ticket                controllers.GtApplication.clappr(ticket)
 
 # Pings
 GET         /ping/dashboard/feed           controllers.Ping.dashboardFeed
