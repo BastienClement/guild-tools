@@ -5,5 +5,7 @@
 /apply(/:[0-9]+:selected)?        views/apply/GtApply
 /apply-guest                      views/apply/GtApplyRedirect
 
+/streams                          views/streams/GtStreams
+
 /about                            views/about/GtAbout
 /server-status                    views/server-status/GtServerStatus

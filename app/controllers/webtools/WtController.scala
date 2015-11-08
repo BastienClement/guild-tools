@@ -8,8 +8,7 @@ import play.api.mvc._
 import reactive.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import slick.lifted.TableQuery
-import utils.{Cache, CacheCell}
+import utils.CacheCell
 
 object WtController {
 	/**
@@ -47,53 +46,12 @@ object WtController {
 	}
 
 	/**
-	  * A phpBB session
-	  * @param token     the session token
-	  * @param user      the user id
-	  * @param ip        the remote IP address
-	  * @param browser   the user-agent string
-	  */
-	case class PhpBBSession(token: String, user: Int, ip: String, browser: String)
-
-	/**
-	  * phpbb_sessions table definition
-	  */
-	class PhpBBSessions(tag: Tag) extends Table[PhpBBSession](tag, "phpbb_sessions") {
-		def token = column[String]("session_id", O.PrimaryKey)
-		def user = column[Int]("session_user_id")
-		def ip = column[String]("session_ip")
-		def browser = column[String]("session_browser")
-
-		def * = (token, user, ip, browser) <> (PhpBBSession.tupled, PhpBBSession.unapply)
-	}
-
-	/**
-	  * TableQuery for PhpBB sessions
-	  */
-	object PhpBBSessions extends TableQuery(new PhpBBSessions(_))
-
-	/**
-	  * Returns the User for a given GT session token.
-	  */
-	def userForToken(token: String) = {
-		for {
-			session <- Sessions.filter(_.token === token).result.head
-			user <- Users.filter(_.id === session.user).result.head
-		} yield user
-	}
-
-	/**
-	  * Cache of users corresponding to session tokens
-	  */
-	val sessionCache = Cache.async[String, User](1.minute)(t => DB.run(userForToken(t)))
-
-	/**
 	  * Attempts to get User from session cookie.
 	  */
 	def cookieUser[A](implicit request: Request[A]) = {
 		for {
 			token <- Future(request.cookies.get("gt_session").get.value)
-			user <- sessionCache(token)
+			user <- AuthService.userForSession(token)
 		} yield (user, token, false)
 	}
 

@@ -35,6 +35,19 @@ object AuthService extends StaticActor[AuthService, AuthServiceImpl]("AuthServic
 
 	/** The set of every groups considered part of the guild */
 	val fromscratch_groups = allowed_groups
+
+	/**
+	  * Cache of users corresponding to session tokens.
+	  */
+	val userForSession = Cache.async[String, User](15.seconds) { token =>
+		val query = for {
+			session <- Sessions.filter(_.token === token).result.head
+			user <- Users.filter(_.id === session.user).result.head
+		} yield {
+			user
+		}
+		query.run
+	}
 }
 
 /**
