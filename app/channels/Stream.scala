@@ -5,6 +5,8 @@ import actors.StreamService.Events
 import akka.actor.Props
 import gtp3._
 import models._
+import models.mysql._
+import models.live.Streams
 import reactive.ExecutionContext
 
 object Stream extends ChannelValidator {
@@ -46,6 +48,22 @@ class Stream(val user: User) extends ChannelHandler {
 	  */
 	request("request-ticket") { p =>
 		for (ticket <- StreamService.createTicket(p.as[Int], user)) yield ticket.id
+	}
+
+	/**
+	  * Request own stream token.
+	  */
+	request("own-token") { p =>
+		val key = for (stream <- Streams if stream.user === user.id) yield stream.token
+		key.headOption
+	}
+
+	/**
+	  * Create a new token for the current user.
+	  */
+	request("create-token") { p =>
+		val token = utils.randomToken()
+		for (_ <- Streams += live.Stream(token, user.id, false)) yield ()
 	}
 
 	/**

@@ -102,11 +102,30 @@ export class Streams extends Service {
 		return this.channel.request<string>("request-ticket", stream)
 	}
 	
+	/**
+	 * Request own stream token
+	 */
+	public ownToken() {
+		return this.channel.request<string>("own-token");
+	}
+	
+	/**
+	 * Create a new stream token
+	 */
+	public createToken() {
+		return this.channel.request<void>("create-token");
+	}
+	
+	/**
+	 * Stream service is resumed
+	 */
 	private resume() {
 		this.channel.open();
 	}
 	
-	// Close the channel when the streaming service is paused
+	/**
+	 * Stream service is paused
+	 */
 	private pause() {
 		this.channel.close();
 	}

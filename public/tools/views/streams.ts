@@ -3,12 +3,12 @@ import { View, Tab, TabsGenerator } from "elements/app";
 import { GtButton, GtForm, GtInput } from "elements/widgets";
 import { GtBox, GtAlert } from "elements/box";
 import { Streams, ActiveStream } from "services/streams";
-import { throttled } from "utils/async";
+import { throttled, join } from "utils/async";
 import "services/roster";
 
 const StreamsTabs: TabsGenerator = (view, path, user) => [
 	{ title: "Live Streams", link: "/streams", active: view == "views/streams/GtStreams" },
-	{ title: "Settings", link: "/streams/settings", active: view == "views/streams/GtStreamsSettings" },
+	{ title: "Publish", link: "/streams/settings", active: view == "views/streams/GtStreamsSettings" },
 	{ title: "Whitelist", link: "/streams/whitelist", active: view == "views/streams/GtStreamsWhitelist", hidden: !user.promoted }
 ];
 
@@ -97,9 +97,36 @@ export class GtStreams extends PolymerElement {
 
 @View("streams", StreamsTabs)
 @Element("gt-streams-settings", "/assets/views/streams.html")
-@Dependencies()
+@Dependencies(GtBox, GtButton)
 export class GtStreamsSettings extends PolymerElement {
 	@Inject private service: Streams;
+	
+	public token: String;
+	
+	@join private async updateToken() {
+		this.token = await this.service.ownToken();
+	}
+	
+	@Property({ computed: "token" })
+	private get hasToken(): boolean {
+		return this.token !== null;
+	}
+	
+	private init() {
+		this.updateToken();
+	}
+	
+	private generating = false;
+	private async Generate() {
+		if (this.generating) return;
+		this.generating = true;
+		try {
+			await this.service.createToken();
+			this.updateToken();
+		} finally {
+			this.generating = false;
+		}    
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////

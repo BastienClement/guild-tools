@@ -223,6 +223,25 @@ trait StreamService {
 	private val whitelist = mutable.Set[Int]()
 
 	/**
+	  * Cache of every stream from guild users.
+	  */
+	private def streams_list = {
+		val query = for {
+			user <- Users if user.group inSet AuthService.roster_groups
+			stream <- Streams if stream.user === user.id
+		} yield stream
+
+		for (streams <- query.run) yield {
+			for (stream <- streams) yield {
+				StreamList.get(stream.token) match {
+					case Some(active) => active
+					case None => ActiveStream(stream, false, TrieMap.empty)
+				}
+			}
+		}
+	}
+
+	/**
 	  * Creates a new Streaming ticket.
 	  * Requires that the stream can be watched by the user.
 	  */
@@ -240,7 +259,7 @@ trait StreamService {
 					throw new Exception("Access to this stream is currently restricted.")
 
 				if (!StreamList.isActive(stream.token))
-					throw new Exception("The requested stream is currently offline")
+					throw new Exception("The requested stream is currently offline.")
 
 				val ticket_id = utils.randomToken()
 				val ticket = Ticket(ticket_id, user, stream.token, 15.seconds.fromNow)
@@ -297,7 +316,5 @@ trait StreamService {
 	/**
 	  * Returns the list of actives streams ids.
 	  */
-	def listActiveStreams() = AsFuture {
-		StreamList.getList
-	}
+	def listActiveStreams() = streams_list
 }
