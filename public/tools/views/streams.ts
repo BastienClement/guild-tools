@@ -26,19 +26,22 @@ export class GtStreamsPlayer extends PolymerElement {
 	private player: HTMLIFrameElement = null;
 	private error: String = null;
 	
-	private async update() {
-		this.error = null;
-		
-		if (this.player) {
+	private async removePlayer() {
+		while (this.player) {
 			this.player.remove();
 			this.player = null;
+			await Promise.delay(400);
 		}
-		
-		await Promise.delay(500);
+	}
+	
+	private async update() {
+		this.error = null;
+		await this.removePlayer();
 		
 		if (this.stream) {
 			try {
 				let ticket = await this.service.requestTicket(this.stream.user);
+				await this.removePlayer();
 				let player = document.createElement("iframe");
 				player.src = `/clappr/${ticket}`;
 				player.allowFullscreen = true;
