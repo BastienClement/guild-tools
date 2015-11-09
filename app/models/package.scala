@@ -1,6 +1,6 @@
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
-import models.application.{ApplicationMessage, Application}
+import models.application.{Application, ApplicationMessage}
 import play.api.Play
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.json._
@@ -69,4 +69,5 @@ package object models {
 	implicit val composerLockoutFormat = Json.format[ComposerLockout]
 	implicit val composerGroupFormat = Json.format[ComposerGroup]
 	implicit val composerSlotFormat = Json.format[ComposerSlot]
+	implicit val streamJsonFormat = Json.format[live.Stream]
 }

@@ -1,0 +1,192 @@
+<dom-module id="gt-streams">
+	<style type="text/less">
+		:host {
+			position: relative;
+		}
+		
+		@left-width: 280px;
+		
+		#live-list {
+			position: absolute;
+			top: 0;
+			left: 0;
+			bottom: 0;
+			width: @left-width;
+			gt-streams-item:not(:last-child) {
+				margin-bottom: 6px;
+			}
+		}
+		
+		#main-box {
+			position: absolute;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			left: @left-width + 6px;
+		}
+		
+		#placeholder {
+			z-index: 10;
+			.placeholder-layout();
+		}
+		
+		gt-streams-player {
+			.pos(absolute);
+			z-index: 15;
+			transition: all .2s ease-out;
+			&[hide] {
+				opacity: 0;
+			}
+		}
+	</style>
+	<template>
+		<meta is="streams-list" [list]="streams">
+		<gt-box #live-list scrollable heading="Live Streams">
+			<gt-alert icon="pause_circle_outline" dark {hidden}="!equals(streams.length, 0)">
+				Nobody is streaming...
+			</gt-alert>
+			<div [repeat]="streams">
+				<gt-streams-item (click)="SelectStream" [stream]="item" {active}="StreamIsActive(item.user, selected)"></gt-streams-item>
+			</div>
+		</gt-box>
+		<div #main-box>
+			<gt-streams-player {hide}="!selected" [stream]="selected"></gt-streams-player>
+			<div #placeholder {hide}="selected">
+				<i>ondemand_video</i>
+			</div>
+		</div>
+	</template>
+</dom-module>
+
+<!-- ////////////////////////////////////////////////////////////////////// -->
+
+<dom-module id="gt-streams-item">
+	<style type="text/less">
+		:host {
+			display: block;
+		}
+		
+		gt-box {
+			transition: all .2s ease-out;
+			:host([active]) & {
+				background: fade(@fs-blue, 10%);
+				border: 1px solid fade(@fs-blue, 10%);
+			}
+		}
+		
+		#layout {
+			display: flex;
+			align-items: center;
+		}
+		
+		#live {
+			#light {
+				width: 10px;
+				height: 10px;
+				background-color: @fs-gray;
+				border-radius: 100%;
+				opacity: 0.5;
+				transition: all .2s ease-out;
+				box-shadow: 0 0 5px 0 rgba(255, 0, 0, 0);
+    			display: inline-block;
+			}
+			
+			&[live] #light {
+				opacity: 1.0;
+				background-color: red;
+				box-shadow: 0 0 5px 2px rgba(255, 0, 0, 0.5);
+			}
+			
+			padding-right: 10px;
+		}
+		
+		#name {
+			flex: 1;
+		}
+		
+		#locked {
+			color: @light-blue;
+		}
+		
+		#viewers {
+			padding-left: 8px;
+		}
+		
+		#chevron {
+			font-size: 24px;
+			margin-left: 6px;
+			color: @fs-gray;
+			display: block;
+			margin-bottom: -3px;
+			margin-right: -2px;
+			
+			opacity: 0.5;
+			transition: all .2s ease-out;
+			:host(:hover) & { opacity: 1; }
+			:host([active]) & { opacity: 0.75; color: #fff; }
+		}
+	</style>
+	<template>
+		<meta is="roster-main" [user]="stream.user" [main]>
+		<gt-box dark>
+			<div #layout>
+				<div #live {live}="stream.live"><div #light></div></div>
+				<div #name {class-color}="main.class">{{main.name}}</div>
+				<div #locked {hidden}="!stream.progress"><i>lock</i></div>
+				<div #viewers>
+					<b>{{stream.viewers.length}}</b>
+					<i>person</i>
+				</div>
+				<i #chevron>chevron_right</i>
+			</div>
+		</gt-box>
+	</template>
+</dom-module>
+
+<!-- ////////////////////////////////////////////////////////////////////// -->
+
+<dom-module id="gt-streams-player">
+	<style type="text/less">
+		:host > iframe {
+			height: 100%;
+			width: 100%;
+			background: rgba(99, 180, 255, 0.1);
+			border: 1px solid #395066;
+			box-shadow: 0 1px 1px rgba(17, 17, 17, 0.3);
+			box-sizing: border-box;
+		}
+		
+		:host {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+		
+		gt-alert {
+			max-width: 500px;
+		}
+	</style>
+	<template>
+		<gt-alert dark icon="error_outline" [if]="error">{{error}}</gt-alert>
+	</template>
+</dom-module>
+
+<!-- ////////////////////////////////////////////////////////////////////// -->
+
+<dom-module id="gt-streams-settings">
+	<style type="text/less">
+	</style>
+	<template>
+		Settings
+	</template>
+</dom-module>
+
+<!-- ////////////////////////////////////////////////////////////////////// -->
+
+<dom-module id="gt-streams-whitelist">
+	<style type="text/less">
+	</style>
+	<template>
+		Whitelist
+	</template>
+</dom-module>

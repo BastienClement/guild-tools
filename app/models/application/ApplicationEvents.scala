@@ -18,9 +18,4 @@ object ApplicationEvents extends PubSub[User] {
 	  * A new message was posted on the application feed
 	  */
 	case class MessagePosted(message: ApplicationMessage)
-
-	// Increase visibility of publishers
-	override protected[application] def publish(msg: Any) = super.publish(msg)
-	override protected[application] def !# (msg: Any) = super.publish(msg)
-	override protected[application] def publish(msg: Any, filter: (User) => Boolean) = super.publish(msg, filter)
 }

@@ -51,10 +51,10 @@ trait PubSub[A] {
 	private def publish(msg: Any, s: Iterable[ActorRef]): Unit = for (sub <- s) sub ! msg
 
 	// Publish to all subs
-	protected def publish(msg: Any): Unit = publish(msg, subs.keys)
-	protected def !#(msg: Any): Unit = publish(msg, subs.keys)
+	def publish(msg: Any): Unit = publish(msg, subs.keys)
+	def !#(msg: Any): Unit = publish(msg, subs.keys)
 
 	// Publish to subs with data matching a filter function
-	protected def publish(msg: Any, filter: (A) => Boolean): Unit =
+	def publish(msg: Any, filter: (A) => Boolean): Unit =
 		publish(msg, for ((actor, data) <- subs if filter(data)) yield actor)
 }

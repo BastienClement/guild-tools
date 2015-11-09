@@ -16,4 +16,6 @@ class GtApplication @Inject() (gt: GuildTools) extends Controller {
 	}
 
 	def unsupported = Action { Ok(views.html.unsupported.render()) }
+
+	def clappr(ticket: String) = Action { Ok(views.html.clappr.render(ticket.replaceAll("[^a-zA-Z0-9]", ""))) }
 }

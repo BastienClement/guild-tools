@@ -16,6 +16,7 @@ package object gtp3 {
 		"newsfeed" -> NewsFeed,
 		"profile" -> Profile,
 		"roster" -> Roster,
-		"server-status" -> ServerStatus
+		"server-status" -> ServerStatus,
+		"stream" -> Stream
 	)
 }

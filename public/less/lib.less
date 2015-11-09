@@ -179,3 +179,26 @@ b {
 		background: transparent
 	}
 }
+
+.placeholder-layout() {
+	.pos(absolute);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all .2s ease-out;
+	
+	i {
+		font-size: 100px;
+		color: fade(@light-blue, 60%);
+		background: rgba(17, 17, 17, 0.08);
+		border: 2px dashed fade(@light-blue, 25%);
+		border-radius: 100%;
+		padding: 24px 22px 20px;
+		width: auto;
+		height: auto;
+	}
+	
+	&[hide] {
+		opacity: 0;
+	}
+}
