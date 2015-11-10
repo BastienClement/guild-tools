@@ -60,7 +60,7 @@ package {
       stage.align = StageAlign.TOP_LEFT;
       if(stage){
         resize();
-      }else {
+      } else {
         addEventListener(Event.ADDED_TO_STAGE, resize);
       }
       stage.addEventListener(Event.RESIZE, resize);
