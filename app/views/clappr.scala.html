@@ -17,6 +17,13 @@
 <script src="//cdn.jsdelivr.net/clappr.rtmp/latest/rtmp.min.js"></script>
 
 <script>
+	(function(spt) {
+		RTMP.prototype.setupPlaybackType = function() {
+			spt.apply(this, arguments);
+			this.settings = { 'left': [""], 'default': [""], 'right': ["fullscreen", "volume"] };
+			this.settings.seekEnabled = false;
+		};
+	})(RTMP.prototype.setupPlaybackType);
 	Object.defineProperty(RTMP.prototype, "swfPath", { value: "/assets/swfs/RTMP.swf" });
 	var player = new Clappr.Player({
 		source: "rtmp://@host/live/@stream",

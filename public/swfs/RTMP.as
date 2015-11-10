@@ -98,12 +98,12 @@ package {
 
     private function onLoaded(event:LoadEvent):void {
       netStream = netStreamLoadTrait.netStream;
-      netStream.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
+      //netStream.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
       mediaPlayer.play();
     }
 
-    private function netStatusHandler(event:NetStatusEvent):void {
-      if (playbackState == "ENDED") {
+    /*private function netStatusHandler(event:NetStatusEvent):void {
+	  if (playbackState == "ENDED") {
         return;
       } else if (event.info.code == "NetStream.Buffer.Full") {
         playbackState = "PLAYING";
@@ -112,7 +112,7 @@ package {
         playbackState = "PLAYING_BUFFERING";
         _triggerEvent('statechanged');
       }
-    }
+    }*/
 
     private function setScaleMode(mediaElement:MediaElement, width:Number, height:Number):void {
       var layout:LayoutMetadata = new LayoutMetadata();
@@ -129,8 +129,8 @@ package {
 
     private function playerPlay(url:String=null):void {
       if (!mediaElement) {
-        playbackState = "PLAYING_BUFFERING";
-        _triggerEvent('statechanged');
+        //playbackState = "PLAYING_BUFFERING";
+        //_triggerEvent('statechanged');
         if (url.indexOf('live') == -1) {
           urlResource = new StreamingURLResource(url, StreamType.RECORDED);
         } else {
@@ -142,7 +142,7 @@ package {
         mediaElement.addEventListener(MediaElementEvent.TRAIT_ADD, onTraitAdd);
 
         mediaPlayer = new MediaPlayer(mediaElement);
-		//mediaPlayer.bufferTime = 0;
+		mediaPlayer.bufferTime = 0;
         mediaPlayer.autoPlay = false;
         mediaPlayer.addEventListener(TimeEvent.CURRENT_TIME_CHANGE, onTimeUpdated);
         mediaPlayer.addEventListener(TimeEvent.DURATION_CHANGE, onTimeUpdated);
@@ -150,6 +150,8 @@ package {
         mediaContainer.addMediaElement(mediaElement);
         addChild(mediaContainer);
         resize();
+        playbackState = "PLAYING";
+        _triggerEvent('statechanged');
       } else {
         mediaPlayer.play();
       }
@@ -158,6 +160,7 @@ package {
     private function playerPause():void {
       mediaPlayer.pause();
       playbackState = "PAUSED";
+	  _triggerEvent('statechanged');
     }
 
     private function playerSeek(seconds:Number):void {
@@ -167,6 +170,7 @@ package {
     private function playerStop():void {
       mediaPlayer.stop();
       playbackState = "IDLE";
+	  _triggerEvent('statechanged');
     }
 
     private function playerVolume(level:Number):void {
