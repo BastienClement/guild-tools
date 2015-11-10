@@ -99,7 +99,7 @@ export class Streams extends Service {
 	 * Request stream ticket
 	 */
 	public requestTicket(stream: number) {
-		return this.channel.request<string>("request-ticket", stream)
+		return this.channel.request<[string, string]>("request-ticket", stream)
 	}
 	
 	/**

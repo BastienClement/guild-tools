@@ -4,70 +4,38 @@ import actors.StreamService
 import models._
 import models.live.Streams
 import models.mysql._
+import play.api.Play.current
 import play.api.mvc.{Action, Controller}
+import play.api.{Mode, Play}
 import reactive.ExecutionContext
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.Future
 
 class Live extends Controller {
-	val client_stream = TrieMap[String, String]()
-
-	/**
-	  * Consumes ticket and open stream proxy.
-	  */
-	def ticket = Action.async { req =>
-		val infos = for {
-			post <- req.body.asFormUrlEncoded
-			stream_id <- post.get("name")
-			remote <- post.get("addr")
-			client <- post.get("clientid")
-		} yield (stream_id.head, remote.head, client.head)
-
-		infos match {
-			case None => Future.successful(Forbidden("1"))
-			case Some((stream_id, remote, client)) =>
-				(for (ticket <- StreamService.consumeTicket(stream_id)) yield {
-					StreamService.play(ticket.stream, ticket.user, remote, client)
-					client_stream.put(client, ticket.stream)
-					Redirect(s"rtmp://127.0.0.1/live/${ ticket.stream }")
-				}) recover {
-					case _ => Forbidden("1")
-				}
-		}
-	}
-
-	/**
-	  * Stream proxy closed.
-	  */
-	def done = Action { req =>
-		val infos = for {
-			post <- req.body.asFormUrlEncoded
-			stream_id <- post.get("name")
-			remote <- post.get("addr")
-			client <- post.get("clientid")
-		} yield (stream_id.head, remote.head, client.head)
-
-		infos match {
-			case Some((stream_id, remote, client)) =>
-				StreamService.stop(client_stream.remove(client).get, client)
-			case None => // noop
-		}
-
-		Ok("")
-	}
+	val client_stream = TrieMap[Int, String]()
 
 	/**
 	  * Request to play a stream on SRS.
 	  * Ensures that the request comes from the local server.
 	  */
-	def play = Action { req =>
+	def play = Action.async { req =>
 		(for {
 			data <- req.body.asJson
-			ip <- (data \ "ip").asOpt[String] if ip == "127.0.0.1"
 			app <- (data \ "app").asOpt[String] if app == "live"
-		} yield ()) match {
-			case Some(_) => Ok("0")
-			case None => Forbidden("1")
+			page <- (data \ "pageUrl").asOpt[String]
+			client <- (data \ "client_id").asOpt[Int]
+			remote <- (data \ "ip").asOpt[String]
+		} yield (page, client, remote)) match {
+			case None => Future.successful(Forbidden("1"))
+			case Some((page, client, remote)) =>
+				val ticket_id = page.substring(page.indexOf('?') + 1)
+				(for (ticket <- StreamService.consumeTicket(ticket_id)) yield {
+					StreamService.play(ticket.stream, ticket.user, remote, client)
+					client_stream.put(client, ticket.stream)
+					Ok("0")
+				}) recover {
+					case _ => Forbidden("1")
+				}
 		}
 	}
 
@@ -77,7 +45,15 @@ class Live extends Controller {
 	  * by the done() callback.
 	  */
 	def stop = Action { req =>
-		Ok("0")
+		(for {
+			data <- req.body.asJson
+			client <- (data \ "client_id").asOpt[Int]
+		} yield client) match {
+			case None => Forbidden("1")
+			case Some(client) =>
+				StreamService.stop(client_stream.remove(client).get, client)
+				Ok("0")
+		}
 	}
 
 	/**
@@ -103,5 +79,16 @@ class Live extends Controller {
 		val stream_id = (data \ "stream").as[String]
 		StreamService.unpublish(stream_id)
 		Ok("0")
+	}
+
+	/**
+	  * Clappr iframe
+	  */
+	def clappr(stream: String) = Action {
+		val host = Play.mode match {
+			case Mode.Dev => "tv-dev.fs-guild.net"
+			case Mode.Prod => "tv.fs-guild.net"
+		}
+		Ok(views.html.clappr.render(host, stream.replaceAll("[^a-zA-Z0-9]", "")))
 	}
 }

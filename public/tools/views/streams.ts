@@ -40,10 +40,10 @@ export class GtStreamsPlayer extends PolymerElement {
 		
 		if (this.stream) {
 			try {
-				let ticket = await this.service.requestTicket(this.stream.user);
+				let [ticket, stream] = await this.service.requestTicket(this.stream.user);
 				await this.removePlayer();
 				let player = document.createElement("iframe");
-				player.src = `/clappr/${ticket}`;
+				player.src = `/clappr/${stream}?${ticket}`;
 				player.allowFullscreen = true;
 				this.player = player;
 				this.shadow.appendChild(player);

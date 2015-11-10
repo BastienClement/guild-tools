@@ -96,7 +96,7 @@ object StreamService extends StaticActor[StreamService, StreamServiceImpl]("Stre
 	/**
 	  * A currently active stream
 	  */
-	case class ActiveStream(var meta: models.live.Stream, var live: Boolean = false, viewers: TrieMap[String, Viewer] = TrieMap()) {
+	case class ActiveStream(var meta: models.live.Stream, var live: Boolean = false, viewers: TrieMap[Int, Viewer] = TrieMap()) {
 		/**
 		  * List of viewers user_ids
 		  */
@@ -144,7 +144,7 @@ object StreamService extends StaticActor[StreamService, StreamServiceImpl]("Stre
 		/**
 		  * A new client is now watching the stream.
 		  */
-		def startWatching(client: String, user: User, remote: String) = {
+		def startWatching(client: Int, user: User, remote: String) = {
 			viewers.put(client, Viewer(user, remote))
 			sendNotify()
 		}
@@ -152,7 +152,7 @@ object StreamService extends StaticActor[StreamService, StreamServiceImpl]("Stre
 		/**
 		  * A client stopped watching the stream.
 		  */
-		def stopWatching(client: String) = {
+		def stopWatching(client: Int) = {
 			for (viewer <- viewers.remove(client)) {
 				if (!live && viewersCount < 1) sendInactive()
 				else sendNotify()
@@ -162,7 +162,7 @@ object StreamService extends StaticActor[StreamService, StreamServiceImpl]("Stre
 		/**
 		  * Returns details for a given client id.
 		  */
-		def clientDetails(client: String) = viewers.get(client)
+		def clientDetails(client: Int) = viewers.get(client)
 	}
 
 	/**
@@ -245,9 +245,8 @@ trait StreamService {
 	  * Creates a new Streaming ticket.
 	  * Requires that the stream can be watched by the user.
 	  */
-	// TODO: allow Promoted users to watch multiple streams.
 	def createTicket(owner_id: Int, user: User) = {
-		if (viewers.contains(user.id)) {
+		if (!user.promoted && viewers.contains(user.id)) {
 			Future.failed(new Exception("You are not allowed to watch multiple streams at the same time."))
 		} else {
 			for {
@@ -276,7 +275,7 @@ trait StreamService {
 	def consumeTicket(id: String) = AsFuture {
 		val ticket = TicketsCollection.remove(id).filter(t => t.expire.hasTimeLeft)
 		ticket match {
-			case Some(t) if !viewers.contains(t.user.id) => t
+			case Some(t) if t.user.promoted || !viewers.contains(t.user.id) => t
 			case None => throw new Exception("Invalid ticket")
 		}
 	}
@@ -284,7 +283,7 @@ trait StreamService {
 	/**
 	  * A user started watching a stream.
 	  */
-	def play(stream_id: String, user: User, remote: String, client: String): Unit = {
+	def play(stream_id: String, user: User, remote: String, client: Int): Unit = {
 		viewers += user.id
 		for (stream <- StreamList.get(stream_id)) {
 			stream.startWatching(client, user, remote)
@@ -294,7 +293,7 @@ trait StreamService {
 	/**
 	  * A user stopped watching a stream.
 	  */
-	def stop(stream_id: String, client: String): Unit = {
+	def stop(stream_id: String, client: Int): Unit = {
 		for (stream <- StreamList.get(stream_id)) {
 			for (viewer <- stream.clientDetails(client)) {
 				viewers -= viewer.user.id
@@ -316,5 +315,8 @@ trait StreamService {
 	/**
 	  * Returns the list of actives streams ids.
 	  */
-	def listActiveStreams() = streams_list
+	def listActiveStreams() = {
+		//streams_list
+		StreamList.getList
+	}
 }

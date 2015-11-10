@@ -14,12 +14,10 @@ POST        /api/bugsack                   controllers.Api.bugsack
 GET         /api/socket_url                controllers.Api.socketURL
 GET         /api/*path                     controllers.Api.catchall(path)
 
-POST        /api/live/ticket               controllers.Live.ticket
 POST        /api/live/play                 controllers.Live.play
 POST        /api/live/publish              controllers.Live.publish
 POST        /api/live/stop                 controllers.Live.stop
 POST        /api/live/unpublish            controllers.Live.unpublish
-POST        /api/live/done                 controllers.Live.done
 
 # WebTools
 GET         /wt/                           controllers.webtools.WebTools.main
@@ -45,7 +43,7 @@ GET         /wt/*path                      controllers.webtools.WebTools.catchal
 
 # Simple pages
 GET         /unsupported                   controllers.GtApplication.unsupported
-GET         /clappr/:ticket                controllers.GtApplication.clappr(ticket)
+GET         /clappr/:stream                controllers.Live.clappr(stream)
 
 # Pings
 GET         /ping/dashboard/feed           controllers.Ping.dashboardFeed

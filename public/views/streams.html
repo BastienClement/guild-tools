@@ -43,7 +43,7 @@
 		<meta is="streams-list" [list]="streams">
 		<gt-box #live-list scrollable heading="Live Streams">
 			<gt-alert icon="pause_circle_outline" dark {hidden}="!equals(streams.length, 0)">
-				Nobody is streaming...
+				No live stream available
 			</gt-alert>
 			<div [repeat]="streams">
 				<gt-streams-item (click)="SelectStream" [stream]="item" {active}="StreamIsActive(item.user, selected)"></gt-streams-item>

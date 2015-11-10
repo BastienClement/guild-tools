@@ -1,4 +1,4 @@
-@(ticket: String)
+@(host: String, stream: String)
 <!DOCTYPE html>
 
 <style>
@@ -19,7 +19,7 @@
 <script>
 	Object.defineProperty(RTMP.prototype, "swfPath", { value: "/assets/swfs/RTMP.swf" });
 	var player = new Clappr.Player({
-		source: "rtmp://tv.fs-guild.net:1936/live/@ticket",
+		source: "rtmp://@host/live/@stream",
 		parentId: "#player",
 		height: "100%",
 		width: "100%",
