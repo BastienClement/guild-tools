@@ -142,7 +142,7 @@ package {
         mediaElement.addEventListener(MediaElementEvent.TRAIT_ADD, onTraitAdd);
 
         mediaPlayer = new MediaPlayer(mediaElement);
-		mediaPlayer.bufferTime = 1;
+		//mediaPlayer.bufferTime = 1;
         mediaPlayer.autoPlay = false;
         mediaPlayer.addEventListener(TimeEvent.CURRENT_TIME_CHANGE, onTimeUpdated);
         mediaPlayer.addEventListener(TimeEvent.DURATION_CHANGE, onTimeUpdated);
