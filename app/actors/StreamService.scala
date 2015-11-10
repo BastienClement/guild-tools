@@ -315,7 +315,7 @@ trait StreamService {
 	/**
 	  * Returns the list of actives streams ids.
 	  */
-	def listActiveStreams() = {
+	def listActiveStreams() = AsFuture {
 		//streams_list
 		StreamList.getList
 	}
