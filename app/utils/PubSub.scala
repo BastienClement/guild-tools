@@ -28,6 +28,9 @@ object PubSub {
 	}
 
 	private val Watcher = Akka.system.actorOf(Props[WatcherActor], "PubSubWatcher")
+
+	private[PubSub] trait MethodDistinctor
+	implicit object MethodDistinctor extends MethodDistinctor
 }
 
 trait PubSub[A] {
@@ -45,7 +48,7 @@ trait PubSub[A] {
 
 	// Unsub
 	def unsubscribe(actor: ActorRef): Unit = subs.remove(actor)
-	final def unsubscribe($dummy: Unit = ())(implicit actor: ActorRef): Unit = unsubscribe(actor)
+	final def unsubscribe(implicit actor: ActorRef, d: MethodDistinctor): Unit = unsubscribe(actor)
 
 	// Internal publishing loop
 	private def publish(msg: Any, s: Iterable[ActorRef]): Unit = for (sub <- s) sub ! msg
@@ -55,6 +58,7 @@ trait PubSub[A] {
 	def !#(msg: Any): Unit = publish(msg, subs.keys)
 
 	// Publish to subs with data matching a filter function
-	def publish(msg: Any, filter: (A) => Boolean): Unit =
+	def publish(msg: Any, filter: (A) => Boolean): Unit = {
 		publish(msg, for ((actor, data) <- subs if filter(data)) yield actor)
+	}
 }
