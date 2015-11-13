@@ -9,7 +9,7 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import utils.{Bindings, Timeout}
+import utils.{BiMap, Timeout}
 
 private[actors] class SocketManagerImpl extends SocketManager
 
@@ -17,7 +17,7 @@ object SocketManager extends StaticActor[SocketManager, SocketManagerImpl]("Sock
 
 trait SocketManager extends TypedActor.Receiver {
 	// Open sockets
-	private val sockets = Bindings[Long, ActorTag[Socket]]()
+	private val sockets = BiMap.unrelated[Long, ActorTag[Socket]]
 
 	// Close timeouts
 	private val timeouts = mutable.Map[ActorTag[Socket], Timeout]()
@@ -35,7 +35,7 @@ trait SocketManager extends TypedActor.Receiver {
 	@tailrec
 	private def nextSocketID: Long = {
 		val id = rand.nextLong()
-		if (id == 0 || sockets.containsSource(id)) nextSocketID
+		if (id == 0 || sockets.contains(id)) nextSocketID
 		else id
 	}
 
@@ -43,7 +43,7 @@ trait SocketManager extends TypedActor.Receiver {
 	  * Decrements the socket counter for this origin.
 	  */
 	def disconnected(socket: ActorTag[Socket]): Unit = {
-		sockets.getSource(socket) match {
+		sockets.get(socket) match {
 			case Some(id) =>
 				socket ! Socket.Disconnect
 				timeouts += socket -> Timeout.start(15.seconds) {
@@ -63,7 +63,7 @@ trait SocketManager extends TypedActor.Receiver {
 
 		val socket = context.actorOf(Socket.props(id, opener))
 		context.watch(socket)
-		sockets.add(id, socket)
+		sockets.put(id, socket)
 
 		socket ! Socket.Handshake(actor)
 		socket
@@ -73,7 +73,7 @@ trait SocketManager extends TypedActor.Receiver {
 	  * Rebinds a socket to the given actor and return this socket.
 	  */
 	def rebind(actor: ActorTag[WSActor], opener: Opener, id: Long, seq: Int): Future[ActorTag[Socket]] = {
-		sockets.getTarget(id) match {
+		sockets.get(id) match {
 			case Some(socket) => AsFuture {
 				for (timeout <- timeouts.get(socket)) {
 					timeout.cancel()
@@ -92,15 +92,15 @@ trait SocketManager extends TypedActor.Receiver {
 	  * Kills an open socket.
 	  */
 	def killSocket(id: Long) = {
-		for (socket <- sockets.getTarget(id)) socket ! ForceStop
+		for (socket <- sockets.get(id)) socket ! ForceStop
 	}
 
 	/**
 	  * Returns the list of open sockets.
 	  */
-	def socketsMap = Future.successful(sockets.toMap)
+	def socketsMap = Future.successful(sockets.iterator.toMap)
 
 	def onReceive(message: Any, sender: ActorRef) = message match {
-		case Terminated(socket) => sockets.removeTarget(socket)
+		case Terminated(socket) => sockets.remove(socket)
 	}
 }
