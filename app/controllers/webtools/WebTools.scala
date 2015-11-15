@@ -2,8 +2,8 @@ package controllers.webtools
 
 import play.api.mvc._
 
-class WebTools extends Controller {
-	def main = Action {
+class WebTools extends Controller with WtController {
+	def main = UserAction { req =>
 		Redirect("/wt/profile")
 	}
 
