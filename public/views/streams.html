@@ -228,6 +228,23 @@
 			user-select: text;
 			cursor: text;
 		}
+		
+		#updated-check {
+			margin-left: 12px;
+			color: lightgreen;
+			opacity: 0;
+			transition: all .2s ease-out;
+			&[visible] {
+				opacity: 1;
+			}
+		}
+		
+		gt-label {
+			margin-right: 24px;
+			gt-checkbox {
+				margin-right: 4px;
+			}
+		}
 	</style>
 	<template>
 		<div #layout>
@@ -248,22 +265,24 @@
 					<h3>Streaming settings</h3>
 					<p>
 						<table>
-							<tr><td>Mode</td><td>Live Stream</td></tr>
-							<tr><td>Streaming service</td><td>Custom</td></tr>
-							<tr><td>&nbsp;</td><td></td></tr>
 							<tr><td>FMS URL</td><td><gt-box dark class="copyable"><span>rtmp://tv.fs-guild.net/live</span></gt-box></td></tr>
 							<tr><td>Stream Key</td><td><gt-box dark class="copyable"><span>{{token}}</span></gt-box></td></tr>
 						</table>
 					</p>
-					<h3>Advanced settings</h3>
-					<p .desc>These settings should be used if you want to reduce latency.</p>
+					<h3>Stream visibility <i #updated-check {visible}="visibility_check">done</i></h3>
 					<p>
-						<table>
-							<tr><td>Scene Buffering Time</td><td>60</td></tr>
-							<tr><td>Custom x264 Encoder Settings</td><td>tune=zerolatency</td></tr>
-							<tr><td>Automatic low latency mode</td><td><em>enabled</em></td></tr>
-							<tr><td>Disable TCP send window optimization</td><td><em>enabled</em></td></tr>
-						</table>
+						<gt-label>
+							<gt-checkbox [radio]="visibility" value="open" (click)="UpdateVisibility"></gt-checkbox>
+							Open
+						</gt-label>
+						<gt-label>
+							<gt-checkbox [radio]="visibility" value="limited" (click)="UpdateVisibility"></gt-checkbox>
+							Limited
+						</gt-label>
+					</p>
+					<p .desc>
+						When limited visibility is enabled, officer approval is required to access your stream.
+						This option must be enabled when live streaming progress content.
 					</p>
 				</div>
 			</div>

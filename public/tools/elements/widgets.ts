@@ -131,15 +131,21 @@ export class GtCheckbox extends PolymerElement {
 	@Property({ reflect: true, notify: true })
 	public checked: boolean;
 
-	@Listener("click")
+	/**
+	 * Click generator
+	 */
 	public click() {
-		if (this.disabled) {
-			return;
-		} else if (this.value) {
-			this.radio = this.value;
-		} else {
-			this.checked = !this.checked;
-		}
+		this.fire("click");
+	}
+	
+	/**
+	 * Click listener
+	 */
+	@Listener("click", "tap")
+	private ClickEvent(e: Event) {
+		if (this.disabled) return this.stopEvent(e);
+		else if (this.value) this.radio = this.value;
+		else this.checked = !this.checked;
 	}
 
 	private RadioChanged() {
@@ -224,7 +230,7 @@ export class GtButton extends PolymerElement {
 	 * Click handler
 	 */
 	@Listener("click", "tap")
-	private "event-filter"(e: Event) {
+	private ClickEvent(e: Event) {
 		// Button is disabled
 		if (this.disabled) return this.stopEvent(e);
 

@@ -1,6 +1,6 @@
 import { Element, Property, Listener, Dependencies, Inject, On, PolymerElement, PolymerModelEvent } from "elements/polymer";
 import { View, Tab, TabsGenerator } from "elements/app";
-import { GtButton, GtForm, GtInput } from "elements/widgets";
+import { GtButton, GtForm, GtInput, GtCheckbox, GtLabel } from "elements/widgets";
 import { GtBox, GtAlert } from "elements/box";
 import { Streams, ActiveStream } from "services/streams";
 import { throttled, join } from "utils/async";
@@ -97,14 +97,19 @@ export class GtStreams extends PolymerElement {
 
 @View("streams", StreamsTabs)
 @Element("gt-streams-settings", "/assets/views/streams.html")
-@Dependencies(GtBox, GtButton)
+@Dependencies(GtBox, GtButton, GtCheckbox, GtLabel)
 export class GtStreamsSettings extends PolymerElement {
 	@Inject private service: Streams;
 	
-	public token: String;
+	public token: string;
+	public visibility: string;
+	
+	private visibility_check: boolean = false;
 	
 	@join private async updateToken() {
-		this.token = await this.service.ownToken();
+		let [token, progress] = await this.service.ownTokenVisibility();
+		this.token = token;
+		this.visibility = progress ? "limited" : "open";
 	}
 	
 	@Property({ computed: "token" })
@@ -126,6 +131,13 @@ export class GtStreamsSettings extends PolymerElement {
 		} finally {
 			this.generating = false;
 		}    
+	}
+	
+	private async UpdateVisibility() {
+		this.visibility_check = false;
+		await this.service.changeOwnVisibility(this.visibility == "limited");
+		this.visibility_check = true;
+		this.debounce("hide_visibility_check", () => this.visibility_check = false, 3000);
 	}
 }
 

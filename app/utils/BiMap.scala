@@ -10,6 +10,8 @@ object BiMap {
 
 	/**
 	  * Creates an empty bidirectionnal Map with types T, V unrelated.
+	  * If T and V are unrelated, the compiler is able to distinguish between key-based
+	  * and value-based accesses.
 	  */
 	def unrelated[K, V]: BiMap[K, V] with Unrelated[K, V] = new BiMap[K, V] with Unrelated[K, V]
 

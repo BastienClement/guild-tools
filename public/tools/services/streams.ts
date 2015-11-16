@@ -105,8 +105,15 @@ export class Streams extends Service {
 	/**
 	 * Request own stream token
 	 */
-	public ownToken() {
-		return this.channel.request<string>("own-token");
+	public ownTokenVisibility() {
+		return this.channel.request<[string, boolean]>("own-token-visibility");
+	}
+	
+	/**
+	 * Change the visibility status of the stream.
+	 */
+	public changeOwnVisibility(limited: boolean) {
+		return this.channel.request<void>("change-own-visibility", limited);
 	}
 	
 	/**
@@ -132,7 +139,7 @@ export class Streams extends Service {
 }
 
 /**
- * Application data fetcher
+ * Provides the list of active streams
  */
 @Provider("streams-list")
 class StreamsListProvider extends PolymerElement {

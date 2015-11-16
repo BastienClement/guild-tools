@@ -125,6 +125,16 @@ object StreamService extends StaticActor[StreamService, StreamServiceImpl]("Stre
 		}
 
 		/**
+		  * Refreshes meta informations about the stream
+		  */
+		def refresh() = {
+			for (stream <- Streams.filter(_.token === meta.token).head if meta != stream) {
+				meta = stream
+				sendNotify()
+			}
+		}
+
+		/**
 		  * The stream started being published.
 		  */
 		def startPublishing() = if (!live) {
@@ -277,6 +287,21 @@ trait StreamService {
 		ticket match {
 			case Some(t) if t.user.promoted || !viewers.contains(t.user.id) => t
 			case None => throw new Exception("Invalid ticket")
+		}
+	}
+
+	/**
+	  * Changes the stream visibility setting.
+	  */
+	def changeVisibility(user: Int, limited: Boolean) = {
+		for {
+			updated <- Streams.filter(_.user === user).map(_.progress).update(limited).run if updated > 0
+			stream <- Streams.filter(_.user === user).head
+		} yield {
+			StreamList.get(stream.token) match {
+				case Some(active) => active.refresh()
+				case None => // The stream is not active, no need to refresh anything
+			}
 		}
 	}
 
