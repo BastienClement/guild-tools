@@ -1,44 +1,5 @@
 <dom-module id="gt-streams">
-	<style type="text/less">
-		:host {
-			position: relative;
-		}
-		
-		@left-width: 280px;
-		
-		#live-list {
-			position: absolute;
-			top: 0;
-			left: 0;
-			bottom: 0;
-			width: @left-width;
-			gt-streams-item {
-				margin-bottom: 6px;
-			}
-		}
-		
-		#main-box {
-			position: absolute;
-			top: 0;
-			right: 0;
-			bottom: 0;
-			left: @left-width + 6px;
-		}
-		
-		#placeholder {
-			z-index: 10;
-			.placeholder-layout();
-		}
-		
-		gt-streams-player {
-			.pos(absolute);
-			z-index: 15;
-			transition: all .2s ease-out;
-			&[hide] {
-				opacity: 0;
-			}
-		}
-	</style>
+	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams">
 	<template>
 		<meta is="streams-list" [list]="streams">
 		<gt-box #live-list scrollable heading="Live Streams">
@@ -61,71 +22,7 @@
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
 <dom-module id="gt-streams-item">
-	<style type="text/less">
-		:host {
-			display: block;
-		}
-		
-		gt-box {
-			transition: all .2s ease-out;
-			:host([active]) & {
-				background: fade(@fs-blue, 10%);
-				border: 1px solid fade(@fs-blue, 10%);
-			}
-		}
-		
-		#layout {
-			display: flex;
-			align-items: center;
-		}
-		
-		#live {
-			#light {
-				width: 10px;
-				height: 10px;
-				background-color: @fs-gray;
-				border-radius: 100%;
-				opacity: 0.5;
-				transition: all .2s ease-out;
-				box-shadow: 0 0 5px 0 rgba(255, 0, 0, 0);
-    			display: inline-block;
-			}
-			
-			&[live] #light {
-				opacity: 1.0;
-				background-color: rgba(0, 255, 0, 0.8);
-				box-shadow: 0 0 3px 0px rgba(0, 255, 0, 0.5);
-			}
-			
-			padding-right: 10px;
-		}
-		
-		#name {
-			flex: 1;
-		}
-		
-		#locked {
-			color: @light-blue;
-		}
-		
-		#viewers {
-			padding-left: 8px;
-		}
-		
-		#chevron {
-			font-size: 24px;
-			margin-left: 6px;
-			color: @fs-gray;
-			display: block;
-			margin-bottom: -3px;
-			margin-right: -2px;
-			
-			opacity: 0.5;
-			transition: all .2s ease-out;
-			:host(:hover) & { opacity: 1; }
-			:host([active]) & { opacity: 0.75; color: #fff; }
-		}
-	</style>
+	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams-item">
 	<template>
 		<meta is="roster-main" [user]="stream.user" [main]>
 		<gt-box dark>
@@ -146,26 +43,7 @@
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
 <dom-module id="gt-streams-player">
-	<style type="text/less">
-		:host > iframe {
-			height: 100%;
-			width: 100%;
-			background: rgba(99, 180, 255, 0.1);
-			border: 1px solid #395066;
-			box-shadow: 0 1px 1px rgba(17, 17, 17, 0.3);
-			box-sizing: border-box;
-		}
-		
-		:host {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-		}
-		
-		gt-alert {
-			max-width: 500px;
-		}
-	</style>
+	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams-player">
 	<template>
 		<gt-alert dark icon="error_outline" [if]="error">
 			<b>{{error}}</b>
@@ -176,76 +54,7 @@
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
 <dom-module id="gt-streams-settings">
-	<style type="text/less">
-		:host {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-		}
-		
-		#layout {
-			display: flex;
-			align-items: center;
-			width: 600px;
-		}
-		
-		#layout > i {
-			font-size: 50px;
-			color: @light-blue;
-			margin: 0 35px 0 0;
-			background: rgba(17, 17, 17, 0.08);
-			border: 2px dashed fade(@light-blue, 25%);
-			border-radius: 100%;
-			padding: 12px 11px 10px;
-			display: inline-block;
-			box-sizing: content-box;
-		}
-		
-		#right {
-			flex: 1;
-		}
-		
-		h3 {
-			font: 300 18px "Roboto Condensed";
-			margin: 0;
-		}
-		
-		.desc {
-			color: @fs-gray;
-			font-size: 13px;
-		}
-		
-		table {
-			width: 100%;
-			font-size: 13px;
-			td:first-child {
-				font-family: "Roboto Condensed";
-				padding-right: 12px;
-			}
-		}
-		
-		.copyable span {
-			user-select: text;
-			cursor: text;
-		}
-		
-		#updated-check {
-			margin-left: 12px;
-			color: lightgreen;
-			opacity: 0;
-			transition: all .2s ease-out;
-			&[visible] {
-				opacity: 1;
-			}
-		}
-		
-		gt-label {
-			margin-right: 24px;
-			gt-checkbox {
-				margin-right: 4px;
-			}
-		}
-	</style>
+	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams-settings">
 	<template>
 		<div #layout>
 			<i>ondemand_video</i>
@@ -293,8 +102,7 @@
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
 <dom-module id="gt-streams-whitelist">
-	<style type="text/less">
-	</style>
+	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams-whitelist">
 	<template>
 		Whitelist
 	</template>
