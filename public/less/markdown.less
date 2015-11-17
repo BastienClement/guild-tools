@@ -1,0 +1,82 @@
+:host {
+	display: block;
+	user-select: text;
+}
+
+p, blockquote, ul, ol, pre, h1, h2 {
+	margin: 1em 0;
+
+	&:first-child {
+		margin-top: 0 !important;
+	}
+
+	&:last-child {
+		margin-bottom: 0 !important;
+	}
+
+	li > & {
+		margin: 0 !important;
+	}
+}
+
+h1, h2 {
+	font: 400 1em "Roboto";
+}
+
+:host([headings]) h1 {
+	font: 300 24px "Roboto Condensed";
+	margin: 14px 0;
+}
+
+:host([headings]) h2 {
+	font: 300 20px "Roboto Condensed";
+	margin: 14px 0;
+}
+
+li {
+	margin: 0.3em 0;
+}
+
+blockquote {
+	background: fade(@fs-blue, 10%);
+	border: 1px solid fade(@fs-blue, 10%);
+	border-left-width: 3px;
+	padding: 12px;
+}
+
+ul, ol {
+	padding-left: 20px;
+}
+
+pre {
+	background: rgba(17, 17, 17, 10%);
+	border: 1px solid rgba(17, 17, 17, 10%);
+	padding: 6px;
+}
+
+strong {
+	font-weight: 500;
+}
+
+code {
+	font: 400 0.9em "Roboto Mono";
+}
+
+a {
+	color: @light-blue;
+	transition: all .2s ease-out;
+	text-decoration: none;
+	cursor: pointer;
+
+	&:hover {
+		color: @fs-blue;
+	}
+}
+
+hr {
+	border: 1px solid fade(@fs-blue, 20%);
+}
+
+img {
+	max-width: 100%;
+}

@@ -1,67 +1,6 @@
 <!-- <gt-dialog> -->
 <dom-module id="gt-dialog">
-	<style type="text/less">
-		:host {
-			display: none;
-			position: fixed;
-			top: 0; left: 0; right: 0; bottom: 0;
-			z-index: 3000;
-		}
-		
-		:host(:not([no-modal])) {
-			background: fade(darken(mix(#2e3740, @fs-blue, 95%), 5%), 40%);
-		}
-		
-		:host(.visible) {
-			display: block;
-			animation: fade-in 0.25s ease-out;
-			animation-fill-mode: both;
-		}
-		
-		:host(.fade-out) {
-			animation: fade-out 0.25s ease-out;
-			animation-fill-mode: both;
-		}
-
-		#slider {
-			.gpu;
-			
-			position: relative;
-			box-sizing: border-box;
-			width: 100%;
-			height: 100%;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			
-			&.slide-in {
-				animation: slide-in 0.5s ease-out;
-				animation-delay: 0.25s;
-				animation-fill-mode: both;
-			}
-		}
-		
-		#content ::content gt-box #actions {
-			display: flex;
-			justify-content: flex-end;
-			margin: 0 -12px -6px -12px;
-		}
-		
-		@keyframes fade-in {
-			0%   { opacity: 0; }
-			100% { opacity: 1; }
-		}
-		
-		@keyframes fade-out {
-			0%   { opacity: 1; }
-			100% { opacity: 0; }
-		}
-
-		@keyframes slide-in {
-			0%   { opacity: 0; transform: translateY(20px); }
-			100% { opacity: 1; transform: translateY(0px); }
-		}
-	</style>
+	<link rel="stylesheet/less" href="/assets/less/box.less" ns="gt-dialog">
 	<template>
 		<div #slider>
 			<div #content>

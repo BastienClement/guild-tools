@@ -1,163 +1,14 @@
-<!-- ////////////////////////////////////////////////////////////////////// -->
-<!-- <gt-button> -->
-	
 <dom-module id="gt-button">
-	<style type="text/less">
-		:host {
-			display: inline-flex;
-			font: 500 14px Roboto;
-			text-transform: uppercase;
-			
-			height: 36px;
-			padding: 0 8px;
-			margin: 0 8px;
-			
-			align-items: center;
-			justify-content: center;
-			
-			color: #fff;
-			transition: all .2s ease-out;
-		}
-		
-		:host([collapse-right]) {
-			margin-right: 0 !important;
-		}
-		
-		:host([collapse-left]) {
-			margin-left: 0 !important;
-		}
-		
-		:host([disabled]) {
-			opacity: 0.3;
-			cursor: default;
-		}
-		
-		:host(:hover:not([disabled])) {
-			color: @fs-blue;
-		}
-		
-		:host([fat]) {
-			background: fade(@fs-blue, 10%);
-			border: 1px solid fade(@fs-blue, 5%);
-			border-radius: 2px;
-			height: 32px;
-			margin: 2px 8px;
-			padding: 0 12px;
-			color: white !important;
-			box-shadow: 0px 1px 2px rgba(17, 17, 17, 0.1)
-		}
-		
-		:host([fat]:hover:not([disabled])) {
-			background: fade(@fs-blue, 15%);
-			border: 1px solid fade(@fs-blue, 10%);
-		}
-		
-		:host([fat][disabled]) {
-			opacity: 0.5;
-			box-shadow: none;
-		}
-		
-		::content i {
-			margin-right: 5px;
-		}
-	</style>
+	<link rel="stylesheet/less" href="/assets/less/widgets.less" ns="gt-button">
 	<template>
 		<content></content>
 	</template>
 </dom-module>
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
-<!-- <gt-input> -->
 
 <dom-module id="gt-input">
-	<style type="text/less">
-		:host {
-			display: block;
-			position: relative;
-			margin-top: 20px;
-		}
-		
-		input {
-			box-sizing: border-box;
-			width: 100%;
-			padding: 5px 0 6px 0;
-			
-			font: 400 15px Roboto;
-			color: #fff;
-			
-			background: transparent;
-			border: 0;
-			border-bottom: 1px solid rgb(59, 85, 110);
-			
-			transition: border-color .3s ease-out, opacity .3s ease-out;
-			
-			// Style reset
-			-moz-appearance: none;
-			-webkit-appearance: none;
-			border-radius: 0;
-			outline: none;
-			
-			&:disabled {
-				color: rgba(255, 255, 255, 0.75);
-				user-select: none;
-			}
-			
-			:host(:hover) & {
-				border-bottom-width: 2px;
-				margin-bottom: -1px;
-				border-color: rgb(66, 101, 133);
-			}
-			
-			:host([focused]) & {
-				border-bottom-width: 2px;
-				margin-bottom: -1px;
-				border-color: rgb(100, 180, 255);
-			}
-			
-			#outer:not([data-valid]) & {
-				//border-color: rgba(222, 50, 32, 0.5);
-				//:host:hover & { border-color: rgba(222, 50, 32, 0.6); }
-				//:host:focus & { border-color: rgba(222, 50, 32, 1); }
-				border-color: rgba(233, 64, 25, 0.5);
-				:host:hover & { border-color: rgba(233, 64, 25, 0.6); }
-				:host:focus & { border-color: rgba(233, 64, 25, 1); }
-			}
-		}
-		
-		#wrapper {
-			display: block;
-			padding-bottom: 1px;
-		}
-		
-		#label {
-			font: 400 13px Roboto;
-			margin-bottom: 8px;
-			transition: opacity 0.2 ease-out;
-			
-			:host-context([disabled]) & {
-				opacity: 0.5;
-			}
-		}
-		
-		#error {
-			font: 400 13px Roboto;
-			height: 1.15em;
-			line-height: 1em;
-			overflow: hidden;
-    		text-overflow: ellipsis;
-			opacity: 1;
-			//color: rgb(222, 50, 32);
-			color: rgba(233, 64, 25, 1);
-			margin-top: 8px;
-			transition: height .2s ease-out, opacity .3s ease-out, margin .2s ease-out;
-			
-			#outer[data-valid] & {
-				height: 0;
-				opacity: 0;
-				margin-top: 0;
-			}
-		}
-	</style>
+	<link rel="stylesheet/less" href="/assets/less/widgets.less" ns="gt-input">
 	<template>
 		<label #outer {data-valid}="!error">
 			<span #label [if]>{{label}}</span>
@@ -170,73 +21,9 @@
 </dom-module>
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
-<!-- <gt-checkbox> -->
-	
+
 <dom-module id="gt-checkbox">
-	<style type="text/less">
-		:host {
-			display: inline-block;
-			width: 18px;
-			height: 18px;
-			vertical-align: -4px;
-			overflow: hidden;
-			position: relative;
-			transition: all .2s ease-out;
-		}
-		
-		:host([disabled]) {
-			opacity: 0.5;
-		}
-		
-		#box {
-			.pos(absolute);
-			z-index: 1;
-			border: 2px solid fade(@fs-blue, 25%);
-			transition: all .2s ease-out;
-			border-radius: 2px;
-			
-			:host(:hover:not([disabled])) &, :host([hover]:not([disabled])) & {
-				border-color: fade(@fs-blue, 40%);
-			}
-			
-			:host([value]) & {
-				border-radius: 50%;
-			}
-		}
-		
-		i {
-			.pos(absolute, -2px, 0, 0, 0);
-			z-index: 2;
-			font-size: 20px;
-			color: fade(@fs-blue, 75%);
-			opacity: 0;
-			transition: all .2s ease-out;
-			
-			:host(:hover:not([disabled])) &, :host([hover]:not([disabled])) & {
-				color: fade(@fs-blue, 90%);
-			}
-			
-			:host([checked]:not([value])) & {
-				opacity: 1;
-			}
-		}
-		
-		#dot {
-			.pos(absolute, 5px, 5px, 5px, 5px);
-			border-radius: 50%;
-			background: fade(@fs-blue, 75%);
-			transform: scale(0);
-			transition: all .2s ease-out;
-			
-			:host(:hover:not([disabled])) &, :host([hover]:not([disabled])) & {
-				background: fade(@fs-blue, 90%);
-			}
-			
-			:host([checked][value]) & {
-				transform: scale(1);
-			}
-		}
-	</style>
+	<link rel="stylesheet/less" href="/assets/less/widgets.less" ns="gt-checkbox">
 	<template>
 		<div #box></div>
 		<i>check</i>
@@ -245,46 +32,18 @@
 </dom-module>
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
-<!-- <gt-textarea> -->
-	
+
 <dom-module id="gt-textarea">
-	<style type="text/less">
-		:host {
-			display: inline-block;
-		}
-		
-		textarea {
-			height: 100%;
-			width: 100%;
-			padding: 12px;
-			font: 400 14px "Roboto";
-			color: #f1f1f1;
-			border: 1px solid rgba(17, 17, 17, 0.1);
-			background: rgba(17, 17, 17, 0.1);
-			resize: none;
-			outline: none;
-			transition: color .2s ease-out;
-			.custom-scrolls;
-		}
-		
-		:host([disabled]) textarea {
-			color: fade(#f1f1f1, 50%);
-		}
-	</style>
+	<link rel="stylesheet/less" href="/assets/less/widgets.less" ns="gt-textarea">
 	<template>
 		<textarea #textarea {disabled}></textarea>
 	</template>
 </dom-module>
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
-<!-- <gt-label> -->
-	
+
 <dom-module id="gt-label">
-	<style type="text/less">
-		:host {
-			display: inline-block;
-		}
-	</style>
+	<link rel="stylesheet/less" href="/assets/less/widgets.less" ns="gt-label">
 	<template>
 		<content></content>
 	</template>

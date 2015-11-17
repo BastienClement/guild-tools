@@ -1,0 +1,160 @@
+///////////////////////////////////////////////////////////////////////////////
+// <gt-box>
+
+:namespace("gt-box") {
+	:host {
+		padding: 12px;
+		background: rgba(99, 180, 255, 0.1);
+		border: 1px solid #395066;
+		box-shadow: 0 1px 1px rgba(17, 17, 17, 0.3);
+		display: flex;
+		flex-direction: column;
+		position: relative;
+		overflow: hidden;
+	}
+
+	:host-context(gt-dialog) {
+		background: fade(mix(#334352, @fs-blue, 96%), 98%);
+		border-color: mix(#395066, @fs-blue, 97%);
+		box-shadow: 0px 1px 5px 1px rgba(17, 17, 17, 0.20);
+	}
+
+	:host([dark]) {
+		background: rgba(17, 17, 17, 0.15);
+		border: 1px solid rgba(17, 17, 17, 0.1);
+		box-shadow: none;
+	}
+
+	h2 {
+		font-family: "Roboto Condensed";
+		font-size: 24px;
+		font-weight: 400;
+		margin: 0 0 12px 0;
+		line-height: 24px;
+		height: 24px;
+	}
+
+	#wrapper {
+		flex: 1;
+
+		&[scrollable] {
+			margin: -12px;
+			padding: 12px;
+			overflow-x: auto;
+			.custom-scrolls;
+
+			&[has-heading] {
+				margin-top: 0;
+				border-top: 2px solid #426585;
+			}
+		}
+
+		&[scrollable=force] {
+			overflow-y: scroll;
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <gt-alert>
+
+:namespace("gt-alert") {
+	:host {
+		display: block;
+		margin-bottom: 8px;
+		color: @light-blue;
+	}
+
+	.layout {
+		display: flex;
+		align-items: center;
+	}
+
+	i {
+		font-size: 24px;
+		margin-right: 12px;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <gt-dialog>
+
+:namespace("gt-dialog") {
+	:host {
+		display: none;
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 3000;
+	}
+
+	:host(:not([no-modal])) {
+		background: fade(darken(mix(#2e3740, @fs-blue, 95%), 5%), 40%);
+	}
+
+	:host(.visible) {
+		display: block;
+		animation: fade-in 0.25s ease-out;
+		animation-fill-mode: both;
+	}
+
+	:host(.fade-out) {
+		animation: fade-out 0.25s ease-out;
+		animation-fill-mode: both;
+	}
+
+	#slider {
+		.gpu;
+
+		position: relative;
+		box-sizing: border-box;
+		width: 100%;
+		height: 100%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+
+		&.slide-in {
+			animation: slide-in 0.5s ease-out;
+			animation-delay: 0.25s;
+			animation-fill-mode: both;
+		}
+	}
+
+	#content ::content gt-box #actions {
+		display: flex;
+		justify-content: flex-end;
+		margin: 0 -12px -6px -12px;
+	}
+
+	@keyframes fade-in {
+		0% {
+			opacity: 0;
+		}
+		100% {
+			opacity: 1;
+		}
+	}
+
+	@keyframes fade-out {
+		0% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
+		}
+	}
+
+	@keyframes slide-in {
+		0% {
+			opacity: 0;
+			transform: translateY(20px);
+		}
+		100% {
+			opacity: 1;
+			transform: translateY(0px);
+		}
+	}
+}
