@@ -1,5 +1,6 @@
 import { Element, Property, Listener, Dependencies, Inject, On, Watch, Bind,
-	PolymerElement, PolymerModelEvent, PolymerMetadata, PolymerConstructor } from "elements/polymer";
+	PolymerElement, PolymerModelEvent, PolymerMetadata } from "elements/polymer";
+import { Constructor } from "utils/di";
 import { GtButton } from "elements/widgets";
 import { GtDialog } from "elements/dialog";
 import { GtBox } from "elements/box";
@@ -10,7 +11,7 @@ import { Chat } from "services/chat";
 import { User, Roster } from "services/roster";
 
 // Views loader
-type ViewPromise = Promise<PolymerConstructor<any>>;
+type ViewPromise = Promise<Constructor<PolymerElement>>;
 const views_cache = new Map<string, ViewPromise>();
 
 function load_view(key: string) {
@@ -50,7 +51,7 @@ export interface ViewMetadata {
 
 // The @View annoation
 export function View(module: string, tabs: TabsGenerator, sticky?: boolean) {
-	return <T extends PolymerElement>(target: PolymerConstructor<T>) => {
+	return <T extends PolymerElement>(target: Constructor<T>) => {
 		Reflect.defineMetadata("view:meta", { module, tabs, sticky }, target);
 	};
 }
@@ -242,7 +243,7 @@ export class GtView extends PolymerElement {
 		let view_key = this.router.activeView;
 		let args = this.router.activeArguments;
 
-		let view = view_key ? await load_view(view_key) : null;
+		let view = <Constructor<PolymerElement>> (view_key ? await load_view(view_key) : null);
 		let meta = view_key ? Reflect.getMetadata<ViewMetadata>("view:meta", view) : null;
 
 		// If the view is the same and is sticky, do not remove the
@@ -334,7 +335,7 @@ export class GtApp extends PolymerElement {
 		"reset": "Reset"
 	})
 	private server: Server;
-	
+
 	// Inject roster service for early preloading
 	@Inject
 	private roster: Roster;

@@ -22,14 +22,14 @@ export class Streams extends Service {
 	constructor(private server: Server) {
 		super();
 	}
-	
+
 	// Stream channel
 	private channel = this.server.openServiceChannel("stream", false);
-	
+
 	// Actives streams
 	private streams: ActiveStream[] = [];
 	private streams_index = new Map<number, number>();
-	
+
 	/**
 	 * Search a stream index by user id.
 	 */
@@ -39,7 +39,7 @@ export class Streams extends Service {
 		}
 		return [this.streams.length, false];
 	}
-	
+
 	/**
 	 * Rebuild the user-stream index.
 	 */
@@ -52,17 +52,18 @@ export class Streams extends Service {
 			this.streams_index.set(stream.user, i);
 		}
 	}
-	
+
 	/**
 	 * Full stream list received
 	 */
 	@ServiceChannel.Dispatch("channel", "list")
 	private StreamsList(list: [number, boolean, boolean, number[]][]) {
+		//noinspection TypeScriptValidateTypes
 		this.streams = list.map(([user, live, progress, viewers]) => ({ user, live, progress, viewers }));
 		this.rebuildIndex();
 		this.emit("list-update");
 	}
-	
+
 	/**
 	 * A stream was updated.
 	 */
@@ -74,7 +75,7 @@ export class Streams extends Service {
 		if (!found) this.rebuildIndex();
 		this.emit("notify", stream, !found, idx);
 	}
-	
+
 	/**
 	 * A stream just went offline.
 	 */
@@ -87,49 +88,49 @@ export class Streams extends Service {
 			this.emit("offline", user, idx);
 		}
 	}
-	
+
 	/**
 	 * Return the streams list
 	 */
 	public getStreamsList() {
 		return Array.from(this.streams);
 	}
-	
+
 	/**
 	 * Request stream ticket
 	 */
 	public requestTicket(stream: number) {
 		return this.channel.request<[string, string]>("request-ticket", stream)
 	}
-	
+
 	/**
 	 * Request own stream token
 	 */
 	public ownTokenVisibility() {
 		return this.channel.request<[string, boolean]>("own-token-visibility");
 	}
-	
+
 	/**
 	 * Change the visibility status of the stream.
 	 */
 	public changeOwnVisibility(limited: boolean) {
 		return this.channel.request<void>("change-own-visibility", limited);
 	}
-	
+
 	/**
 	 * Create a new stream token
 	 */
 	public createToken() {
 		return this.channel.request<void>("create-token");
 	}
-	
+
 	/**
 	 * Stream service is resumed
 	 */
 	private resume() {
 		this.channel.open();
 	}
-	
+
 	/**
 	 * Stream service is paused
 	 */
@@ -150,19 +151,19 @@ class StreamsListProvider extends PolymerElement {
 		"offline": "Offline"
 	})
 	private service: Streams;
-	
+
 	@Property({ notify: true })
 	public list: ActiveStream[] = this.service.getStreamsList();
-	
+
 	private ListUpdate() {
 		this.list = this.service.getStreamsList();
 	}
-	
+
 	private Notify(stream: ActiveStream, new_stream: Boolean, idx: number) {
 		if (new_stream) this.push("list", stream);
 		else this.set(`list.${idx}`, stream);
 	}
-	
+
 	private Offline(user: number, idx: number) {
 		this.splice(`list`, idx, 1);
 	}

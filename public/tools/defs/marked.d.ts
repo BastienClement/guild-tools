@@ -59,7 +59,7 @@ interface MarkedStatic {
      * @param options Hash of options
      */
     setOptions(options: MarkedOptions): void;
-	
+
 	/**
 	 * The default renderer
 	 */
@@ -72,7 +72,7 @@ interface MarkedOptions {
      *
      * An object containing functions to render tokens to HTML.
      */
-    renderer?: MarkedRenderer; 
+    renderer?: MarkedRenderer;
 
     /**
      * Enable GitHub flavored markdown.
@@ -137,7 +137,7 @@ interface MarkedRenderer {
 	table(header: string, body: string): string;
 	tablerow(content: string): string;
 	tablecell(content: string, flags: { header: boolean, align: string }): string;
-	
+
 	strong(text: string): string;
 	em(text: string): string;
 	codespan(code: string): string;
@@ -147,8 +147,8 @@ interface MarkedRenderer {
 	image(href: string, title: string, text: string): string;
 }
 
+declare var marked: MarkedStatic;
+
 declare module "marked" {
     export = marked;
 }
-
-declare var marked: MarkedStatic;

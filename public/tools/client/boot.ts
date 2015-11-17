@@ -18,7 +18,7 @@ function fix_imports_shim() {
 					if (parent) parent.removeChild(elt);
 				});
 			}
-		}
+		};
 	}
 }
 

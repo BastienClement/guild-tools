@@ -78,7 +78,8 @@ let defer_node = (function() {
 	let observer = new MutationObserver(() => {
 		let queue = defer_queue;
 		defer_queue = [];
-		queue.forEach(([fn, deferred]) => {
+		queue.forEach(entry => {
+			let [fn, deferred] = entry;
 			try {
 				deferred.resolve(fn());
 			} catch (e) {

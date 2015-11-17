@@ -123,7 +123,7 @@ export class PolymerElement {
 	/**
 	 * Return the element whose local dom within which this element is contained.
 	 */
-	protected host: <T extends PolymerElement>(ctor: PolymerConstructor<T>) => T;
+	protected host: <T>(ctor: Constructor<T>) => T;
 
 	/**
 	 * Removes an item from an array, if it exists.
@@ -220,16 +220,9 @@ interface PolymerFireOptions {
 interface PolymerAsyncHandler {}
 
 /**
- * Interface of a Polymer constructor function
- */
-export interface PolymerConstructor<T extends PolymerElement> extends Function {
-	new (): T;
-}
-
-/**
  * The Polymer returned to replace the original class constructor
  */
-export interface PolymerProxy<T extends PolymerElement> extends PolymerConstructor<T> {
+export interface PolymerProxy<T extends PolymerElement> extends Constructor<T> {
 	new (): T;
 	[key: string]: any;
 }
@@ -241,11 +234,11 @@ export interface PolymerMetadata<T extends PolymerElement> {
 	selector: string;
 	template: string;
 	proto: any;
-	dependencies: PolymerConstructor<any>[];
+	dependencies: Constructor<any>[];
 	loaded: boolean;
 	domModule?: HTMLElement;
 	constructor?: Function;
-	base?: Function;
+	base?: Constructor<any>;
 }
 
 /**
@@ -275,7 +268,7 @@ interface ElementBindings {
  * Declare a Polymer Element
  */
 export function Element(selector: string, template?: string, ext?: string) {
-	return <T extends PolymerElement>(target: PolymerConstructor<T>) => {
+	return <T extends PolymerElement>(target: Constructor<T>) => {
 		// Register the element selector
 		target.prototype.is = selector;
 
@@ -315,11 +308,11 @@ export function Element(selector: string, template?: string, ext?: string) {
 
 				// Define custom sugars
 				Object.defineProperty(this, "node", {
-					get: function() { return Polymer.dom(this); }
+					get: function() { return Polymer.dom(<any> this); }
 				});
 
 				Object.defineProperty(this, "shadow", {
-					get: function() { return Polymer.dom(this.root); }
+					get: function() { return Polymer.dom(<any> this.root); }
 				});
 
 				// Copy injected components on the final object
@@ -375,7 +368,7 @@ export function Element(selector: string, template?: string, ext?: string) {
 				let parts = property.match(/^(.*)\|(.*)$/);
 				this[parts[2]] = emitter[parts[1]];
 				return function(value: any) { this[parts[2]] = value; };
-			}
+			};
 
 			// Attach events
 			let bindings = Reflect.getMetadata<ElementBindings>("polymer:bindings", target.prototype);
@@ -387,7 +380,8 @@ export function Element(selector: string, template?: string, ext?: string) {
 
 					let mapping = bindings[property];
 					for (let event in mapping) {
-						let handler: string = mapping[event] === true ? event : mapping[event];
+						let entry = mapping[event];
+						let handler: string = <string> (mapping[event] === true ? event : mapping[event]);
 						let fn = (handler.slice(0, 5) == "bind@") ? create_bind_handler(handler.slice(5), emitter) : this[handler];
 						if (typeof fn == "function") {
 							emitter.on(event, fn, this);
@@ -494,8 +488,8 @@ export function Provider(selector: string) {
 /**
  * Delcare Polymer element dependencies
  */
-export function Dependencies(...dependencies: (PolymerConstructor<any> | { prototype: Service })[]) {
-	return <T extends PolymerElement>(target: PolymerConstructor<T>) => {
+export function Dependencies(...dependencies: (Constructor<any> | { prototype: Service })[]) {
+	return <T extends PolymerElement>(target: Constructor<T>) => {
 		const meta: PolymerMetadata<T> = Reflect.getMetadata("polymer:meta", target) || <any>{};
 		meta.dependencies = <any> dependencies.filter(d => !(d.prototype instanceof Service));
 		Reflect.defineMetadata("polymer:meta", meta, target);
@@ -638,7 +632,7 @@ export function apply_polymer_fns() {
 	/**
 	 * Check if an Node is an instance of the given Polymer element
 	 */
-	Polymer.is = <T extends PolymerElement>(node: any, ctor: PolymerConstructor<T>): node is T => {
+	Polymer.is = <T extends PolymerElement>(node: any, ctor: Constructor<T>): node is T => {
 		const selector = Reflect.getMetadata<{ selector: string; }>("polymer:meta", ctor).selector;
 		return (<any> node).is == selector;
 	};
@@ -646,32 +640,32 @@ export function apply_polymer_fns() {
 	/**
 	 * Type-safe cast of Node to Polymer elements
 	 */
-	Polymer.cast = <T extends PolymerElement>(node: Node, ctor: PolymerConstructor<T>) => {
+	Polymer.cast = <any> (<T extends PolymerElement>(node: Node, ctor: Constructor<T>) => {
 		if (Polymer.is(node, ctor)) {
 			return node;
 		} else {
 			const selector = Reflect.getMetadata<{ selector: string; }>("polymer:meta", ctor).selector;
 			throw new TypeError(`Node <${node.nodeName}> is not castable to <${selector}>`);
 		}
-	};
+	});
 
 	/**
 	 * Find the closed parent node of a given type
 	 * TODO: prevent crossing shadow-dom boundaries
 	 */
-	Polymer.enclosing = <T extends PolymerElement>(node: Node, ctor: PolymerConstructor<T>) => {
+	Polymer.enclosing = <any> (<T extends PolymerElement>(node: Node, ctor: Constructor<T>) => {
 		do {
 			node = node.parentNode;
 		} while (node && !Polymer.is(node, ctor));
 		return node;
-	};
+	});
 
 	const Base: any = Polymer.Base;
 
 	/**
 	 * Find the closed host element of a given type
 	 */
-	Base.host = function <T extends PolymerElement>(ctor: PolymerConstructor<T>): T {
+	Base.host = function <T extends PolymerElement>(ctor: Constructor<T>): T {
 		return Polymer.enclosing(this, ctor);
 	};
 

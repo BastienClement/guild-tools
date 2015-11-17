@@ -42,8 +42,8 @@ export class GtLogin extends PolymerElement {
 	 * Close the login dialog
 	 * Return a promise that will be completed once the dialog is hidden
 	 */
-	close(): Promise<void> {
-		return new Promise<void>((res, rej) => {
+	close(): Promise<any> {
+		return new Promise((res, rej) => {
 			const dialog: GtDialog = this.$.dialog;
 			dialog.hide();
 			dialog.addEventListener("animationend", () => res());

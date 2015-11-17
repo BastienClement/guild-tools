@@ -1,6 +1,6 @@
-import { Component } from "utils/di";
+import { Component, Constructor } from "utils/di";
 import { ServiceWorker } from "utils/worker";
-import { PolymerElement, PolymerConstructor, PolymerMetadata, apply_polymer_fns } from "elements/polymer";
+import { PolymerElement, PolymerMetadata, apply_polymer_fns } from "elements/polymer";
 
 // Path to the polymer file
 const POLYMER_PATH = "/assets/imports/polymer.html";
@@ -21,7 +21,7 @@ const imported_less: Map<string, Promise<void>> = new Map<any, any>();
 
 // Track polymer status
 let polymer_loaded = false;
-let polymer_autoload: PolymerConstructor<any>[] = [];
+let polymer_autoload: Constructor<any>[] = [];
 
 /**
  * Resource loading service
@@ -165,7 +165,7 @@ export class Loader {
 	/**
 	 * Load and instantiate a Polymer element
 	 */
-	public async loadElement<T extends PolymerElement>(element: PolymerConstructor<T>): Promise<PolymerConstructor<T>> {
+	public async loadElement<T extends PolymerElement>(element: Constructor<T>): Promise<Constructor<T>> {
 		// Read Polymer metadata
 		let meta = Reflect.getMetadata<PolymerMetadata<T>>("polymer:meta", element);
 
@@ -312,7 +312,7 @@ export class Loader {
 	/**
 	 * Register an element to auto load when polymer is loaded
 	 */
-	public registerPolymerAutoload(ctor: PolymerConstructor<any>) {
+	public registerPolymerAutoload(ctor: Constructor<any>) {
 		if (polymer_autoload) {
 			polymer_autoload.push(ctor);
 		} else {

@@ -41,7 +41,7 @@ export class GtDialog extends PolymerElement {
 				if (!GtDialog.queue.contains(this)) {
 					GtDialog.queue.enqueue(this);
 				}
-				return Promise.resolve();
+				return;
 			}
 		}
 
@@ -51,13 +51,12 @@ export class GtDialog extends PolymerElement {
 		Polymer.dom.flush();
 
 		this.fire("show");
-		return Promise.resolve();
 	}
 
 	/**
 	 * Hide this dialog
 	 */
-	public async hide(): Promise<void> {
+	public hide(): Promise<void> {
 		let node = this.node.node;
 		let defer = Promise.defer<void>();
 
@@ -65,7 +64,7 @@ export class GtDialog extends PolymerElement {
 			node.removeEventListener("animationend", animation_listener);
 			defer.resolve();
 			this.close();
-		}
+		};
 
 		node.classList.add("fade-out");
 		node.addEventListener("animationend", animation_listener);

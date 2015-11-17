@@ -137,7 +137,7 @@ export class GtCheckbox extends PolymerElement {
 	public click() {
 		this.fire("click");
 	}
-	
+
 	/**
 	 * Click listener
 	 */

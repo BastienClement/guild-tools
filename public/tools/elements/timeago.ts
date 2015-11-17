@@ -19,6 +19,6 @@ export class GtTimeago extends PolymerElement {
 	}
 
 	public update() {
-		this.shadow.innerHTML = moment(this.date).fromNow()
+		this.shadow.innerHTML = moment(this.date).fromNow();
 	}
 }

@@ -101,7 +101,7 @@ export class Application {
 		]);
 
 		// Create the main container element
-		body.appendChild(this.root = new GtApp());
+		body.appendChild(<any> (this.root = new GtApp()));
 
 		// Remove the loading title bar
 		if (GtApp) loader_title.remove();
@@ -135,6 +135,7 @@ export class Application {
 			last_dot.removeEventListener("animationiteration", listener);
 			let dots = document.querySelectorAll<HTMLSpanElement>("#loader .spinner b");
 			for (let i = 0; i < dots.length; ++i) {
+				//noinspection TypeScriptUnresolvedVariable
 				dots[i].style.animationIterationCount = "1";
 			}
 		};
@@ -184,7 +185,7 @@ class AuthenticationDriver {
 		this.channel.close();
 		if (this.gt_login) {
 			await this.gt_login.close();
-			document.body.removeChild(this.gt_login);
+			document.body.removeChild(<any> this.gt_login);
 		}
 	}
 
@@ -246,6 +247,6 @@ class AuthenticationDriver {
 		this.gt_login = new GtLogin();
 		document.body.classList.add("with-background");
 		document.body.classList.add("no-loader");
-		document.body.appendChild(this.gt_login);
+		document.body.appendChild(<any> this.gt_login);
 	}
 }

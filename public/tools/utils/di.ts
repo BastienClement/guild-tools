@@ -5,17 +5,19 @@ if (typeof Reflect !== "object" || typeof Reflect.getMetadata !== "function")
 /**
  * Loose Interface of a T-constructor
  */
-export interface Constructor<T> extends Function {}
+export interface Constructor<T> {
+	new (...args: any[]): T
+}
 
 /**
  * The DI Injector
  */
 export class Injector {
 	// Instances cache
-	private instances = new Map<Function, any>();
+	private instances = new Map<Constructor<any>, any>();
 
 	// In-progress modules to prevent infinite initialization loop
-	private injecting = new Set<Function>();
+	private injecting = new Set<Constructor<any>>();
 
 	/**
 	 * Construct a module using dependency injection

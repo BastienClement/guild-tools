@@ -1,5 +1,7 @@
 import { Element, Property, PolymerElement } from "elements/polymer";
 import { defer } from "utils/async";
+
+//noinspection TypeScriptCheckImport
 import { parse, Renderer } from "marked";
 
 const options: MarkedOptions = {
@@ -8,7 +10,7 @@ const options: MarkedOptions = {
 	breaks: true,
 	sanitize: true,
 	smartypants: true
-}
+};
 
 const renderer = options.renderer = new Renderer(options);
 
