@@ -52,7 +52,7 @@ export class Loader {
 		};
 
 		// If the Fetch API is available, use it
-		if (fetch) return cache_and_return(fetch(url).then((res) => res.text()))
+		if (fetch) return cache_and_return(fetch(url).then((res) => res.text()));
 
 		// Fallback to XHR
 		let defer = Promise.defer<string>();
@@ -118,7 +118,7 @@ export class Loader {
 		}
 
 		// Recursive handling of deep @import (dynamic)
-		return this.lessImportDynamics(parts.join(""));
+		return await this.lessImportDynamics(parts.join(""));
 	}
 
 	/**
@@ -150,7 +150,7 @@ export class Loader {
 		link.rel = "import";
 		link.href = url;
 
-		promise = Promise.onload(link).then((el: any) => {
+		promise = <any> Promise.onload(link).then((el: any) => {
 			const doc = el.import;
 			if (!doc) throw new Error(`HTML import of ${url} failed`);
 			return el.import;
@@ -191,7 +191,7 @@ export class Loader {
 			polymer_autoload = null;
 
 			// Load the requested element
-			return this.loadElement(element);
+			return await this.loadElement(element);
 		} else if (!Polymer.is) {
 			apply_polymer_fns();
 		}
@@ -210,6 +210,70 @@ export class Loader {
 			// Find the <dom-module> element
 			let domModule = document.querySelector<HTMLElement>(`dom-module[id=${meta.selector}]`);
 			if (!domModule) throw new Error(`no <dom-module> found for element <${meta.selector}> in file '${meta.template}'`);
+
+			// Load external LESS
+			let less_ext = <NodeListOf<HTMLLinkElement>> domModule.querySelectorAll(`link[rel="stylesheet/less"]`);
+			if (less_ext.length > 0) {
+				const job = (i: number) => {
+					let link = less_ext[i];
+					return this.fetch(link.href).then(src => {
+						// Check if we need to extract a namespace from the source file
+						let ns = link.getAttribute("ns");
+						if (ns) {
+							let ns_key = `:namespace("${ns}")`;
+							let ns_start = src.indexOf(ns_key);
+							if (ns_start < 0) throw new Error(`No ${ns_key} in file ${link.href}`);
+
+							let levels = 0;
+							let block_start: number, block_end: number;
+							reader: for (let o = ns_start + ns_key.length; o < src.length; o++) {
+								switch (src[o]) {
+									case '{':
+										if (levels == 0) block_start = o;
+										levels += 1;
+										break;
+
+									case '}':
+										if (levels == 1) {
+											block_end = o;
+											break reader;
+										}
+										levels -= 1;
+										break;
+
+									case ' ':
+									case '\t':
+									case '\f':
+									case '\r':
+									case '\n':
+										continue;
+
+									default:
+										if (levels == 0)
+											throw new Error(`Unexpected char '${src[o]}' before namespace block opening`);
+								}
+							}
+
+							src = src.slice(block_start + 1, block_end);
+						}
+
+						// Create the style element
+						let style = document.createElement("style");
+						style.type = "text/less";
+						style.innerHTML = src;
+
+						// Replace the <link> tag by an inline <style> one
+						link.parentNode.replaceChild(style, link);
+					});
+				};
+
+				let jobs: Promise<void>[] = [];
+				for (let i = 0; i < less_ext.length; i++) {
+					jobs[i] = job(i);
+				}
+
+				await Promise.all(jobs);
+			}
 
 			// Compile LESS
 			let less_styles = <NodeListOf<HTMLStyleElement>> domModule.querySelectorAll(`style[type="text/less"]`);
@@ -234,10 +298,10 @@ export class Loader {
 			}
 
 			// Compile template
-			let template = domModule.getElementsByTagName("template")[0];
+			let template = <any> domModule.getElementsByTagName("template")[0];
 			if (template) {
 				this.compilePolymerSugars(template.content);
-				this.compileAngularNotation(<any> template.content);
+				this.compileAngularNotation(template.content);
 			}
 		}
 

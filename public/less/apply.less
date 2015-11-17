@@ -1,0 +1,631 @@
+///////////////////////////////////////////////////////////////////////////////
+// <gt-apply>
+
+:namespace("gt-apply") {
+	:host {
+		display: flex;
+	}
+
+	.col {
+		display: flex;
+		flex-direction: column;
+	}
+
+	#actives {
+		width: 330px;
+		margin-right: 6px;
+		transition: all .2s ease-out;
+		#do-apply {
+			position: absolute;
+			top: 6px;
+			right: 0;
+		}
+	}
+
+	@media (max-width: 1500px) {
+		#actives {
+			width: 280px;
+		}
+	}
+
+	apply-list-item:not(:last-child) {
+		margin-bottom: 6px;
+	}
+
+	#main-box {
+		flex: 1;
+		position: relative;
+	}
+
+	apply-details {
+		.pos(absolute);
+		z-index: 15;
+		animation: apply-slide-in .4s ease-out;
+		animation-fill-mode: both;
+		animation-delay: .2s;
+	}
+
+	@keyframes apply-slide-in {
+		0% {
+			transform: translateX(50px);
+			opacity: 0;
+		}
+		100% {
+			transform: translateX(0px);
+			opacity: 1;
+		}
+	}
+
+	#placeholder {
+		.placeholder-layout();
+		z-index: 10;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <apply-list-item>
+
+:namespace("apply-list-item") {
+	:host {
+		display: block;
+	}
+
+	gt-box {
+		padding: 6px;
+		overflow: hidden;
+		transition: all .2s ease-out;
+		:host([selected]) & {
+			background: fade(@fs-blue, 10%);
+			border: 1px solid fade(@fs-blue, 10%);
+		}
+	}
+
+	#layout {
+		display: flex;
+		align-items: center;
+	}
+
+	bnet-thumb {
+		width: 40px;
+		height: 40px;
+		margin-right: 8px;
+		transition: all .2s ease-out;
+	}
+
+	@media (max-width: 1500px) {
+		bnet-thumb {
+			opacity: 0;
+			margin-left: -40px;
+			margin-right: 2px;
+		}
+	}
+
+	#infos {
+		flex: 1;
+		padding-right: 6px;
+	}
+
+	#name {
+		font-size: 16px;
+		margin-bottom: 3px;
+		display: block;
+		width: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	#stage {
+		color: @fs-gray;
+		font-size: 13px;
+	}
+
+	#update {
+		text-align: right;
+		font-weight: 300;
+	}
+
+	gt-timeago {
+		display: block;
+		margin-bottom: 3px;
+	}
+
+	#unread {
+		color: @light-blue;
+		margin: 0;
+		transition: all .2s ease-out;
+		&:not([unread]) {
+			margin-bottom: -19px;
+			opacity: 0;
+		}
+	}
+
+	#chevron {
+		font-size: 24px;
+		margin-left: 6px;
+		color: @fs-gray;
+		display: block;
+		margin-top: 4px;
+		margin-right: -2px;
+
+		opacity: 0.5;
+		transition: all .2s ease-out;
+		:host(:hover) & {
+			opacity: 1;
+		}
+		:host([selected]) & {
+			opacity: 0.75;
+			color: #fff;
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <apply-details>
+
+:namespace("apply-details") {
+	:host {
+		display: block;
+		position: relative;
+	}
+
+	:host > gt-box {
+		.gpu;
+		.pos(absolute);
+	}
+
+	#tabs {
+		position: absolute;
+		top: 6px;
+		left: 0px;
+		display: flex;
+
+		gt-button {
+			color: mix(@light-blue, white, 50%);
+			opacity: 0.8;
+			transition: all .2s ease-out;
+
+			&:hover, &[active] {
+				opacity: 1;
+				color: white;
+			}
+		}
+	}
+
+	#links {
+		position: absolute;
+		top: 6px;
+		right: 0;
+	}
+
+	#side {
+		position: absolute;
+		top: 50px;
+		right: 0;
+		bottom: 0;
+		width: 270px;
+		background: none;
+		border: 0;
+		border-left: 2px solid fade(#426585, 50%);
+		transition: all .2s ease-out;
+
+		h2 {
+			font: 300 18px "Roboto Condensed";
+			margin: 0 0 12px 0;
+		}
+
+		ul {
+			margin: 12px 0;
+			padding: 0;
+			list-style: none;
+			font-weight: 300;
+
+			li {
+				margin: 6px 0;
+			}
+
+			span {
+				color: @light-blue;
+				display: inline-block;
+				width: 80px;
+			}
+		}
+
+		apply-details-char {
+			margin: 6px 0 0;
+		}
+	}
+
+	@media (max-width: 1500px) {
+		#side {
+			width: 240px;
+		}
+	}
+
+	#discussion, #details, #manage {
+		position: absolute;
+		top: 50px;
+		left: 0px;
+		bottom: 0;
+		right: 270px;
+		border: 0;
+		background: none;
+		opacity: 0;
+		z-index: 10;
+		//transition: bottom .2s ease-out;
+		&[active] {
+			opacity: 1;
+			z-index: 15;
+		}
+	}
+
+	@media (max-width: 1500px) {
+		#discussion, #details, #manage {
+			right: 240px;
+		}
+	}
+
+	#discussion {
+		bottom: 37px;
+		&[editor-open] {
+			bottom: 250px;
+		}
+	}
+
+	#discussion > * {
+		max-width: 900px;
+	}
+
+	apply-details-message {
+		margin: 0 auto 12px auto;
+	}
+
+	#preview-separator {
+		border-top: 1px dashed fade(@fs-blue, 30%);
+		margin: 18px auto 18px auto;
+		max-width: 892px;
+	}
+
+	#reply {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 270px;
+		z-index: 30;
+		height: 36px;
+		background: fade(@fs-blue, 5%);
+		border-top: 1px solid fade(@fs-blue, 5%);
+		transition: all .2s ease-out;
+		overflow: hidden;
+
+		&:not([visible]) {
+			bottom: -37px;
+		}
+
+		&[open] {
+			height: 250px;
+		}
+
+		&:hover:not([open]) {
+			background: fade(@fs-blue, 10%);
+		}
+	}
+
+	@media (max-width: 1500px) {
+		#reply {
+			right: 240px;
+		}
+	}
+
+	#reply-wrapper {
+		text-align: center;
+		margin-top: 0;
+		opacity: 1;
+		transition: all .2s ease-out;
+		transition-delay: .5s;
+
+		gt-button {
+			color: white;
+		}
+
+		#reply[open] & {
+			margin-bottom: -36px;
+			opacity: 0;
+			transition-delay: 0s;
+		}
+	}
+
+	#reply-form {
+		max-width: 900px;
+		margin: auto;
+		display: flex;
+		padding: 0 18px;
+		height: 250px;
+		align-items: center;
+		transform: translateY(11px);
+		transition: all .2s ease-out;
+
+		#reply[open] & {
+			transform: translateY(0px);
+		}
+
+		#reply-textarea {
+			flex: 1;
+			height: 200px;
+		}
+
+		#reply-options {
+			width: 250px;
+			height: 200px;
+			margin-left: 18px;
+			display: flex;
+			flex-direction: column;
+			transition: all .2s ease-out;
+			padding-top: 6px;
+
+			gt-label {
+				flex: 1;
+			}
+
+			gt-checkbox {
+				margin-right: 6px;
+			}
+
+			.help {
+				font-size: 12px;
+				color: @fs-gray;
+				margin-top: 8px;
+			}
+		}
+	}
+
+	@media (max-width: 1500px) {
+		#reply-form #reply-options {
+			width: 175px;
+		}
+	}
+
+	.no-data {
+		.pos(absolute);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: @light-blue;
+
+		i {
+			font-size: 21px;
+			margin-right: 8px;
+			margin-top: 1px;
+		}
+	}
+
+	.json-data {
+		& > div:not([heading]) > h3 {
+			display: none;
+		}
+		& > div[heading] > .row {
+			display: none;
+		}
+		& > div:first-child > h3 {
+			margin-top: 0;
+		}
+
+		max-width: 900px;
+		margin: auto;
+
+		h3 {
+			font: 300 16px "Roboto Condensed";
+		}
+
+		.row {
+			display: flex;
+			margin-top: 3px;
+
+			& > * {
+				padding: 8px;
+			}
+
+			.label {
+				background: rgba(17, 17, 17, 0.15);
+				border: 1px solid rgba(17, 17, 17, 0.15);
+				width: 250px;
+				font: 400 14px "Roboto Condensed";
+			}
+
+			.data {
+				background: rgba(17, 17, 17, 0.05);
+				border: 1px solid rgba(17, 17, 17, 0.10);
+				border-left: 0;
+				flex: 1;
+			}
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <apply-details-char>
+
+:namespace("apply-details-char") {
+	:host {
+		display: block;
+		padding: 6px;
+		background: rgba(17, 17, 17, 0.1);
+		border: 1px solid rgba(17, 17, 17, 0.1);
+		transition: all .2s ease-out;
+		position: relative;
+		overflow: hidden;
+	}
+
+	#name {
+		font: 300 18px "Roboto Condensed";
+		margin-bottom: 2px;
+	}
+
+	#server {
+		font-size: 12px;
+		font-weight: 300;
+	}
+
+	#ilvl {
+		position: absolute;
+		top: 8px;
+		right: 8px;
+		font-size: 13px;
+		color: @fs-gray;
+	}
+
+	#outlink-icon {
+		position: absolute;
+		bottom: 8px;
+		right: 8px;
+		color: @light-blue;
+		opacity: 0;
+		font-size: 12px;
+		transition: all .2s ease-out;
+		transform: translateY(20px);
+
+		:host(:hover) & {
+			opacity: 0.9;
+			transform: translateY(0px);
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <apply-details-message>
+
+:namespace("apply-details-message") {
+	:host {
+		display: block;
+	}
+
+	#layout {
+		display: flex;
+	}
+
+	#poster {
+		min-width: 125px;
+		max-width: 125px;
+		padding: 6px 16px 6px 6px;
+		position: relative;
+	}
+
+	#name {
+		font: 400 18px "Roboto Condensed";
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	#date {
+		font-size: 12px;
+		color: @fs-gray;
+	}
+
+	#message {
+		flex: 1;
+		display: flex;
+		align-items: center;
+	}
+
+	gt-box {
+		flex: 1;
+		box-shadow: none;
+		&:not([dark]) {
+			background: fade(@fs-blue, 10%);
+			border-color: fade(@fs-blue, 10%);
+		}
+	}
+
+	#layout[system] {
+		padding: 6px 0;
+
+		#poster, gt-box {
+			padding: 0;
+			display: inline-block;
+			flex: none;
+			position: static;
+		}
+
+		#poster {
+			min-width: 0;
+			max-width: 9999px;
+			margin-right: 4px;
+			display: flex;
+			flex-direction: row-reverse;
+		}
+
+		#name {
+			font: 400 1em "Roboto";
+		}
+
+		#date {
+			width: 125px;
+			margin-top: 1px;
+			padding-left: 6px;
+		}
+
+		#message {
+			flex: none;
+		}
+
+		gt-box {
+			border: 0;
+			background: none;
+			font-weight: 300;
+			margin-right: 12px;
+		}
+
+		.line {
+			flex: 1;
+			margin-top: 8px;
+			border-top: 1px dashed fade(@light-blue, 30%);
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <gt-apply-redirect>
+
+:namespace("gt-apply-redirect") {
+	:host {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	#layout {
+		display: flex;
+	}
+	#right {
+		width: 400px;
+	}
+
+	i {
+		font-size: 100px;
+		margin-right: 30px;
+		margin-top: 10px;
+		color: @light-blue;
+	}
+
+	#title {
+		font: 300 24px "Roboto Condensed";
+		color: @light-blue;
+		margin-bottom: 8px;
+	}
+
+	gt-button {
+		background: fade(@fs-blue, 15%);
+		border: 1px solid fade(@fs-blue, 10%);
+		padding: 0 12px;
+		margin: 0;
+		margin-top: 8px;
+		border-radius: 3px;
+		color: #fff !important;
+		transition: all .2s ease-out;
+
+		&:hover {
+			background: fade(@fs-blue, 20%);
+			border: 1px solid fade(@fs-blue, 15%);
+		}
+	}
+}
