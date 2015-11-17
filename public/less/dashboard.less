@@ -1,0 +1,272 @@
+///////////////////////////////////////////////////////////////////////////////
+// <gt-dashboard>
+
+:namespace("gt-dashboard") {
+	@right-column-width: 320px;
+	@col1-width: 37%;
+
+	#layout {
+		height: 100%;
+		width: 100%;
+		position: relative;
+	}
+
+	#left, #right, #col1, #col2 {
+		position: absolute;
+	}
+
+	#left {
+		top: 0;
+		left: 0;
+		bottom: 0;
+		right: @right-column-width + 6px;
+	}
+
+	#col1 {
+		top: 0;
+		left: 0;
+		bottom: 0;
+		width: @col1-width;
+
+		dashboard-news {
+			height: 100%;
+		}
+	}
+
+	#col2 {
+		top: 0;
+		right: 0;
+		bottom: 0;
+		width: 100% - @col1-width;
+		padding-left: 6px;
+
+		display: flex;
+		flex-direction: column;
+
+		& > :first-child {
+			margin-bottom: 6px;
+			min-height: 200px;
+		}
+
+		& > :last-child {
+			flex: 1;
+		}
+	}
+
+	#right {
+		top: 0;
+		right: 0;
+		bottom: 0;
+		width: @right-column-width;
+
+		display: flex;
+		flex-direction: column;
+
+		& > :not(:last-child) {
+			margin-bottom: 6px;
+			flex-shrink: 0;
+		}
+
+		& > :last-child {
+			flex: 1;
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <dashboard-news>
+
+:namespace("dashboard-news") {
+	:host {
+		display: block;
+	}
+
+	#feed {
+		height: 100%;
+	}
+
+	#actions {
+		position: absolute;
+		top: 16px;
+		right: 16px;
+		line-height: 24px;
+	}
+
+	#disconnected {
+		position: absolute;
+		top: 12px;
+		left: 130px;
+		line-height: 24px;
+		font-size: 18px;
+		color: @light-blue;
+	}
+
+	#list {
+		margin-bottom: -6px;
+	}
+
+	.news {
+		.gpu;
+		height: 0px;
+		opacity: 0;
+
+		display: flex;
+		transition: all .2s ease-out;
+
+		&:hover {
+			background-color: fade(@fs-blue, 10%);
+		}
+
+		&[visible] {
+			height: 25px;
+			opacity: 1;
+
+			padding: 3px 5px;
+			margin: 0 -10px 0 -5px;
+		}
+
+		img {
+			width: 22px;
+			height: 15px;
+			margin-right: 10px;
+		}
+
+		b {
+			flex: 1;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+
+			&[source=MMO] {
+				color: #90E055;
+			}
+
+			&[tags*=BLIZZ] {
+				color: #00B4FF;
+			}
+		}
+
+		gt-timeago {
+			color: @light-blue;
+			margin-left: 12px;
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <dashboard-news-filter>
+
+:namespace("dashboard-news-filter") {
+	gt-button {
+		height: auto;
+		padding: 0 0 4px;
+		border-bottom: 2px solid transparent;
+		opacity: .5;
+		transition: border .2s ease-out, opacity .2s ease-out;
+
+		&[active] {
+			opacity: 1;
+			border-bottom-color: @fs-blue;
+		}
+
+		img {
+			width: 22px;
+			height: 15px;
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <dashboard-shoutbox>
+
+:namespace("dashboard-shoutbox") {
+	:host {
+		display: block;
+		position: relative;
+	}
+
+	gt-box {
+		.pos(absolute);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <dashboard-onlines>
+
+:namespace("dashboard-onlines") {
+	:host {
+		display: block;
+		position: relative;
+	}
+
+	gt-box {
+		.pos(absolute);
+	}
+
+	dashboard-onlines-user {
+		margin: 6px 0;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <dashboard-onlines-user>
+
+:namespace("dashboard-onlines-user") {
+	@size: 40px;
+	@radius: 10px;
+
+	:host {
+		display: block;
+	}
+
+	#layout {
+		display: flex;
+		align-items: center;
+		background: rgba(17, 17, 17, 0.15);
+		border: 1px solid rgba(17, 17, 17, 0.1);
+		transition: all .2s ease-out;
+
+		&:hover {
+			background: fade(mix(rgb(17, 17, 17), @fs-blue, 33%), 15%);
+			border-color: fade(@fs-blue, 15%);
+		}
+	}
+
+	#name {
+		flex: 1;
+		padding: 10px;
+	}
+
+	#state-container {
+		background: rgba(17, 17, 17, 0.1);
+		background-clip: padding-box;
+		border: solid rgba(17, 17, 17, 0.1);
+		border-width: 0 1px 0 1px;
+		height: @size;
+		padding: (@size - @radius) / 2;
+		margin-left: 10px;
+	}
+
+	#state {
+		height: @radius;
+		width: @radius;
+		border-radius: @radius;
+		background: #41c32b;
+		transition: background .2s ease-out;
+
+		[away] & {
+			background: #f4d736;
+		}
+	}
+
+	bnet-thumb {
+		width: @size;
+		height: @size;
+		transition: opacity .2s ease-out;
+		transform: scaleX(-1);
+
+		[away] & {
+			opacity: .5;
+		}
+	}
+}
