@@ -1,0 +1,44 @@
+:host {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#about {
+	background: url("/assets/images/about/background.png");
+	width: 400px;
+	height: 400px;
+	padding: 60px 70px;
+	line-height: 1.5em;
+
+	strong {
+		font-weight: 500;
+	}
+
+	em {
+		font-style: normal;
+		font-weight: 300;
+	}
+}
+
+#logo {
+	margin-bottom: 50px;
+}
+
+#powered {
+	height: 400px;
+	width: 180px;
+	margin-left: 15px;
+
+	.layout {
+		.pos(absolute, 15px, 15px, 15px, 15px);
+		display: flex;
+		flex-direction: column;
+		justify-content: space-around;
+		align-items: center;
+	}
+
+	img {
+		display: block;
+	}
+}

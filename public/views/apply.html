@@ -59,7 +59,9 @@
 			<div #tabs>
 				<gt-button collapse-right (click)="ShowDiscussion" {active}="equals(tab, 1)">Discussion</gt-button>
 				<gt-button collapse-right (click)="ShowDetails" {active}="equals(tab, 2)">Details</gt-button>
-				<gt-button collapse-right (click)="ShowManage" {active}="equals(tab, 3)" [if]="app.user.promoted">Manage</gt-button>
+				<gt-button collapse-right (click)="ShowManage" {active}="equals(tab, 3)" [if]="app.user.promoted">
+					Manage
+				</gt-button>
 			</div>
 			<div #links>
 				<gt-button [goto]="profileLink">View profile</gt-button>
@@ -113,7 +115,6 @@
 							<gt-button fat collapse-left (click)="SendMessage" {disabled}="editorDisabled">Send</gt-button>
 							<gt-button collapse-left (click)="CloseEdit" {disabled}="editorDisabled">Cancel</gt-button>
 						</div>
-						<a>
 					</div>
 				</div>
 			</div>
@@ -186,9 +187,17 @@
 			</div>
 			<div #right>
 				<div #title>Applying for a raider spot</div>
-				<p>From Scratch is always looking for awesome players wanting to join our main roster and attempt top-world ranking.</p>
-				<p>Everything you need to know about the recruiting process is available on the WebTools application on the main web site.</p>
-				<p><gt-button #apply>Apply now</gt-button></p>
+				<p>
+					From Scratch is always looking for awesome players wanting to join
+					our main roster and attempt top-world ranking.
+				</p>
+				<p>
+					Everything you need to know about the recruiting process is available on
+					the WebTools application on the main web site.
+				</p>
+				<p>
+					<gt-button #apply>Apply now</gt-button>
+				</p>
 			</div>
 		</div>
 	</template>
