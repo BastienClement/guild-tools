@@ -113,8 +113,14 @@
 			//:host:hover & { border-color: rgba(222, 50, 32, 0.6); }
 			//:host:focus & { border-color: rgba(222, 50, 32, 1); }
 			border-color: rgba(233, 64, 25, 0.5);
-			:host:hover & { border-color: rgba(233, 64, 25, 0.6); }
-			:host:focus & { border-color: rgba(233, 64, 25, 1); }
+			
+			:host:hover & {
+				border-color: rgba(233, 64, 25, 0.6);
+			}
+
+			:host:focus & {
+				border-color: rgba(233, 64, 25, 1);
+			}
 		}
 	}
 
@@ -254,5 +260,37 @@
 :namespace("gt-label") {
 	:host {
 		display: inline-block;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <gt-progress-circular>
+
+:namespace("gt-progress-circular") {
+	:host {
+		width: 100px;
+		height: 100px;
+		display: inline-block;
+		position: relative;
+	}
+
+	#bar, #back {
+		transition: all .2s ease-out;
+		stroke-dasharray: 226;
+	}
+
+	#content {
+		.pos(absolute);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+	}
+
+	#content ::content .label {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
 	}
 }

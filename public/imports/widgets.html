@@ -54,6 +54,12 @@
 <dom-module id="gt-progress-circular">
 	<link rel="stylesheet/less" href="/assets/less/widgets.less" ns="gt-progress-circular">
 	<template>
-		<content></content>
+		<svg width="100%" height="100%" viewBox="0 0 76 76">
+			<circle #back fill="none" {stroke}="back" stroke-width="4" cx="38" cy="38" r="36"></circle>
+			<circle #bar fill="none" {stroke}="color" stroke-width="4" cx="38" cy="38" r="36"></circle>
+		</svg>
+		<div #content>
+			<div><content></content></div>
+		</div>
 	</template>
 </dom-module>
