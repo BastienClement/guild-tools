@@ -1,0 +1,483 @@
+///////////////////////////////////////////////////////////////////////////////
+// <gt-profile>
+
+:namespace("gt-profile") {
+	@left-width: 300px;
+	@right-width: 220px;
+
+	#left, #right, #middle {
+		position: absolute;
+	}
+
+	#left {
+		top: 0;
+		left: 0;
+		bottom: 0;
+		width: @left-width;
+		display: flex;
+		flex-direction: column;
+
+		#stats {
+			flex: 1;
+		}
+	}
+
+	#middle {
+		top: 0;
+		left: @left-width + 6px;
+		right: @right-width + 6px;
+		bottom: 0;
+
+		#chars {
+			height: 100%;
+		}
+	}
+
+	#right {
+		top: 0;
+		right: 0;
+		bottom: 0;
+		width: @right-width;
+	}
+
+	#profile, #infos {
+		margin-bottom: 6px;
+	}
+
+	#actions {
+		padding-bottom: 0;
+
+		gt-button {
+			margin: 0 -12px;
+			padding: 12px;
+			border-top: 1px solid fade(@fs-blue, 10%);
+			display: block;
+			height: auto;
+			font-weight: 400;
+			transition: all 0.2s ease-out;
+
+			&:first-child {
+				margin-top: -12px;
+				border-top: 0;
+			}
+
+			&:hover {
+				background: fade(@fs-blue, 10%);
+				color: #fff;
+			}
+
+			i {
+				font-size: 18px;
+				margin: -3px 8px -3px 0;
+			}
+		}
+	}
+
+	#actions gt-button:hover + gt-button {
+		border-top-color: fade(@fs-blue, 20%);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <profile-user>
+
+:namespace("profile-user") {
+	:host {
+		display: block;
+		font-weight: 300;
+	}
+
+	#name {
+		font-family: "Roboto Condensed";
+		font-size: 24px;
+	}
+
+	#rank {
+		color: @fs-gray;
+	}
+
+	#layout {
+		display: flex;
+		align-items: center;
+	}
+
+	bnet-thumb {
+		line-height: 0;
+		overflow: hidden;
+		border-right: 1px solid fade(@fs-blue, 10%);
+		margin-right: 12px;
+		height: 60px;
+		width: 60px;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <profile-infos>
+
+:namespace("profile-infos") {
+	:host {
+		display: block;
+	}
+
+	div {
+		margin: 4px 0;
+
+		i {
+			margin-right: 8px;
+		}
+
+		span {
+			display: inline-block;
+			width: 35%;
+			font-family: "Roboto Condensed";
+		}
+	}
+
+	gt-button {
+		position: absolute;
+		top: 6px;
+		right: 0;
+		z-index: 10;
+	}
+	#access {
+		margin-top: 12px;
+		margin-bottom: -4px;
+	}
+
+	#access b {
+		background: rgba(17, 17, 17, 0.2);
+		border-radius: 50%;
+		border: 2px dotted fade(@fs-blue, 50%);
+		display: inline-block;
+		padding: 1px 2px 3px;
+		height: 1em;
+		width: 1em;
+		box-sizing: content-box;
+		font-family: "Roboto Condensed";
+		color: @light-blue;
+		text-align: center;
+		vertical-align: middle;
+
+		&:first-of-type {
+			margin-left: -2px;
+		}
+	}
+
+	#rlname, #btag {
+		margin-top: 16px;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <profile-chars>
+
+:namespace("profile-chars") {
+	:host {
+		display: block;
+	}
+
+	gt-box {
+		height: 100%;
+	}
+
+	gt-button {
+		position: absolute;
+		top: 6px;
+		right: 0;
+	}
+
+	#layout {
+		display: flex;
+		flex-wrap: wrap;
+		margin: 0 -3px;
+
+		profile-chars-card, .padding {
+			margin: 3px;
+			flex: 1;
+			min-width: 310px;
+			max-width: 500px;
+		}
+
+		.padding {
+			margin: 0 3px;
+			height: 0px;
+		}
+	}
+
+	#no-char {
+		display: flex;
+		width: 100%;
+		align-items: center;
+		justify-content: center;
+		padding: 100px 0;
+		color: @light-blue;
+		font-size: 24px;
+
+		i {
+			margin-right: 20px;
+			font-size: 48px;
+			position: relative;
+			top: 1px;
+		}
+
+		.smaller {
+			font-size: 16px;
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <profile-chars-card>
+
+:namespace("profile-chars-card") {
+	:host {
+		display: block;
+		overflow: hidden;
+	}
+
+	#layout {
+		display: flex;
+		align-items: center;
+	}
+
+	bnet-thumb {
+		height: 55px;
+		width: 55px;
+		transition: all .25s ease-out;
+
+		[inactive] & {
+			opacity: 0;
+			width: 0;
+			margin-right: -10px;
+		}
+	}
+
+	#icon {
+		font-size: 20px;
+
+		i {
+			display: none;
+			color: @light-blue;
+		}
+
+		&[main] #main { display: block; }
+		&[active]:not([main]) #active { display: block; }
+		&:not([active]) #inactive { display: block; }
+
+		#inactive {
+			transform: scaleX(-1);
+		}
+	}
+
+	#name {
+		font-size: 18px;
+		font-family: "Roboto Condensed";
+	}
+
+	#infos {
+		flex: 1;
+		margin: 0 12px;
+	}
+
+	#meta {
+		color: @fs-gray;
+	}
+
+	#actions {
+		margin: 12px -12px -12px -12px;
+		border-top: 1px solid fade(@fs-blue, 10%);
+		padding: 2px 8px;
+		display: flex;
+		justify-content: flex-end;
+
+		gt-button {
+			margin: 0;
+		}
+
+		#roles {
+			flex: 1;
+			display: flex;
+			align-items: center;
+			transition: opacity .2s ease-out;
+
+			&[disabled] {
+				opacity: 0;
+			}
+
+			img { .gpu;
+				width: 20px;
+				height: 20px;
+				opacity: 0.75;
+				transition: all .2s ease-out;
+				border-bottom: 2px solid transparent;
+				box-sizing: content-box;
+				padding: 9px 3px;
+				margin: -2px 0;
+
+				&:hover:not([active]) {
+					border-color: fade(@fs-blue, 30%);
+				}
+
+				&[active] {
+					opacity: 1;
+					border-color: fade(@fs-blue, 50%);
+				}
+			}
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <profile-add-char>
+
+:namespace("profile-add-char") {
+	:host {
+		display: block;
+	}
+
+	gt-box {
+		width: 550px;
+		height: 450px;
+		overflow: hidden;
+	}
+
+	#background {
+		.pos(absolute);
+		z-index: 1;
+		filter: opacity(80%) saturate(75%);
+
+		img {
+			opacity: 0;
+			position: absolute;
+			top: -70px;
+			left: -10px;
+			transition: opacity .2s ease-out;
+
+			&[default], &.loaded {
+				opacity: 1;
+			}
+		}
+	}
+
+	#middle {
+		.pos(absolute);
+		z-index: 2;
+	}
+
+	#foreground {
+		position: absolute;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		width: 45%;
+		z-index: 3;
+		padding: 16px;
+
+
+		@box-background: mix(#334352, @fs-blue, 96%);
+		//background: linear-gradient(to right, fade(@box-background, 98%) 0%, fade(@box-background, 95%) 45%, fade(@box-background, 0%) 75%);
+		background: fade(@box-background, 90%);
+		border-right: 1px solid mix(#395066, @fs-blue, 97%);
+	}
+
+	h3 {
+		font-family: "Roboto Condensed";
+		font-size: 24px;
+		font-weight: 400;
+		margin: -16px -16px 12px -16px;
+		padding: 16px;
+		line-height: 24px;
+	}
+
+	#load {
+		margin: 0 -16px;
+		text-align: center;
+		position: absolute;
+		top: 250px;
+		width: 100%;
+
+		&::before, &::after {
+			border-top: 2px solid fade(@fs-blue, 20%);
+			content: "";
+			display: block;
+			position: absolute;
+			top: 50%;
+			margin-top: -1px;
+			width: 84px;
+		}
+
+		&::before { left: 0; }
+		&::after { right: 0; }
+
+		#load-btn {
+			margin: 0;
+			width: 64px;
+			height: 24px;
+			padding: 3px;
+			box-sizing: content-box;
+		}
+	}
+
+	#bottom {
+		position: absolute;
+		left: 12px;
+		bottom: 6px;
+		right: 12px;
+	}
+
+	#roles-label {
+		font: 400 13px Roboto;
+		margin-bottom: 16px;
+		transition: opacity .2s ease-out;
+
+		[disabled] & {
+			opacity: 0.5;
+		}
+	}
+
+	#roles {
+		display: flex;
+		justify-content: space-around;
+		width: 75%;
+		margin: auto;
+
+		img {
+			width: 24px;
+			height: 24px;
+			opacity: 0.6;
+			transition: all .2s ease-out;
+			border: 2px solid fade(@fs-blue, 30%);
+			border-radius: 100%;
+			padding: 3px;
+			box-sizing: content-box;
+			filter: saturate(50%);
+
+			[disabled] & {
+				opacity: 0.5 !important;
+				filter: saturate(50%) !important;
+				border-color: fade(@fs-blue, 50%);
+			}
+
+			&:hover:not([active]) {
+				opacity: 0.8;
+				filter: saturate(100%);
+			}
+
+			&[active] {
+				opacity: 1;
+				filter: saturate(100%);
+				border-color: fade(@fs-blue, 60%);
+			}
+		}
+	}
+
+	#actions {
+		margin: 32px 0 0 0 !important;
+		display: flex;
+		justify-content: flex-end;
+
+		gt-button {
+			margin: 0;
+		}
+	}
+}
