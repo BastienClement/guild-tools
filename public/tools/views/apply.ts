@@ -1,7 +1,7 @@
 import { Element, Dependencies, PolymerElement, Inject, Property, Listener, On, PolymerModelEvent } from "elements/polymer";
 import { View, TabsGenerator } from "elements/app";
 import { GtBox, GtAlert } from "elements/box";
-import { GtButton, GtCheckbox, GtLabel, GtTextarea } from "elements/widgets";
+import { GtButton, GtCheckbox, GtLabel, GtTextarea, GtProgressCircular } from "elements/widgets";
 import { GtDialog } from "elements/dialog";
 import { BnetThumb } from "elements/bnet";
 import { GtTimeago } from "elements/timeago";
@@ -61,7 +61,8 @@ export class ApplyDetailsMessage extends PolymerElement {
 // <apply-details>
 
 @Element("apply-details", "/assets/views/apply.html")
-@Dependencies(GtBox, GtTimeago, ApplyDetailsChar, ApplyDetailsMessage, GtCheckbox, GtLabel, GtTextarea)
+@Dependencies(GtBox, GtTimeago, ApplyDetailsChar, ApplyDetailsMessage, GtCheckbox,
+		GtLabel, GtTextarea, GtProgressCircular)
 export class ApplyDetails extends PolymerElement {
 	@Inject
 	@On({
@@ -160,7 +161,7 @@ export class ApplyDetails extends PolymerElement {
 
 		this.tab = 1;
 		let [feed, [body_type, body]] = await Promise.atLeast(200, this.service.applyFeedBody(this.apply));
-		
+
 		this.feed = feed;
 		this.body_type = body_type;
 		switch (body_type) {
