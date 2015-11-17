@@ -1,93 +1,5 @@
 <dom-module id="gt-server-status">
-	<style type="text/less">
-		:host {
-			display: flex;
-		}
-		
-		.col {
-			display: flex;
-			flex-direction: column;
-		}
-		
-		table, tr, td {
-			padding: 0;
-			margin: 0;
-		}
-		
-		.col > gt-box  gt-button {
-			position: absolute;
-			top: 6px;
-			right: 0px;
-			i { margin-top: 1px; }
-		}
-	
-		.infos {
-			&:not(:first-child) { margin-top: 6px; }
-			td { vertical-align: top; padding-bottom: 2px; }
-			td:first-child {
-				font-weight: 400;
-				width: 80px;
-			}
-			td:last-child {
-				word-break: break-all;
-				font: 400 13px "Roboto Mono";
-			}
-		}
-		
-		#left {
-			width: 325px;
-			margin-right: 6px;
-			gt-box { flex: 1; }
-		}
-		
-		#middle {
-			flex: 1;
-			gt-box { flex: 1; }
-		}
-		
-		#sockets {
-			& > gt-box:not(:first-child) {
-				margin-top: 6px;
-			}
-			
-			.heading {
-				b { padding: 0 3px; }
-				.id { color: @light-blue; }
-				.name { color: @fs-gray; font: 400 13px "Roboto Mono"; }
-			}
-			
-			.opener {
-				margin: 6px 0 10px 0;
-				td { vertical-align: top; }
-				td:nth-child(2n) { padding: 0 12px; }
-				td:nth-child(2n+1) { white-space: pre; color: @light-blue;  }
-				td:nth-child(2) { width: 150px; }
-			}
-			
-			.channels {
-				margin-bottom: -3px;
-				
-				.channel {
-					display: inline-block;
-					padding: 2px 8px;
-					margin-right: 6px;
-					border-radius: 2px;
-					box-shadow: none;
-					font: 400 12px "Roboto Mono";
-				}
-				
-				b:first-child {
-					color: @light-blue;
-					margin-right: 5px;
-				}
-			}
-		}
-		
-		#fail gt-box {
-			width: 375px;
-			p { margin-top: 0; }
-		}
-	</style>
+	<link rel="stylesheet/less" href="/assets/less/server-status.less">
 	<template>
 		<div .col #left [if]="channel_ready">
 			<gt-box .infos heading="Server" scrollable>
@@ -146,7 +58,7 @@
 						</gt-box>
 					</div>
 				</gt-box>
-			</div>
+			</gt-box>
 		</div>
 		<gt-dialog #fail sticky>
 			<gt-box heading="Access denied" scrollable>
