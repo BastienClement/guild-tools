@@ -195,3 +195,202 @@ textarea {
 	font-weight: 300;
 	top: -2px;
 }
+
+.message .layout {
+	display: flex;
+	margin: 6px 0;
+}
+
+.message .poster {
+	min-width: 150px;
+	max-width: 150px;
+	padding: 6px 16px 6px 0;
+	position: relative;
+}
+
+.message .name {
+	font: 400 18px "Roboto Condensed";
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.message .date {
+	font-size: 12px;
+	color: #A7AEB3;
+}
+
+.message .body {
+	flex: 1;
+	display: flex;
+	align-items: center;
+}
+
+.message .mline {
+	display: none;
+}
+
+.message .box {
+	flex: 1;
+	box-shadow: none;
+	background: rgba(100, 180, 255, 0.1);
+	padding: 12px;
+	border: 1px solid rgba(100, 180, 255, 0.1);
+}
+
+.message .layout[system] {
+	padding: 6px 0;
+	align-items: baseline;
+}
+
+.message .layout[system] .poster,
+.message .layout[system] .box {
+	padding: 0;
+	display: inline-block;
+	flex: none;
+	position: static;
+}
+
+.message .layout[system] .poster {
+	min-width: 0;
+	max-width: 9999px;
+	margin-right: 4px;
+	display: flex;
+	flex-direction: row-reverse;
+}
+
+.message .layout[system] .name {
+	font: 400 1em "Roboto";
+}
+
+.message .layout[system] .time {
+	width: 150px;
+	padding-right: 16px;
+	margin-top: 1px;
+}
+
+.message .layout[system] .body {
+	flex: none;
+}
+
+.message .layout[system] .box {
+	border: 0;
+	background: none;
+	font-weight: 300;
+	margin-right: 12px;
+}
+
+.message .layout[system] .mline {
+	display: block;
+	flex: 1;
+	position: relative;
+	top: -4px;
+	border-top: 1px dashed rgba(142, 175, 206, 0.3);
+}
+
+.markdown {
+	display: block;
+	user-select: text;
+	font-weight: 400;
+	color: #fff;
+	margin-bottom: 0;
+	position: relative;
+	padding-left: 0;
+	min-height: 0;
+}
+
+.markdown p, .markdown blockquote, .markdown ul, .markdown ol, .markdown pre, .markdown h1, .markdown h2 {
+	margin: 1em 0;
+}
+
+.markdown p:first-child,
+.markdown blockquote:first-child,
+.markdown ul:first-child,
+.markdown ol:first-child,
+.markdown pre:first-child,
+.markdown h1:first-child,
+.markdown h2:first-child {
+	margin-top: 0 !important;
+}
+
+.markdown p:last-child,
+.markdown blockquote:last-child,
+.markdown ul:last-child,
+.markdown ol:last-child,
+.markdown pre:last-child,
+.markdown h1:last-child,
+.markdown h2:last-child {
+	margin-bottom: 0 !important;
+}
+
+.markdown li > p:last-child,
+.markdown li > blockquote:last-child,
+.markdown li > ul:last-child,
+.markdown li > ol:last-child,
+.markdown li > pre:last-child,
+.markdown li > h1:last-child,
+.markdown li > h2:last-child {
+	margin: 0 !important;
+}
+
+.markdown h1, .markdown h2 {
+	font: 400 1em "Roboto";
+}
+
+.markdown[headings] h1 {
+	font: 300 24px "Roboto Condensed";
+	margin: 14px 0;
+}
+
+.markdown[headings] h2 {
+	font: 300 20px "Roboto Condensed";
+	margin: 14px 0;
+}
+
+.markdown li {
+	margin: 0.3em 0;
+}
+
+.markdown blockquote {
+	background: rgba(100, 180, 255, 0.1);
+	border: 1px solid rgba(100, 180, 255, 0.1);
+	border-left-width: 3px;
+	padding: 12px;
+}
+
+.markdown ul, .markdown ol {
+	padding-left: 20px;
+}
+
+.markdown pre {
+	background: rgba(17, 17, 17, 0.1);
+	border: 1px solid rgba(17, 17, 17, 0.1);
+	padding: 6px;
+}
+
+.markdown strong {
+	font-weight: 500;
+}
+
+.markdown code {
+	font: 400 0.9em "Roboto Mono";
+}
+
+.markdown a {
+	color: #8EAFCE;
+	transition: all .2s ease-out;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.markdown a:hover {
+	color: #64B4FF;
+}
+
+.markdown hr {
+	border: 1px solid rgba(100, 180, 255, 0.2);
+}
+
+.markdown img {
+	max-width: 100%;
+}

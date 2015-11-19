@@ -21,7 +21,7 @@
 				@main.ilvl ilvl
 			</div>
 		</div>
-		<p style="margin-top: 16px;">
+		<p class="desc" style="margin-top: 16px;">
 			<i class="material-icons">info</i>
 			Le système de postulation utilise automatiquement les personnages associés à votre compte.<br>
 			Si le personnage ci-dessus n'est pas le bon, vous pouvez le changer sur la page
@@ -62,7 +62,7 @@
 		}
 		<div style="clear: both;"></div>
 		@if(alts.length < 3) {
-			<p>
+			<p class="desc">
 				<i class="material-icons">info</i>
 				@if(alts.length < 1) {
 					Vous n'avez enregistré aucun personnage secondaire, vous pouvez le faire depuis la page
@@ -182,9 +182,9 @@
 	</script>
 
 	<div class="continue">
-		<p style="margin-top: 25px;">
+		<p class="desc" style="margin-top: 25px;">
 			<i class="material-icons">thumb_up</i>
-			Avant d'envoyez ta postulation, prends le temps de la relire attentivement. Une fois envoyée, il ne sera plus possible de la modifier.
+			Avant d'envoyez votre postulation, prenez le temps de la relire attentivement. Une fois envoyée, il ne sera plus possible de la modifier.
 		</p>
 		<button id="apply-btn" onclick="submit(); this.disabled = true;">
 			<i class="material-icons">check</i>

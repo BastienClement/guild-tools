@@ -2,19 +2,19 @@
 @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
 
 html, body {
-    margin: 0;
-    padding: 0;
+	margin: 0;
+	padding: 0;
 }
 
 body {
-    font: 400 14px "Roboto";
-    color: #f1f1f1;
+	font: 400 14px "Roboto";
+	color: #f1f1f1;
 }
 
 a {
-    text-decoration: none;
+	text-decoration: none;
 	transition: all .2s ease-out;
-    color: #8EAFCE;
+	color: #8EAFCE;
 }
 
 a:hover {
@@ -22,55 +22,55 @@ a:hover {
 }
 
 aside h1 {
-    font-family: "Roboto Condensed";
-    font-size: 21px;
-    font-weight: 300;
-    margin: 24px 16px;
+	font-family: "Roboto Condensed";
+	font-size: 21px;
+	font-weight: 300;
+	margin: 24px 16px;
 }
 
 aside ul {
-    padding: 0;
-    list-style: none;
+	padding: 0;
+	list-style: none;
 }
 
 aside li {
-    margin: 16px 0;
-    font-weight: 400;
-    position: relative;
-    height: 40px;
+	margin: 16px 0;
+	font-weight: 400;
+	position: relative;
+	height: 40px;
 }
 
 aside li.active {
-    box-shadow: 1px 1px 1px rgba(17, 17, 17, 0.2);
-    background-color: #426585;
+	box-shadow: 1px 1px 1px rgba(17, 17, 17, 0.2);
+	background-color: #426585;
 }
 
 aside li::after {
-    content: "";
-    display: block;
-    position: absolute;
-    top: 0;
-    left: 100%;
-    border-left: 10px solid #426585;
-    border-top: 20px solid transparent;
-    border-bottom: 20px solid transparent;
-    opacity: 0;
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: 100%;
+	border-left: 10px solid #426585;
+	border-top: 20px solid transparent;
+	border-bottom: 20px solid transparent;
+	opacity: 0;
 }
 
 aside li.active::after {
-    opacity: 1;
+	opacity: 1;
 }
 
 aside i {
-    vertical-align: -8px;
-    margin-right: 16px;
-    margin-left: 8px;
+	vertical-align: -8px;
+	margin-right: 16px;
+	margin-left: 8px;
 }
 
 aside a {
-    color: #fff;
-    display: block;
-    padding: 8px;
+	color: #fff;
+	display: block;
+	padding: 8px;
 }
 
 aside li.active a:hover {
@@ -78,127 +78,162 @@ aside li.active a:hover {
 }
 
 .fullpage {
-    display: flex;
-    height: 400px;
-    justify-content: center;
-    align-items: center;
-    font-size: 18px;
-    font-weight: 300;
-    color: #8EAFCE;
-    line-height: 30px;
+	display: flex;
+	height: 400px;
+	justify-content: center;
+	align-items: center;
+	font-size: 18px;
+	font-weight: 300;
+	color: #8EAFCE;
+	line-height: 30px;
 }
 
 .fullpage div {
-    text-align:center;
+	text-align: center;
 }
 
 .fullpage div > i {
-    font-size: 80px;
-    display: block;
-    margin-bottom: 40px;
+	font-size: 80px;
+	display: block;
+	margin-bottom: 40px;
 }
 
 .fullpage span {
-    font-size: 14px;
+	font-size: 14px;
 }
 
 #content {
-    padding: 16px 16px 16px 24px;
-    flex: 1;
+	padding: 16px 16px 16px 24px;
+	flex: 1;
 }
 
 #content h2 {
-    font-family: "Roboto Condensed";
-    font-size: 21px;
-    font-weight: 300;
-    margin: 24px 0 16px 0;
+	font-family: "Roboto Condensed";
+	font-size: 21px;
+	font-weight: 300;
+	margin: 24px 0 16px 0;
 }
 
 #content h2:first-child {
-    margin-top: 8px;
+	margin-top: 8px;
 }
 
 #content h3 {
-    font-family: "Roboto Condensed";
-    font-size: 18px;
-    font-weight: 300;
-    margin: 16px 0 16px 0;
+	font-family: "Roboto Condensed";
+	font-size: 18px;
+	font-weight: 300;
+	margin: 16px 0 16px 0;
 }
 
-#content p {
-    font-weight: 400;
-    color: #8EAFCE;
-    margin-bottom: 16px;
-    position: relative;
-    padding-left: 32px;
-    min-height: 32px;
+#content p.desc {
+	font-weight: 400;
+	color: #8EAFCE;
+	margin-bottom: 16px;
+	position: relative;
+	padding-left: 32px;
+	min-height: 32px;
 }
 
-#content p i {
-    position: absolute;
-    top: 7px;
-    left: 0;
+#content p.desc i {
+	position: absolute;
+	top: 7px;
+	left: 0;
 }
 
 #content p a {
-    border-bottom: 1px dotted;
+	border-bottom: 1px dotted;
 }
 
 #content p a:hover {
-    color: #fff;
+	color: #fff;
 }
 
 body .c7, body .c7 a {
-    color: #2B6CFF !important;
+	color: #2B6CFF !important;
 }
 
 body .c6, body .c6 a {
-    color: #DE2243 !important;
+	color: #DE2243 !important;
 }
 
 body .c10, body .c10 a {
-    color: #00A07D !important;
+	color: #00A07D !important;
 }
 
 #content button,
 #content .button {
-    background: rgba(99, 180, 255, 0.2);
-    border: 1px solid rgba(99, 180, 255, 0.1);
-    box-shadow: 0 1px 1px rgba(17, 17, 17, 0.3);
-    transition: background .2s ease-out;
-    color: #fff;
-    padding: 8px 12px 8px 10px;
-    border-radius: 2px;
-    cursor: pointer;
-    margin-bottom: 16px;
-    font-size: 13px;
+	background: rgba(99, 180, 255, 0.2);
+	border: 1px solid rgba(99, 180, 255, 0.1);
+	box-shadow: 0 1px 1px rgba(17, 17, 17, 0.3);
+	transition: background .2s ease-out;
+	color: #fff;
+	padding: 8px 12px 8px 10px;
+	border-radius: 2px;
+	cursor: pointer;
+	margin-bottom: 16px;
+	font-size: 13px;
 }
 
 #content button:disabled {
-    opacity: 0.5;
+	opacity: 0.5;
 }
 
 #content button:hover:not(:disabled),
-#content .button:hover:not(:disabled){
-    background: rgba(99, 180, 255, 0.3);
+#content .button:hover:not(:disabled) {
+	background: rgba(99, 180, 255, 0.3);
 }
 
 #content button i,
-#content .button i{
-    vertical-align: -5px;
-    margin-right: 5px;
-    font-size: 20px;
+#content .button i {
+	vertical-align: -5px;
+	margin-right: 5px;
+	font-size: 20px;
 }
 
-body .c0, body .c0 a { color: #64B4FF !important; }
-body .c1, body .c1 a { color: #C79C6E !important; }
-body .c2, body .c2 a { color: #F58CBA !important; }
-body .c3, body .c3 a { color: #ABD473 !important; }
-body .c4, body .c4 a { color: #FFF569 !important; }
-body .c5, body .c5 a { color: #FFFFFF !important; }
-body .c6, body .c6 a { color: #ff2f42 !important; }
-body .c7, body .c7 a { color: #218cf5 !important; }
-body .c8, body .c8 a { color: #69CCF0 !important; }
-body .c9, body .c9 a { color: #a48ee3 !important; }
-body .c10, body .c10 a { color: #00FF96 !important; }
-body .c11, body .c11 a { color: #FF7D0A !important; }
+body .c0, body .c0 a {
+	color: #64B4FF !important;
+}
+
+body .c1, body .c1 a {
+	color: #C79C6E !important;
+}
+
+body .c2, body .c2 a {
+	color: #F58CBA !important;
+}
+
+body .c3, body .c3 a {
+	color: #ABD473 !important;
+}
+
+body .c4, body .c4 a {
+	color: #FFF569 !important;
+}
+
+body .c5, body .c5 a {
+	color: #FFFFFF !important;
+}
+
+body .c6, body .c6 a {
+	color: #ff2f42 !important;
+}
+
+body .c7, body .c7 a {
+	color: #218cf5 !important;
+}
+
+body .c8, body .c8 a {
+	color: #69CCF0 !important;
+}
+
+body .c9, body .c9 a {
+	color: #a48ee3 !important;
+}
+
+body .c10, body .c10 a {
+	color: #00FF96 !important;
+}
+
+body .c11, body .c11 a {
+	color: #FF7D0A !important;
+}

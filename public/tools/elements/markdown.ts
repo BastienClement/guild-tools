@@ -4,7 +4,7 @@ import { defer } from "utils/async";
 //noinspection TypeScriptCheckImport
 import { parse, Renderer } from "marked";
 
-const options: MarkedOptions = {
+const options: MarkedOptions = <any> {
 	gfm: true,
 	tables: true,
 	breaks: true,

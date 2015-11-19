@@ -1,6 +1,74 @@
 @import controllers.webtools.WtController.UserRequest
-@()(implicit req: UserRequest[AnyContent])
+@import models.application.ApplicationMessage
+@import models.Char
+@(messages: Seq[(ApplicationMessage, Char)])(implicit req: UserRequest[AnyContent])
 @wt.application.layout(4) {
 	<h2>Etape 4: Délibérations</h2>
+	<p class="desc">
+		<i class="material-icons">info_outline</i>
+		Votre postulation est actuellement en phase de délibération.<br>
+		Les officiers et les membres ont la possibilité de la consulter et de participer à la discussion.
+	</p>
 
+	<h2>Discussions</h2>
+
+	<script src="/assets/javascripts/moment.js"></script>
+	<script src="/assets/javascripts/marked.js"></script>
+
+	@for((message, main) <- messages) {
+		<div class="message">
+			<div class="layout" @if(message.system) { system="system" }>
+				<div class="poster">
+					<div class="name c@main.clazz">@main.name</div>
+					<div class="time">@message.date</div>
+				</div>
+				<div class="body">
+					<div class="box markdown">
+						<script type="text/markdown"> @message.text </script>
+					</div>
+				</div>
+				<div class="mline"></div>
+			</div>
+		</div>
+	}
+
+	<script>
+		$(".time").each(function(idx, elem) {
+			elem.innerText = moment(elem.innerHTML).locale("fr").fromNow();
+		});
+
+		(function(parse, Renderer) {
+			var options = {
+				gfm: true,
+				tables: true,
+				breaks: true,
+				sanitize: true,
+				smartypants: true
+			};
+
+			var renderer = options.renderer = new Renderer(options);
+
+			renderer.heading = function(text, level) {
+				return (level > 2) ? "<p>" + text + "</p>" : "<h" + level + ">" + text + "</h" + level + ">";
+			};
+
+			renderer.link = function(href, title, text) {
+				return Renderer.prototype.link.call(renderer, href, title, text).replace(/^<a/, '<a target="_blank"')
+			};
+
+			var decode_cache = Object.create(null);
+			var decoder = document.createElement("textarea");
+
+			function decode(entity) {
+				return decode_cache[entity] || (decode_cache[entity] = (decoder.innerHTML = entity, decoder).innerText);
+			}
+
+			$(".markdown").each(function(idx, elem) {
+				var source = elem.firstElementChild.innerText.replace(/&([^;]+);/g, decode);
+				elem.innerHTML = parse(source, options);
+			});
+		})(marked.parse, marked.Renderer);
+	</script>
+
+	<h2>Répondre</h2>
 }

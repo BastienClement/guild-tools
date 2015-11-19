@@ -2,7 +2,7 @@ package controllers.webtools
 
 import controllers.webtools.WtController.{Deny, UserRequest}
 import models._
-import models.application.{DataType, Application, Applications, Stage}
+import models.application._
 import models.mysql._
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -133,9 +133,19 @@ class ApplicationController extends Controller with WtController {
 	/**
 	  * Application is in Review stage.
 	  */
-	def step4 = ApplicationAction {
-		case (_, application) if application == null || application.stage != Stage.Review.id => Redirect("/wt/application")
-		case (req, _) => Ok(views.html.wt.application.step4.render(req))
+	def step4 = ApplicationActionAsync {
+		case (_, application) if application == null || application.stage != Stage.Review.id =>
+			Future.successful(Redirect("/wt/application"))
+
+		case (req, application) =>
+			val query = for {
+				(message, main) <- ApplicationFeed join Chars on { case (m, c) => m.user === c.owner && c.main }
+				if message.apply === application.id && message.secret === false
+			} yield (message, main)
+
+			for (posts <- query.sortBy(_._1.date.asc).run) yield {
+				Ok(views.html.wt.application.step4.render(posts, req))
+			}
 	}
 
 	/**
