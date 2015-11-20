@@ -82,17 +82,22 @@ class Live extends Controller {
 	def publish = Action.async { req =>
 		val data = req.body.asJson.get
 		val token = (data \ "stream").as[String]
-
 		val url = client_url(( data \ "client_id").as[Int])
-		val key = "key=([a-zA-Z0-9]+)".r.findFirstMatchIn(url).get.group(1)
+		
+		"key=([a-zA-Z0-9]+)".r.findFirstMatchIn(url) match {
+			case Some(matches) =>
+				val key = matches.group(1)
+				(for {
+					stream <- Streams.filter(s => s.token === token && s.secret === key).head
+				} yield {
+					StreamService.publish(stream.token)
+					Ok("0")
+				}) recover {
+					case _ => Forbidden("1")
+				}
 
-		(for {
-			stream <- Streams.filter(s => s.token === token && s.secret === key).head
-		} yield {
-			StreamService.publish(stream.token)
-			Ok("0")
-		}) recover {
-			case _ => Forbidden("1")
+			case None =>
+				Future.successful(Forbidden("1"))
 		}
 	}
 
