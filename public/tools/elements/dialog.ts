@@ -20,7 +20,20 @@ export class GtDialog extends PolymerElement {
 	 * A sticky dialog does not autoclose if the user click outside it
 	 */
 	@Property
-	public sticky: boolean;
+	public sticky: boolean = false;
+
+	/**
+	 * If defined, the dialog will be moved to the <body> element
+	 * while visible. This will break CSS scoping but allow it
+	 * escape absolute positioning.
+	 */
+	@Property
+	public escape: boolean = false;
+
+	/**
+	 * The dialog placeholder while visible
+	 */
+	private placeholder: Node = null;
 
 	/**
 	 * True if the dialog is currently shown
@@ -43,6 +56,12 @@ export class GtDialog extends PolymerElement {
 				}
 				return;
 			}
+		}
+
+		if (this.escape) {
+			this.placeholder = document.createComment(" dialog placeholder ");
+			Polymer.dom(this.node.parentNode).insertBefore(this.placeholder, this);
+			Polymer.dom(document.body).appendChild(this);
 		}
 
 		GtDialog.visible = this;
@@ -81,6 +100,12 @@ export class GtDialog extends PolymerElement {
 
 		if (GtDialog.visible == this) {
 			GtDialog.visible = null;
+		}
+
+		if (this.escape) {
+			Polymer.dom(this.placeholder.parentNode).insertBefore(this, this.placeholder);
+			this.placeholder.parentNode.removeChild(this.placeholder);
+			this.placeholder = null;
 		}
 
 		this.fire("hide");
