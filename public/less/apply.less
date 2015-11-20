@@ -194,7 +194,7 @@
 	#links {
 		position: absolute;
 		top: 6px;
-		right: 0;
+		right: 8px;
 	}
 
 	#side {
@@ -241,7 +241,7 @@
 		}
 	}
 
-	#discussion, #details, #manage {
+	#discussion, #details {
 		position: absolute;
 		top: 50px;
 		left: 0px;
@@ -259,7 +259,7 @@
 	}
 
 	@media (max-width: 1500px) {
-		#discussion, #details, #manage {
+		#discussion, #details {
 			right: 240px;
 		}
 	}
@@ -439,16 +439,49 @@
 			}
 		}
 	}
+}
 
-	#manage {
-		gt-progress-circular {
-			width: 150px;
-			height: 150px;
-			font-size: 13px;
-			.name {
-				font: 400 24px "Roboto Condensed";
-			}
+///////////////////////////////////////////////////////////////////////////////
+// <apply-manage>
+
+:namespace("apply-manage") {
+	gt-progress-circular {
+		width: 150px;
+		height: 150px;
+		font-size: 13px;
+		margin: 24px;
+
+		.name {
+			font: 400 24px "Roboto Condensed";
 		}
+	}
+
+	#layout {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	h3 {
+		font: 300 16px "Roboto Condensed";
+	}
+
+	gt-label {
+		margin-bottom: 16px;
+		width: 100px;
+		gt-checkbox {
+			margin-right: 6px;
+		}
+	}
+
+	#right {
+		margin-bottom: 35px;
+	}
+
+	#actions {
+		position: absolute;
+		bottom: 6px;
+		right: 6px;
 	}
 }
 

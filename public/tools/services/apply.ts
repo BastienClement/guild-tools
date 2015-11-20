@@ -37,14 +37,14 @@ export class ApplyService extends Service {
 	constructor(private server: Server) {
 		super();
 	}
-	
+
 	// Profile channel
 	private channel = this.server.openServiceChannel("apply");
-	
+
 	// Data cache
 	private applys = new Map<number, Apply>();
 	private unread = new Map<number, boolean>();
-	
+
 	/**
 	 * Load and return the list of open applications available for
 	 * the current user.
@@ -62,7 +62,7 @@ export class ApplyService extends Service {
 		}
 		return list;
 	}
-	
+
 	/**
 	 * Check the unread state for an apply
 	 * At least on call to openApplysList() is required to populate the local cache
@@ -71,7 +71,7 @@ export class ApplyService extends Service {
 	public unreadState(apply: number): boolean {
 		return this.unread.get(apply);
 	}
-	
+
 	/**
 	 * Return application meta data (date, owner, stage, etc.)
 	 * It does not return the application body
@@ -82,17 +82,17 @@ export class ApplyService extends Service {
 			let data = await this.channel.request<Apply>("apply-data", id);
 			this.applys.set(id, data);
 		}
-		
+
 		return this.applys.get(id);
 	}
-	
+
 	/**
 	 * Load the message feed and the body of an application
 	 */
 	public async applyFeedBody(id: number) {
 		return await this.channel.request<[ApplyMessage[], [number, string]]>("apply-feed-body", id);
 	}
-	
+
 	/**
 	 * Send the set-seen message
 	 */
@@ -100,7 +100,7 @@ export class ApplyService extends Service {
 		this.UnreadUpdated(id, false);
 		this.channel.send("set-seen", id);
 	}
-	
+
 	/**
 	 * Unread flag for an apply was updated
 	 */
@@ -109,7 +109,7 @@ export class ApplyService extends Service {
 		this.unread.set(apply, unread);
 		this.emit("unread-updated", apply, unread);
 	}
-	
+
 	/**
 	 * An apply object was updated
 	 */
@@ -118,7 +118,7 @@ export class ApplyService extends Service {
 		this.applys.set(apply.id, apply);
 		this.emit("apply-updated", apply);
 	}
-	
+
 	/**
 	 * Post a new message in an application
 	 */
@@ -129,7 +129,7 @@ export class ApplyService extends Service {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * New message received in an application
 	 */
@@ -137,7 +137,14 @@ export class ApplyService extends Service {
 	private MessagePosted(message: ApplyMessage) {
 		this.emit("message-posted", message);
 	}
-	
+
+	/**
+	 * Change application stage
+	 */
+	public changeApplicationStage(apply: number, stage: number) {
+		return this.channel.request<void>("change-application-stage", { apply, stage });
+	}
+
 	/**
 	 * Close the channel when the apply service is paused
 	 * Also clear local cached data
@@ -156,14 +163,14 @@ export class ApplyService extends Service {
 class StageNameProvider extends PolymerElement {
 	@Property({ observer: "update" })
 	public stage: number;
-	
+
 	@Property({ notify: true })
 	public name: string;
 
 	public update() {
 		this.name = this.map(this.stage);
 	}
-	
+
 	private map(stage: number) {
 		switch (stage) {
 			case 0: return "Pending";
@@ -172,7 +179,8 @@ class StageNameProvider extends PolymerElement {
 			case 3: return "Accepted";
 			case 4: return "Refused";
 			case 5: return "Archived";
-			default: return "Unknown";    
+			case 6: return "Spam";
+			default: return "Unknown";
 		}
 	}
 }
@@ -185,10 +193,10 @@ class DataProvider extends PolymerElement {
 	@Inject
 	@On({ "apply-updated": "ApplyUpdated" })
 	private service: ApplyService;
-	
+
 	@Property({ observer: "update" })
 	public apply: number;
-	
+
 	@Property({ notify: true })
 	public data: Apply;
 
@@ -196,7 +204,7 @@ class DataProvider extends PolymerElement {
 		if (await microtask, !this.apply) return;
 		this.data = await this.service.applyData(this.apply);
 	}
-	
+
 	private ApplyUpdated(apply: Apply) {
 		if (apply.id == this.apply) this.update();
 	}
@@ -210,10 +218,10 @@ class UnreadProvider extends PolymerElement {
 	@Inject
 	@On({ "unread-updated": "UnreadUpdated" })
 	private service: ApplyService;
-	
+
 	@Property({ observer: "update" })
 	public apply: number;
-	
+
 	@Property({ notify: true })
 	public unread: boolean;
 
@@ -221,7 +229,7 @@ class UnreadProvider extends PolymerElement {
 		if (await microtask, !this.apply) return;
 		this.unread = this.service.unreadState(this.apply);
 	}
-	
+
 	private UnreadUpdated(apply: number) {
 		if (this.apply == apply) this.update();
 	}

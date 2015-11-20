@@ -58,11 +58,44 @@ export class ApplyDetailsMessage extends PolymerElement {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// <apply-manage>
+
+@Element("apply-manage", "/assets/views/apply.html")
+@Dependencies(GtBox, GtProgressCircular, GtButton, GtCheckbox)
+export class ApplyManage extends PolymerElement {
+	@Inject
+	private service: ApplyService;
+
+	@Property public data: Apply;
+	@Property public stage: number;
+
+	private locked: boolean = false;
+
+	@Listener("save.click")
+	private async OnSave() {
+		if (this.locked) return;
+		this.locked = true;
+
+		try {
+			await this.service.changeApplicationStage(this.data.id, this.stage);
+			this.fire("close-manage-dialog");
+		} catch (e) {
+			this.locked = false;
+		}
+	}
+
+	@Listener("close.click")
+	private async OnClose() {
+		this.fire("close-manage-dialog");
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // <apply-details>
 
 @Element("apply-details", "/assets/views/apply.html")
 @Dependencies(GtBox, GtTimeago, ApplyDetailsChar, ApplyDetailsMessage, GtCheckbox,
-		GtLabel, GtTextarea, GtProgressCircular)
+		GtLabel, GtTextarea, GtDialog, ApplyManage)
 export class ApplyDetails extends PolymerElement {
 	@Inject
 	@On({
@@ -179,17 +212,21 @@ export class ApplyDetails extends PolymerElement {
 	 */
 	private ShowDiscussion() {
 		this.tab = 1;
-		this.editOpen = false
+		this.editOpen = false;
 	}
 
 	private ShowDetails() {
 		this.tab = 2;
-		this.editOpen = false
+		this.editOpen = false;
 	}
 
 	private ShowManage() {
-		this.tab = 3;
-		this.editOpen = false
+		this.$.manage.show();
+	}
+
+	@Listener("manage-dialog.close-manage-dialog")
+	private OnCloseManageDialog() {
+		this.$.manage.hide();
 	}
 
 	/**

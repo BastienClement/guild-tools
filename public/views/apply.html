@@ -59,12 +59,10 @@
 			<div #tabs>
 				<gt-button collapse-right (click)="ShowDiscussion" {active}="equals(tab, 1)">Discussion</gt-button>
 				<gt-button collapse-right (click)="ShowDetails" {active}="equals(tab, 2)">Details</gt-button>
-				<gt-button collapse-right (click)="ShowManage" {active}="equals(tab, 3)" [if]="app.user.promoted">
-					Manage
-				</gt-button>
 			</div>
 			<div #links>
-				<gt-button [goto]="profileLink">View profile</gt-button>
+				<gt-button collapse-right (click)="ShowManage" [if]="app.user.promoted">Manage</gt-button>
+				<gt-button collapse-right [goto]="profileLink">View profile</gt-button>
 			</div>
 			<gt-box #side scrollable dark>
 				<h2>Application</h2>
@@ -133,15 +131,61 @@
 					</div>
 				</div>
 			</gt-box>
-			<gt-box #manage scrollable dark {active}="equals(tab, 3)" [if]="app.user.promoted">
-				<gt-progress-circular [progress]="data.stage" min="-1" max="3" gap="60" rotate="2">
+		</gt-box>
+		<gt-dialog #manage escape>
+			<apply-manage #manage-dialog [data] [stage]="data.stage"></apply-manage>
+		</gt-dialog>
+	</template>
+</dom-module>
+
+<!-- ////////////////////////////////////////////////////////////////////// -->
+
+<dom-module id="apply-manage">
+	<link rel="stylesheet/less" href="/assets/less/apply.less" ns="apply-manage">
+	<template>
+		<meta is="apply-stage-name" [stage] [name]="stage_name">
+		<gt-box heading="Change application stage" scrollable>
+			<div #layout>
+				<gt-progress-circular [progress]="stage" min="-0.3" max="3" gap="60" rotate="2">
 					<b .name>{{stage_name}}</b>
 					<span .label>
 						Current<br>
 						stage
 					</span>
 				</gt-progress-circular>
-			</gt-box>
+				<div #right>
+					<h3>Select the new stage for this application</h3>
+					<gt-label>
+						<gt-checkbox [radio]="stage" value="1"></gt-checkbox>
+						Review
+					</gt-label>
+					<gt-label>
+						<gt-checkbox [radio]="stage" value="2"></gt-checkbox>
+						Trial
+					</gt-label>
+					<gt-label>
+						<gt-checkbox [radio]="stage" value="3"></gt-checkbox>
+						Accepted
+					</gt-label>
+					<br>
+					<gt-label>
+						<gt-checkbox [radio]="stage" value="4"></gt-checkbox>
+						Refused
+					</gt-label>
+					<gt-label>
+						<gt-checkbox [radio]="stage" value="5"></gt-checkbox>
+						Archived
+					</gt-label>
+					<gt-label>
+						<gt-checkbox [radio]="stage" value="6"></gt-checkbox>
+						Spam
+					</gt-label>
+					<div #actions>
+						<gt-button #close collapse-right>Cancel</gt-button>
+						<gt-button #save {disabled}="locked">Save</gt-button>
+					</div>
+				</div>
+			</div>
 		</gt-box>
 	</template>
 </dom-module>
