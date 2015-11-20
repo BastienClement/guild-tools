@@ -9,16 +9,6 @@ GET         /assets/*file                  controllers.Assets.versioned(path="/p
 GET         /                              controllers.GtApplication.client
 GET         /gtp3                          controllers.GtApplication.gtp3
 
-# REST API
-POST        /api/bugsack                   controllers.Api.bugsack
-GET         /api/socket_url                controllers.Api.socketURL
-GET         /api/*path                     controllers.Api.catchall(path)
-
-POST        /api/live/play                 controllers.Live.play
-POST        /api/live/publish              controllers.Live.publish
-POST        /api/live/stop                 controllers.Live.stop
-POST        /api/live/unpublish            controllers.Live.unpublish
-
 # WebTools
 GET         /wt/                           controllers.webtools.WebTools.main
 
@@ -40,6 +30,19 @@ GET         /wt/application/member         controllers.webtools.ApplicationContr
 GET         /wt/application/charter        controllers.webtools.ApplicationController.charter
 
 GET         /wt/*path                      controllers.webtools.WebTools.catchall(path)
+
+# REST API
+POST        /api/bugsack                   controllers.Api.bugsack
+GET         /api/socket_url                controllers.Api.socketURL
+GET         /api/*path                     controllers.Api.catchall(path)
+
+# Streaming API
+POST        /api/live/connect              controllers.Live.connect
+POST        /api/live/close                controllers.Live.close
+POST        /api/live/play                 controllers.Live.play
+POST        /api/live/publish              controllers.Live.publish
+POST        /api/live/stop                 controllers.Live.stop
+POST        /api/live/unpublish            controllers.Live.unpublish
 
 # Simple pages
 GET         /unsupported                   controllers.GtApplication.unsupported

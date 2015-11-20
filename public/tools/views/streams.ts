@@ -19,13 +19,13 @@ const StreamsTabs: TabsGenerator = (view, path, user) => [
 @Dependencies(GtAlert)
 export class GtStreamsPlayer extends PolymerElement {
 	@Inject private service: Streams;
-	
+
 	@Property({ observer: "update" })
 	public stream: ActiveStream;
-	
+
 	private player: HTMLIFrameElement = null;
 	private error: String = null;
-	
+
 	private async removePlayer() {
 		while (this.player) {
 			this.player.remove();
@@ -33,11 +33,11 @@ export class GtStreamsPlayer extends PolymerElement {
 			await Promise.delay(400);
 		}
 	}
-	
+
 	private async update() {
 		this.error = null;
 		await this.removePlayer();
-		
+
 		if (this.stream) {
 			try {
 				let [ticket, stream] = await this.service.requestTicket(this.stream.user);
@@ -73,20 +73,20 @@ export class GtStreams extends PolymerElement {
 	@Inject
 	@On({ "offline": "StreamOffline" })
 	private service: Streams;
-	
+
 	@Property public selected: ActiveStream = null;
-	
+
 	private StreamOffline(user: number) {
 		if (this.selected && this.selected.user == user) {
 			this.selected = null;
 		}
 	}
-	
+
 	private SelectStream(ev: PolymerModelEvent<ActiveStream>) {
 		let stream = ev.model.item;
 		this.selected = (this.selected && this.selected.user == stream.user) ? null : stream;
 	}
-	
+
 	private StreamIsActive(user: number) {
 		return this.selected && this.selected.user == user;
 	}
@@ -100,27 +100,36 @@ export class GtStreams extends PolymerElement {
 @Dependencies(GtBox, GtButton, GtCheckbox, GtLabel)
 export class GtStreamsSettings extends PolymerElement {
 	@Inject private service: Streams;
-	
+
 	public token: string;
+	public key: string;
 	public visibility: string;
-	
+
 	private visibility_check: boolean = false;
-	
+
 	@join private async updateToken() {
-		let [token, progress] = await this.service.ownTokenVisibility();
-		this.token = token;
-		this.visibility = progress ? "limited" : "open";
+		let data = await this.service.ownTokenVisibility();
+		if (data) {
+			let [token, key, progress] = data;
+			this.token = token;
+			this.key = key;
+			this.visibility = progress ? "limited" : "open";
+		} else {
+			this.token = null;
+			this.key = null;
+			this.visibility = "open";
+		}
 	}
-	
+
 	@Property({ computed: "token" })
 	private get hasToken(): boolean {
 		return this.token !== null;
 	}
-	
+
 	private init() {
 		this.updateToken();
 	}
-	
+
 	private generating = false;
 	private async Generate() {
 		if (this.generating) return;
@@ -130,9 +139,9 @@ export class GtStreamsSettings extends PolymerElement {
 			this.updateToken();
 		} finally {
 			this.generating = false;
-		}    
+		}
 	}
-	
+
 	private async UpdateVisibility() {
 		this.visibility_check = false;
 		await this.service.changeOwnVisibility(this.visibility == "limited");

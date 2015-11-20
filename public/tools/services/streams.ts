@@ -107,7 +107,7 @@ export class Streams extends Service {
 	 * Request own stream token
 	 */
 	public ownTokenVisibility() {
-		return this.channel.request<[string, boolean]>("own-token-visibility");
+		return this.channel.request<[string, string, boolean]>("own-token-visibility");
 	}
 
 	/**

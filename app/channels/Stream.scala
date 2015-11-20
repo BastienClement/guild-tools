@@ -54,8 +54,7 @@ class Stream(val user: User) extends ChannelHandler {
 	  * Request own stream token and visibility setting.
 	  */
 	request("own-token-visibility") { p =>
-		val key = for (stream <- Streams if stream.user === user.id) yield (stream.token, stream.progress)
-		key.headOption
+		Streams.filter(_.user === user.id).map(s => (s.token, s.secret, s.progress)).headOption
 	}
 
 	/**
@@ -70,10 +69,11 @@ class Stream(val user: User) extends ChannelHandler {
 	  */
 	request("create-token") { p =>
 		val token = utils.randomToken()
+		val key = utils.randomToken().take(10)
 		(for {
 			s <- Streams.filter(_.user === user.id).result.headOption
-			_ = if (s.isEmpty) throw new Exception("This account already has an associated streaming key.")
-			_ <- Streams += live.Stream(token, user.id, false)
+			_ = if (s.nonEmpty) throw new Exception("This account already has an associated streaming key.")
+			_ <- Streams.map(s => (s.token, s.user, s.secret, s.progress)) += (token, user.id, key, false)
 		} yield ()).transactionally
 	}
 

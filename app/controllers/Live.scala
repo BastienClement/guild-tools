@@ -13,6 +13,26 @@ import scala.concurrent.Future
 
 class Live extends Controller {
 	val client_stream = TrieMap[Int, String]()
+	val client_url = TrieMap[Int, String]()
+
+	/**
+	  * New connection to SRS
+	  */
+	def connect = Action { req =>
+		val data = req.body.asJson.get
+		client_url.put((data \ "client_id").as[Int], (data \ "tcUrl").as[String])
+		Ok("0")
+	}
+
+
+	/**
+	  * Disconnected from SRS
+	  */
+	def close = Action { req =>
+		val data = req.body.asJson.get
+		client_url.remove((data \ "client_id").as[Int])
+		Ok("0")
+	}
 
 	/**
 	  * Request to play a stream on SRS.
@@ -61,8 +81,13 @@ class Live extends Controller {
 	  */
 	def publish = Action.async { req =>
 		val data = req.body.asJson.get
+		val token = (data \ "stream").as[String]
+
+		val url = client_url(( data \ "client_id").as[Int])
+		val key = "key=([a-zA-Z0-9]+)".r.findFirstMatchIn(url).get.group(1)
+
 		(for {
-			stream <- Streams.filter(_.token === (data \ "stream").as[String]).head
+			stream <- Streams.filter(s => s.token === token && s.secret === key).head
 		} yield {
 			StreamService.publish(stream.token)
 			Ok("0")
