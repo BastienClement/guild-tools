@@ -13,7 +13,7 @@
 		<div #main-box>
 			<gt-streams-player {hide}="!selected" [stream]="selected"></gt-streams-player>
 			<div #placeholder {hide}="selected">
-				<i>ondemand_video</i>
+				<i>airplay</i>
 			</div>
 		</div>
 	</template>
@@ -57,7 +57,7 @@
 	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams-settings">
 	<template>
 		<div #layout>
-			<i>ondemand_video</i>
+			<i>airplay</i>
 			<div #right>
 				<div [if]="!hasToken">
 					<h3>Create your streaming key</h3>

@@ -188,7 +188,7 @@ export class GtSidebar extends PolymerElement {
 		{ icon: "group_work", key: "roster", link: "/roster" },
 		//{ icon: "forum", key: "forum", link: "/forum" },
 		{ icon: "assignment_ind", key: "apply", link: this.app.user.roster ? "/apply" : "/apply-guest" },
-		{ icon: "ondemand_video", key: "streams", link: "/streams" },
+		{ icon: "airplay", key: "streams", link: "/streams" },
 		//{ icon: "brush", key: "whiteboard", link: "/whiteboard" },
 		//{ icon: "backup", key: "drive", link: "/drive" }
 	]).filter(t => !t.hidden);
