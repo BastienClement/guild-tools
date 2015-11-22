@@ -83,7 +83,7 @@ class Live extends Controller {
 		val data = req.body.asJson.get
 		val token = (data \ "stream").as[String]
 		val url = client_url(( data \ "client_id").as[Int])
-		
+		4
 		"key=([a-zA-Z0-9]+)".r.findFirstMatchIn(url) match {
 			case Some(matches) =>
 				val key = matches.group(1)

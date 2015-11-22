@@ -80,6 +80,7 @@ export class ApplyManage extends PolymerElement {
 			await this.service.changeApplicationStage(this.data.id, this.stage);
 			this.fire("close-manage-dialog");
 		} catch (e) {
+		} finally {
 			this.locked = false;
 		}
 	}

@@ -26,7 +26,9 @@ class Apply(user: User) extends ChannelHandler {
 		case MessagePosted(message) => send("message-posted", message)
 	}
 
-	// List of open applys that the user can access
+	/**
+	  * List of open applys that the user can access
+	  */
 	request("open-list") { p => Applications.listOpenForUser(user).result }
 
 	// Load a specific application data
@@ -35,7 +37,9 @@ class Apply(user: User) extends ChannelHandler {
 		Applications.getDataVerified(id, user.id, user.member, user.promoted).result.head.run
 	}*/
 
-	// Request the message feed and body
+	/**
+	  * Request the message feed and body
+	  */
 	request("apply-feed-body") { p =>
 		val id = p.value.as[Int]
 		for {
@@ -45,14 +49,32 @@ class Apply(user: User) extends ChannelHandler {
 		} yield (feed, body)
 	}
 
-	// Update the unread status for an application
+	/**
+	  * Update the unread status for an application
+	  */
 	request("set-seen") { p => ApplicationReadStates.markAsRead(p.value.as[Int], user) }
 
-	// Post a new message in an application
+	/**
+	  * Post a new message in an application
+	  */
 	request("post-message") { p =>
 		val apply = p("apply").as[Int]
 		val body = p("message").as[String]
 		val secret = p("secret").as[Boolean]
 		for (_ <- ApplicationFeed.postMessage(user, apply, body, secret)) yield true
+	}
+
+	/**
+	  * Change an application stage
+	  */
+	request("change-application-stage") { p =>
+		if (!user.promoted) {
+			throw new Exception("Changing application stage requires Promoted status.")
+		}
+
+		val apply = p("apply").as[Int]
+		val stage = Stage.fromId(p("stage").as[Int])
+
+		Applications.changeStage(apply, user, stage)
 	}
 }

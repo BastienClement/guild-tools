@@ -15,14 +15,14 @@ object Applications extends TableQuery(new Applications(_)) {
 	def canAccess(user: Rep[Int], member: Rep[Boolean], promoted: Rep[Boolean])(application: Applications): Rep[Boolean] = {
 		val stage = application.stage
 		val valid_officer_access = (stage > Stage.Trial.id || stage === Stage.Pending.id) && promoted
-		val valid_member_access = (stage > Stage.Pending.id) && (application.user === user || member)
+		val valid_member_access = (stage > Stage.Pending.id && stage <= Stage.Trial.id) && (application.user === user || member)
 		valid_officer_access || valid_member_access
 	}
 
 	/** Check if a user can access a given application */
 	def canAccess(user: User, application: Application) = {
 		if (application.stage > Stage.Trial.id || application.stage == Stage.Pending.id) user.promoted
-		else if (application.stage > Stage.Pending.id) application.user == user.id || user.member
+		else if (application.stage > Stage.Pending.id && application.stage <= Stage.Trial.id) application.user == user.id || user.member
 		else false
 	}
 
@@ -30,6 +30,7 @@ object Applications extends TableQuery(new Applications(_)) {
 	val listOpen = Compiled((user_id: Rep[Int], member: Rep[Boolean], promoted: Rep[Boolean]) => {
 		for {
 			application <- Applications.sortBy(_.updated.desc).filter(canAccess(user_id, member, promoted))
+			if application.stage <= Stage.Trial.id
 			unread = ApplicationReadStates.isUnread.extract(application.id, user_id, member)
 		} yield (application, unread)
 	})
@@ -84,6 +85,26 @@ object Applications extends TableQuery(new Applications(_)) {
 
 		// Execute action, then broadcast ApplyUpdated event
 		query.run andThen {
+			case Success(application) =>
+				ApplicationEvents.publish(ApplyUpdated(application), u => canAccess(u, application))
+		}
+	}
+
+	/**
+	  * Changes an application stage.
+	  */
+	def changeStage(id: Int, user: User, stage: Stage) = {
+		val query = for {
+			old_apply <- Applications.filter(_.id === id).result.head
+			_ = if (old_apply.stage == stage.id) throw new Exception("Application stage unchanged")
+			_ <- Applications.filter(_.id === id).map(_.stage).update(stage.id)
+			old_stage_name = Stage.fromId(old_apply.stage).name
+			new_stage_name = stage.name
+			_ <- ApplicationFeed.postMessage(user, id, s"changed the application stage from **$old_stage_name** to **$new_stage_name**", false, true)
+			new_apply <- Applications.filter(_.id === id).result.head
+		} yield new_apply
+
+		query.transactionally.run andThen {
 			case Success(application) =>
 				ApplicationEvents.publish(ApplyUpdated(application), u => canAccess(u, application))
 		}
