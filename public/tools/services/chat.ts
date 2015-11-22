@@ -10,7 +10,12 @@ export interface ChatUser {
 }
 
 export interface ChatMessage {
+	id: number;
 	room: number;
+	user?: number;
+	from: string;
+	text: string;
+	date: string;
 }
 
 /**
@@ -21,34 +26,34 @@ export class Chat extends Service {
 	// List of onlines user
 	private onlines = new Map<number, boolean>();
 	private channel = this.server.openServiceChannel("chat", false);
-	
+
 	@Notify
 	@ServiceChannel.ReflectState("channel")
-	public available: boolean = false;    
+	public available: boolean = false;
 
 	constructor(private server: Server) {
 		super();
-		
+
 		this.channel.on("reset", () => {
 			// TODO: sync interested flags
 		});
 	}
 
 	// Full update of the online user list
-	// Check the cached data to find who is now connected or 
+	// Check the cached data to find who is now connected or
 	// disconnected in order to emit appropriate events
 	@ServiceChannel.Dispatch("channel", "onlines")
 	private UpdateOnlines(users: [number, boolean][]) {
 		// Currently onlines users (cached)
 		const onlines = this.onlines;
-		
+
 		// User listed in the server message
 		const users_received = new Set<number>();
 
 		// Loop over the list just received of connected user
 		for (let [user, away] of users) {
 			users_received.add(user);
-			
+
 			if (onlines.has(user)) {
 				// User is already present in the local cache
 				// Check old away status and trigger an event if changed
@@ -87,7 +92,7 @@ export class Chat extends Service {
 		this.onlines.delete(user);
 		this.emit("disconnected", user);
 	}
-	
+
 	// Change in the away state of a user
 	@ServiceChannel.Dispatch("channel", "away-changed", true)
 	private AwayChanged(user: number, away: boolean) {
@@ -99,31 +104,31 @@ export class Chat extends Service {
 	public get onlinesUsers(): number[] {
 		return Array.from(this.onlines.keys());
 	}
-	
+
 	public isAway(user: number): boolean {
 		return this.onlines.get(user);
 	}
-	
+
 	// Request a backlog of messages from a chat room
 	public requestBacklog(room: number, upper?: number): Promise<ChatMessage[]> {
 		return this.channel.request("room-backlog", { room, upper });
 	}
-	
+
 	// Current interests in room events
 	// This map binds a channel number to a list of interested receiver
 	private interests = new Map<number, Set<any>>();
-	
+
 	// Define the interesting chat rooms
 	public setInterest(room: number, owner: any, interested: boolean) {
 		// Local binding cache for this room
 		let bindings = this.interests.get(room);
-		
+
 		// This room was not in the interests cache
 		if (!bindings) {
 			bindings = new Set<any>();
 			this.interests.set(room, bindings);
 		}
-		
+
 		// Set or reset interest
 		if (interested) {
 			bindings.add(owner);
