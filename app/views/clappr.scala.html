@@ -14,7 +14,7 @@
 <div id="player"></div>
 
 <script src="//cdn.clappr.io/latest/clappr.min.js"></script>
-<script src="//cdn.jsdelivr.net/clappr.rtmp/latest/rtmp.min.js"></script>
+<script src="/assets/javascripts/clappr.rtmp.js"></script>
 
 <script>
 	(function(spt) {
@@ -24,13 +24,20 @@
 			this.settings.seekEnabled = false;
 		};
 	})(RTMP.prototype.setupPlaybackType);
-	Object.defineProperty(RTMP.prototype, "swfPath", { value: "/assets/swfs/RTMP.swf" });
+	//Object.defineProperty(RTMP.prototype, "swfPath", { value: "/assets/swfs/RTMP.swf" });
 	var player = new Clappr.Player({
 		source: "rtmp://@host/live/@stream",
 		parentId: "#player",
 		height: "100%",
 		width: "100%",
 		autoPlay: true,
-		plugins: { "playback": [ RTMP ] }
+		plugins: { "playback": [ RTMP ] },
+		rtmpConfig: {
+			swfPath: "/assets/swfs/RTMP.swf",
+			scaling: "stretch",
+			playbackType: "live",
+			bufferTime: 0,
+			startLevel: 0
+		}
 	});
 </script>
