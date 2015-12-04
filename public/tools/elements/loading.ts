@@ -65,7 +65,9 @@ export class GtLogin extends PolymerElement {
 	 */
 	@Listener("username.value-changed")
 	private SaveUsername() {
-		localStorage.setItem("login.username", this.$.username.value);
+		if (this.$.username.value) {
+			localStorage.setItem("login.username", this.$.username.value);
+		}
 	}
 
 	/**
