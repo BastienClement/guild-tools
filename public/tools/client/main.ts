@@ -55,6 +55,11 @@ export class Application {
 		let socket_endpoint = this.loader.fetch("/api/socket_url");
 		let body = document.body;
 
+		// Automatically replace ws:// by wss://
+		if (document.location.protocol == "https:") {
+			socket_endpoint = socket_endpoint.then(url => url.replace(/^ws:/, "wss:"));
+		}
+
 		// Connect to server and load main less file
 		await Promise.all([
 			this.loader.loadLess("/assets/less/guildtools.less"),
