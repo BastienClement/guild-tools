@@ -13,6 +13,6 @@ export class BnetThumb extends PolymerElement {
 		let alt = `wow/static/images/2d/avatar/${char.race}-${char.gender}.jpg`;
 		if (!char.thumbnail.match(/\.jpg$/))
 			return `http://eu.battle.net/${alt}`;
-		return `http://eu.battle.net/static-render/eu/${char.thumbnail}?alt=${alt}`;
+		return `https://render-api-eu.worldofwarcraft.com/static-render/eu/${char.thumbnail}?alt=${alt}`;
 	}
 }
