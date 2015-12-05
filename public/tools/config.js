@@ -25,7 +25,7 @@ var traceur_async = new Promise(function() {});
 (function() {
 	var fix_sourcemap = localStorage.getItem("traceur.sourcemap.fix") === "1";
 	var max_concurrency = 4;
-	var worker_static = 1;
+	var worker_static = 4;
 
 	var next_rid = 0;
 	var requests = new Map();
