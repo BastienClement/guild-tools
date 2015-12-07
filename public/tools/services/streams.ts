@@ -100,7 +100,7 @@ export class Streams extends Service {
 	 * Request stream ticket
 	 */
 	public requestTicket(stream: number) {
-		return this.channel.request<[string, string]>("request-ticket", stream)
+		return this.channel.request<[string, string]>("request-ticket", stream);
 	}
 
 	/**
@@ -122,6 +122,16 @@ export class Streams extends Service {
 	 */
 	public createToken() {
 		return this.channel.request<void>("create-token");
+	}
+
+	/**
+	 * Returns the list of viewers IDs for a given stream
+	 */
+	public getStreamViewers(user: number): number[] {
+		if (!this.streams_index.has(user)) return [];
+		let idx = this.streams_index.get(user);
+		let stream = this.streams[idx];
+		return Array.from(stream.viewers);
 	}
 
 	/**

@@ -2,14 +2,17 @@
 	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams">
 	<template>
 		<meta is="streams-list" [list]="streams">
-		<gt-box #live-list scrollable heading="Live Streams">
-			<gt-alert icon="pause_circle_outline" dark {hidden}="!equals(streams.length, 0)">
-				No live stream available
-			</gt-alert>
-			<div [repeat]="streams">
-				<gt-streams-item (click)="SelectStream" [stream]="item" {active}="StreamIsActive(item.user, selected)"></gt-streams-item>
-			</div>
-		</gt-box>
+		<div #left>
+			<gt-box #live-list scrollable heading="Live Streams">
+				<gt-alert icon="pause_circle_outline" dark {hidden}="!equals(streams.length, 0)">
+					No live stream available
+				</gt-alert>
+				<div [repeat]="streams">
+					<gt-streams-item (click)="SelectStream" [stream]="item" {active}="StreamIsActive(item.user, selected)"></gt-streams-item>
+				</div>
+			</gt-box>
+			<gt-streams-viewers [stream]="selected" {hidden}="!selected"></gt-streams-viewers>
+		</div>
 		<div #main-box>
 			<gt-streams-player {hide}="!selected" [stream]="selected"></gt-streams-player>
 			<div #placeholder {hide}="selected">
@@ -36,6 +39,30 @@
 				</div>
 				<i #chevron>chevron_right</i>
 			</div>
+		</gt-box>
+	</template>
+</dom-module>
+
+<!-- ////////////////////////////////////////////////////////////////////// -->
+
+<dom-module id="gt-streams-viewers">
+	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams-viewers">
+	<template>
+		<gt-box #viewers scrollable heading="Viewers">
+			<div #count>{{viewers.length}}</div>
+			<gt-streams-viewers-item [repeat]="viewers" [user]="item"></gt-streams-viewers-item>
+		</gt-box>
+	</template>
+</dom-module>
+
+<!-- ////////////////////////////////////////////////////////////////////// -->
+
+<dom-module id="gt-streams-viewers-item">
+	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams-viewers-item">
+	<template>
+		<meta is="roster-main" [user] [main]>
+		<gt-box dark>
+			<span #name {class-color}="main.class">{{main.name}}</span>
 		</gt-box>
 	</template>
 </dom-module>

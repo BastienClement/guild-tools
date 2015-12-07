@@ -8,12 +8,18 @@
 
 	@left-width: 280px;
 
-	#live-list {
+	#left {
 		position: absolute;
 		top: 0;
 		left: 0;
 		bottom: 0;
 		width: @left-width;
+		display: flex;
+		flex-direction: column;
+	}
+
+	#live-list {
+		flex: 2;
 		gt-streams-item {
 			margin-bottom: 6px;
 		}
@@ -79,7 +85,7 @@
 		&[live] #light {
 			opacity: 1.0;
 			background-color: rgba(0, 255, 0, 0.8);
-			box-shadow: 0 0 3px 0px rgba(0, 255, 0, 0.5);
+			box-shadow: 0 0 3px 0 rgba(0, 255, 0, 0.5);
 		}
 
 		padding-right: 10px;
@@ -116,6 +122,44 @@
 			opacity: 0.75;
 			color: #fff;
 		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <gt-streams-viewers>
+
+:namespace("gt-streams-viewers") {
+	:host {
+		display: block;
+	}
+
+	#viewers {
+		margin-top: 6px;
+		height: 250px;
+	}
+
+	#count {
+		position: absolute;
+		top: 9px;
+		right: 12px;
+		color: @light-blue;
+		font-weight: 300;
+		font-family: "Roboto Condensed";
+		font-size: 24px;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <gt-streams-viewers-item>
+
+:namespace("gt-streams-viewers-item") {
+	:host, gt-box {
+		display: inline-block;
+	}
+
+	gt-box {
+		padding: 2px 4px;
+		margin: 2px;
 	}
 }
 

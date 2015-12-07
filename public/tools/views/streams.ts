@@ -5,6 +5,7 @@ import { GtBox, GtAlert } from "elements/box";
 import { Streams, ActiveStream } from "services/streams";
 import { throttled, join } from "utils/async";
 import "services/roster";
+import {ActiveStream} from "../services/streams";
 
 const StreamsTabs: TabsGenerator = (view, path, user) => [
 	{ title: "Live Streams", link: "/streams", active: view == "views/streams/GtStreams" },
@@ -64,11 +65,47 @@ export class GtStreamsItem extends PolymerElement {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// <gt-streams-viewers-item>
+
+@Element("gt-streams-viewers-item", "/assets/views/streams.html")
+@Dependencies(GtBox)
+export class GtStreamsViewersItem extends PolymerElement {
+	@Property public user: number;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <gt-streams-viewers>
+
+@Element("gt-streams-viewers", "/assets/views/streams.html")
+@Dependencies(GtStreamsViewersItem, GtBox)
+export class GtStreamsViewers extends PolymerElement {
+	@Inject
+	@On({
+		"list-update": "Update",
+		"notify": "Update"
+	})
+	private service: Streams;
+
+	// The currently selected stream
+	@Property({ observer: "Update" })
+	public stream: ActiveStream;
+
+	// List of viewers for this stream
+	protected viewers: number[];
+
+	// Update the viewers list
+	protected Update() {
+		if (!this.stream) return;
+		this.viewers = this.service.getStreamViewers(this.stream.user);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // <gt-streams>
 
 @View("streams", StreamsTabs)
 @Element("gt-streams", "/assets/views/streams.html")
-@Dependencies(GtBox, GtStreamsItem, GtAlert, GtStreamsPlayer)
+@Dependencies(GtBox, GtStreamsItem, GtStreamsViewers, GtAlert, GtStreamsPlayer)
 export class GtStreams extends PolymerElement {
 	@Inject
 	@On({ "offline": "StreamOffline" })
