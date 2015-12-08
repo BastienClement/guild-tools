@@ -1,5 +1,7 @@
 package gtp3
 
+import scala.collection.mutable
+
 /**
   * Buffer pool manager
   * Allocate 64 kB buffers used during compression/decompression of WebSocket data
@@ -7,7 +9,7 @@ package gtp3
 object BufferPool {
 	type Buffer = Array[Byte]
 
-	private var buffers: List[Buffer] = Nil
+	private val buffers = mutable.Stack[Buffer]()
 	private var constructed = 0
 
 	/**
@@ -15,7 +17,7 @@ object BufferPool {
 	  * Will never allocate more than 512 buffers
 	  */
 	private def newBuffer = {
-		if (constructed > 512) throw new Exception("More than 512 buffer constructed, something is leaky!")
+		if (constructed >= 512) throw new Exception("More than 512 buffers constructed, something is leaky!")
 		else constructed += 1
 		new Array[Byte](65535)
 	}
@@ -24,13 +26,7 @@ object BufferPool {
 	  * Attempt to get a pooled Buffer.
 	  * Allocate a new one if the pool is empty.
 	  */
-	private def getBuffer = buffers match {
-		case Nil =>
-			newBuffer
-		case b :: tail =>
-			buffers = tail
-			b
-	}
+	private def getBuffer = if (buffers.isEmpty) newBuffer else buffers.pop()
 
 	/**
 	  * Execute a function in a Buffer context.
@@ -41,7 +37,7 @@ object BufferPool {
 		try {
 			fn(buf)
 		} finally {
-			synchronized { buffers = buf :: buffers }
+			synchronized { buffers.push(buf) }
 		}
 	}
 }
