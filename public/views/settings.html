@@ -1,0 +1,25 @@
+<dom-module id="gt-settings">
+	<link rel="stylesheet/less" href="/assets/less/settings.less">
+	<template>
+		<gt-box heading="GuildTools Settings" scrollable>
+			<div #layout>
+				<div #left>
+					<ul #selector>
+						<li [repeat]="tabs" {tab}="item.2" {active}="equals(tab, item.2)" (click)="SelectTab">
+							<i>{{item.1}}</i>
+							<b>{{item.0}}</b>
+						</li>
+					</ul>
+				</div>
+				<div #right>
+					<div [if]="equals(tab, 'general')">
+						General
+					</div>
+					<div [if]="equals(tab, 'advanced')">
+						Advanced
+					</div>
+				</div>
+			</div>
+		</gt-box>
+	</template>
+</dom-module>

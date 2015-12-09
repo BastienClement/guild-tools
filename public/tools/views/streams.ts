@@ -5,7 +5,6 @@ import { GtBox, GtAlert } from "elements/box";
 import { Streams, ActiveStream } from "services/streams";
 import { throttled, join } from "utils/async";
 import "services/roster";
-import {ActiveStream} from "../services/streams";
 
 const StreamsTabs: TabsGenerator = (view, path, user) => [
 	{ title: "Live Streams", link: "/streams", active: view == "views/streams/GtStreams" },

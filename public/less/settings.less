@@ -1,0 +1,61 @@
+:host {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-width: 900px;
+	min-height: 600px;
+}
+
+#layout {
+	display: flex;
+	margin: -12px;
+	width: 900px;
+	height: 550px;
+}
+
+#left {
+	width: 200px;
+	border-right: 2px solid #426585;
+
+	ul {
+		list-style: none;
+		margin: 0;
+		padding: 0 0 50px;
+	}
+
+	li {
+		border-bottom: 1px solid #426585;
+		padding: 12px;
+		transition: all .2s ease-out;
+		background: fade(@fs-blue, 5%);
+		text-transform: uppercase;
+
+		&:hover {
+			background: fade(@fs-blue, 10%);
+		}
+
+		&[active] {
+			background: fade(@fs-blue, 15%);
+		}
+
+		i {
+			margin-right: 12px;
+		}
+	}
+}
+
+#right {
+	position: relative;
+	flex: 1;
+
+	& > * {
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		overflow: scroll;
+		padding: 12px;
+		.custom-scrolls();
+	}
+}
