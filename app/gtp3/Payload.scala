@@ -1,12 +1,10 @@
 package gtp3
 
-import java.nio.charset.StandardCharsets
+import java.nio.charset.StandardCharsets.UTF_8
 import java.util.zip.Inflater
-
 import play.api.libs.json._
-import scodec.bits.ByteVector
-
 import scala.language.{higherKinds, implicitConversions}
+import scodec.bits.ByteVector
 
 object Payload {
 	// Construct a Payload from a received buffer and flags (incoming payloads)
@@ -21,7 +19,7 @@ object Payload {
 
 class Payload(val byteVector: ByteVector, val flags: Int) {
 	// Inflate a compressed buffer
-	private def inflate(input: Array[Byte]): Array[Byte] = BufferPool.withBuffer { buf =>
+	private def inflate(input: Array[Byte]): Array[Byte] = pool.withBuffer { buf =>
 		val inflater = new Inflater()
 		inflater.setInput(input)
 
@@ -46,7 +44,7 @@ class Payload(val byteVector: ByteVector, val flags: Int) {
 	// Simply convert the buffer data to String
 	lazy val string: String =
 		if (ignore) ""
-		else if (utf8_data) new String(buffer, StandardCharsets.UTF_8)
+		else if (utf8_data) new String(buffer, UTF_8)
 		else throw new Exception("Attempt to read a binary frame as text")
 
 	// Access complex JsValue from a JSON-encoded string

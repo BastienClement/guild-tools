@@ -2,24 +2,39 @@ package gtp3
 
 import scala.collection.mutable
 
+object BufferPool {
+	final val defaultLimit = 512
+	final val defaultSize = 65535
+}
+
 /**
   * Buffer pool manager
   * Allocate 64 kB buffers used during compression/decompression of WebSocket data
   */
-object BufferPool {
+class BufferPool(val limit: Int = BufferPool.defaultLimit, val size: Int = BufferPool.defaultSize) {
 	type Buffer = Array[Byte]
 
 	private val buffers = mutable.Stack[Buffer]()
 	private var constructed = 0
 
 	/**
+	  * Returns the number of constructed buffer in the pool.
+	  */
+	def count = constructed
+
+	/**
+	  * Returns the number of buffer currently available.
+	  */
+	def available = buffers.length
+
+	/**
 	  * Allocate a new buffer.
 	  * Will never allocate more than 512 buffers
 	  */
 	private def newBuffer = {
-		if (constructed >= 512) throw new Exception("More than 512 buffers constructed, something is leaky!")
+		if (constructed >= limit) throw new TooManyBuffersException
 		else constructed += 1
-		new Array[Byte](65535)
+		new Array[Byte](size)
 	}
 
 	/**

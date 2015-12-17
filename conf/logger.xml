@@ -6,16 +6,16 @@
 		</encoder>
 	</appender>
 
-	<logger name="com.jolbox.bonecp" level="DEBUG">
+	<logger name="com.jolbox.bonecp" level="INFO">
 		<appender-ref ref="STDOUT" />
 	</logger>
 
-	<logger name="play" level="DEBUG">
+	<logger name="play" level="INFO">
 		<appender-ref ref="STDOUT" />
 	</logger>
 
-	<logger name="application" level="DEBUG">
+	<logger name="application" level="INFO">
 		<appender-ref ref="STDOUT" />
 	</logger>
-	
+
 </configuration>

@@ -18,7 +18,7 @@ trait PayloadBuilderSteps {
 			if (compress && buf.length > 1200) deflate(buf, flags)
 			else passthru(buf, flags)
 
-		def deflate(buf: Array[Byte], flags: Int): Payload = BufferPool.withBuffer { output =>
+		def deflate(buf: Array[Byte], flags: Int): Payload = pool.withBuffer { output =>
 			val deflater = new Deflater()
 			deflater.setInput(buf)
 			deflater.finish()

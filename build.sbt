@@ -1,6 +1,6 @@
 name := """guild-tools"""
 
-version := "5.0"
+version := "6.0"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala, SbtWeb)
 
@@ -10,10 +10,15 @@ libraryDependencies ++= Seq(
 	jdbc,
 	cache,
 	ws,
-	"mysql" % "mysql-connector-java" % "5.1.37",
-	"com.typesafe.play" %% "play-slick" % "1.1.0",
-	"org.scodec" %% "scodec-core" % "1.8.2",
-	"org.scodec" %% "scodec-bits" % "1.0.10"
+	"mysql" % "mysql-connector-java" % "5.1.38",
+	"com.typesafe.play" %% "play-slick" % "1.1.1",
+	"org.scodec" %% "scodec-core" % "1.8.3",
+	"org.scodec" %% "scodec-bits" % "1.0.12"
+)
+
+libraryDependencies ++= Seq(
+	"org.scalatest" %% "scalatest" % "2.2.5" % "test",
+	"org.scalatestplus" %% "play" % "1.4.0-M3" % "test"
 )
 
 scalacOptions ++= Seq("-feature")

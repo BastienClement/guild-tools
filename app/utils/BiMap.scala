@@ -55,8 +55,9 @@ class BiMap[K, V] private () {
 	  * Adds a new binding to the BiMap.
 	  */
 	def put(kv: (K, V)) = {
-		key_value += kv
-		value_key += kv.swap
+		val (key, value) = kv
+		key_value.put(key, value).foreach(old_value => value_key.remove(old_value))
+		value_key.put(value, key).foreach(old_key => key_value.remove(old_key))
 	}
 
 	/**
@@ -102,4 +103,9 @@ class BiMap[K, V] private () {
 	  * Returns an iterator over the BiMap bindings
 	  */
 	def iterator: Iterator[(K, V)] = key_value.iterator
+
+	/**
+	  * Returns the size of the BiMap
+	  */
+	def size = key_value.size
 }

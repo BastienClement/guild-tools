@@ -19,4 +19,7 @@ package object gtp3 {
 		"server-status" -> ServerStatus,
 		"stream" -> Stream
 	)
+
+	class TooManyBuffersException extends Exception
+	private[gtp3] val pool = new BufferPool
 }
