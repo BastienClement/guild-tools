@@ -175,13 +175,13 @@ export class GtCheckbox extends PolymerElement {
 	 * Click generator
 	 */
 	public click() {
-		this.fire("click");
+		this.fire("tap");
 	}
 
 	/**
 	 * Click listener
 	 */
-	@Listener("click", "tap")
+	@Listener("tap")
 	private ClickEvent(e: Event) {
 		if (this.disabled) return this.stopEvent(e);
 		else if (this.value) this.radio = this.castValue();
