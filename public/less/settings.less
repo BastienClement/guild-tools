@@ -15,7 +15,7 @@
 
 #left {
 	width: 200px;
-	border-right: 2px solid #426585;
+	border-right: 2px solid fade(#426585, 50%);
 
 	ul {
 		list-style: none;
@@ -28,7 +28,6 @@
 		padding: 12px;
 		transition: all .2s ease-out;
 		background: fade(@fs-blue, 5%);
-		text-transform: uppercase;
 
 		&:hover {
 			background: fade(@fs-blue, 10%);
@@ -47,6 +46,7 @@
 #right {
 	position: relative;
 	flex: 1;
+	background: rgba(17,17,17,0.10);
 
 	& > * {
 		position: absolute;
