@@ -13,10 +13,26 @@
 				</div>
 				<div #right>
 					<div [if]="equals(tab, 'general')">
-						General
+						<h2>General settings</h2>
 					</div>
 					<div [if]="equals(tab, 'advanced')">
-						Advanced
+						<h2>Streaming</h2>
+						<gt-label>
+							<gt-checkbox [checked]="streams_zerolatency" (tap)="ToggleLocalStorage" key="streams.zerolatency"></gt-checkbox> Disable playback buffering [NYI]
+							<p>This may drastically reduce playback quality and cause freezes, rollbacks and artifacts.</p>
+						</gt-label>
+
+						<h2>Developer settings</h2>
+						<!--<p .help>These settings are specific to your current computer and will be cleared if you delete local browser data.</p>-->
+						<gt-label>
+							<gt-checkbox [checked]="faster_loading" (tap)="ToggleLocalStorage" key="loading.fast"></gt-checkbox> Enable faster loading
+						</gt-label>
+						<gt-label>
+							<gt-checkbox [checked]="verbose_gtp3" (tap)="ToggleLocalStorage" key="socket.verbose"></gt-checkbox> Enable GTP3 debug mode
+						</gt-label>
+						<gt-label>
+							<gt-checkbox [checked]="sourcemap_fix" (tap)="ToggleLocalStorage" key="traceur.sourcemap.fix"></gt-checkbox> Enable source-maps generation
+						</gt-label>
 					</div>
 				</div>
 			</div>
