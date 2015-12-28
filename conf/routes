@@ -3,54 +3,55 @@
 # ~~~~
 
 # Static assets
-GET         /assets/*file                  controllers.Assets.versioned(path="/public", file: Asset)
+GET         /assets/*file                     controllers.Assets.versioned(path="/public", file: Asset)
 
 # Main client pages and GTP3 socket listener
-GET         /                              controllers.GtApplication.client
-GET         /gtp3                          controllers.GtApplication.gtp3
+GET         /                                 controllers.GtApplication.client
+GET         /gtp3                             controllers.GtApplication.gtp3
 
 # WebTools
-GET         /wt/                           controllers.webtools.WebTools.main
+GET         /wt/                              controllers.webtools.WebTools.main
 
-GET         /wt/profile                    controllers.webtools.ProfileController.profile
+GET         /wt/profile                       controllers.webtools.ProfileController.profile
 
-GET         /wt/wishlist                   controllers.webtools.WishlistController.wishlist
-POST        /wt/wishlist                   controllers.webtools.WishlistController.wishlistSave
-GET         /wt/wishlist/:boss             controllers.webtools.WishlistController.wishlistBoss(boss)
+GET         /wt/wishlist                      controllers.webtools.WishlistController.wishlist
+POST        /wt/wishlist                      controllers.webtools.WishlistController.wishlistSave
+GET         /wt/wishlist/:boss                controllers.webtools.WishlistController.wishlistBoss(boss)
 
-GET         /wt/application                controllers.webtools.ApplicationController.dispatch
-GET         /wt/application/step1          controllers.webtools.ApplicationController.step1
-GET         /wt/application/step2          controllers.webtools.ApplicationController.step2
-POST        /wt/application/step2          controllers.webtools.ApplicationController.submit
-GET         /wt/application/step3          controllers.webtools.ApplicationController.step3
-GET         /wt/application/step4          controllers.webtools.ApplicationController.step4
-GET         /wt/application/step5          controllers.webtools.ApplicationController.step5
-GET         /wt/application/step6          controllers.webtools.ApplicationController.step6
-GET         /wt/application/member         controllers.webtools.ApplicationController.member
-GET         /wt/application/charter        controllers.webtools.ApplicationController.charter
+GET         /wt/application                   controllers.webtools.ApplicationController.dispatch
+GET         /wt/application/step1             controllers.webtools.ApplicationController.step1
+GET         /wt/application/step2             controllers.webtools.ApplicationController.step2
+POST        /wt/application/step2             controllers.webtools.ApplicationController.submit
+GET         /wt/application/step3             controllers.webtools.ApplicationController.step3
+GET         /wt/application/step4             controllers.webtools.ApplicationController.step4
+GET         /wt/application/step5             controllers.webtools.ApplicationController.step5
+GET         /wt/application/step6             controllers.webtools.ApplicationController.step6
+GET         /wt/application/member            controllers.webtools.ApplicationController.member
+GET         /wt/application/charter           controllers.webtools.ApplicationController.charter
 
-GET         /wt/*path                      controllers.webtools.WebTools.catchall(path)
+GET         /wt/calendar/unread_events        controllers.webtools.CalendarController.unread_events
+GET         /wt/*path                         controllers.webtools.WebTools.catchall(path)
 
 # REST API
-POST        /api/bugsack                   controllers.Api.bugsack
-GET         /api/socket_url                controllers.Api.socketURL
-GET         /api/*path                     controllers.Api.catchall(path)
+POST        /api/bugsack                      controllers.Api.bugsack
+GET         /api/socket_url                   controllers.Api.socketURL
+GET         /api/*path                        controllers.Api.catchall(path)
 
 # Streaming API
-POST        /api/live/connect              controllers.Live.connect
-POST        /api/live/close                controllers.Live.close
-POST        /api/live/play                 controllers.Live.play
-POST        /api/live/publish              controllers.Live.publish
-POST        /api/live/stop                 controllers.Live.stop
-POST        /api/live/unpublish            controllers.Live.unpublish
+POST        /api/live/connect                 controllers.Live.connect
+POST        /api/live/close                   controllers.Live.close
+POST        /api/live/play                    controllers.Live.play
+POST        /api/live/publish                 controllers.Live.publish
+POST        /api/live/stop                    controllers.Live.stop
+POST        /api/live/unpublish               controllers.Live.unpublish
 
 # Simple pages
-GET         /unsupported                   controllers.GtApplication.unsupported
-GET         /clappr/proxy/:file            controllers.Live.clappr_proxy(file)
-GET         /clappr/:stream                controllers.Live.clappr(stream)
+GET         /unsupported                      controllers.GtApplication.unsupported
+GET         /clappr/proxy/:file               controllers.Live.clappr_proxy(file)
+GET         /clappr/:stream                   controllers.Live.clappr(stream)
 
 # Pings
-GET         /ping/dashboard/feed           controllers.Ping.dashboardFeed
+GET         /ping/dashboard/feed              controllers.Ping.dashboardFeed
 
 # Catch all
-GET         /*path                         controllers.GtApplication.catchall(path)
+GET         /*path                            controllers.GtApplication.catchall(path)

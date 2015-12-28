@@ -1,0 +1,28 @@
+package controllers.webtools
+
+import models._
+import models.mysql._
+import play.api.mvc.Controller
+import reactive.ExecutionContext
+import scala.concurrent.Future
+
+class CalendarController extends Controller with WtController {
+	def unread_events = UserAction.async { req =>
+		if (req.user.roster) {
+			val query =
+				sql"""
+				SELECT COUNT(*)
+				FROM gt_events AS e
+				JOIN phpbb_users AS u ON u.user_id = ${req.user.id }
+				LEFT JOIN gt_answers AS a ON e.id = a.event AND a.user = u.user_id
+				WHERE e.date >= NOW() AND e.garbage = 0 AND (
+					(e.type IN (1, 2, 4) AND a.answer IS NULL)
+		         OR (e.type = 3 AND a.answer = 0)
+		      )
+			"""
+			query.as[Int].head.run.map(count => Ok(count.toString))
+		} else {
+			Future.successful(Ok("0"))
+		}
+	}
+}
