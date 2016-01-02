@@ -1,0 +1,239 @@
+<dom-module id="gt-roster">
+	<link rel="stylesheet/less" href="/assets/less/roster.less" ns="gt-roster">
+	<template>
+		<div #layout>
+			<gt-box #search-box>
+				<div #search-layout>
+					<i>search</i>
+					<input #search type="text" spellcheck="false" (keyup)="UpdateSearch">
+					<gt-button {active}="show_filters" (tap)="ToggleFilters">
+						<i>filter_list</i>
+						Filters
+					</gt-button>
+				</div>
+			</gt-box>
+			<div #bottom-layout>
+				<gt-box #main-box heading="Guild Roster" scrollable>
+					<div #roster-view-opt>
+						<gt-button {active}="equals(view_mode, 'grid')" (tap)="ViewGrid" collapse-right><i>apps</i> Grid view</gt-button>
+						<gt-button {active}="equals(view_mode, 'list')" (tap)="ViewList" collapse-right><i>menu</i> List view</gt-button>
+					</div>
+					Lorem ipsum dolores sit amet.
+				</gt-box>
+				<gt-roster-filters #filters-box {visible}="show_filters" [filters]></gt-roster-filters>
+			</div>
+		</div>
+	</template>
+</dom-module>
+
+<dom-module id="gt-roster-filters">
+	<link rel="stylesheet/less" href="/assets/less/roster.less" ns="gt-roster-filters">
+	<template>
+		<gt-box heading="Filters" scrollable {visible}="show_filters">
+			<gt-roster-filters-dropdown icon="star" title="Guild rank">
+				<gt-label>
+					<gt-checkbox [checked]="rank_officer" (tap)="Update"></gt-checkbox> Officer
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="rank_member" (tap)="Update"></gt-checkbox> Member
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="rank_apply" (tap)="Update"></gt-checkbox> Apply
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="rank_casual" (tap)="Update"></gt-checkbox> Casual
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="rank_veteran" (tap)="Update"></gt-checkbox> Veteran
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="rank_guest" (tap)="Update"></gt-checkbox> Guest
+				</gt-label>
+			</gt-roster-filters-dropdown>
+
+			<gt-roster-filters-dropdown icon="filter_tilt_shift" title="Character class">
+				<gt-label>
+					<gt-checkbox [checked]="class_warrior" (tap)="Update"></gt-checkbox> <span class-color="1">Warrior</span>
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="class_paladin" (tap)="Update"></gt-checkbox> <span class-color="2">Paladin</span>
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="class_hunter" (tap)="Update"></gt-checkbox> <span class-color="3">Hunter</span>
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="class_rogue" (tap)="Update"></gt-checkbox> <span class-color="4">Rogue</span>
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="class_priest" (tap)="Update"></gt-checkbox> <span class-color="5">Priest</span>
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="class_dk" (tap)="Update"></gt-checkbox> <span class-color="6">Death Knight</span>
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="class_shaman" (tap)="Update"></gt-checkbox> <span class-color="7">Shaman</span>
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="class_mage" (tap)="Update"></gt-checkbox> <span class-color="8">Mage</span>
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="class_warlock" (tap)="Update"></gt-checkbox> <span class-color="9">Warlock</span>
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="class_monk" (tap)="Update"></gt-checkbox> <span class-color="10">Monk</span>
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="class_druid" (tap)="Update"></gt-checkbox> <span class-color="11">Druid</span>
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="class_dh" (tap)="Update"></gt-checkbox> <span class-color="12">Demon Hunter</span>
+				</gt-label>
+			</gt-roster-filters-dropdown>
+
+			<gt-roster-filters-dropdown icon="adjust" title="Character race">
+				<gt-label>
+					<gt-checkbox [checked]="race_orc" (tap)="Update"></gt-checkbox> Orc
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="race_human" (tap)="Update"></gt-checkbox> Human
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="race_undead" (tap)="Update"></gt-checkbox> Undead
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="race_dwarf" (tap)="Update"></gt-checkbox> Dwarf
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="race_tauren" (tap)="Update"></gt-checkbox> Tauren
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="race_ne" (tap)="Update"></gt-checkbox> Night Elf
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="race_troll" (tap)="Update"></gt-checkbox> Troll
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="race_gnome" (tap)="Update"></gt-checkbox> Gnome
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="race_be" (tap)="Update"></gt-checkbox> Blood Elf
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="race_draenei" (tap)="Update"></gt-checkbox> Draenei
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="race_goblin" (tap)="Update"></gt-checkbox> Goblin
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="race_worgen" (tap)="Update"></gt-checkbox> Worgen
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="race_pandaren" (tap)="Update"></gt-checkbox> Pandaren
+				</gt-label>
+			</gt-roster-filters-dropdown>
+
+			<gt-roster-filters-dropdown icon="trending_up" title="Character level">
+				<gt-label>
+					<gt-checkbox [checked]="level_1_99" (tap)="Update"></gt-checkbox> 1 - 99
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="level_100" (tap)="Update"></gt-checkbox> 100
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="level_101_109" (tap)="Update"></gt-checkbox> 101 - 109
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="level_110" (tap)="Update"></gt-checkbox> 110
+				</gt-label>
+			</gt-roster-filters-dropdown>
+
+			<gt-roster-filters-dropdown icon="poll" title="Character item-level">
+				<gt-label>
+					<gt-checkbox [checked]="ilvl_0_699" (tap)="Update"></gt-checkbox> 0 - 699
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="ilvl_700_714" (tap)="Update"></gt-checkbox> 700 - 714
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="ilvl_715_729" (tap)="Update"></gt-checkbox> 715- 729
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="ilvl_730_plus" (tap)="Update"></gt-checkbox> 730+
+				</gt-label>
+			</gt-roster-filters-dropdown>
+
+			<gt-roster-filters-dropdown icon="whatshot" title="Character role">
+				<gt-label>
+					<gt-checkbox [checked]="role_tank" (tap)="Update"></gt-checkbox> Tank
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="role_healer" (tap)="Update"></gt-checkbox> Healer
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="role_dps" (tap)="Update"></gt-checkbox> Melee
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="role_dps" (tap)="Update"></gt-checkbox> Ranged
+				</gt-label>
+			</gt-roster-filters-dropdown>
+
+			<gt-roster-filters-dropdown icon="local_offer" title="Character armor type">
+				<gt-label>
+					<gt-checkbox [checked]="armor_cloth" (tap)="Update"></gt-checkbox> Cloth
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="armor_leather" (tap)="Update"></gt-checkbox> Leather
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="armor_mail" (tap)="Update"></gt-checkbox> Mail
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="armor_plate" (tap)="Update"></gt-checkbox> Plate
+				</gt-label>
+			</gt-roster-filters-dropdown>
+
+			<gt-roster-filters-dropdown icon="flag" title="Character attribute">
+				<gt-label>
+					<gt-checkbox [checked]="flag_main" (tap)="Update"></gt-checkbox> Main
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="flag_alt" (tap)="Update"></gt-checkbox> Alt
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="flag_active" (tap)="Update"></gt-checkbox> Active
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="flag_inactive" (tap)="Update"></gt-checkbox> Inactive
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="flag_valid" (tap)="Update"></gt-checkbox> Valid
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="flag_invalid" (tap)="Update"></gt-checkbox> Invalid
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="flag_guilded" (tap)="Update"></gt-checkbox> Guilded
+				</gt-label>
+				<gt-label>
+					<gt-checkbox [checked]="flag_unguilded" (tap)="Update"></gt-checkbox> Unguilded
+				</gt-label>
+			</gt-roster-filters-dropdown>
+		</gt-box>
+	</template>
+</dom-module>
+
+
+<dom-module id="gt-roster-filters-dropdown">
+	<link rel="stylesheet/less" href="/assets/less/roster.less" ns="gt-roster-filters-dropdown">
+	<template>
+		<h3 (tap)="Toggle">
+			<i {hidden}="!open">keyboard_arrow_down</i>
+			<i {hidden}="open">keyboard_arrow_right</i>
+			<i #icon>{{icon}}</i>
+			<b>{{title}}</b>
+		</h3>
+		<div #content {hidden}="!open">
+			<content></content>
+		</div>
+	</template>
+</dom-module>

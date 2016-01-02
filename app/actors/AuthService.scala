@@ -40,6 +40,7 @@ object AuthService extends StaticActor[AuthService, AuthServiceImpl]("AuthServic
 	  * Cache of users corresponding to session tokens.
 	  */
 	val userForSession = Cache.async[String, User](15.seconds) { token =>
+		Sessions.filter(_.token === token).map(_.last_access).update(SmartTimestamp.now).run
 		val query = for {
 			session <- Sessions.filter(_.token === token).result.head
 			user <- Users.filter(_.id === session.user).result.head

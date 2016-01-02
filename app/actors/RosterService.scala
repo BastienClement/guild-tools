@@ -21,7 +21,7 @@ trait RosterService extends PubSub[User] {
 	// Cache of in-roster users
 	private val users = CacheCell.async[Map[Int, User]](1.minute) {
 		val query = for {
-			user <- Users if user.group inSet AuthService.allowed_groups
+			user <- Users if user.group inSet AuthService.fromscratch_groups
 		} yield user.id -> user
 		query.run.map(s => s.toMap)
 	}
@@ -33,7 +33,7 @@ trait RosterService extends PubSub[User] {
 
 	// List of chars for a roster member
 	val roster_chars = CacheCell.async[Map[Int, Seq[Char]]](1.minutes) {
-		val users = for (user <- Users if user.group inSet AuthService.allowed_groups) yield user.id
+		val users = for (user <- Users if user.group inSet AuthService.fromscratch_groups) yield user.id
 		val chars = for (char <- Chars.sortBy(c => (c.main.desc, c.active.desc, c.level.desc, c.ilvl.desc)) if char.owner.in(users)) yield char
 		chars.run.map(_.groupBy(_.owner))
 	}

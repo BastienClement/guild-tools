@@ -1,0 +1,141 @@
+///////////////////////////////////////////////////////////////////////////////
+// <gt-roster>
+
+:namespace("gt-roster") {
+	#layout {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		overflow: hidden;
+	}
+
+	#search-box {
+		padding: 6px 12px 6px 12px;
+		height: 50px;
+		flex: none;
+
+		#search-layout {
+			display: flex;
+			align-items: center;
+
+			& > i {
+				font-size: 19px;
+				margin-right: 12px;
+				margin-top: 2px;
+			}
+
+			input {
+				margin: 0;
+				padding: 6px;
+				background: rgba(17, 17, 17, 0.15);
+				outline: none;
+				color: #fff;
+				flex: 1;
+				border: 1px solid rgba(17, 17, 17, 0.1);
+				font: 400 14px "Roboto Mono";
+			}
+
+			& > gt-button {
+				margin-left: 12px;
+				transition: all .2s ease-out;
+				&[active] { color: #fff; }
+				&:not([active]):not(:hover) { opacity: 0.5; }
+			}
+		}
+	}
+
+	#bottom-layout {
+		margin-top: 6px;
+		flex: 1;
+		display: flex;
+	}
+
+	#main-box {
+		flex: 1;
+	}
+
+	#roster-view-opt {
+		position: absolute;
+		top: 6px;
+		right: 6px;
+
+		i {
+			font-size: 15px;
+		}
+
+		gt-button {
+			transition: all .2s ease-out;
+			&[active]:hover { color: #fff; }
+			&:not([active]) {
+				opacity: 0.5;
+				&:hover { opacity: 1; }
+			}
+		}
+	}
+
+	#filters-box {
+		margin-left: 6px;
+		width: 350px;
+		transition: all .3s ease-out;
+
+		&:not([visible]) {
+			margin-right: -356px;
+			opacity: 0;
+			transform: translateX(50px);
+		}
+	}
+}
+
+:namespace("gt-roster-filters") {
+	:host {
+		display: block;
+		position: relative;
+	}
+
+	gt-box {
+		.pos(absolute);
+	}
+
+	gt-roster-filters-dropdown:first-child {
+		margin-top: 4px;
+	}
+
+	gt-roster-filters-dropdown:not(:first-child) {
+		margin-top: 16px;
+	}
+
+	gt-label {
+		display: inline-block;
+		margin-top: 6px;
+		width: 48%;
+	}
+
+	gt-checkbox {
+		margin-right: 6px;
+	}
+}
+
+:namespace("gt-roster-filters-dropdown") {
+	:host {
+		display: block;
+	}
+
+	h3 {
+		font: 500 14px Roboto;
+		margin: 0 0 4px 0;
+
+		i {
+			margin-right: 2px;
+			font-size: 18px;
+			color: @light-blue;
+		}
+
+		i#icon {
+			margin-right: 6px;
+		}
+	}
+
+	#content {
+		padding-left: 24px;
+	}
+}
