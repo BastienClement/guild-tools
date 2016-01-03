@@ -4,7 +4,7 @@ import { GtBox } from "elements/box";
 import { GtInput, GtButton, GtCheckbox, GtLabel } from "elements/widgets";
 import { GtDialog } from "elements/dialog";
 import { Server } from "client/server";
-import { User, Roster } from "services/roster";
+import { User, Char, Roster } from "services/roster";
 
 const RosterTabs: TabsGenerator = (view, path, user) => [
 	{ title: "Roster", link: "/roster", active: view == "views/roster/GtRoster" }
@@ -163,17 +163,33 @@ export class GtRoster extends PolymerElement {
 	/**
 	 * Current display mode
 	 */
-	private view_mode = "grid";
+	private view_mode = "stars";
 
-	/**
-	 * Enables grid view mode
-	 */
+	private ViewStars() {
+		this.view_mode = "stars";
+		this.$.search.value = "";
+		this.UpdateSearch(true);
+	}
 	private ViewGrid() { this.view_mode = "grid"; }
+	private ViewList() { this.view_mode = "list"; }
 
 	/**
-	 * Enables list view mode
+	 * Roster entries
 	 */
-	private ViewList() { this.view_mode = "list"; }
+	private members: [User, Char[]][] = [];
+
+	/**
+	 * The raw search string
+	 */
+	public raw_search: string = "";
+
+	/**
+	 * Indicates if a filter is currently defined
+	 */
+	@Property({ computed: "raw_search" })
+	private get has_search(): boolean {
+		return this.raw_search.trim().length > 0;
+	}
 
 	/**
 	 * Should the filters panel be displayed
@@ -205,16 +221,20 @@ export class GtRoster extends PolymerElement {
 			value = value.length > 0 ? `${value} ${this.filters}` : this.filters;
 		}
 		search_field.value = value;
-		this.UpdateSearch();
+		this.UpdateSearch(true);
 	}
 
 	/**
 	 * The search field was modified, refresh the roster view
 	 */
-	private UpdateSearch() {
+	private UpdateSearch(instant: boolean = false) {
+		let query = this.$.search.value;
+		this.raw_search = query;
+		if (this.has_search && this.view_mode == "stars") {
+			this.ViewGrid();
+		}
 		this.debounce("UpdateSearch", () => {
-			let query = this.$.search.value;
-			console.log(this.roster.executeQuery(query));
-		}, 250);
+			this.members = this.roster.executeQuery(query);
+		}, instant ? void 0 : 250);
 	}
 }

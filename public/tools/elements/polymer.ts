@@ -463,11 +463,10 @@ export function Element(selector: string, template?: string, ext?: string) {
 		}
 
 		// Transpose static members on the proxy function
-		for (let key in target) {
-			if (target.hasOwnProperty(key)) {
-				proxy[key] = (<PolymerProxy<T>> target)[key];
-			}
-		}
+		Object.getOwnPropertyNames(target).forEach(prop => {
+			let desc = Object.getOwnPropertyDescriptor(target, prop);
+			Object.defineProperty(proxy, prop, desc);
+		});
 
 		// There is no attached template, load the element as soon as polymer is loaded
 		if (!template) {
@@ -491,6 +490,7 @@ export function Provider(selector: string) {
 export function Dependencies(...dependencies: (Constructor<any> | { prototype: Service })[]) {
 	return <T extends PolymerElement>(target: Constructor<T>) => {
 		const meta: PolymerMetadata<T> = Reflect.getMetadata("polymer:meta", target) || <any>{};
+		//noinspection TypeScriptUnresolvedVariable
 		meta.dependencies = <any> dependencies.filter(d => !(d.prototype instanceof Service));
 		Reflect.defineMetadata("polymer:meta", meta, target);
 	};

@@ -13,13 +13,34 @@
 				</div>
 			</gt-box>
 			<div #bottom-layout>
-				<gt-box #main-box heading="Guild Roster" scrollable>
-					<div #roster-view-opt>
-						<gt-button {active}="equals(view_mode, 'grid')" (tap)="ViewGrid" collapse-right><i>apps</i> Grid view</gt-button>
-						<gt-button {active}="equals(view_mode, 'list')" (tap)="ViewList" collapse-right><i>menu</i> List view</gt-button>
-					</div>
-					Lorem ipsum dolores sit amet.
-				</gt-box>
+				<div #main-box>
+					<gt-box heading="From Scratch" scrollable {view}>
+						<div #roster-view-opt>
+							<gt-button {active}="equals(view_mode, 'stars')" (tap)="ViewStars" collapse-right><i>star</i> Roster view</gt-button>
+							<gt-button {active}="equals(view_mode, 'grid')" (tap)="ViewGrid" collapse-right><i>apps</i> Grid view</gt-button>
+							<gt-button {active}="equals(view_mode, 'list')" (tap)="ViewList" collapse-right><i>menu</i> List view</gt-button>
+						</div>
+						<div [if]="!equals(view_mode, 'stars')">
+							<div [repeat]="members">
+								<b>{{item.0.name}}</b>
+							</div>
+						</div>
+						<div #allstars [if]="equals(view_mode, 'stars')">
+							<gt-box dark>
+								<h3><img src="/assets/images/roles/TANK.png"> Tanks</h3>
+							</gt-box>
+							<gt-box dark>
+								<h3><img src="/assets/images/roles/HEALING.png"> Healers</h3>
+							</gt-box>
+							<gt-box dark>
+								<h3><img src="/assets/images/roles/DPS.png"> DPS</h3>
+							</gt-box>
+						</div>
+						<div #empty [if]="equals(members.length, 0)">
+							Empty...
+						</div>
+					</gt-box>
+				</div>
 				<gt-roster-filters #filters-box {visible}="show_filters" [filters]></gt-roster-filters>
 			</div>
 		</div>

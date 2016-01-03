@@ -60,11 +60,11 @@ const compile_filters: FilterFactory = (defs: FilterDefinition[]) => {
 	let char_filters: CharPredicate[] = [];
 
 	// Constructs a filter accepting multiple comma-separated alternatives
-	type NameProvider<T> = { name(arg: T): string };
+	type NameProvider<T> = { humanize(arg: T): string };
 	const provider_filter = <T, U>(arg: string, provider: NameProvider<T>, category: Predicate<U>[], extractor: (s: U) => T) => {
 		// Transform alternatives string to array of predicate functions
 		let filters = arg.split(",").map((option: string) => {
-			return (arg: T) =>  provider.name(arg).toLowerCase().replace(" ", "") == option;
+			return (arg: T) =>  provider.humanize(arg).toLowerCase().replace(" ", "") == option;
 		});
 
 		// Register the overall filter
@@ -465,8 +465,16 @@ export class Roster extends Service {
 		});
 
 		let filters = compile_filters(filter_defs);
+		let results: [User, Char[]][] = [];
 
-		return [filters, query];
+		this.users.forEach(user => {
+			let matching_chars = filters(user);
+			if (matching_chars.length > 0) {
+				results.push([user.infos, matching_chars]);
+			}
+		});
+
+		return results;
 	}
 }
 
@@ -600,7 +608,7 @@ class ClassProvider extends PolymerElement {
 	@Property({ notify: true })
 	public name: string;
 
-	public static name(id: number): string {
+	public static humanize(id: number): string {
 		switch (id) {
 			case 1: return "Warrior";
 			case 2: return "Paladin";
@@ -618,7 +626,7 @@ class ClassProvider extends PolymerElement {
 	}
 
 	public update() {
-		this.name = ClassProvider.name(this.id);
+		this.name = ClassProvider.humanize(this.id);
 	}
 }
 
@@ -633,7 +641,7 @@ class RaceProvider extends PolymerElement {
 	@Property({ notify: true })
 	public name: string;
 
-	public static name(id: number): string {
+	public static humanize(id: number): string {
 		switch (id) {
 			case 1: return "Human";
 			case 2: return "Orc";
@@ -654,7 +662,7 @@ class RaceProvider extends PolymerElement {
 	}
 
 	public update() {
-		this.name = RaceProvider.name(this.id);
+		this.name = RaceProvider.humanize(this.id);
 	}
 }
 
@@ -669,7 +677,7 @@ class RankProvider extends PolymerElement {
 	@Property({ notify: true })
 	public name: string;
 
-	public static name(id: number): string {
+	public static humanize(id: number): string {
 		switch (id) {
 			case 10: return "Guest";
 			case 12: return "Casual";
@@ -682,6 +690,6 @@ class RankProvider extends PolymerElement {
 	}
 
 	public update() {
-		this.name = RankProvider.name(this.id);
+		this.name = RankProvider.humanize(this.id);
 	}
 }
