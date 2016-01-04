@@ -16,25 +16,32 @@
 				<div #main-box>
 					<gt-box heading="From Scratch" scrollable {view}>
 						<div #roster-view-opt>
-							<gt-button {active}="equals(view_mode, 'stars')" (tap)="ViewStars" collapse-right><i>star</i> Roster view</gt-button>
+							<!--<gt-button {active}="equals(view_mode, 'stars')" (tap)="ViewStars" collapse-right><i>star</i> Roster view</gt-button>-->
 							<gt-button {active}="equals(view_mode, 'grid')" (tap)="ViewGrid" collapse-right><i>apps</i> Grid view</gt-button>
-							<gt-button {active}="equals(view_mode, 'list')" (tap)="ViewList" collapse-right><i>menu</i> List view</gt-button>
+							<!--<gt-button {active}="equals(view_mode, 'list')" (tap)="ViewList" collapse-right><i>menu</i> List view</gt-button>-->
 						</div>
-						<div [if]="!equals(view_mode, 'stars')">
-							<div [repeat]="members">
-								<b>{{item.0.name}}</b>
-							</div>
+						<div #results [if]="!equals(view_mode, 'stars')">
+							<gt-roster-item [repeat]="results" {view}="view_mode" [data]="item"></gt-roster-item>
+							<div .placeholder></div>
+							<div .placeholder></div>
+							<div .placeholder></div>
+							<div .placeholder></div>
+							<div .placeholder></div>
+							<div .placeholder></div>
+							<div .placeholder></div>
+							<div .placeholder></div>
+							<div .placeholder></div>
 						</div>
 						<div #allstars [if]="equals(view_mode, 'stars')">
-							<gt-box dark>
+							<div>
 								<h3><img src="/assets/images/roles/TANK.png"> Tanks</h3>
-							</gt-box>
-							<gt-box dark>
+							</div>
+							<div>
 								<h3><img src="/assets/images/roles/HEALING.png"> Healers</h3>
-							</gt-box>
-							<gt-box dark>
+							</div>
+							<div>
 								<h3><img src="/assets/images/roles/DPS.png"> DPS</h3>
-							</gt-box>
+							</div>
 						</div>
 						<div #empty [if]="equals(members.length, 0)">
 							Empty...
@@ -243,7 +250,6 @@
 	</template>
 </dom-module>
 
-
 <dom-module id="gt-roster-filters-dropdown">
 	<link rel="stylesheet/less" href="/assets/less/roster.less" ns="gt-roster-filters-dropdown">
 	<template>
@@ -256,5 +262,25 @@
 		<div #content {hidden}="!open">
 			<content></content>
 		</div>
+	</template>
+</dom-module>
+
+<dom-module id="gt-roster-item">
+	<link rel="stylesheet/less" href="/assets/less/roster.less" ns="gt-roster-item">
+	<template>
+		<gt-box dark>
+			<div #name>
+				<b {class-color}="data.main.class">{{data.main.name}}</b>
+			</div>
+			<bnet-thumb [char]="data.main"></bnet-thumb>
+			<div #chars>
+				<div .char [repeat]="alts_list">
+					<b .name {class-color}="item.class">{{item.name}}</b>
+					<span .infos>
+						<b>{{item.level}}</b> (<b>{{item.ilvl}}</b>)
+					</span>
+				</div>
+			</div>
+		</gt-box>
 	</template>
 </dom-module>

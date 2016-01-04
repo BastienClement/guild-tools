@@ -2,9 +2,10 @@ import { Element, Dependencies, PolymerElement, Inject, Property, PolymerModelEv
 import { View, TabsGenerator } from "elements/app";
 import { GtBox } from "elements/box";
 import { GtInput, GtButton, GtCheckbox, GtLabel } from "elements/widgets";
+import { BnetThumb } from "elements/bnet";
 import { GtDialog } from "elements/dialog";
 import { Server } from "client/server";
-import { User, Char, Roster } from "services/roster";
+import { User, Char, QueryResult,Roster } from "services/roster";
 
 const RosterTabs: TabsGenerator = (view, path, user) => [
 	{ title: "Roster", link: "/roster", active: view == "views/roster/GtRoster" }
@@ -151,11 +152,26 @@ export class GtRosterFilters extends PolymerElement {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// <gt-roster-filters>
+
+@Element("gt-roster-item", "/assets/views/roster.html")
+@Dependencies(GtBox, BnetThumb)
+export class GtRosterItem extends PolymerElement {
+	@Property
+	public data: QueryResult;
+
+	@Property({ computed: "data.chars" })
+	public get alts_list(): Char[] {
+		return this.data.chars.slice(0, 5);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // <gt-roster>
 
 @View("roster", RosterTabs)
 @Element("gt-roster", "/assets/views/roster.html")
-@Dependencies(GtBox, GtButton, GtCheckbox, GtLabel, GtRosterFilters)
+@Dependencies(GtBox, GtButton, GtCheckbox, GtLabel, GtRosterFilters, GtRosterItem)
 export class GtRoster extends PolymerElement {
 	@Inject
 	private roster: Roster;
@@ -163,7 +179,8 @@ export class GtRoster extends PolymerElement {
 	/**
 	 * Current display mode
 	 */
-	private view_mode = "stars";
+	@Property({ observer: "PersistViewMode" })
+	private view_mode = GtRoster.StoredViewMode();
 
 	private ViewStars() {
 		this.view_mode = "stars";
@@ -173,10 +190,25 @@ export class GtRoster extends PolymerElement {
 	private ViewGrid() { this.view_mode = "grid"; }
 	private ViewList() { this.view_mode = "list"; }
 
+	private PersistViewMode() {
+		localStorage.setItem("roster.viewmode", this.view_mode);
+	}
+
+	private static StoredViewMode() {
+		let stored = localStorage.getItem("roster.viewmode");
+		switch (stored) {
+			case "grid":
+			case "list":
+				return stored;
+			default:
+				return "grid";
+		}
+	}
+
 	/**
 	 * Roster entries
 	 */
-	private members: [User, Char[]][] = [];
+	private results: QueryResult[] = [];
 
 	/**
 	 * The raw search string
@@ -234,7 +266,7 @@ export class GtRoster extends PolymerElement {
 			this.ViewGrid();
 		}
 		this.debounce("UpdateSearch", () => {
-			this.members = this.roster.executeQuery(query);
+			this.results = this.roster.executeQuery(query);
 		}, instant ? void 0 : 250);
 	}
 }

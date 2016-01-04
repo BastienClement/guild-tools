@@ -42,6 +42,12 @@ interface UserRecord {
 	fake: boolean;
 }
 
+export type QueryResult = {
+	user: User,
+	main: Char,
+	chars: Char[]
+};
+
 /**
  * Filtering types
  */
@@ -457,22 +463,28 @@ export class Roster extends Service {
 
 	// --- Query -------------------------------------------------------------
 
-	public executeQuery(query: string) {
+	public executeQuery(query: string): QueryResult[] {
 		let filter_defs: [string, string][] = [];
-		query = query.replace(/\s*([a-z]+):([^\s]+)\s*/g, function(_, filter, arg) {
+		let search_query = query.replace(/\s*([a-z]+):([^\s]+)\s*/g, function(_, filter, arg) {
 			filter_defs.push([filter, arg]);
 			return "";
 		});
 
 		let filters = compile_filters(filter_defs);
-		let results: [User, Char[]][] = [];
+		let results: QueryResult[] = [];
 
 		this.users.forEach(user => {
 			let matching_chars = filters(user);
 			if (matching_chars.length > 0) {
-				results.push([user.infos, matching_chars]);
+				results.push({
+					user: user.infos,
+					main: this.getMainCharacter(user.infos.id),
+					chars: matching_chars
+				});
 			}
 		});
+
+		results.sort((a, b) => a.user.name.toLowerCase().localeCompare(b.user.name.toLowerCase()));
 
 		return results;
 	}

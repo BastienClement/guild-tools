@@ -87,9 +87,24 @@
 		}
 	}
 
+	#results {
+		display: flex;
+		flex-wrap: wrap;
+		margin-top: -6px;
+		margin-left: -6px;
+
+		gt-roster-item, .placeholder {
+			flex: 1;
+			min-width: 250px;
+			max-width: 350px;
+			margin-top: 6px;
+			margin-left: 6px;
+		}
+	}
+
 	#allstars {
 		display: flex;
-		& > gt-box {
+		& > div {
 			flex: 1;
 			&:not(:last-child) { margin-right: 12px; }
 			&:last-child { flex: 2; }
@@ -98,7 +113,7 @@
 		h3 {
 			font: 400 16px "Roboto Condensed";
 			margin: 0;
-			padding: 0 0 8px 0;
+			padding: 0 0 12px 0;
 			border-bottom: 1px dashed fade(@fs-blue, 40%);
 			img {
 				height: 25px;
@@ -161,5 +176,66 @@
 
 	#content {
 		padding-left: 24px;
+	}
+}
+
+:namespace("gt-roster-item") {
+	:host {
+		display: block;
+		height: 150px;
+		position: relative;
+	}
+
+	gt-box {
+		height: 100%;
+	}
+
+	#name {
+		position: absolute;
+		top: 2px;
+		left: 6px;
+		font: 300 18px "Roboto";
+		text-transform: capitalize;
+		z-index: 1;
+	}
+
+	bnet-thumb {
+		width: 40px;
+		height: 40px;
+		border-radius: 100%;
+		overflow: hidden;
+		opacity: 1;
+		position: absolute;
+		top: 6px;
+		left: 6px;
+		z-index: -1;
+	}
+
+	#chars {
+		position: absolute;
+		bottom: 0;
+		right: 0;
+		left: 30px;
+		z-index: 1;
+	}
+
+	.char {
+		background: rgba(17, 17, 17, 0.1);
+		border: 1px solid rgba(17, 17, 17, 0.1);
+		border-bottom: 0;
+		border-right: 0;
+		display: flex;
+		align-items: center;
+
+		.name {
+			flex: 1;
+		}
+
+		.infos {
+			padding: 0 4px;
+			color: @light-blue;
+			font-weight: 300;
+			font-size: 12px;
+		}
 	}
 }
