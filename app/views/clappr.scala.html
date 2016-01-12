@@ -13,19 +13,11 @@
 
 <div id="player"></div>
 
-<script src="/clappr/proxy/clappr.min.js"></script>
-<script src="/assets/javascripts/clappr.rtmp.js"></script>
+<script src="//cdn.jsdelivr.net/clappr/latest/clappr.min.js"></script>
+<script src="//cdn.jsdelivr.net/clappr.rtmp/latest/rtmp.min.js"></script>
 
 <script>
 	// Change controls layout
-	(function(setupPlaybackType) {
-		RTMP.prototype.setupPlaybackType = function() {
-			setupPlaybackType.apply(this, arguments);
-			this.settings = { 'left': ["volume"], 'default': [""], 'right': ["fullscreen"] };
-			this.settings.seekEnabled = false;
-		};
-	})(RTMP.prototype.setupPlaybackType);
-
 	// Construct player
 	var player = new Clappr.Player({
 		source: "rtmp://@host/live/@stream",
@@ -35,7 +27,7 @@
 		autoPlay: true,
 		plugins: { "playback": [ RTMP ] },
 		rtmpConfig: {
-			swfPath: "/assets/swfs/RTMP.swf",
+			playbackType: "live",
 			bufferTime: 0.1
 		}
 	});

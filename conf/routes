@@ -47,7 +47,6 @@ POST        /api/live/unpublish               controllers.Live.unpublish
 
 # Simple pages
 GET         /unsupported                      controllers.GtApplication.unsupported
-GET         /clappr/proxy/:file               controllers.Live.clappr_proxy(file)
 GET         /clappr/:stream                   controllers.Live.clappr(stream)
 
 # Pings

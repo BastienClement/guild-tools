@@ -12,8 +12,6 @@ import play.api.{Mode, Play}
 import reactive.ExecutionContext
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.Future
-import scala.concurrent.duration._
-import utils.{Cache, CacheCell}
 
 class Live @Inject() (ws: WSClient) extends Controller {
 	private val client_stream = TrieMap[Int, String]()
@@ -123,51 +121,5 @@ class Live @Inject() (ws: WSClient) extends Controller {
 			case Mode.Prod => "tv.fs-guild.net"
 		}
 		Ok(views.html.clappr.render(host, stream.replaceAll("[^a-zA-Z0-9]", "")))
-	}
-
-	// ------------------------------------------------------------------------------------------------------------------
-
-	/**
-	  * Fetch a file as a Array[Byte]
-	  */
-	private def fetch(url: String) = for {
-		res <- ws.url(url).get()
-		if res.status == 200
-	} yield res.bodyAsBytes
-
-	/**
-	  * The clappr source file
-	  */
-	private val clappr_source = CacheCell.async(1.hour) {
-		for {
-			res <- ws.url("http://cdn.clappr.io/latest/clappr.min.js").get()
-			if res.status == 200
-		} yield res.body
-	}
-
-	/**
-	  * Cache of the Clappr CDN
-	  */
-	private val clappr_cache = Cache.async[String, Array[Byte]](1.hour) {
-		case "clappr.min.js" => clappr_source().map(_.getBytes())
-		case name @ ("clappr.min.js.map" | "clappr.js") => fetch(s"http://cdn.clappr.io/latest/$name")
-		case name =>
-			for {
-				clappr <- clappr_source()
-				if name.matches("[0-9a-f]{32,40}\\.[0-9a-z]{2,3}") && clappr.indexOf("\"" + name + "\"") != -1
-				res <- fetch(s"http://cdn.clappr.io/latest/$name")
-			} yield res
-	}
-
-	/**
-	  * Clappr CDN proxy
-	  * This is required since there is no https version of cdn.clappr.io
-	  */
-	def clappr_proxy(file: String) = Action.async {
-		clappr_cache(file) map {
-			data => Ok(data)
-		} recover {
-			case e => InternalServerError
-		}
 	}
 }
