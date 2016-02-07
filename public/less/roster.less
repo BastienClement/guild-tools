@@ -11,7 +11,7 @@
 
 	#search-box {
 		padding: 6px 12px 6px 12px;
-		height: 50px;
+		//height: 50px;
 		flex: none;
 
 		#search-layout {
@@ -78,49 +78,12 @@
 	#filters-box {
 		margin-left: 6px;
 		width: 350px;
-		transition: all .3s ease-out;
-
-		&:not([visible]) {
-			margin-right: -356px;
-			opacity: 0;
-			transform: translateX(50px);
-		}
 	}
 
 	#results {
-		display: flex;
-		flex-wrap: wrap;
-		margin-top: -6px;
-		margin-left: -6px;
-
-		gt-roster-item, .placeholder {
-			flex: 1;
-			min-width: 250px;
-			max-width: 350px;
-			margin-top: 6px;
-			margin-left: 6px;
-		}
-	}
-
-	#allstars {
-		display: flex;
-		& > div {
-			flex: 1;
-			&:not(:last-child) { margin-right: 12px; }
-			&:last-child { flex: 2; }
-		}
-
-		h3 {
-			font: 400 16px "Roboto Condensed";
-			margin: 0;
-			padding: 0 0 12px 0;
-			border-bottom: 1px dashed fade(@fs-blue, 40%);
-			img {
-				height: 25px;
-				width: 25px;
-				vertical-align: -7px;
-				margin-right: 4px;
-			}
+		gt-roster-item {
+			margin-bottom: 6px;
+			&:last-of-type { margin-bottom: 0; }
 		}
 	}
 }
@@ -182,60 +145,82 @@
 :namespace("gt-roster-item") {
 	:host {
 		display: block;
-		height: 150px;
-		position: relative;
 	}
 
 	gt-box {
-		height: 100%;
+		padding: 0;
+		transition: all .2s ease-out;
+
+		&:hover {
+			background: fade(mix(rgb(17, 17, 17), @fs-blue, 33%), 15%);
+			border-color: fade(@fs-blue, 15%);
+		}
 	}
 
-	#name {
-		position: absolute;
-		top: 2px;
-		left: 6px;
-		font: 300 18px "Roboto";
-		text-transform: capitalize;
-		z-index: 1;
+	#flex {
+		display: flex;
+		align-items: stretch;
+		height: 32px;
 	}
 
 	bnet-thumb {
-		width: 40px;
-		height: 40px;
-		border-radius: 100%;
-		overflow: hidden;
-		opacity: 1;
-		position: absolute;
-		top: 6px;
-		left: 6px;
-		z-index: -1;
+		width: 32px;
+		height: 32px;
+		border-right: 1px solid rgba(17, 17, 17, 0.1);
 	}
 
-	#chars {
-		position: absolute;
-		bottom: 0;
-		right: 0;
-		left: 30px;
-		z-index: 1;
-	}
-
-	.char {
-		background: rgba(17, 17, 17, 0.1);
-		border: 1px solid rgba(17, 17, 17, 0.1);
-		border-bottom: 0;
-		border-right: 0;
+	#name {
+		font: 300 16px "Roboto";
+		text-transform: capitalize;
+		padding: 0 6px;
 		display: flex;
 		align-items: center;
+		flex: 1;
+	}
+
+	#invalid {
+		color: @light-blue;
+		margin-left: 12px;
+	}
+
+	#chars, #infos {
+		display: flex;
+		align-items: stretch;
+		background: rgba(17, 17, 17, 0.1);
+		width: 1000px;
+	}
+
+	.char, .info {
+		border-left: 1px solid rgba(17, 17, 17, 0.1);
+		width: 200px;
+		display: inline-flex;
+		align-items: center;
+		padding: 0 12px;
+		box-sizing: border-box;
 
 		.name {
 			flex: 1;
 		}
 
 		.infos {
-			padding: 0 4px;
 			color: @light-blue;
 			font-weight: 300;
 			font-size: 12px;
 		}
+
+		.label {
+			color: @light-blue;
+			margin-right: 6px;
+		}
+	}
+
+	@media (max-width: 1700px) {
+		.char:nth-child(5) { display: none; }
+		#chars, #infos { width: 800px; }
+	}
+
+	@media (max-width: 1500px) {
+		.char:nth-child(4), .info:nth-child(4) { display: none; }
+		#chars, #infos { width: 600px; }
 	}
 }

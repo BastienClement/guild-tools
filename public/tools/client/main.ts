@@ -216,11 +216,11 @@ class AuthenticationDriver {
 			type PhpBBHash = (pass: string, setting: string) => string;
 			type CryptoJS = { SHA1: (str: string) => Object };
 
-			let [prepare, phpbb_hash, crypto] = <[PrepareData, PhpBBHash, CryptoJS]> await Promise.all([
+			let [prepare, phpbb_hash, crypto] = <[PrepareData, PhpBBHash, CryptoJS]> (await Promise.all([
 				this.channel.request("prepare", user),
 				Promise.require("phpbb_hash"),
 				Promise.require("cryptojs")
-			]);
+			]));
 
 			let pass = crypto.SHA1(phpbb_hash(raw_pass, prepare.setting) + prepare.salt).toString();
 

@@ -106,6 +106,30 @@ const compile_filters: FilterFactory = (defs: FilterDefinition[]) => {
 		});
 	};
 
+	// Constructs a filter operating on boolean flags
+	const boolean_filters = <T>(arg: string, category: Predicate<T>[], extractor: (subject: T) => boolean) => {
+		category.push((subject: T) => {
+			let predicate = extractor(subject);
+			return arg == "1" ? predicate : !predicate;
+		});
+	};
+
+	// Constructs a filter based on equality
+	const equals_filters = <T>(arg: string, category: Predicate<T>[], extractor: (subject: T) => string) => {
+		// Transform alternatives string to array of predicate functions
+		let filters = arg.split(",").map((option: string) => {
+			option = option.toLowerCase()
+			return (arg: string) => arg.toLowerCase() == option;
+		});
+
+		// Register the overall filter
+		// The options acts as a logical OR combinator
+		category.push((subject: T) => {
+			let effective_subject = extractor(subject);
+			return filters.some(p => p(effective_subject));
+		});
+	};
+
 	// Construct filters
 	for (let def of defs) {
 		let [filter, arg] = def;
@@ -124,6 +148,25 @@ const compile_filters: FilterFactory = (defs: FilterDefinition[]) => {
 				break;
 			case "ilvl":
 				interval_filter(arg, char_filters, (char: Char) => char.ilvl);
+				break;
+			case "role":
+				equals_filters(arg, char_filters, (char: Char) => {
+					let role = char.role;
+					if (role == "HEALING") role = "HEALER";
+					return role;
+				});
+				break;
+			case "main":
+				boolean_filters(arg, char_filters, (char: Char) => char.main);
+				break;
+			case "active":
+				boolean_filters(arg, char_filters, (char: Char) => char.active);
+				break;
+			case "valid":
+				boolean_filters(arg, char_filters, (char: Char) => !char.invalid);
+				break;
+			case "guilded":
+				// TODO: I dont have guild information in database !?
 				break;
 		}
 	}
@@ -463,14 +506,31 @@ export class Roster extends Service {
 
 	// --- Query -------------------------------------------------------------
 
-	public executeQuery(query: string): QueryResult[] {
+	private compileQuery(query: string): [Filter, string] {
 		let filter_defs: [string, string][] = [];
 		let search_query = query.replace(/\s*([a-z]+):([^\s]+)\s*/g, function(_, filter, arg) {
 			filter_defs.push([filter, arg]);
 			return "";
 		});
 
-		let filters = compile_filters(filter_defs);
+		return [compile_filters(filter_defs), search_query];
+	}
+
+	public executeQueryChars(query: string): Char[] {
+		let [filters, search] = this.compileQuery(query);
+		let results: Char[] = [];
+
+		this.users.forEach(user => {
+			filters(user).forEach(c => results.push(c));
+		});
+
+		results.sort((a, b) => a.name.localeCompare(b.name));
+
+		return results;
+	}
+
+	public executeQuery(query: string): QueryResult[] {
+		let [filters, search] = this.compileQuery(query);
 		let results: QueryResult[] = [];
 
 		this.users.forEach(user => {
@@ -484,7 +544,7 @@ export class Roster extends Service {
 			}
 		});
 
-		results.sort((a, b) => a.user.name.toLowerCase().localeCompare(b.user.name.toLowerCase()));
+		results.sort((a, b) => a.user.name.localeCompare(b.user.name));
 
 		return results;
 	}

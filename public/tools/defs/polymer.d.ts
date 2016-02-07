@@ -49,9 +49,9 @@ interface ShadyDOM {
 	setAttribute(attribute: string, value: string): void;
 	removeAttribute(attribute: string): void;
 	classList: DOMTokenList;
-	
+
 	node: HTMLElement;
-	
+
 	// Event
 	event: any;
 	localTarget: any;
@@ -80,8 +80,5 @@ interface Document {
 	createElement(tag: "template"): HTMLTemplateElement;
 }
 
-interface HTMLTemplateElement extends HTMLElement {
-	content: DocumentFragment;
-}
-
+interface HTMLTemplateElement extends HTMLElement {}
 interface DocumentFragment extends Document {}

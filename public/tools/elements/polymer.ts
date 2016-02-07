@@ -426,7 +426,7 @@ export function Element(selector: string, template?: string, ext?: string) {
 
 					let mapping = bindings[property];
 					for (let event in mapping) {
-						let handler = mapping[event] === true ? event : mapping[event];
+						let handler = mapping[event] === true ? event : <string> mapping[event];
 						let fn = this[handler];
 						if (typeof fn == "function") {
 							emitter.off(event, fn, this);

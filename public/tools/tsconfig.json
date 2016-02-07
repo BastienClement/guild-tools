@@ -1,13 +1,12 @@
 {
 	"compilerOptions": {
+		"target": "ES6",
+		"outDir": "../modules",
 		"noImplicitAny": true,
 		"removeComments": false,
 		"preserveConstEnums": true,
-		"outDir": "../modules",
 		"inlineSourceMap": true,
-		"emitDecoratorMetadata": true,
-		"target": "ES6",
 		"experimentalDecorators": true,
-		"experimentalAsyncFunctions": true
+		"emitDecoratorMetadata": true
 	}
 }

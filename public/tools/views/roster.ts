@@ -1,9 +1,10 @@
-import { Element, Dependencies, PolymerElement, Inject, Property, PolymerModelEvent } from "elements/polymer";
+import { Element, Dependencies, Listener, PolymerElement, Inject, Property, PolymerModelEvent } from "elements/polymer";
 import { View, TabsGenerator } from "elements/app";
-import { GtBox } from "elements/box";
+import { GtBox, GtAlert } from "elements/box";
 import { GtInput, GtButton, GtCheckbox, GtLabel } from "elements/widgets";
 import { BnetThumb } from "elements/bnet";
 import { GtDialog } from "elements/dialog";
+import { GtTimeago } from "elements/timeago";
 import { Server } from "client/server";
 import { User, Char, QueryResult,Roster } from "services/roster";
 
@@ -29,7 +30,7 @@ export class GtRosterFiltersDropdown extends PolymerElement {
 	/**
 	 * Current dropdown state
 	 */
-	@Property public open: boolean = false;
+	@Property public open: boolean = true;
 
 	/**
 	 * Toggle the dropdown state
@@ -49,7 +50,7 @@ export class GtRosterFilters extends PolymerElement {
 	 * The list of activated filters as text
 	 */
 	@Property({ notify: true })
-	public filters: string = "";
+	public filters: string = location.hash.slice(1).replace(/_/g, " ");
 
 	/**
 	 * Updates the filters string based on user selection
@@ -152,17 +153,32 @@ export class GtRosterFilters extends PolymerElement {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// <gt-roster-filters>
+// <gt-roster-item>
 
 @Element("gt-roster-item", "/assets/views/roster.html")
-@Dependencies(GtBox, BnetThumb)
+@Dependencies(GtBox, BnetThumb, GtTimeago)
 export class GtRosterItem extends PolymerElement {
 	@Property
 	public data: QueryResult;
 
-	@Property({ computed: "data.chars" })
+	@Property
+	public player: boolean;
+
+	@Property({ computed: "data.chars player" })
 	public get alts_list(): Char[] {
+		if (!this.player) return [];
 		return this.data.chars.slice(0, 5);
+	}
+
+	/**
+	 * Click on the element navigate to the user profile
+	 */
+	@Listener("click")
+	private OnClick() {
+		let data = <any> this.data;
+		let id = (this.player) ? data.user.id : data.owner;
+		if (id == this.app.user.id) this.app.router.goto("/profile");
+		else this.app.router.goto(`/profile/${id}`);
 	}
 }
 
@@ -171,7 +187,7 @@ export class GtRosterItem extends PolymerElement {
 
 @View("roster", RosterTabs)
 @Element("gt-roster", "/assets/views/roster.html")
-@Dependencies(GtBox, GtButton, GtCheckbox, GtLabel, GtRosterFilters, GtRosterItem)
+@Dependencies(GtBox, GtButton, GtCheckbox, GtLabel, GtRosterFilters, GtRosterItem, GtAlert)
 export class GtRoster extends PolymerElement {
 	@Inject
 	private roster: Roster;
@@ -179,31 +195,11 @@ export class GtRoster extends PolymerElement {
 	/**
 	 * Current display mode
 	 */
-	@Property({ observer: "PersistViewMode" })
-	private view_mode = GtRoster.StoredViewMode();
+	@Property({ observer: "UpdateFilters" })
+	private players_view = true;
 
-	private ViewStars() {
-		this.view_mode = "stars";
-		this.$.search.value = "";
-		this.UpdateSearch(true);
-	}
-	private ViewGrid() { this.view_mode = "grid"; }
-	private ViewList() { this.view_mode = "list"; }
-
-	private PersistViewMode() {
-		localStorage.setItem("roster.viewmode", this.view_mode);
-	}
-
-	private static StoredViewMode() {
-		let stored = localStorage.getItem("roster.viewmode");
-		switch (stored) {
-			case "grid":
-			case "list":
-				return stored;
-			default:
-				return "grid";
-		}
-	}
+	private ViewPlayers() { this.players_view = true; }
+	private ViewChars() { this.players_view = false; }
 
 	/**
 	 * Roster entries
@@ -213,7 +209,7 @@ export class GtRoster extends PolymerElement {
 	/**
 	 * The raw search string
 	 */
-	public raw_search: string = "";
+	public raw_search: string = location.hash;
 
 	/**
 	 * Indicates if a filter is currently defined
@@ -221,19 +217,6 @@ export class GtRoster extends PolymerElement {
 	@Property({ computed: "raw_search" })
 	private get has_search(): boolean {
 		return this.raw_search.trim().length > 0;
-	}
-
-	/**
-	 * Should the filters panel be displayed
-	 */
-	private show_filters: boolean = localStorage.getItem("roster.filters.visible") === "1";
-
-	/**
-	 * Toggles the visibility of the filters panel
-	 */
-	private ToggleFilters() {
-		this.show_filters = !this.show_filters;
-		localStorage.setItem("roster.filters.visible", this.show_filters ? "1" : "0");
 	}
 
 	/**
@@ -262,11 +245,13 @@ export class GtRoster extends PolymerElement {
 	private UpdateSearch(instant: boolean = false) {
 		let query = this.$.search.value;
 		this.raw_search = query;
-		if (this.has_search && this.view_mode == "stars") {
-			this.ViewGrid();
-		}
 		this.debounce("UpdateSearch", () => {
-			this.results = this.roster.executeQuery(query);
+			location.hash = query.replace(/ /g, "_");
+			if (this.players_view) {
+				this.results = this.roster.executeQuery(query);
+			} else {
+				this.results = <any> this.roster.executeQueryChars(query);
+			}
 		}, instant ? void 0 : 250);
 	}
 }

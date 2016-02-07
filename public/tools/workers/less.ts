@@ -8,6 +8,7 @@ window.document = <any> {
 		} else if (tagName === 'link') {
 			return [];
 		}
+		return null;
 	}
 };
 

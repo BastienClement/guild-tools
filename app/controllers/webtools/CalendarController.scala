@@ -14,10 +14,10 @@ class CalendarController extends Controller with WtController {
 					sql"""
 					SELECT COUNT(*)
 					FROM gt_events AS e
-					JOIN phpbb_users AS u ON u.user_id = ${req.user.id }
+					JOIN phpbb_users AS u ON u.user_id = ${req.user.id}
 					LEFT JOIN gt_answers AS a ON e.id = a.event AND a.user = u.user_id
 					WHERE e.date >= NOW() AND e.garbage = 0 AND (
-						(e.type IN (1, 2, 4) AND a.answer IS NULL)
+						(e.type IN (1, 2, 5) AND a.answer IS NULL)
 			         OR (e.type = 3 AND a.answer = 0)
 			      )
 				"""

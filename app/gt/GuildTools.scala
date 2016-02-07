@@ -2,6 +2,7 @@ package gt
 
 import com.google.inject.Inject
 import java.io.File
+import java.nio.file.{FileSystems, StandardWatchEventKinds => SWEK}
 import play.api.Play.current
 import play.api.inject.ApplicationLifecycle
 import play.api.{Mode, Play}
@@ -34,18 +35,60 @@ class GuildTools @Inject() (lifecycle: ApplicationLifecycle) {
 		val path = Play.configuration.getString("dev.path").get
 		val pwd = Play.configuration.getString("dev.dir").get
 		val tsc = Play.configuration.getString("dev.tsc").get
-		val opt = Play.configuration.getString("dev.tscOptions").getOrElse("-w")
 		val node = Play.configuration.getString("dev.node").getOrElse("node")
 
+		val ws = FileSystems.getDefault.newWatchService()
+		val watch_dir = FileSystems.getDefault.getPath(pwd, "public", "tools")
+		watch_dir.register(ws, SWEK.ENTRY_CREATE, SWEK.ENTRY_DELETE, SWEK.ENTRY_MODIFY)
+
+		val thread = new Thread {
+			def compile() = {
+				println("TSC   - Compiling Typescript files")
+				val logger = ProcessLogger { line => println("TSC   - " + line) }
+				val process = Process(Seq(node, tsc), new File(s"$pwd/public/tools"), "PATH" -> path).run(logger)
+				process.exitValue()
+				println("TSC   - Done")
+			}
+
+			override def run() = {
+				compile()
+				var running = true
+				while (running) {
+					try {
+						val wk = ws.take()
+
+						wk.pollEvents()
+						compile()
+						wk.pollEvents()
+
+						if (!wk.reset()) {
+							running = false
+							println("TSC   - Key has been unregistered")
+						}
+					} catch {
+						case _: InterruptedException => running = false
+					}
+				}
+			}
+		}
+
 		println("TSC   - Starting Typescript compiler")
-		val process = Process(Seq(node, tsc, opt), new File(s"$pwd/public/tools"), "PATH" -> path) run ProcessLogger { line =>
+		thread.start()
+
+		stopHook {
+			println("TSC   - Stopping Typescript compiler")
+			thread.interrupt()
+			thread.join()
+		}
+
+		/*val process = Process(Seq(node, tsc), new File(s"$pwd/public/tools"), "PATH" -> path) run ProcessLogger { line =>
 			println("TSC   - " + line)
 		}
 
 		stopHook {
 			println("TSC   - Stopping Typescript compiler")
 			process.destroy()
-		}
+		}*/
 	}
 
 	def setupCharacterRefresher(): Unit = {
