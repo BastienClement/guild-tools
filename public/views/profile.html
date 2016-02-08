@@ -88,27 +88,32 @@
 			<div #rlname>
 				<i>face</i>
 				<span>Real-life name</span>
-				<b>&mdash;</b>
+				<b>{{realname}}</b>
 			</div>
 			<div #bday>
 				<i>cake</i>
-				<span>Birthday</span>
-				<b>&mdash;</b>
+				<span>Age</span>
+				<b>{{age}}</b>
+			</div>
+			<div #location>
+				<i>public</i>
+				<span>Location</span>
+				<b>{{location}}</b>
 			</div>
 			<div #btag>
 				<i>gamepad</i>
 				<span>BattleTag</span>
-				<b>&mdash;</b>
+				<b>{{btag}}</b>
 			</div>
-			<div #mail>
+			<div #mail [if]="app.user.promoted">
 				<i>local_post_office</i>
 				<span>E-mail</span>
-				<b>&mdash;</b>
+				<b>{{mail}}</b>
 			</div>
-			<div #phone>
+			<div #phone [if]="app.user.promoted">
 				<i>local_phone</i>
 				<span>Phone</span>
-				<b>&mdash;</b>
+				<b>{{phone}}</b>
 			</div>
 		</gt-box>
 	</template>

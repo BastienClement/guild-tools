@@ -7,8 +7,8 @@ import { GtBox } from "elements/box";
 import { Router } from "client/router";
 import { Server } from "client/server";
 import { Loader } from "client/loader";
-import { Chat } from "services/chat";
-import { User, Roster } from "services/roster";
+import { ChatService } from "services/chat";
+import { User, RosterService } from "services/roster";
 
 // Views loader
 type ViewPromise = Promise<Constructor<PolymerElement>>;
@@ -86,7 +86,7 @@ export class GtTitleBar extends PolymerElement {
 		"connected": "UpdateOnlineCount",
 		"disconnected": "UpdateOnlineCount"
 	})
-	private chat: Chat;
+	private chat: ChatService;
 
 	@Property
 	public online_users: number = 0;
@@ -183,7 +183,7 @@ export class GtSidebar extends PolymerElement {
 	private icons = (<SidebarIcon[]>[
 		{ icon: "widgets", key: "dashboard", link: "/dashboard" },
 		{ icon: "account_circle", key: "profile", link: "/profile" },
-		//{ icon: "mail", key: "messages", link: "/messages" },
+		{ icon: "mail", key: "messages", link: "/messages" },
 		{ icon: "today", key: "calendar", link: "/calendar" },
 		{ icon: "supervisor_account", key: "roster", link: "/roster" },
 		//{ icon: "forum", key: "forum", link: "/forum" },
@@ -338,7 +338,7 @@ export class GtApp extends PolymerElement {
 
 	// Inject roster service for early preloading
 	@Inject
-	private roster: Roster;
+	private roster: RosterService;
 
 	public disconnected: GtDialog;
 	private dead: boolean = false;

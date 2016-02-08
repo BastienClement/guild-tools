@@ -70,4 +70,5 @@ package object models {
 	implicit val composerGroupFormat = Json.format[ComposerGroup]
 	implicit val composerSlotFormat = Json.format[ComposerSlot]
 	implicit val streamJsonFormat = Json.format[live.Stream]
+	implicit val profileJsonFormat = Json.format[Profile]
 }

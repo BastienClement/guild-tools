@@ -5,7 +5,7 @@ import { GtTimeago } from "elements/timeago";
 import { BnetThumb } from "elements/bnet";
 import { Server } from "client/server";
 import { NewsFeed, NewsData } from "services/newsfeed";
-import { Chat, ChatMessage } from "services/chat";
+import { ChatService, ChatMessage } from "services/chat";
 import { ProfileUser } from "views/profile"
 
 const SHOUTBOX_ROOM = 0;
@@ -119,7 +119,7 @@ class DashboardShoutbox extends PolymerElement {
 	 * The chat service
 	 */
 	@Inject
-	private chat: Chat;
+	private chat: ChatService;
 
 	/**
 	 * Shoutbox backlog
@@ -159,7 +159,7 @@ class DashboardShoutbox extends PolymerElement {
 class DashboardOnlinesUser extends PolymerElement {
 	@Inject
 	@On({ "away-changed": "UpdateAway" })
-	private chat: Chat;
+	private chat: ChatService;
 
 	/**
 	 * The user represented by this element
@@ -197,7 +197,7 @@ class DashboardOnlinesUser extends PolymerElement {
 class DashboardOnlines extends PolymerElement {
 	@Inject
 	@On(["connected", "disconnected"])
-	private chat: Chat;
+	private chat: ChatService;
 
 	/**
 	 * The sorted list of users used for display

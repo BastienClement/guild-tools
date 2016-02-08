@@ -7,7 +7,7 @@ import { BnetThumb } from "elements/bnet";
 import { GtTimeago } from "elements/timeago";
 import { GtMarkdown } from "elements/markdown";
 import { Server } from "client/server";
-import { User, Char, Roster } from "services/roster";
+import { User, Char, RosterService } from "services/roster";
 import { ApplyService, Apply, ApplyMessage } from "services/apply";
 import { join, throttled, defer } from "utils/async";
 
@@ -332,7 +332,7 @@ export class ApplyDetails extends PolymerElement {
 
 @View("apply", ApplyTabs, true)
 @Element("gt-apply", "/assets/views/apply.html")
-@Dependencies(GtBox, GtAlert, GtButton, GtDialog, ApplyListItem, ApplyDetails, Roster)
+@Dependencies(GtBox, GtAlert, GtButton, GtDialog, ApplyListItem, ApplyDetails, RosterService)
 export class GtApply extends PolymerElement {
 	@Inject
 	@On({ "apply-updated": "ApplyUpdated" })

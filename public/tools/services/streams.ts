@@ -18,7 +18,7 @@ export interface ActiveStream {
  * Streaming service
  */
 @Component
-export class Streams extends Service {
+export class StreamsService extends Service {
 	constructor(private server: Server) {
 		super();
 	}
@@ -160,7 +160,7 @@ class StreamsListProvider extends PolymerElement {
 		"notify": "Notify",
 		"offline": "Offline"
 	})
-	private service: Streams;
+	private service: StreamsService;
 
 	@Property({ notify: true })
 	public list: ActiveStream[] = this.service.getStreamsList();

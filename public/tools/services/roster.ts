@@ -185,7 +185,7 @@ const compile_filters: FilterFactory = (defs: FilterDefinition[]) => {
  * Roster service
  */
 @Component
-export class Roster extends Service {
+export class RosterService extends Service {
 	constructor(private server: Server) {
 		super();
 		this.preload();
@@ -557,7 +557,7 @@ export class Roster extends Service {
 class MainProvider extends PolymerElement {
 	@Inject
 	@On({ "char-updated": "CharUpdated" })
-	private roster: Roster;
+	private roster: RosterService;
 
 	@Property({ observer: "update" })
 	public user: number;
@@ -588,7 +588,7 @@ class CharsProvider extends PolymerElement {
 		"char-updated": "CharUpdated",
 		"char-deleted": "CharUpdated"
 	})
-	private roster: Roster;
+	private roster: RosterService;
 
 	@Property({ observer: "update" })
 	public user: number;
@@ -619,7 +619,7 @@ class CharsProvider extends PolymerElement {
 class CharProvider extends PolymerElement {
 	@Inject
 	@On({ "char-updated": "CharUpdated" })
-	private roster: Roster;
+	private roster: RosterService;
 
 	@Property({ observer: "update" })
 	public id: number;
@@ -647,7 +647,7 @@ class CharProvider extends PolymerElement {
 class UserProvider extends PolymerElement {
 	@Inject
 	@On({ "user-updated": "UserUpdated" })
-	private roster: Roster;
+	private roster: RosterService;
 
 	@Property({ observer: "update" })
 	public id: number;

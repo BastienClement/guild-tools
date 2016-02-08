@@ -6,7 +6,7 @@ import { BnetThumb } from "elements/bnet";
 import { GtDialog } from "elements/dialog";
 import { GtTimeago } from "elements/timeago";
 import { Server } from "client/server";
-import { User, Char, QueryResult,Roster } from "services/roster";
+import { User, Char, QueryResult, RosterService } from "services/roster";
 
 const RosterTabs: TabsGenerator = (view, path, user) => [
 	{ title: "Roster", link: "/roster", active: view == "views/roster/GtRoster" }
@@ -190,7 +190,7 @@ export class GtRosterItem extends PolymerElement {
 @Dependencies(GtBox, GtButton, GtCheckbox, GtLabel, GtRosterFilters, GtRosterItem, GtAlert)
 export class GtRoster extends PolymerElement {
 	@Inject
-	private roster: Roster;
+	private roster: RosterService;
 
 	/**
 	 * Current display mode

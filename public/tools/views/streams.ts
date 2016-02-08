@@ -2,7 +2,7 @@ import { Element, Property, Listener, Dependencies, Inject, On, PolymerElement, 
 import { View, Tab, TabsGenerator } from "elements/app";
 import { GtButton, GtForm, GtInput, GtCheckbox, GtLabel } from "elements/widgets";
 import { GtBox, GtAlert } from "elements/box";
-import { Streams, ActiveStream } from "services/streams";
+import { StreamsService, ActiveStream } from "services/streams";
 import { throttled, join } from "utils/async";
 import "services/roster";
 
@@ -18,7 +18,7 @@ const StreamsTabs: TabsGenerator = (view, path, user) => [
 @Element("gt-streams-player", "/assets/views/streams.html")
 @Dependencies(GtAlert)
 export class GtStreamsPlayer extends PolymerElement {
-	@Inject private service: Streams;
+	@Inject private service: StreamsService;
 
 	@Property({ observer: "update" })
 	public stream: ActiveStream;
@@ -83,7 +83,7 @@ export class GtStreamsViewers extends PolymerElement {
 		"list-update": "Update",
 		"notify": "Update"
 	})
-	private service: Streams;
+	private service: StreamsService;
 
 	// The currently selected stream
 	@Property({ observer: "Update" })
@@ -108,7 +108,7 @@ export class GtStreamsViewers extends PolymerElement {
 export class GtStreams extends PolymerElement {
 	@Inject
 	@On({ "offline": "StreamOffline" })
-	private service: Streams;
+	private service: StreamsService;
 
 	@Property public selected: ActiveStream = null;
 
@@ -135,7 +135,7 @@ export class GtStreams extends PolymerElement {
 @Element("gt-streams-settings", "/assets/views/streams.html")
 @Dependencies(GtBox, GtButton, GtCheckbox, GtLabel)
 export class GtStreamsSettings extends PolymerElement {
-	@Inject private service: Streams;
+	@Inject private service: StreamsService;
 
 	public token: string;
 	public key: string;
@@ -193,6 +193,6 @@ export class GtStreamsSettings extends PolymerElement {
 @Element("gt-streams-whitelist", "/assets/views/streams.html")
 @Dependencies()
 export class GtStreamsWhitelist extends PolymerElement {
-	@Inject private service: Streams;
+	@Inject private service: StreamsService;
 }
 

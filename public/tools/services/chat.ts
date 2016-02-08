@@ -22,7 +22,7 @@ export interface ChatMessage {
  * Chat data client
  */
 @Component
-export class Chat extends Service {
+export class ChatService extends Service {
 	// List of onlines user
 	private onlines = new Map<number, boolean>();
 	private channel = this.server.openServiceChannel("chat", false);

@@ -5,9 +5,10 @@ import { BnetThumb } from "elements/bnet";
 import { GtDialog } from "elements/dialog";
 import { GtBox } from "elements/box";
 import { GtTimeago } from "elements/timeago";
-import { Roster, User, Char } from "services/roster";
-import { Profile } from "services/profile";
+import { RosterService, User, Char } from "services/roster";
+import { ProfileService, ProfileData } from "services/profile";
 import { throttled } from "utils/async";
+import moment from "moment";
 
 const ProfileTabs: TabsGenerator = (view, path, user) => [
 	{ title: "Profile", link: "/profile", active: view == "views/profile/GtProfile" }
@@ -28,8 +29,124 @@ export class ProfileUser extends PolymerElement {
 @Element("profile-infos", "/assets/views/profile.html")
 @Dependencies(GtBox, GtButton)
 class ProfileInfos extends PolymerElement {
-	@Property public user: number;
+	/**
+	 * ProfileService instance
+	 */
+	@Inject
+	private service: ProfileService;
 
+	/**
+	 * The user id
+	 */
+	@Property({ observer: "FetchProfile" })
+	public user: number;
+
+	/**
+	 * User's profile data
+	 */
+	private data: ProfileData;
+
+	/**
+	 * Return the user's realname
+	 */
+	@Property({ computed: "data" })
+	public get realname() {
+		return this.data.realname || "—";
+	}
+
+	/**
+	 * Return the user's BattleTag
+	 */
+	@Property({ computed: "data" })
+	public get btag() {
+		return this.data.btag || "—";
+	}
+
+	/**
+	 * Return the user's phone number
+	 * @returns {string}
+	 */
+	@Property({ computed: "data" })
+	public get phone() {
+		if (!this.data.phone) return "—";
+		let phone = this.data.phone;
+
+		// Attempt to format the phone number
+		[
+			"+33 x xx xx xx xx",
+			"+41 xx xxx xx xx",
+			"+32 xxx xx xx xx",
+			"+222 xxxx xxxx"
+		].forEach(format => {
+			let prefix_len = format.indexOf(" ");
+			let prefix = format.slice(0, prefix_len);
+
+			if (prefix == phone.slice(0, prefix_len)) {
+				let digits = phone.slice(prefix_len).split("");
+				let formatted = prefix;
+
+				for (let i = prefix_len; i < format.length; i++) {
+					let char = format[i];
+					if (char == "x" && digits.length != 0) {
+						char = digits.shift();
+					}
+					formatted += char;
+				}
+
+				if (digits.length != 0) {
+					formatted += " " + digits.join("")
+				}
+
+				phone = formatted;
+			}
+		});
+
+		return phone;
+	}
+
+	/**
+	 * Return the user's age
+	 */
+	@Property({ computed: "data" })
+	public get age() {
+		if (!this.data.birthday) return "—";
+		let now = moment();
+		let birth = moment(this.data.birthday);
+		return now.diff(birth, "years").toString();
+	}
+
+	/**
+	 * Return the user's mail
+	 */
+	@Property({ computed: "data" })
+	public get mail() {
+		return this.data.mail || "—";
+	}
+
+	/**
+	 * Return the user's real-life location
+	 * @returns {string}
+	 */
+	@Property({ computed: "data" })
+	public get location() {
+		return this.data.location || "—";
+	}
+
+	/**
+	 * Fetch the user's profile.
+	 * Called automatically when the user is is available.
+	 */
+	private async FetchProfile() {
+		if (this.fetching) return;
+		this.fetching = true;
+		this.data = await this.service.userProfile(this.user);
+		this.fetching = false;
+	}
+	private fetching: boolean = false;
+
+	/**
+	 * Check if the user profile is editable by the current user
+	 */
 	@Property({ computed: "user" })
 	private get editable(): boolean {
 		return this.app.user.id == this.user || this.app.user.promoted;
@@ -43,7 +160,7 @@ class ProfileInfos extends PolymerElement {
 @Dependencies(GtBox, GtButton, BnetThumb, GtTimeago)
 class ProfileCharsCard extends PolymerElement {
 	@Inject
-	private roster: Roster;
+	private roster: RosterService;
 
 	@Property public id: number;
 	@Property public editable: boolean
@@ -111,7 +228,7 @@ class ProfileCharsCard extends PolymerElement {
 @Dependencies(GtBox, GtForm, GtInput)
 export class ProfileAddChar extends PolymerElement {
 	@Inject
-	private profile: Profile;
+	private profile: ProfileService;
 
 	// The owner of the newly added char
 	@Property public owner: number = this.app.user.id;
@@ -239,7 +356,7 @@ class ProfileChars extends PolymerElement {
 		"char-updated": "CharUpdated",
 		"char-deleted": "CharUpdated"
 	})
-	private roster: Roster;
+	private roster: RosterService;
 
 	@Property({ observer: "update" })
 	public user: number;

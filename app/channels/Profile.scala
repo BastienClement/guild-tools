@@ -89,4 +89,14 @@ class Profile(val user: User) extends ChannelHandler {
 				RosterService.registerChar(server, name, owner, role)
 		}
 	}
+
+	request("user-profile") { p =>
+		val id = p("id").as[Int]
+		Profiles.filter(_.user === id).head.map { data =>
+			if (user.promoted || user.id == id) data
+			else data.conceal
+		}.recover { case _ =>
+			models.Profile(id, None, None, None, None, None, None)
+		}
+	}
 }
