@@ -12,17 +12,18 @@
 				<div #main-box>
 					<gt-box heading="Guild roster" scrollable {view}>
 						<div #roster-view-opt>
-							<!--<gt-button {active}="equals(view_mode, 'stars')" (tap)="ViewStars" collapse-right><i>star</i> Roster view</gt-button>-->
+							<span #matching>
+								Matching: <b>{{matching}}</b>
+							</span>
 							<gt-button {active}="players_view" (tap)="ViewPlayers" collapse-right><i>face</i> Players</gt-button>
 							<gt-button {active}="!players_view" (tap)="ViewChars" collapse-right><i>supervisor_account</i> Characters</gt-button>
-							<!--<gt-button {active}="equals(view_mode, 'list')" (tap)="ViewList" collapse-right><i>menu</i> List view</gt-button>-->
 						</div>
 						<div #results>
 							<gt-roster-item [repeat]="results" [data]="item" [player]="players_view"></gt-roster-item>
 						</div>
 						<div #empty [if]="equals(results.length, 0)">
 							<gt-alert icon="search" dark>
-								Your search has yielded no result.<br>
+								Your search has not yielded any results.<br>
 								You should try removing some filters.
 							</gt-alert>
 						</div>

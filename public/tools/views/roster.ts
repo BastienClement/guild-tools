@@ -205,6 +205,7 @@ export class GtRoster extends PolymerElement {
 	 * Roster entries
 	 */
 	private results: QueryResult[] = [];
+	private matching: string = "...";
 
 	/**
 	 * The raw search string
@@ -249,8 +250,19 @@ export class GtRoster extends PolymerElement {
 			location.hash = query.replace(/ /g, "_");
 			if (this.players_view) {
 				this.results = this.roster.executeQuery(query);
+
+				let players = this.results.length;
+				let ps = players != 1 ? "s" : "";
+
+				let chars = 0;
+				this.results.forEach(p => chars += p.chars.length);
+				let cs = chars != 1 ? "s" : "";
+
+				this.matching = `${players} player${ps} (${chars} char${cs})`;
 			} else {
 				this.results = <any> this.roster.executeQueryChars(query);
+				let s = this.results.length != 1 ? "s" : "";
+				this.matching = `${this.results.length} char${s}`;
 			}
 		}, instant ? void 0 : 250);
 	}
