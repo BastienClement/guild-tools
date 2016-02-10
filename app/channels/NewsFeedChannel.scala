@@ -8,8 +8,8 @@ import reactive._
 import utils.{CacheCell, SmartTimestamp}
 import scala.concurrent.duration._
 
-object NewsFeed extends ChannelValidator {
-	def open(request: ChannelRequest) = request.accept(Props(new NewsFeed))
+object NewsFeedChannel extends ChannelValidator {
+	def open(request: ChannelRequest) = request.accept(Props(new NewsFeedChannel))
 
 	// List of open news feed channels
 	private var open_feeds = Set[ActorRef]()
@@ -27,23 +27,23 @@ object NewsFeed extends ChannelValidator {
 	case object Update
 }
 
-class NewsFeed extends ChannelHandler {
+class NewsFeedChannel extends ChannelHandler {
 	init {
-		NewsFeed.open_feeds.synchronized {
-			NewsFeed.open_feeds += self
+		NewsFeedChannel.open_feeds.synchronized {
+			NewsFeedChannel.open_feeds += self
 			update()
 		}
 	}
 
 	stop {
-		NewsFeed.open_feeds.synchronized {
-		NewsFeed.open_feeds -= self
+		NewsFeedChannel.open_feeds.synchronized {
+		NewsFeedChannel.open_feeds -= self
 	}
 }
 
 	akka {
-		case NewsFeed.Update => update()
+		case NewsFeedChannel.Update => update()
 	}
 
-	def update() = send("update", NewsFeed.cache.value)
+	def update() = send("update", NewsFeedChannel.cache.value)
 }

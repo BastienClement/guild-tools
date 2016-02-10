@@ -9,15 +9,15 @@ package object gtp3 {
 	}
 
 	val ChannelValidators = Map[String, ChannelValidator](
-		"apply" -> Apply,
-		"auth" -> Auth,
-		"chat" -> Chat,
-		"master" -> Master,
-		"newsfeed" -> NewsFeed,
-		"profile" -> Profile,
-		"roster" -> Roster,
-		"server-status" -> ServerStatus,
-		"stream" -> Stream
+		"apply" -> ApplyChannel,
+		"auth" -> AuthChannel,
+		"chat" -> ChatChannel,
+		"master" -> MasterChannel,
+		"newsfeed" -> NewsFeedChannel,
+		"profile" -> ProfileChannel,
+		"roster" -> RosterChannel,
+		"server-status" -> ServerStatusChannel,
+		"stream" -> StreamChannel
 	)
 
 	class TooManyBuffersException extends Exception

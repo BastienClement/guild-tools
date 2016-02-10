@@ -9,11 +9,11 @@ import models.mysql._
 import models.live.Streams
 import reactive.ExecutionContext
 
-object Stream extends ChannelValidator {
-	def open(request: ChannelRequest) = request.accept(Props(new Stream(request.user)))
+object StreamChannel extends ChannelValidator {
+	def open(request: ChannelRequest) = request.accept(Props(new StreamChannel(request.user)))
 }
 
-class Stream(val user: User) extends ChannelHandler {
+class StreamChannel(val user: User) extends ChannelHandler {
 	init {
 		Events.subscribe(user)
 

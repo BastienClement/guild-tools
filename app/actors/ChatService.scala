@@ -1,7 +1,7 @@
 package actors
 
 import actors.ChatService._
-import channels.Chat
+import channels.ChatChannel
 import models._
 import models.mysql._
 import reactive.ExecutionContext
@@ -33,7 +33,7 @@ object ChatService extends StaticActor[ChatService, ChatServiceImpl]("ChatServic
 	  * A new ChatSession is created for every connected user and stores user's sockets
 	  * and the corresponding away state for each of them.
 	  */
-	private case class ChatSession(user: User, var away: Boolean, actors: mutable.Map[ActorTag[Chat], Boolean])
+	private case class ChatSession(user: User, var away: Boolean, actors: mutable.Map[ActorTag[ChatChannel], Boolean])
 }
 
 /**
@@ -68,7 +68,7 @@ trait ChatService extends PubSub[User] {
 	  * Subscribes an actor to the event feed of this service.
 	  * Also add the socket to the corresponding chat session.
 	  */
-	override def subscribe(actor: ActorTag[Chat], user: User) = {
+	override def subscribe(actor: ActorTag[ChatChannel], user: User) = {
 		super.subscribe(actor, user)
 		val act = actor -> false
 
@@ -88,7 +88,7 @@ trait ChatService extends PubSub[User] {
 	  * Unsubscribes an actor from the event feed.
 	  * Also remove the socket from the corresponding chat session.
 	  */
-	override def unsubscribe(actor: ActorTag[Chat]) = {
+	override def unsubscribe(actor: ActorTag[ChatChannel]) = {
 		super.unsubscribe(actor)
 		sessions.find {
 			case (user, session) => session.actors.contains(actor)
@@ -106,9 +106,10 @@ trait ChatService extends PubSub[User] {
 
 	/**
 	  * Changes the away state of a specific socket.
+ *
 	  * @todo Make the ActorTag implicit
 	  */
-	def setAway(actor: ActorTag[Chat], away: Boolean) = {
+	def setAway(actor: ActorTag[ChatChannel], away: Boolean) = {
 		for (session <- sessions.values find (_.actors.contains(actor))) {
 			session.actors.update(actor, away)
 			updateAway(session)
@@ -117,6 +118,7 @@ trait ChatService extends PubSub[User] {
 
 	/**
 	  * Returns a room messages backlog.
+ *
 	  * @todo Replace by a MessageQuery system.
 	  */
 	def roomBacklog(room: Int, user: Option[User] = None, count: Option[Int] = None, limit: Option[Int] = None): Future[Seq[ChatMessage]] = {

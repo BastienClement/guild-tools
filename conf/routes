@@ -33,24 +33,24 @@ GET         /wt/calendar/unread_events        controllers.webtools.CalendarContr
 GET         /wt/*path                         controllers.webtools.WebTools.catchall(path)
 
 # REST API
-POST        /api/bugsack                      controllers.Api.bugsack
-GET         /api/socket_url                   controllers.Api.socketURL
-GET         /api/*path                        controllers.Api.catchall(path)
+POST        /api/bugsack                      controllers.APIController.bugsack
+GET         /api/socket_url                   controllers.APIController.socketURL
+GET         /api/*path                        controllers.APIController.catchall(path)
 
 # Streaming API
-POST        /api/live/connect                 controllers.Live.connect
-POST        /api/live/close                   controllers.Live.close
-POST        /api/live/play                    controllers.Live.play
-POST        /api/live/publish                 controllers.Live.publish
-POST        /api/live/stop                    controllers.Live.stop
-POST        /api/live/unpublish               controllers.Live.unpublish
+POST        /api/live/connect                 controllers.LiveController.connect
+POST        /api/live/close                   controllers.LiveController.close
+POST        /api/live/play                    controllers.LiveController.play
+POST        /api/live/publish                 controllers.LiveController.publish
+POST        /api/live/stop                    controllers.LiveController.stop
+POST        /api/live/unpublish               controllers.LiveController.unpublish
 
 # Simple pages
 GET         /unsupported                      controllers.GtApplication.unsupported
-GET         /clappr/:stream                   controllers.Live.clappr(stream)
+GET         /clappr/:stream                   controllers.LiveController.clappr(stream)
 
 # Pings
-GET         /ping/dashboard/feed              controllers.Ping.dashboardFeed
+GET         /ping/dashboard/feed              controllers.PingController.dashboardFeed
 
 # Catch all
 GET         /*path                            controllers.GtApplication.catchall(path)

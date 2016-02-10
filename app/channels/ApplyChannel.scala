@@ -8,14 +8,14 @@ import models.application._
 import reactive.ExecutionContext
 import ApplicationEvents._
 
-object Apply extends ChannelValidator {
+object ApplyChannel extends ChannelValidator {
 	def open(request: ChannelRequest) = {
-		if (request.user.roster) request.accept(Props(new Apply(request.user)))
+		if (request.user.roster) request.accept(Props(new ApplyChannel(request.user)))
 		else request.reject(1, "Unauthorized")
 	}
 }
 
-class Apply(user: User) extends ChannelHandler {
+class ApplyChannel(user: User) extends ChannelHandler {
 	init {
 		ApplicationEvents.subscribe(user)
 	}

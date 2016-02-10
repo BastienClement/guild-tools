@@ -7,11 +7,11 @@ import models.mysql._
 import play.api.libs.json.Json
 import reactive.ExecutionContext
 
-object Master extends ChannelValidator {
-	def open(request: ChannelRequest) = request.accept(Props(new Master(request.user)))
+object MasterChannel extends ChannelValidator {
+	def open(request: ChannelRequest) = request.accept(Props(new MasterChannel(request.user)))
 }
 
-class Master(val user: User) extends ChannelHandler {
+class MasterChannel(val user: User) extends ChannelHandler {
 	// Request the previously saved configuration object
 	request("get-config") { payload =>
 		val q = Configs filter (_.user === user.id) take 1

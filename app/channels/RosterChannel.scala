@@ -7,11 +7,11 @@ import gtp3._
 import models._
 import reactive.ExecutionContext
 
-object Roster extends ChannelValidator {
-	def open(request: ChannelRequest) = request.accept(Props(new Roster(request.user)))
+object RosterChannel extends ChannelValidator {
+	def open(request: ChannelRequest) = request.accept(Props(new RosterChannel(request.user)))
 }
 
-class Roster(val user: User) extends ChannelHandler {
+class RosterChannel(val user: User) extends ChannelHandler {
 	init {
 		RosterService.subscribe(self, user)
 	}

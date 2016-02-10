@@ -13,7 +13,7 @@ import reactive.ExecutionContext
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.Future
 
-class Live @Inject() (ws: WSClient) extends Controller {
+class LiveController @Inject() (ws: WSClient) extends Controller {
 	private val client_stream = TrieMap[Int, String]()
 	private val client_url = TrieMap[Int, String]()
 

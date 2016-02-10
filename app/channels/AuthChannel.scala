@@ -12,7 +12,7 @@ import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-object Auth extends ChannelValidator {
+object AuthChannel extends ChannelValidator {
 	// Keep track of socket for which an authenticated channel has already been opened
 	private val already_open = mutable.WeakHashMap[ActorRef, Boolean]() withDefaultValue false
 
@@ -21,21 +21,21 @@ object Auth extends ChannelValidator {
 			request.reject(105, "Cannot open more than one auth channel per socket")
 		} else {
 			already_open.update(request.socket, true)
-			request.accept(Props(new Auth(request.socket, request.opener)))
+			request.accept(Props(new AuthChannel(request.socket, request.opener)))
 		}
 	}
 
 	private val concurrent = Future.failed[Payload](new Exception("Concurrent requests on auth channel are forbidden"))
 }
 
-class Auth(val socket: ActorRef, val opener: Opener) extends ChannelHandler {
+class AuthChannel(val socket: ActorRef, val opener: Opener) extends ChannelHandler {
 	// Count parallel requests
 	private val count = new AtomicInteger(0)
 
 	// Break the multiplexing feature of GTP3 for the auth channel
 	// This prevents running multiple login attempts in parallel
 	override def handle_request(req: String, payload: Payload): Future[Payload] = {
-		if (count.incrementAndGet() != 1) Auth.concurrent
+		if (count.incrementAndGet() != 1) AuthChannel.concurrent
 		else super.handle_request(req, payload)
 	} andThen {
 		case _ => count.decrementAndGet()

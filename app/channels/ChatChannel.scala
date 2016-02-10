@@ -8,11 +8,11 @@ import models.User
 import play.api.libs.json.Json
 import reactive.ExecutionContext
 
-object Chat extends ChannelValidator {
-	def open(request: ChannelRequest) = request.accept(Props(new Chat(request.user)))
+object ChatChannel extends ChannelValidator {
+	def open(request: ChannelRequest) = request.accept(Props(new ChatChannel(request.user)))
 }
 
-class Chat(val user: User) extends ChannelHandler {
+class ChatChannel(val user: User) extends ChannelHandler {
 	var interests = Set[Int]()
 
 	init {

@@ -12,8 +12,8 @@ import scala.concurrent.duration._
 import scala.util.Success
 import utils.CacheCell
 
-object Profile extends ChannelValidator {
-	def open(request: ChannelRequest) = request.accept(Props(new Profile(request.user)))
+object ProfileChannel extends ChannelValidator {
+	def open(request: ChannelRequest) = request.accept(Props(new ProfileChannel(request.user)))
 
 	// Cache of every realms in the database
 	private val realms_cache = CacheCell.async(15.minutes) {
@@ -21,7 +21,7 @@ object Profile extends ChannelValidator {
 	}
 }
 
-class Profile(val user: User) extends ChannelHandler {
+class ProfileChannel(val user: User) extends ChannelHandler {
 	// Configuration for B.net rate limitation
 	private val limit = 4.0
 	private val interval = 30.0
@@ -62,7 +62,7 @@ class Profile(val user: User) extends ChannelHandler {
 
 		for {
 			// Check that server is valid
-			realms <- Profile.realms_cache.value
+			realms <- ProfileChannel.realms_cache.value
 			exists = realms.exists { case (a, b) => a == server }
 			_ = if (exists) () else throw new Exception("Invalid server name")
 
@@ -73,7 +73,7 @@ class Profile(val user: User) extends ChannelHandler {
 	}
 
 	// Fetch the realms list from the database
-	request("realms-list") { _ => Profile.realms_cache.value }
+	request("realms-list") { _ => ProfileChannel.realms_cache.value }
 
 	// Register a new char to a user
 	request("register-char") { p =>

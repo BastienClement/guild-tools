@@ -16,14 +16,14 @@ import scala.sys.process._
 import scala.util.Try
 import utils.CacheCell
 
-object ServerStatus extends ChannelValidator {
+object ServerStatusChannel extends ChannelValidator {
 	def open(request: ChannelRequest) = {
-		if (request.user.promoted) request.accept(Props(new ServerStatus))
+		if (request.user.promoted) request.accept(Props(new ServerStatusChannel))
 		else request.reject(1, "Unauthorized")
 	}
 }
 
-class ServerStatus extends ChannelHandler {
+class ServerStatusChannel extends ChannelHandler {
 	// Run a shell command in a safe way
 	def run(cmd: String): String = Try { cmd.!!.trim } getOrElse "n/a"
 

@@ -1,10 +1,10 @@
 package controllers
 
-import channels.NewsFeed
+import channels.NewsFeedChannel
 import play.api.Play._
 import play.api.mvc.{Action, Controller}
 
-class Ping extends Controller {
+class PingController extends Controller {
 	private val secret = current.configuration.getString("ping.secret") getOrElse ""
 	private val sources = current.configuration.getStringSeq("ping.sources") getOrElse Nil
 
@@ -19,6 +19,6 @@ class Ping extends Controller {
 	}
 
 	def dashboardFeed = PingAction {
-		NewsFeed.ping()
+		NewsFeedChannel.ping()
 	}
 }
