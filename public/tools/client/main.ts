@@ -1,5 +1,5 @@
 import { Component, Injector } from "utils/di";
-import { Server, UserInformations } from "client/server";
+import { Server, UserInformation } from "client/server";
 import { Router } from "client/router";
 import { Channel } from "gtp3/channel";
 import { Loader } from "client/loader";
@@ -199,7 +199,7 @@ class AuthenticationDriver {
 	 * the authentication was successful
 	 */
 	private async auth(session: string): Promise<boolean> {
-		let user = await this.channel.request<UserInformations>("auth", session);
+		let user = await this.channel.request<UserInformation>("auth", session);
 		this.app.user = user;
 		return !!user;
 	}
