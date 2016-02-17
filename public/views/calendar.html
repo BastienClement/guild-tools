@@ -1,0 +1,106 @@
+<dom-module id="gt-calendar">
+	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="gt-calendar">
+	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="gt-calendar-colors">
+	<template>
+		<gt-calendar-overview></gt-calendar-overview>
+		<gt-box #calendar>
+			<div #layout>
+				<gt-box #header>
+					<div #top>
+						<div #left>
+							<gt-button (click)="CurrentMonth"><i>last_page</i></gt-button>
+						</div>
+						<div #center>
+							<gt-button (click)="PrevMonth"><i>chevron_left</i></gt-button>
+							<span>{{title}}</span>
+							<gt-button (click)="NextMonth"><i>chevron_right</i></gt-button>
+						</div>
+						<div #right>
+							<gt-button>New event</gt-button>
+						</div>
+					</div>
+					<div #days>
+						<span>Monday</span>
+						<span>Tuesday</span>
+						<span>Wednesday</span>
+						<span>Thursday</span>
+						<span>Friday</span>
+						<span>Saturday</span>
+						<span>Sunday</span>
+					</div>
+				</gt-box>
+				<div #body>
+					<div .row [repeat]="layout" $as="row">
+						<div .column [repeat]="row">
+							<gt-calendar-cell [date]="item"></gt-calendar-cell>
+						</div>
+					</div>
+				</div>
+				<gt-box #footer dark>
+					<div #legend>
+						<div state="0">Non-register</div>
+						<div answer="1">Accepted</div>
+						<div answer="2">Declined</div>
+						<div state="1">Locked</div>
+						<div state="2">Canceled</div>
+						<div><i>priority_high</i> Announce</div>
+						<div><i>local_offer</i> Guild</div>
+						<div><i>vpn_key</i> Restricted</div>
+						<div><i>public</i> Public</div>
+					</div>
+				</gt-box>
+			</div>
+		</gt-box>
+	</template>
+</dom-module>
+
+<!-- ////////////////////////////////////////////////////////////////////// -->
+
+<dom-module id="gt-calendar-cell">
+	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="gt-calendar-cell">
+	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="gt-calendar-colors">
+	<template>
+		<meta is="calendar-events" [date]="date.date" [events]>
+		<div #day>
+			<b>{{day}}</b>
+		</div>
+		<div #events>
+			<gt-calendar-cell-event [repeat]="events" [event]="item"></gt-calendar-cell-event>
+		</div>
+	</template>
+</dom-module>
+
+<!-- ////////////////////////////////////////////////////////////////////// -->
+
+<dom-module id="gt-calendar-cell-event">
+	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="gt-calendar-cell-event">
+	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="gt-calendar-colors">
+	<template>
+		<meta is="calendar-icon" [type]="event.type" [icon]>
+		<div #layout {type}="event.type" {state}="event.state" {answer}="event.answer.answer">
+			<i #icon [if]>{{icon}}</i>
+			<b #title>{{event.title}}</b>
+			<b #time [if]="showTime">{{time}}</b>
+			<span #actions></span>
+		</div>
+	</template>
+</dom-module>
+
+<!-- ////////////////////////////////////////////////////////////////////// -->
+
+<dom-module id="gt-calendar-overview">
+	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="gt-calendar-overview">
+	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="gt-calendar-colors">
+	<template>
+		<gt-box heading="Overview" scrollable>
+			<h2 #this-lockout>
+				This lockout
+			</h2>
+			<gt-alert dark icon="cloud_off">No data available</gt-alert>
+			<h2 #next-lockout>
+				Next lockout
+			</h2>
+			<gt-alert dark icon="cloud_off">No data available</gt-alert>
+		</gt-box>
+	</template>
+</dom-module>

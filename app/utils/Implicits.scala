@@ -3,15 +3,40 @@ package utils
 import scala.concurrent.Future
 import scala.language.implicitConversions
 
+/**
+  * Useful generic implicits
+  */
 object Implicits {
-	implicit def FutureBoxing[T](v: T): Future[T] = Future.successful(v)
-	implicit def FutureBoxing[T](v: Option[T]): Future[T] = {
+	/**
+	  * Implicitly transform a T to a Future[T].
+	  * @param value  Value to box into a Future
+	  * @tparam T     Type of the value
+	  * @return       A Future[T] resolved with the given value
+	  */
+	implicit def FutureBoxing[T](value: T): Future[T] = Future.successful(value)
+
+	/**
+	  * Implicitly transform an Option[T] to a Future[T].
+	  * None[T] is wrapped into a failed Future[T]
+	  * @param value  Optional value to box into a Future
+	  * @tparam T     Type of the value
+	  * @return       A Future[T] resolved with the given value or a failed
+	  *               Future[T] if None was given.
+	  */
+	implicit def FutureBoxing[T](value: Option[T]): Future[T] = {
 		try {
-			Future.successful(v.get)
+			Future.successful(value.get)
 		} catch {
 			case e: Throwable => Future.failed(e)
 		}
 	}
 
-	implicit def OptionBoxing[T](v: T): Option[T] = Option(v)
+	/**
+	  * Implicitly transform a T to an Option[T].
+	  * @param value  Value to box into an Option
+	  * @tparam T     Type of the value
+	  * @return       Some[T] with the given value or None if null was given.
+	  *               Actually, the result of calling Option(value).
+	  */
+	implicit def OptionBoxing[T](value: T): Option[T] = Option(value)
 }

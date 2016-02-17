@@ -1,0 +1,195 @@
+///////////////////////////////////////////////////////////////////////////////
+// <gt-calendar>
+
+:namespace("gt-calendar") {
+	:host {
+		display: flex;
+	}
+
+	#calendar {
+		flex: 1;
+		padding: 0;
+
+		#layout { .fill;
+			display: flex;
+			flex-direction: column;
+
+			gt-box { border: 0; }
+
+			#header, #footer { flex-shrink: 0; }
+
+			#header {
+				box-shadow: none;
+				border-bottom: 2px solid @fs-blue;
+				padding: 3px 6px;
+
+				i {
+					font-size: 22px;
+					margin: 0;
+				}
+
+				#top {
+					display: flex;
+
+					#left, #right { width: 200px; }
+					#right { text-align: right; }
+					gt-button { margin: 0; }
+
+					#center {
+						flex: 1;
+						display: flex;
+						justify-content: center;
+						align-items: center;
+
+						span {
+							width: 200px;
+							text-align: center;
+							font: 400 18px "Roboto Condensed";
+						}
+					}
+				}
+
+				#days {
+					display: flex;
+					padding-bottom: 8px;
+					margin-top: 5px;
+
+					span {
+						flex: 1;
+						text-align: center;
+					}
+				}
+			}
+
+			#body { .custom-scrolls;
+				flex: 1;
+				overflow-y: auto;
+				padding: 3px;
+
+				.row {
+					display: flex;
+					min-height: 125px;
+
+					.column {
+						flex: 1;
+
+						gt-calendar-cell {
+							width: 100%;
+						}
+					}
+				}
+			}
+
+			#footer {
+				#legend {
+					display: flex;
+					div {
+						flex: 1;
+						text-align: center;
+					}
+				}
+			}
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <gt-calendar-cell>
+
+:namespace("gt-calendar-cell") {
+	:host {
+		display: block;
+		padding: 12px;
+	}
+
+	#day {
+		font-size: 18px;
+
+		:host([inactive]) & {
+			opacity: 0.5;
+		}
+
+		:host([today]) & {
+			color: @fs-blue;
+		}
+	}
+
+	gt-calendar-cell-event {
+		margin-top: 3px;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <gt-calendar-cell-event>
+
+:namespace("gt-calendar-cell-event") {
+	:host {
+		display: block;
+		padding: 3px 8px;
+		margin: 0 -8px;
+		border-radius: 50px;
+		transition: background ease-out .1s;
+	}
+
+	:host(:hover) {
+		background: rgba(255, 255, 255, 0.08);
+	}
+
+	#layout {
+		display: flex;
+		align-items: center;
+
+		#icon, #time, #actions {
+			flex-shrink: 0;
+		}
+
+		#icon {
+			margin-right: 3px;
+		}
+
+		#title {
+			flex: 1;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <gt-calendar-overview>
+
+:namespace("gt-calendar-overview") {
+	:host {
+		display: block;
+		width: 330px;
+		margin-right: 6px;
+		position: relative;
+	}
+
+	gt-box { .fill;
+		h2 {
+			font: 500 16px "Roboto Condensed";
+			margin: 0 0 6px 0;
+			padding-bottom: 6px;
+			border-bottom: 1px solid #426585;
+
+			&#next-lockout { margin-top: 16px; }
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <gt-calendar-colors>
+
+:namespace("gt-calendar-colors") {
+	[state="0"] { color: #ffef64; }
+
+	[answer="1"] { color: #70ea5c; }
+	[answer="2"] { color: #ff693b; }
+
+	[state="1"] { color: #64b4ff; }
+	[state="2"] { color: #aaa; }
+
+	[type="4"] { color: #fff; }
+}

@@ -14,7 +14,7 @@ object MasterChannel extends ChannelValidator {
 class MasterChannel(val user: User) extends ChannelHandler {
 	// Request the previously saved configuration object
 	request("get-config") { payload =>
-		val q = Configs filter (_.user === user.id) take 1
+		val q = Configs.filter(_.user === user.id).take(1)
 		for (data <- q.headOption) yield data match {
 			case Some(config) => config.jsvalue
 			case None => Json.obj()

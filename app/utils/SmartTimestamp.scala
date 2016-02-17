@@ -3,7 +3,7 @@ package utils
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.concurrent.TimeUnit
-import java.util.{Calendar, GregorianCalendar}
+import java.util.{TimeZone, Calendar, GregorianCalendar}
 import scala.compat.Platform
 import scala.concurrent.duration.FiniteDuration
 import scala.language.implicitConversions
@@ -16,11 +16,13 @@ object SmartTimestamp {
 	  * Display format
 	  */
 	val format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+	format.setTimeZone(TimeZone.getTimeZone("UTC"))
 
 	/**
 	  * Convert a SQL timestamp to a SmartTimestamp
 	  */
 	implicit def fromTimestamp(t: Timestamp): SmartTimestamp = SmartTimestamp(t.getTime)
+	implicit def toTimestamp(s: SmartTimestamp): Timestamp = s.toSQL
 
 	/**
 	  * Create a SmartTimestamp for the current time

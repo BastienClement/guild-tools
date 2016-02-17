@@ -2,6 +2,8 @@
 
 /profile(/:[0-9]+:user)?          views/profile/GtProfile
 
+/calendar                         views/calendar/GtCalendar
+
 /apply(/:[0-9]+:selected)?        views/apply/GtApply
 /apply-guest                      views/apply/GtApplyRedirect
 

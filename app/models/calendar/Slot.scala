@@ -1,8 +1,9 @@
-package models
+package models.calendar
 
+import models.Chars
 import models.mysql._
 
-case class CalendarSlot(tab: Int, slot: Int, owner: Int, name: String, `class`: Int, role: String) {
+case class Slot(tab: Int, slot: Int, owner: Int, name: String, `class`: Int, role: String) {
 	if (!Chars.validateRole(role)) {
 		throw new Exception("Invalid role value")
 	}
@@ -12,7 +13,7 @@ case class CalendarSlot(tab: Int, slot: Int, owner: Int, name: String, `class`: 
 	}
 }
 
-class CalendarSlots(tag: Tag) extends Table[CalendarSlot](tag, "gt_events_slots") {
+class Slots(tag: Tag) extends Table[Slot](tag, "gt_events_slots") {
 	def tab = column[Int]("tab", O.PrimaryKey)
 	def slot = column[Int]("slot")
 	def owner = column[Int]("owner")
@@ -20,7 +21,7 @@ class CalendarSlots(tag: Tag) extends Table[CalendarSlot](tag, "gt_events_slots"
 	def clazz = column[Int]("class")
 	def role = column[String]("role")
 
-	def * = (tab, slot, owner, name, clazz, role) <> (CalendarSlot.tupled, CalendarSlot.unapply)
+	def * = (tab, slot, owner, name, clazz, role) <> (Slot.tupled, Slot.unapply)
 }
 
-object CalendarSlots extends TableQuery(new CalendarSlots(_))
+object Slots extends TableQuery(new Slots(_))
