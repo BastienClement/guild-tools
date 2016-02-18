@@ -32,6 +32,7 @@
 					display: flex;
 
 					#left, #right { width: 200px; }
+					#left { margin-left: -3px; }
 					#right { text-align: right; }
 					gt-button { margin: 0; }
 
@@ -61,20 +62,26 @@
 				}
 			}
 
-			#body { .custom-scrolls;
+			#body-scroll { .custom-scrolls;
 				flex: 1;
 				overflow-y: auto;
 				padding: 3px;
 
-				.row {
-					display: flex;
-					min-height: 125px;
+				#body {
+					display: table;
+					width: 100%;
+					table-layout: fixed;
 
-					.column {
-						flex: 1;
+					.row {
+						display: table-row;
 
-						gt-calendar-cell {
-							width: 100%;
+						.column {
+							display: table-cell;
+
+							gt-calendar-cell {
+								width: 100%;
+								min-height: 125px;
+							}
 						}
 					}
 				}
@@ -131,28 +138,50 @@
 		transition: background ease-out .1s;
 	}
 
-	:host(:hover) {
-		background: rgba(255, 255, 255, 0.08);
-	}
-
 	#layout {
 		display: flex;
 		align-items: center;
+	}
 
-		#icon, #time, #actions {
-			flex-shrink: 0;
-		}
+	#icon, #time, #actions {
+		flex-shrink: 0;
+	}
 
-		#icon {
-			margin-right: 3px;
-		}
+	#icon {
+		margin-right: 5px;
+	}
 
-		#title {
-			flex: 1;
-			overflow: hidden;
-			white-space: nowrap;
-			text-overflow: ellipsis;
+	#title {
+		flex: 1;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+
+	#time, #note { margin-left: 3px; }
+	#time { color: #fff; }
+	#note { color: @fs-gray; }
+
+	#actions {
+		display: none;
+		color: #fff;
+
+		i {
+			display: inline-block;
+			padding: 3px 3px;
+			margin: -3px 0;
+			height: auto;
+			width: auto;
+			text-shadow: 0 0 0;
+			transition: color ease-out .3s;
+			&:hover { color: @fs-blue; }
 		}
+	}
+
+	:host(:hover:not([announce])) {
+		background: fade(@fs-gray, 10%);
+		#actions { display: block; }
+		#time { display: none; }
 	}
 }
 
@@ -176,6 +205,26 @@
 
 			&#next-lockout { margin-top: 16px; }
 		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// <gt-calendar-cell-event-tooltip>
+
+:namespace("gt-calendar-cell-event-tooltip") {
+	.row {
+		display: flex;
+		align-items: center;
+
+		& > b:first-of-type { flex: 1; }
+		& > b:last-of-type:not(:first-of-type) { margin-left: 20px; }
+	}
+
+	#type { color: @fs-gray; }
+	#desc {
+		margin-top: 8px;
+		font-size: 13px;
+		white-space: pre-line;
 	}
 }
 

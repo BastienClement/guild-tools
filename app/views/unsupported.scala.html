@@ -4,11 +4,11 @@
 	<script>
 			var good = false;
 			var bowser = this.bowser || module.exports;
-			if (bowser.firefox) {
+			/*if (bowser.firefox) {
 				bowser.name = "Mozilla Firefox";
 				bowser.url = "http://getfirefox.com";
 				good = true;
-			} else if (bowser.chrome) {
+			} else*/ if (bowser.chrome) {
 				bowser.name = "Google Chrome";
 				bowser.url = "http://www.google.com/chrome";
 				good = true;
@@ -31,12 +31,13 @@
 	</p>
 	<p id="bad">
 		Unfortunately, GuildTools is only developed and supported on
-		<a href="http://www.google.com/chrome">Google Chrome</a> and
-		<a href="http://getfirefox.com">Mozilla Firefox</a>.
-		You should install one of these before using GuildTools.
+		<a href="http://www.google.com/chrome">Google Chrome</a> <!--and
+		<a href="http://getfirefox.com">Mozilla Firefox</a>-->.<br>
+		A <a href="http://app.fs-guild.net/">standalone application</a>
+		is also available if you don't want to install Chrome.
 	</p>
 	<p>
-		Alternatively, in case you really wish to keep using <script>document.write(bowser.name);</script>,
+		Alternatively, in case you really wish to continue using <script>document.write(bowser.name);</script>,
 		you can choose to <a href="/" onclick="localStorage.setItem('unsupported.ignored', navigator.userAgent);">
 		ignore</a>
 		this message and continue anyway.

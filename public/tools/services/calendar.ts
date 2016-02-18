@@ -150,7 +150,7 @@ export class CalendarService extends Service {
 			let b_time = (b.time < 600) ? b.time + 2400 : b.time;
 			if (a_time !== b_time) return b_time - a_time;
 
-			return b.id - a.id;
+			return a.id - b.id;
 		});
 	}
 

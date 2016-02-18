@@ -74,13 +74,6 @@
 <script src='@routes.Assets.versioned("javascripts/promise.js")'></script>
 <script src='@routes.Assets.versioned("javascripts/prefixfree.js")'></script>
 
-<!-- Load application -->
-<script>
-	System.import("client/boot").then(function(boot) {
-		boot.default();
-	});
-</script>
-
 <!-- Check browser compatibility -->
 <script src='@routes.Assets.versioned("javascripts/bowser.js")'></script>
 <script>
@@ -90,7 +83,7 @@
 		var valid = (function() {
 			var version = parseInt(bowser.version.split(".")[0]);
 			if (bowser.chrome) return version >= 44;
-			else if (bowser.firefox) return version >= 41;
+			//else if (bowser.firefox) return version >= 41;
 			else return false;
 		})();
 
@@ -100,4 +93,11 @@
 			document.location.href = "/unsupported";
 		}
 	})();
+</script>
+
+<!-- Load application -->
+<script>
+	System.import("client/boot").then(function(boot) {
+		boot.default();
+	});
 </script>

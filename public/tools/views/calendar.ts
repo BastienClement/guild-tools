@@ -1,7 +1,8 @@
-import { Element, Dependencies, PolymerElement, Inject, Property, PolymerModelEvent } from "elements/polymer";
+import { Element, Dependencies, PolymerElement, Inject, Property, Listener, PolymerModelEvent } from "elements/polymer";
 import { View, TabsGenerator } from "elements/app";
 import { GtBox, GtAlert } from "elements/box";
 import { GtButton } from "elements/widgets";
+import { GtTooltip } from "elements/tooltip";
 import { CalendarService, CalendarEvent, CalendarEventType } from "services/calendar";
 
 const CalendarTabs: TabsGenerator = (view, path, user) => [
@@ -42,24 +43,59 @@ type CalendarDate = {
 export class GtCalendarOverview extends PolymerElement {
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// <gt-calendar-cell-event-tooltip>
+
+@Element("gt-calendar-cell-event-tooltip", "/assets/views/calendar.html")
+export class GtCalendarCellEventTooltip extends PolymerElement {
+	@Property public event: CalendarEvent;
+	@Property public time: string;
+
+	@Property({ computed: "event.type" })
+	private get showTime(): boolean {
+		return this.event.type != CalendarEventType.Announce;
+	}
+
+	@Property({ computed: "event.type" })
+	private get eventType(): string {
+		switch (this.event.type) {
+			case CalendarEventType.Announce: return "Announce";
+			case CalendarEventType.Guild: return "Guild event";
+			case CalendarEventType.Public: return "Public event";
+			case CalendarEventType.Restricted: return "Restricted event";
+			case CalendarEventType.Roster: return "Roster event";
+			default: return "Event";
+		}
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // <gt-calendar-cell-event>
 
 @Element("gt-calendar-cell-event", "/assets/views/calendar.html")
-@Dependencies(GtBox, GtAlert)
+@Dependencies(GtTooltip, GtCalendarCellEventTooltip)
 export class GtCalendarCellEvent extends PolymerElement {
 	public event: CalendarEvent;
 
+	@Property({ computed: "event.type", reflect: true })
+	private get announce(): boolean {
+		return this.event.type == CalendarEventType.Announce;
+	}
+
 	@Property({ computed: "event.type" })
-	private get showTime() {
+	private get showTime(): boolean {
 		return this.event.type != CalendarEventType.Announce;
 	}
 
 	@Property({ computed: "event.time" })
-	private get time() {
+	private get time(): string {
 		let time = String(this.event.time + 10000);
 		return time.slice(1, 3) + ":" + time.slice(3);
+	}
+
+	@Listener("click")
+	private OnClick() {
+		this.app.router.goto(`/calendar/event/${this.event.id}`);
 	}
 }
 
@@ -110,7 +146,7 @@ export class GtCalendarCell extends PolymerElement {
 
 @View("calendar", CalendarTabs)
 @Element("gt-calendar", "/assets/views/calendar.html")
-@Dependencies(GtBox, GtAlert, GtButton, GtCalendarCell, GtCalendarOverview)
+@Dependencies(GtBox, GtButton, GtCalendarCell, GtCalendarOverview)
 export class GtCalendar extends PolymerElement {
 	/**
 	 * Current calendar page [month, year]

@@ -2,7 +2,7 @@
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="gt-calendar">
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="gt-calendar-colors">
 	<template>
-		<gt-calendar-overview></gt-calendar-overview>
+		<!--<gt-calendar-overview></gt-calendar-overview>-->
 		<gt-box #calendar>
 			<div #layout>
 				<gt-box #header>
@@ -29,10 +29,12 @@
 						<span>Sunday</span>
 					</div>
 				</gt-box>
-				<div #body>
-					<div .row [repeat]="layout" $as="row">
-						<div .column [repeat]="row">
-							<gt-calendar-cell [date]="item"></gt-calendar-cell>
+				<div #body-scroll>
+					<div #body>
+						<div .row [repeat]="layout" $as="row">
+							<div .column [repeat]="row">
+								<gt-calendar-cell [date]="item"></gt-calendar-cell>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -77,12 +79,41 @@
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="gt-calendar-colors">
 	<template>
 		<meta is="calendar-icon" [type]="event.type" [icon]>
+		<gt-tooltip>
+			<gt-calendar-cell-event-tooltip [event] [time]></gt-calendar-cell-event-tooltip>
+		</gt-tooltip>
 		<div #layout {type}="event.type" {state}="event.state" {answer}="event.answer.answer">
 			<i #icon [if]>{{icon}}</i>
 			<b #title>{{event.title}}</b>
+			<i #note [if]="event.desc">edit</i>
 			<b #time [if]="showTime">{{time}}</b>
-			<span #actions></span>
+			<span #actions [if]="equals(event.state, 0)">
+				<i>check</i>
+				<i>clear</i>
+			</span>
+			<span #actions [if]="!equals(event.state, 0)">
+				<i>lock_outline</i>
+			</span>
 		</div>
+	</template>
+</dom-module>
+
+<!-- ////////////////////////////////////////////////////////////////////// -->
+
+<dom-module id="gt-calendar-cell-event-tooltip">
+	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="gt-calendar-cell-event-tooltip">
+	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="gt-calendar-colors">
+	<template>
+		<meta is="roster-main" [user]="event.owner" [main]>
+		<div .row>
+			<b {state}="event.state" {type}="event.type" {answer}="event.answer.answer">{{event.title}}</b>
+			<b [if]="showTime">{{time}}</b>
+		</div>
+		<div .row>
+			<b {class-color}="main.class">{{main.name}}</b>
+			<b #type>{{eventType}}</b>
+		</div>
+		<div #desc [if]="event.desc">{{event.desc}}</div>
 	</template>
 </dom-module>
 
