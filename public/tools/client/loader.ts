@@ -388,6 +388,12 @@ export class Loader {
 			promote_attribute("$index-as", "index-as");
 			promote_node("dom-repeat");
 		}
+
+		// Recurse on children
+		let children = <any> template.querySelectorAll("template");
+		for (let i = 0; children && i < children.length; ++i) {
+			this.compilePolymerSugars(children[i].content);
+		}
 	}
 
 	/**
