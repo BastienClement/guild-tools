@@ -683,5 +683,5 @@ export function apply_polymer_fns() {
 	 */
 	Base.equals = function<T>(a: T, b: T) {
 		return a === b;
-	}
+	};
 }

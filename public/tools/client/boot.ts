@@ -37,6 +37,14 @@ export default async function boot() {
 		Promise.require<Constructor<Application>>("client/main", "Application")
 	]));
 
+	// Prevent right-click
+	document.addEventListener("contextmenu", (e: MouseEvent) => {
+		if (!e.shiftKey) {
+			e.preventDefault();
+			e.stopImmediatePropagation();
+		}
+	});
+
 	// Construct the Application
 	const app = injector.get(app_constructor);
 

@@ -1,0 +1,73 @@
+:namespace("floating") {
+	:host {
+		display: none;
+		position: fixed;
+		background: rgba(31, 41, 52, 0.95);
+		box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+		padding: 8px 12px;
+		z-index: 2000;
+		border-radius: 2px;
+	}
+
+	:host([visible]) {
+		display: block;
+	}
+}
+
+:namespace("context") {
+	:host {
+		padding-top: 4px;
+		padding-bottom: 4px;
+	}
+
+	::content > ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+
+		li {
+			padding: 4px 48px 4px 32px;
+			margin: 0 -12px;
+			position: relative;
+
+			&:hover:not(.separator) {
+				background: fade(mix(@fs-blue, @light-blue), 30%);
+			}
+
+			& > i {
+				position: absolute;
+				top: 5px;
+				left: 8px;
+
+				&:not([class-color]) {
+					color: @fs-blue;
+				}
+
+				& > img {
+					.pos(absolute);
+					width: 100%;
+				}
+
+				&[class-color]::after {
+					content: "";
+					border: 5px solid;
+					border-radius: 10px;
+					display: block;
+					height: 0;
+					width: 0;
+					margin-top: 2px;
+					margin-left: 2px;
+				}
+			}
+
+			&.separator {
+				padding: 4px 0;
+				height: 1px;
+				box-sizing: content-box;
+				background: fade(@fs-gray, 20%);
+				background-clip: content-box;
+				&:first-child, &:last-child, & + li.separator { display: none; }
+			}
+		}
+	}
+}

@@ -2,8 +2,8 @@ import { Element, Dependencies, PolymerElement, Inject, Property, Listener, Poly
 import { View, TabsGenerator } from "elements/app";
 import { GtBox, GtAlert } from "elements/box";
 import { GtButton } from "elements/widgets";
-import { GtTooltip } from "elements/tooltip";
-import { CalendarService, CalendarEvent, CalendarEventType } from "services/calendar";
+import { GtTooltip, GtContextMenu } from "elements/floating";
+import { CalendarService, CalendarEvent, CalendarEventType, CalendarEventState, CalendarAnswer } from "services/calendar";
 
 const CalendarTabs: TabsGenerator = (view, path, user) => [
 	{ title: "Calendar", link: "/calendar", active: view == "views/calendar/GtCalendar" },
@@ -73,7 +73,7 @@ export class GtCalendarCellEventTooltip extends PolymerElement {
 // <gt-calendar-cell-event>
 
 @Element("gt-calendar-cell-event", "/assets/views/calendar.html")
-@Dependencies(GtTooltip, GtCalendarCellEventTooltip)
+@Dependencies(GtTooltip, GtCalendarCellEventTooltip, GtContextMenu)
 export class GtCalendarCellEvent extends PolymerElement {
 	public event: CalendarEvent;
 
@@ -93,9 +93,37 @@ export class GtCalendarCellEvent extends PolymerElement {
 		return time.slice(1, 3) + ":" + time.slice(3);
 	}
 
+	@Property({ computed: "event.type event.state" })
+	private get canAcceptDecline(): boolean {
+		return this.event.state == CalendarEventState.Open && this.event.type != CalendarEventType.Announce;
+	}
+
 	@Listener("click")
 	private OnClick() {
 		this.app.router.goto(`/calendar/event/${this.event.id}`);
+	}
+
+	private ChangeAnswer(answer: CalendarAnswer) {
+		console.log("change answer", answer);
+	}
+
+	private AcceptEvent() { this.ChangeAnswer(CalendarAnswer.Accepted); }
+	private DeclineEvent() { this.ChangeAnswer(CalendarAnswer.Declined); }
+
+	private ChangeState(state: CalendarEventState) {
+		console.log("change state", state);
+	}
+
+	private OpenEvent() { this.ChangeState(CalendarEventState.Open); }
+	private CloseEvent() { this.ChangeState(CalendarEventState.Closed); }
+	private CancelEvent() { this.ChangeState(CalendarEventState.Canceled); }
+
+	private EditEvent() {
+		console.log("edit");
+	}
+
+	private DeleteEvent() {
+		console.log("delete");
 	}
 }
 

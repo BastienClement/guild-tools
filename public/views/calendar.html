@@ -82,6 +82,23 @@
 		<gt-tooltip>
 			<gt-calendar-cell-event-tooltip [event] [time]></gt-calendar-cell-event-tooltip>
 		</gt-tooltip>
+		<gt-context-menu>
+			<ul>
+				<template [if]="canAcceptDecline">
+					<li (click)="AcceptEvent"><i>check</i> Accept</li>
+					<li (click)="DeclineEvent"><i>clear</i> Decline</li>
+					<li .separator></li>
+				</template>
+				<template [if]="!announce">
+					<li (click)="OpenEvent"><i>panorama_fish_eye</i> Open</li>
+					<li (click)="CloseEvent"><i>lock_outline</i> Close</li>
+					<li (click)="CancelEvent"><i>remove_circle_outline</i> Cancel</li>
+					<li .separator></li>
+				</template>
+				<li (click)="EditEvent"><i>edit</i> Edit</li>
+				<li (click)="DeleteEvent"><i>delete_forever</i> Delete</li>
+			</ul>
+		</gt-context-menu>
 		<div #layout {type}="event.type" {state}="event.state" {answer}="event.answer.answer">
 			<i #icon [if]>{{icon}}</i>
 			<b #title>{{event.title}}</b>
