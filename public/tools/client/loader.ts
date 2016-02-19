@@ -343,16 +343,21 @@ export class Loader {
 				if (addBraces && !value.match(/^\{\{.*\}\}$/)) {
 					value = `{{${value}}}`;
 				}
-				wrapper.setAttribute(to, value);
+
+				((node.tagName == "TEMPLATE") ? node : wrapper).setAttribute(to, value);
 			}
 		};
 
 		// Move node inside the wrapper
 		const promote_node = (wrapper_behaviour: string) => {
-			node.parentNode.insertBefore(wrapper, node);
-			wrapper.setAttribute("is", wrapper_behaviour);
-			wrapper.content.appendChild(node);
-			wrapper = document.createElement("template");
+			if (node.tagName != "TEMPLATE") {
+				node.parentNode.insertBefore(wrapper, node);
+				wrapper.setAttribute("is", wrapper_behaviour);
+				wrapper.content.appendChild(node);
+				wrapper = document.createElement("template");
+			} else {
+				node.setAttribute("is", wrapper_behaviour);
+			}
 		};
 
 		// Note: we need to find all interesting nodes before promoting any one of them.
