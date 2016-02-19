@@ -11,6 +11,7 @@ export class Service extends EventEmitter {
 	private attachedListeners = new WeakSet<Object>();
 	private attachedCount = 0;
 	private attachedState = true;
+	private pauseTimeout: any;
 
 	constructor() {
 		super();
@@ -51,6 +52,7 @@ export class Service extends EventEmitter {
 			if (!this.attachedState) {
 				this.attachedState = true;
 				const that: any = this;
+				if (this.pauseTimeout) clearTimeout(this.pauseTimeout);
 				if (that.resume) that.resume();
 			}
 		}
@@ -67,7 +69,11 @@ export class Service extends EventEmitter {
 			if (this.attachedCount == 0 && this.attachedState) {
 				this.attachedState = false;
 				const that: any = this;
-				if (that.pause) that.pause();
+				if (that.pause) {
+					this.pauseTimeout = setTimeout(() => {
+						if (!this.attachedState) that.pause();
+					}, 15000);
+				}
 			}
 		}
 	}
