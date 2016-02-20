@@ -30,7 +30,7 @@
 	<link rel="stylesheet/less" href="/assets/less/dashboard.less" ns="dashboard-news">
 	<template>
 		<gt-box #feed heading="News Feed" scrollable>
-			<div #disconnected [if]="!available">
+			<div #disconnected *if="!available">
 				<i>cloud_off</i>
 			</div>
 			<div #actions>
@@ -38,12 +38,12 @@
 				<dashboard-news-filter key="BLUE" [active]="filters.BLUE"></dashboard-news-filter>
 				<dashboard-news-filter key="WOW" [active]="filters.WOW"></dashboard-news-filter>
 			</div>
-			<gt-alert #none [if]="noVisible" icon="cloud_off" dark>
+			<gt-alert #none *if="noVisible" icon="cloud_off" dark>
 				No news to display.<br>
 				The news feed may be temporarily unavailable.
 			</gt-alert>
 			<div #list>
-				<div .news [repeat]="news" {visible}="visible(item.source, filters.*)" (click)="open">
+				<div .news *for="news" {visible}="visible(item.source, filters.*)" (click)="open">
 					<img [src]="icon(item)">
 					<b {tags}="item.tags" {source}="item.source">{{item.title}}</b>
 					<gt-timeago [date]="item.time"></gt-timeago>
@@ -71,7 +71,7 @@
 			<div style="position: absolute; top: 60px; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; font-size: 60px;">
 				<i>build</i>
 			</div>
-			<div .message [repeat]="messages" hidden>
+			<div .message *for="messages" hidden>
 				<span .left>
 					<gt-timeago .time [date]="item.date"></gt-timeago>
 					<span .actions>
@@ -90,7 +90,7 @@
 	<link rel="stylesheet/less" href="/assets/less/dashboard.less" ns="dashboard-onlines">
 	<template>
 		<gt-box #onlines heading="Onlines" scrollable>
-			<dashboard-onlines-user [user]="item" [repeat]="onlines"></dashboard-onlines-user>
+			<dashboard-onlines-user [user]="item" *for="onlines"></dashboard-onlines-user>
 		</gt-box>
 	</template>
 </dom-module>

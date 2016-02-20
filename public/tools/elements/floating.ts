@@ -8,16 +8,13 @@ const enum NodeType {
 }
 
 /**
- * Host attribute is missing from the DocumentFragment object
- */
-interface DocumentFragmentHost extends DocumentFragment {
-	host: Element
-}
-
-/**
  * Alias for mouse event listener used by tooltip
  */
 type EventListener = (e: MouseEvent) => void;
+
+function is_DocumentFragment(node: Node): node is DocumentFragment {
+	return node && node.nodeType == NodeType.DOCUMENT_FRAGMENT_NODE;
+}
 
 // ============================================================================
 
@@ -66,9 +63,11 @@ class FloatingItem {
 
 		// Search parent element for binding enter and leave event.
 		this.owner.parent = this.node.parentNode;
-		if (this.owner.parent && this.owner.parent.nodeType == NodeType.DOCUMENT_FRAGMENT_NODE) {
-			// Take host element if we have a ShadowRoot
-			this.owner.parent = (<DocumentFragmentHost> this.owner.parent).host;
+
+		// Take host element if we have a ShadowRoot
+		let parent = this.owner.parent;
+		if (is_DocumentFragment(parent)) {
+			this.owner.parent = parent.host;
 		}
 
 		this.detached_listener = () => this.hide();
@@ -141,6 +140,10 @@ export class GtTooltip extends PolymerElement {
 	private leave_listener: EventListener;
 	private move_listener: EventListener;
 
+	// Position of the tooltip
+	private x: number;
+	private y: number;
+
 	private attached() {
 		if (!this.floating) {
 			this.floating = new FloatingItem(this, this.node);
@@ -149,7 +152,12 @@ export class GtTooltip extends PolymerElement {
 		if (this.floating.attached()) {
 			this.enter_listener = (e) => this.floating.show(e);
 			this.leave_listener = (e) => this.floating.hide();
-			this.move_listener = (e) => this.move(e);
+
+			this.move_listener = (e) => {
+				this.x = e.clientX;
+				this.y = e.clientY;
+				this.update();
+			};
 
 			this.parent.addEventListener("mouseenter", this.enter_listener);
 			this.parent.addEventListener("mouseleave", this.leave_listener);
@@ -172,14 +180,13 @@ export class GtTooltip extends PolymerElement {
 		this.parent.removeEventListener("mousemove", this.move_listener);
 	}
 
-	private move(e: MouseEvent) {
-		let self: HTMLElement = <any> this;
+	@Listener("dom-change")
+	private update() {
+		let x = this.x + 10;
+		let y = window.innerHeight - this.y + 10;
 
-		let x = e.clientX + 10;
-		let y = window.innerHeight - e.clientY + 10;
-
-		let width = self.offsetWidth;
-		let height = self.offsetHeight;
+		let width = this.offsetWidth;
+		let height = this.offsetHeight;
 
 		if (x + width + 20 > window.innerWidth) {
 			x -= width + 20;
@@ -189,8 +196,8 @@ export class GtTooltip extends PolymerElement {
 			y -= height + 20;
 		}
 
-		self.style.left = x + "px";
-		self.style.bottom = y + "px";
+		this.style.left = x + "px";
+		this.style.bottom = y + "px";
 	}
 
 	@Property({ observer: "UpdateWidth" })
@@ -198,8 +205,7 @@ export class GtTooltip extends PolymerElement {
 
 	// Max width updated
 	private UpdateWidth() {
-		let self: HTMLElement = <any> this;
-		self.style.maxWidth = this.width + "px";
+		this.style.maxWidth = this.width + "px";
 	}
 }
 
@@ -226,6 +232,10 @@ export class GtContextMenu extends PolymerElement {
 	private context_listener: EventListener;
 	private close_listener: EventListener;
 	private stop_listener: EventListener;
+
+	// Position of the context menu
+	private x: number;
+	private y: number;
 
 	private attached() {
 		if (!this.floating) {
@@ -259,17 +269,22 @@ export class GtContextMenu extends PolymerElement {
 	}
 
 	public show(e: MouseEvent) {
-		let self: HTMLElement = <any> this;
-
 		document.addEventListener("mousedown", this.close_listener);
 		document.addEventListener("click", this.close_listener);
-		self.addEventListener("mousedown", this.stop_listener);
+		this.addEventListener("mousedown", this.stop_listener);
 
-		let x = e.clientX - 1;
-		let y = e.clientY - 1;
+		this.x = e.clientX;
+		this.y = e.clientY;
 
-		let width = self.offsetWidth;
-		let height = self.offsetHeight;
+		this.update();
+	}
+
+	private update() {
+		let x = this.x - 1;
+		let y = this.y - 1;
+
+		let width = this.offsetWidth;
+		let height = this.offsetHeight;
 
 		if (x + width + 10 > window.innerWidth) {
 			x -= width - 2;
@@ -279,15 +294,14 @@ export class GtContextMenu extends PolymerElement {
 			y -= height - 2;
 		}
 
-		self.style.left = x + "px";
-		self.style.top = y + "px";
+		this.style.left = x + "px";
+		this.style.top = y + "px";
 	}
 
 	public hide() {
-		let self: HTMLElement = <any> this;
 		document.removeEventListener("mousedown", this.close_listener);
 		document.removeEventListener("click", this.close_listener);
-		self.removeEventListener("mousedown", this.stop_listener);
+		this.removeEventListener("mousedown", this.stop_listener);
 	}
 
 	public open(event: MouseEvent) {

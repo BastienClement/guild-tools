@@ -31,8 +31,8 @@
 				</gt-box>
 				<div #body-scroll>
 					<div #body>
-						<div .row [repeat]="layout" $as="row">
-							<div .column [repeat]="row">
+						<div .row *for="layout" *as="row">
+							<div .column *for="row">
 								<gt-calendar-cell [date]="item"></gt-calendar-cell>
 							</div>
 						</div>
@@ -67,7 +67,7 @@
 			<b>{{day}}</b>
 		</div>
 		<div #events>
-			<gt-calendar-cell-event [repeat]="events" [event]="item"></gt-calendar-cell-event>
+			<gt-calendar-cell-event *for="events" [event]="item"></gt-calendar-cell-event>
 		</div>
 	</template>
 </dom-module>
@@ -84,12 +84,12 @@
 		</gt-tooltip>
 		<gt-context-menu>
 			<ul>
-				<template [if]="canAcceptDecline">
+				<template *if="canAcceptDecline">
 					<li (click)="AcceptEvent"><i>check</i> Accept</li>
 					<li (click)="DeclineEvent"><i>clear</i> Decline</li>
 					<li .separator></li>
 				</template>
-				<template [if]="!announce">
+				<template *if="!announce">
 					<li (click)="OpenEvent"><i>panorama_fish_eye</i> Open</li>
 					<li (click)="CloseEvent"><i>lock_outline</i> Close</li>
 					<li (click)="CancelEvent"><i>remove_circle_outline</i> Cancel</li>
@@ -100,15 +100,15 @@
 			</ul>
 		</gt-context-menu>
 		<div #layout {type}="event.type" {state}="event.state" {answer}="event.answer.answer">
-			<i #icon [if]>{{icon}}</i>
+			<i #icon *if>{{icon}}</i>
 			<b #title>{{event.title}}</b>
-			<i #note [if]="event.desc">edit</i>
-			<b #time [if]="showTime">{{time}}</b>
-			<span #actions [if]="equals(event.state, 0)">
+			<i #note *if="event.desc">edit</i>
+			<b #time *if="showTime">{{time}}</b>
+			<span #actions *if="event.state == 0">
 				<i>check</i>
 				<i>clear</i>
 			</span>
-			<span #actions [if]="!equals(event.state, 0)">
+			<span #actions *if="!equals(event.state, 0)">
 				<i>lock_outline</i>
 			</span>
 		</div>
@@ -124,13 +124,13 @@
 		<meta is="roster-main" [user]="event.owner" [main]>
 		<div .row>
 			<b {state}="event.state" {type}="event.type" {answer}="event.answer.answer">{{event.title}}</b>
-			<b [if]="showTime">{{time}}</b>
+			<b *if="showTime">{{time}}</b>
 		</div>
 		<div .row>
 			<b {class-color}="main.class">{{main.name}}</b>
 			<b #type>{{eventType}}</b>
 		</div>
-		<div #desc [if]="event.desc">{{event.desc}}</div>
+		<div #desc *if="event.desc">{{event.desc}}</div>
 	</template>
 </dom-module>
 

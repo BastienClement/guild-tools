@@ -1,7 +1,7 @@
 <dom-module id="gt-server-status">
 	<link rel="stylesheet/less" href="/assets/less/server-status.less">
 	<template>
-		<div .col #left [if]="channel_ready">
+		<div .col #left *if="channel_ready">
 			<gt-box .infos heading="Server" scrollable>
 				<gt-button disabled><i>power_settings_new</i> Restart</gt-button>
 				<table>
@@ -30,9 +30,9 @@
 				</table>
 			</gt-box>
 		</div>
-		<div .col #middle [if]="channel_ready">
+		<div .col #middle *if="channel_ready">
 			<gt-box #sockets heading="Open sockets" scrollable>
-				<gt-box dark [repeat]="socketsInfos">
+				<gt-box dark *for="socketsInfos">
 					<div .heading>
 						<gt-button (click)="killSocket"><i>block</i> Kill</gt-button>
 						<i>settings_ethernet</i>
@@ -53,7 +53,7 @@
 						</table>
 					</div>
 					<div .channels>
-						<gt-box .channel [repeat]="item.channels">
+						<gt-box .channel *for="item.channels">
 							<b>{{item.0}}</b><b>{{item.1}}</b>
 						</gt-box>
 					</div>

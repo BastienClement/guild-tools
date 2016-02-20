@@ -190,7 +190,7 @@ class AuthenticationDriver {
 		this.channel.close();
 		if (this.gt_login) {
 			await this.gt_login.close();
-			document.body.removeChild(<any> this.gt_login);
+			document.body.removeChild(this.gt_login);
 		}
 	}
 
@@ -252,6 +252,6 @@ class AuthenticationDriver {
 		this.gt_login = new GtLogin();
 		document.body.classList.add("with-background");
 		document.body.classList.add("no-loader");
-		document.body.appendChild(<any> this.gt_login);
+		document.body.appendChild(this.gt_login);
 	}
 }

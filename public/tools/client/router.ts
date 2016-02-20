@@ -80,7 +80,6 @@ export class Router extends EventEmitter {
 			let view = entry[1];
 			this.routes.push({ pattern, tags, view });
 		}
-		;
 	}
 
 	/**

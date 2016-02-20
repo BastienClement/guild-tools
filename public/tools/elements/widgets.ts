@@ -183,7 +183,11 @@ export class GtCheckbox extends PolymerElement {
 	 */
 	@Listener("click")
 	private ClickEvent(e: Event) {
-		if (this.disabled) return this.stopEvent(e);
+		if (this.disabled) {
+			e.stopImmediatePropagation();
+			e.preventDefault();
+			return false;
+		}
 		else if (this.value) this.radio = this.castValue();
 		else this.checked = !this.checked;
 	}
@@ -204,19 +208,19 @@ export class GtCheckbox extends PolymerElement {
 @Element("gt-label", "/assets/imports/widgets.html")
 export class GtLabel extends PolymerElement {
 	@Listener("click")
-	private click(ev: Event) {
+	private OnClick(ev: Event) {
 		let control: any = this.node.querySelector("gt-input, gt-checkbox");
 		if (control && control != ev.target) control.click();
 	}
 
 	@Listener("mouseenter")
-	private enter(ev: Event) {
+	private OnEnter(ev: Event) {
 		let control: any = this.node.querySelector("gt-input, gt-checkbox");
 		if (control) control.setAttribute("hover", true);
 	}
 
 	@Listener("mouseleave")
-	private leaver(ev: Event) {
+	private OnLeave(ev: Event) {
 		let control: any = this.node.querySelector("gt-input, gt-checkbox");
 		if (control) control.removeAttribute("hover");
 	}
@@ -277,7 +281,11 @@ export class GtButton extends PolymerElement {
 	@Listener("click", "tap")
 	private ClickEvent(e: Event) {
 		// Button is disabled
-		if (this.disabled) return this.stopEvent(e);
+		if (this.disabled) {
+			e.stopImmediatePropagation();
+			e.preventDefault();
+			return false;
+		}
 
 		// Button is a link
 		if (this.goto) {

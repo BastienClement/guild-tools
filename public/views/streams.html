@@ -7,7 +7,7 @@
 				<gt-alert icon="pause_circle_outline" dark {hidden}="!equals(streams.length, 0)">
 					No live stream available
 				</gt-alert>
-				<div [repeat]="streams">
+				<div *for="streams">
 					<gt-streams-item (click)="SelectStream" [stream]="item" {active}="StreamIsActive(item.user, selected)"></gt-streams-item>
 				</div>
 			</gt-box>
@@ -50,7 +50,7 @@
 	<template>
 		<gt-box #viewers scrollable heading="Viewers">
 			<div #count>{{viewers.length}}</div>
-			<gt-streams-viewers-item [repeat]="viewers" [user]="item"></gt-streams-viewers-item>
+			<gt-streams-viewers-item *for="viewers" [user]="item"></gt-streams-viewers-item>
 		</gt-box>
 	</template>
 </dom-module>
@@ -72,7 +72,7 @@
 <dom-module id="gt-streams-player">
 	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams-player">
 	<template>
-		<gt-alert dark icon="error_outline" [if]="error">
+		<gt-alert dark icon="error_outline" *if="error">
 			<b>{{error}}</b>
 		</gt-alert>
 	</template>
@@ -86,7 +86,7 @@
 		<div #layout>
 			<i>airplay</i>
 			<div #right>
-				<div [if]="!hasToken">
+				<div *if="!hasToken">
 					<h3>Create your streaming key</h3>
 					<p .desc>
 						Before publishing a live stream on GuildTools, you need to
@@ -97,7 +97,7 @@
 						<gt-button fat collapse-left {disabled}="generating" (click)="Generate">Create key</gt-button>
 					</p>
 				</div>
-				<div [if]="hasToken">
+				<div *if="hasToken">
 					<h3>Streaming settings</h3>
 					<p>
 						<table>

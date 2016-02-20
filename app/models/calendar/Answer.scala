@@ -24,4 +24,8 @@ class Answers(tag: Tag) extends Table[Answer](tag, "gt_answers") {
 	def * = (user, event, date, answer, note, char, promote) <> (Answer.tupled, Answer.unapply)
 }
 
-object Answers extends TableQuery(new Answers(_))
+object Answers extends TableQuery(new Answers(_)) {
+	val Pending = 0
+	val Accepted = 1
+	val Declined = 2
+}

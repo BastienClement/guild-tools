@@ -122,7 +122,8 @@ export class GtDialog extends PolymerElement {
 
 	@Listener("content.click")
 	private ContentClick(e: Event) {
-		this.stopEvent(e);
+		e.stopImmediatePropagation();
+		e.preventDefault();
 	}
 
 	private detached() {

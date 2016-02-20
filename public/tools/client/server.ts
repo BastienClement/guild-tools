@@ -146,7 +146,7 @@ export class Server extends EventEmitter {
 	/**
 	 * EVENT: A request started
 	 */
-	private RequestStart() {
+	public RequestStart() {
 		this.request_count++;
 		if (this.request_count > 0) {
 			this.updateLoading(true);
@@ -156,7 +156,7 @@ export class Server extends EventEmitter {
 	/**
 	 * EVENT: A request is completed
 	 */
-	private RequestEnd() {
+	public RequestEnd() {
 		this.request_count--;
 		if (this.request_count < 1) {
 			this.updateLoading(false);

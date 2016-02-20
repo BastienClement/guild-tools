@@ -138,7 +138,8 @@ export class GtTitleBar extends PolymerElement {
 	@Listener("panel.click")
 	private PanelClicked(ev: MouseEvent) {
 		if (this.panel) {
-			this.stopEvent(ev);
+			ev.stopImmediatePropagation();
+			ev.preventDefault();
 			this.ClosePanel();
 		}
 	}
@@ -243,6 +244,10 @@ export class GtView extends PolymerElement {
 		let view_key = this.router.activeView;
 		let args = this.router.activeArguments;
 
+		if (view_key != this.last_view) {
+			document.body.classList.add("app-loader");
+		}
+
 		let view = <Constructor<PolymerElement>> (view_key ? await load_view(view_key) : null);
 		let meta = view_key ? Reflect.getMetadata<ViewMetadata>("view:meta", view) : null;
 
@@ -255,7 +260,6 @@ export class GtView extends PolymerElement {
 			return;
 		}
 
-		document.body.classList.add("app-loader");
 		this.current = null;
 
 		// Remove every current children

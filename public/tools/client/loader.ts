@@ -339,8 +339,16 @@ export class Loader {
 			// Get value
 			let value = node.getAttribute(from) || def;
 			if (value) {
+
+				if (to == "if") {
+					let matches = value.match(/^([^\s]+)\s*==\s*([^\s]+)$/);
+					if (matches) {
+						value = `equals(${matches[1]}, ${matches[2]})`;
+					}
+				}
+
 				node.removeAttribute(from);
-				if (addBraces && !value.match(/^\{\{.*\}\}$/)) {
+				if (addBraces && !value.match(/\{\{.*\}\}/)) {
 					value = `{{${value}}}`;
 				}
 
@@ -361,31 +369,31 @@ export class Loader {
 		};
 
 		// Note: we need to find all interesting nodes before promoting any one of them.
-		// If we promote [if] nodes before looking for [repeat] ones, it is possible for
+		// If we promote *if nodes before looking for *for ones, it is possible for
 		// some of them to get nested inside the wrapper.content shadow tree when we
 		// attempt to querySelectorAll and they will not be returned.
 
-		// <element [if]="{{cond}}">
-		let if_nodes = <NodeListOf<HTMLElement>> template.querySelectorAll("*[\\[if\\]]");
+		// <element *if="cond">
+		let if_nodes = <NodeListOf<HTMLElement>> template.querySelectorAll("*[\\*if]");
 
-		// <element [repeat]="{{collection}}" filter sort observe>
-		let repeat_nodes = <NodeListOf<HTMLElement>> template.querySelectorAll("*[\\[repeat\\]]");
+		// <element *for="collection" filter sort observe>
+		let repeat_nodes = <NodeListOf<HTMLElement>> template.querySelectorAll("*[\\*for]");
 
 		for (let i = 0; i < if_nodes.length; ++i) {
 			node = if_nodes[i];
-			promote_attribute("[if]", "if", node.textContent, true);
+			promote_attribute("*if", "if", node.textContent, true);
 			promote_node("dom-if");
 		}
 
 		for (let i = 0; i < repeat_nodes.length; ++i) {
 			node = repeat_nodes[i];
-			promote_attribute("[repeat]", "items", "", true);
-			promote_attribute("$filter", "filter");
-			promote_attribute("$sort", "sort");
-			promote_attribute("$observe", "observe");
-			promote_attribute("$id", "id");
-			promote_attribute("$as", "as");
-			promote_attribute("$index-as", "index-as");
+			promote_attribute("*for", "items", "", true);
+			promote_attribute("*filter", "filter");
+			promote_attribute("*sort", "sort");
+			promote_attribute("*observe", "observe");
+			promote_attribute("*id", "id");
+			promote_attribute("*as", "as");
+			promote_attribute("*index-as", "index-as");
 			promote_node("dom-repeat");
 		}
 

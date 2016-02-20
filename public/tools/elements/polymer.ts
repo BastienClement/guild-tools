@@ -4,16 +4,36 @@ import { Service } from "utils/service";
 import { Application } from "client/main";
 import { Loader } from "client/loader";
 
+//
+// The HTMLElement Hack
+//
+
+let global: any = window;
+let old_HTMLElement = global.HTMLElement;
+global.HTMLElement = function HTMLElement() {};
+
+function restore_HTMLElement() {
+	global.HTMLElement = old_HTMLElement;
+}
+
 /**
  * Dummy class to expose Polymer functions on elements
  */
-export class PolymerElement {
+export abstract class PolymerElement extends HTMLElement {
+	// Dummy property used to restore the HTMLElement
+	private static dummy = restore_HTMLElement();
+
 	//protected root: DocumentFragment;
 	protected node: ShadyDOM;
 	protected shadow: ShadyDOM;
 
+	// Remove typechecking on the any property.
+	// Many custom elements are using id as number.
+	public id: any;
+
 	/**
 	 * Reference to the GT Application object
+	 * The injector always inject the global Application
 	 */
 	protected app: Application;
 
@@ -23,27 +43,42 @@ export class PolymerElement {
 	protected $: any;
 
 	/**
-	 * Returns the first node in this element's local DOM that matches selector
+	 * Convenience method to run querySelector on this local DOM scope.
+	 * This function calls Polymer.dom(this.root).querySelector(slctr).
 	 */
 	protected $$: (selector: string) => Element;
 
 	/**
-	 * Toggles the named boolean class on the host element, adding the class if
-	 * bool is truthy and removing it if bool is falsey.
-	 * If node is specified, sets the class on node instead of the host element.
+	 * Removes an item from an array, if it exists.
+	 *
+	 * If the array is specified by path, a change notification is generated,
+	 * so that observers, data bindings and computed properties watching that path can update.
+	 *
+	 * If the array is passed directly, no change notification is generated.
 	 */
-	protected toggleClass: (name: string, bool: boolean, node?: Element) => void;
+	protected arrayDelete: <T>(path: string | Array<T>, item: any) => Array<T>;
 
 	/**
-	 * Like toggleClass, but toggles the named boolean attribute.
+	 * Runs a callback function asyncronously.
+	 * By default (if no waitTime is specified), async callbacks are run at microtask timing,
+	 * which will occur before paint.
 	 */
-	protected toggleAttribute: (name: string, bool: boolean, node?: Element) => void;
+	protected async: (method: string, wait?: number) => PolymerAsyncHandler;
 
 	/**
-	 * Moves a boolean attribute from oldNode to newNode, unsetting the attribute
-	 * (if set) on oldNode and setting it on newNode.
+	 * Removes an HTML attribute from one node, and adds it to another.
 	 */
 	protected attributeFollows: (name: string, newNode: HTMLElement, oldNode: HTMLElement) => void;
+
+	/**
+	 * Cancels an async operation started with async.
+	 */
+	protected cancelAsync: (handler: PolymerAsyncHandler) => void;
+
+	/**
+	 * Cancels an active debouncer. The callback will not be called.
+	 */
+	protected cancelDebouncer: (jobName: string) => void;
 
 	/**
 	 * Removes a class from one node, and adds it to another.
@@ -51,84 +86,167 @@ export class PolymerElement {
 	protected classFollows: (name: string, newNode: HTMLElement, oldNode: HTMLElement) => void;
 
 	/**
-	 * Force this element to distribute its children to its local dom.
-	 * A user should call distributeContent if distribution has been invalidated due to
-	 * changes to selectors on child elements that effect distribution that were not made
-	 * via Polymer.dom.
-	 * For example, if an element contains an insertion point with <content select=".foo">
-	 * and a foo class is added to a child, then distributeContent must be called to update
-	 * local dom distribution.
-	 */
-	protected distributeContent: () => void;
-
-	protected getContentChildNodes: (selector?: string) => Node[];
-	protected getContentChildren: (selector?: string) => Element[];
-
-	/**
-	 * Fires a custom event.
-	 */
-	protected fire: PolymerFireInterface;
-
-	/**
-	 * Calls method asynchronously. If no wait time is specified, runs tasks with microtask timing
-	 * (after the current method finishes, but before the next event from the event queue is processed).
-	 * Returns a handle that can be used to cancel the task.
-	 */
-	protected async: (method: string, wait?: number) => PolymerAsyncHandler;
-
-	/**
-	 * Cancels the identified async task
-	 */
-	protected cancelAsync: (handler: PolymerAsyncHandler) => void;
-
-	/**
-	 * Call debounce to collapse multiple requests for a named task into one invocation,
-	 * which is made after the wait time has elapsed with no new request.
-	 * If no wait time is given, the callback is called at microtask timing
-	 * (guaranteed to be before paint).
+	 * Call debounce to collapse multiple requests for a named task into one invocation which is made
+	 * after the wait time has elapsed with no new request.
+	 *
+	 * If no wait time is given, the callback will be called at microtask timing (guaranteed before paint).
 	 */
 	protected debounce: (jobName: string, callback: Function, wait?: number) => void;
 
 	/**
-	 * Cancels an active debouncer without calling the callback.
+	 * Converts a string to a typed value.
+	 *
+	 * This method is called by Polymer when reading HTML attribute values to JS properties.
+	 * Users may override this method on Polymer element prototypes to provide deserialization for custom types.
+	 * Note, the type argument is the value of the type field provided in the properties configuration object
+	 * for a given property, and is by convention the constructor for the type to deserialize.
+	 *
+	 * Note: The return value of undefined is used as a sentinel value to indicate the attribute should be removed.
 	 */
-	protected cancelDebouncer: (jobName: string) => void;
+	protected deserialize: <T>(value: string, type: any) => T;
 
 	/**
-	 * Calls the debounced callback immediately and cancels the debouncer.
+	 * Force this element to distribute its children to its local dom.
+	 *
+	 * A user should call distributeContent if distribution has been invalidated due to changes to
+	 * selectors on child elements that effect distribution that were not made via Polymer.dom.
+	 *
+	 * For example, if an element contains an insertion point with <content select=".foo"> and a foo
+	 * class is added to a child, then distributeContent must be called to update local dom distribution.
+	 */
+	protected distributeContent: (updateInsertionPoints?: boolean) => void;
+
+	/**
+	 * Polyfill for Element.prototype.matches, which is sometimes still prefixed.
+	 */
+	protected elementMatches: (selector: string, node: Element) => boolean;
+
+	/**
+	 * Dispatches a custom event with an optional detail value.
+	 */
+	protected fire: PolymerFireInterface;
+
+	/**
+	 * Immediately calls the debouncer callback and inactivates it.
 	 */
 	protected flushDebouncer: (jobName: string) => void;
 
 	/**
-	 * Returns true if the named debounce task is waiting to run.
+	 * Convienence method for reading a value from a path.
+	 * Note, if any part in the path is undefined, this method returns undefined
+	 * (this method does not throw when dereferencing undefined paths).
+	 */
+	protected 'get': <T>(path: string | Array<(string | number)>, root?: any) => T;
+
+	/**
+	 * Returns the computed style value for the given property.
+	 */
+	protected getComputedStyleValue: (property: string) => string;
+
+	/**
+	 * Returns a list of nodes distributed to this element's <content>.
+	 *
+	 * If this element contains more than one <content> in its local DOM,
+	 * an optional selector may be passed to choose the desired content.
+	 */
+	protected getContentChildNodes: (selector?: string) => Node[];
+
+	/**
+	 * Returns a list of element children distributed to this element's <content>.
+	 *
+	 * If this element contains more than one <content> in its local DOM,
+	 * an optional selector may be passed to choose the desired content.
+	 *
+	 * This method differs from getContentChildNodes in that only elements are returned.
+	 */
+	protected getContentChildren: (selector?: string) => HTMLElement[];
+
+	/**
+	 * Returns a list of elements that are the effective children.
+	 *
+	 * The effective children list is the same as the element's children
+	 * except that any <content> elements are replaced with the list of
+	 * elements distributed to the <content>.
+	 */
+	protected getEffectiveChildren: () => HTMLElement[];
+
+	/**
+	 * Returns a list of nodes that are the effective childNodes.
+	 *
+	 * The effective childNodes list is the same as the element's childNodes
+	 * except that any <content> elements are replaced with the list of nodes
+	 * distributed to the <content>, the result of its getDistributedNodes method.
+	 */
+	protected getEffectiveChildNodes: () => Node[];
+
+	/**
+	 * Returns a string of text content that is the concatenation of the
+	 * text content's of the element's effective childNodes
+	 * (the elements returned by getEffectiveChildNodes.
+	 */
+	protected getEffectiveTextContent: () => string;
+
+	/**
+	 * Convenience method for importing an HTML document imperatively.
+	 *
+	 * This method creates a new <link rel="import"> element with the provided URL
+	 * and appends it to the document to start loading. In the onload callback,
+	 * the import property of the link element will contain the imported document contents.
+	 */
+	protected importHref: (href: string, onload: Function, onerror: Function, async?: boolean) => HTMLLinkElement;
+
+	/**
+	 * Calls importNode on the content of the template specified
+	 * and returns a document fragment containing the imported content.
+	 */
+	protected instanceTemplate: (template: HTMLTemplateElement) => DocumentFragment;
+
+	/**
+	 * Returns whether a named debouncer is active.
 	 */
 	protected isDebouncerActive: (jobName: string) => boolean;
 
 	/**
-	 * Applies a CSS transform to the specified node, or this element
-	 * if no node is specified. transform is specified as a string.
+	 * Checks whether an element is in this element's light DOM tree.
 	 */
-	protected transform: (transform: string, node?: Element) => void;
+	protected isLightDescendant: (node: Node) => boolean;
 
 	/**
-	 * Transforms the specified node, or this element if no node is specified.
+	 * Checks whether an element is in this element's local DOM tree.
 	 */
-	protected translate3d: (x: string, y: string, z: string, node?: Element) => void;
+	protected isLocalDescendant: (node: HTMLElement) => boolean;
 
 	/**
-	 * Dynamically imports an HTML document
+	 * Aliases one data path as another, such that path notifications
+	 * from one are routed to the other.
 	 */
-	protected importHref: (href: string, onload: Function, onerror: Function) => void;
+	protected linkPaths: (to: string, from: string) => void;
 
 	/**
-	 * Return the element whose local dom within which this element is contained.
+	 * Convenience method to add an event listener on a given element,
+	 * late bound to a named method on this element.
 	 */
-	protected host: <T>(ctor: Constructor<T>) => T;
+	protected listen: (element: Element, event: string, method: string) => void;
 
 	/**
-	 * Removes an item from an array, if it exists.
+	 * Notify that a path has changed.
+	 *
+	 * Returns true if notification actually took place, based on
+	 * a dirty check of whether the new value was already known.
 	 */
-	protected arrayDelete: <T>(path: string | Array<T>, item: any) => Array<T>;
+	protected notifyPath: (path: string, value: any, fromAbove?: boolean) => boolean;
+
+	/**
+	 * Notify that an array has changed.
+	 * TODO: typing for splices
+	 */
+	protected notifySplices: (path: string, splices: any[]) => void;
+
+	/**
+	 * Removes an item from the end of array at the path specified.
+	 * This method notifies other paths to the same array that a splice occurred to the array.
+	 */
+	protected pop: <T>(path: string) => T;
 
 	/**
 	 * Adds items onto the end of the array at the path specified.
@@ -136,17 +254,92 @@ export class PolymerElement {
 	 */
 	protected push: (path: string, ...values: any[]) => number;
 
+	protected queryAllEffectiveChildren: (selector: String) => any;
+
+	protected queryEffectiveChildren: (selector: String) => any;
+
 	/**
-	 * Removes an item from the end of array at the path specified.
-	 * This method notifies other paths to the same array that a splice occurred to the array.
+	 * Rewrites a given URL relative to the original location of the document containing
+	 * the dom-module for this element. This method will return the same URL before and after vulcanization.
 	 */
-	protected pop: (path: string) => any;
+	protected resolveUrl: (url: string) => string;
+
+	/**
+	 * Apply style scoping to the specified container and all its descendants.
+	 *
+	 * If shouldObserve is true, changes to the container are monitored via
+	 * mutation observer and scoping is applied.
+	 *
+	 * This method is useful for ensuring proper local DOM CSS scoping for elements
+	 * created in this local DOM scope, but out of the control of this element
+	 * (i.e., by a 3rd-party library) when running in non-native Shadow DOM environments.
+	 */
+	protected scopeSubtree: (container: Element, shouldObserve?: boolean) => void;
+
+	/**
+	 * This method is called by Polymer when setting JS property values to HTML attributes.
+	 * Users may override this method on Polymer element prototypes to provide serialization for custom types.
+	 */
+	protected serialize: <T>(value: T) => string;
+
+	/**
+	 * Convienence method for setting a value to a path and notifying any elements bound to the same path.
+	 */
+	protected 'set': (path: string | Array<(string | number)>, value: any, root?: any) => void;
+
+	/**
+	 * Override scrolling behavior to all direction, one direction, or none.
+	 */
+	protected setScrollDirection: (direction: "all" | "x" | "y" | "none", node?: HTMLElement) => void;
 
 	/**
 	 * Removes an item from the beginning of array at the path specified.
 	 * This method notifies other paths to the same array that a splice occurred to the array.
 	 */
-	protected shift: (path: string) => any;
+	protected shift: <T>(path: string) => T;
+
+	/**
+	 * Starting from the start index specified, removes 0 or more items from the
+	 * array and inserts 0 or more new itms in their place.
+	 * This method notifies other paths to the same array that a splice occurred to the array.
+	 */
+	protected splice: (path: string, start: number, deleteCount: number, ...newElements: any[]) => any[];
+
+	/**
+	 * Like toggleClass, but toggles the named boolean attribute.
+	 */
+	protected toggleAttribute: (name: string, bool?: boolean, node?: HTMLElement) => void;
+
+	/**
+	 * Toggles the named boolean class on the host element, adding the class if
+	 * bool is truthy and removing it if bool is falsey.
+	 * If node is specified, sets the class on node instead of the host element.
+	 */
+	protected toggleClass: (name: string, bool?: boolean, node?: HTMLElement) => void;
+
+	/**
+	 * Applies a CSS transform to the specified node, or this element
+	 * if no node is specified. transform is specified as a string.
+	 */
+	protected transform: (transform: string, node?: HTMLElement) => void;
+
+	/**
+	 * Transforms the specified node, or this element if no node is specified.
+	 */
+	protected translate3d: (x: string, y: string, z: string, node?: HTMLElement) => void;
+
+	/**
+	 * Removes a data path alias previously established with linkPaths.
+	 *
+	 * Note, the path to unlink should be the target (to) used when linking the paths.
+	 */
+	protected unlinkPaths: (path: string) => void;
+
+	/**
+	 * Convenience method to remove an event listener from a given element,
+	 * late bound to a named method on this element.
+	 */
+	protected unlisten: (node: Element, eventName: string, methodName: string) => void;
 
 	/**
 	 * Adds items onto the beginning of the array at the path specified.
@@ -154,28 +347,6 @@ export class PolymerElement {
 	 */
 	protected unshift: (path: string, ...values: any[]) => number;
 
-	/**
-	 * Starting from the start index specified, removes 0 or more items from the
-	 * array and inserts 0 or more new itms in their place.
-	 * This method notifies other paths to the same array that a splice occurred to the array.
-	 */
-	protected splice: (path: string, start: number, deleteCount: number, ...newElements: any[]) => number;
-
-	/**
-	 * Convienence method for setting a value to a path and notifying any elements bound to the same path.
-	 */
-	protected set: (path: any, value: any, root?: any) => void;
-
-	/**
-	 *
-	 */
-	//protected notifyPath: (path: string, value: )
-
-	/**
-	 * Convenience method to add an event listener on a given element,
-	 * late bound to a named method on this element.
-	 */
-	protected listen: <T>(element: Node | PolymerElement, event: string, method: string) => void;
 
 	/**
 	 * Re-evaluates and applies custom CSS properties based on dynamic changes to this
@@ -187,14 +358,9 @@ export class PolymerElement {
 	protected updateStyles: () => void;
 
 	/**
-	 * Prevent further event propagation
+	 * Return the element whose local dom within which this element is contained.
 	 */
-	protected stopEvent: (e: Event) => boolean;
-
-	/**
-	 * Add an event listener to this element
-	 */
-	public addEventListener: (event: string, handler: (e: Event) => void) => void;
+	protected host: <T>(ctor: Constructor<T>) => T;
 }
 
 /**
@@ -667,15 +833,6 @@ export function apply_polymer_fns() {
 	 */
 	Base.host = function <T extends PolymerElement>(ctor: Constructor<T>): T {
 		return Polymer.enclosing(this, ctor);
-	};
-
-	/**
-	 * Prevent further event propagation
-	 */
-	Base.stopEvent = function(e: Event) {
-		e.stopImmediatePropagation();
-		e.preventDefault();
-		return false;
 	};
 
 	/**

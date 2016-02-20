@@ -31,7 +31,7 @@ class DashboardNewsFilter extends PolymerElement {
 	}
 
 	@Listener("tap")
-	private click(): void {
+	private OnClick(): void {
 		this.fire("toggle-filter", this.key);
 	}
 }

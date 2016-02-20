@@ -19,7 +19,7 @@
 					<gt-button disabled><i>mail</i> Send message</gt-button>
 					<gt-button disabled><i>textsms</i> Open talk</gt-button>
 					<gt-button disabled><i>settings</i> Settings</gt-button>
-					<gt-button [if]="app.user.promoted" disabled><i>build</i> Manage</gt-button>
+					<gt-button *if="app.user.promoted" disabled><i>build</i> Manage</gt-button>
 				</div>
 			</gt-box>
 		</div>
@@ -63,7 +63,7 @@
 		<meta is="roster-user" [id]="user" [user]="infos">
 		<meta is="roster-rank" [id]="infos.group" [name]="rank_name">
 		<gt-box heading="Profile" scrollable>
-			<gt-button [if]="editable"><i>edit</i> Edit</gt-button>
+			<gt-button *if="editable"><i>edit</i> Edit</gt-button>
 			<div #username>
 				<i>person</i>
 				<span>Username</span>
@@ -77,13 +77,13 @@
 			<div #access>
 				<i>security</i>
 				<span>Access tags</span>
-				<b [if]="infos.developer">D</b>
-				<b [if]="infos.officer">O</b>
-				<!--<b [if]="infos.promoted">P</b>-->
-				<b [if]="infos.member">M</b>
-				<b [if]="infos.roster">R</b>
-				<b [if]="infos.fs">G</b>
-				<span [if]="!infos.fs">&mdash;</span>
+				<b *if="infos.developer">D</b>
+				<b *if="infos.officer">O</b>
+				<!--<b *if="infos.promoted">P</b>-->
+				<b *if="infos.member">M</b>
+				<b *if="infos.roster">R</b>
+				<b *if="infos.fs">G</b>
+				<span *if="!infos.fs">&mdash;</span>
 			</div>
 			<div #rlname>
 				<i>face</i>
@@ -105,12 +105,12 @@
 				<span>BattleTag</span>
 				<b>{{btag}}</b>
 			</div>
-			<div #mail [if]="app.user.promoted">
+			<div #mail *if="app.user.promoted">
 				<i>local_post_office</i>
 				<span>E-mail</span>
 				<b>{{mail}}</b>
 			</div>
-			<div #phone [if]="app.user.promoted">
+			<div #phone *if="app.user.promoted">
 				<i>local_phone</i>
 				<span>Phone</span>
 				<b>{{phone}}</b>
@@ -125,20 +125,20 @@
 	<link rel="stylesheet/less" href="/assets/less/profile.less" ns="profile-chars">
 	<template>
 		<gt-box heading="Characters" scrollable>
-			<gt-button [if]="editable" (click)="AddChar"><i>person_add</i> Add character</gt-button>
+			<gt-button *if="editable" (click)="AddChar"><i>person_add</i> Add character</gt-button>
 			<div #layout>
-				<div #no-char [if]="!chars.length">
+				<div #no-char *if="!chars.length">
 					<i>error_outline</i>
-					<div [if]="!me">
+					<div *if="!me">
 						There is no registered character for this user<br>
 						<span .smaller>If he's a new guild member, maybe you could help him get started!</span>
 					</div>
-					<div [if]="me">
+					<div *if="me">
 						You have no registered character<br>
 						<span .smaller>Click on the Add Character button to register your first character</span>
 					</div>
 				</div>
-				<profile-chars-card [repeat]="chars" [id]="item" [editable]></profile-chars-card>
+				<profile-chars-card *for="chars" [id]="item" [editable]></profile-chars-card>
 				<div .padding></div>
 				<div .padding></div>
 				<div .padding></div>
@@ -154,22 +154,22 @@
 	<link rel="stylesheet/less" href="/assets/less/profile.less" ns="profile-chars-card">
 	<template>
 		<meta is="roster-char" [id] [char]>
-		<meta is="roster-race" [id]="char.race" [name]="race-name">
-		<meta is="roster-class" [id]="char.class" [name]="class-name">
+		<meta is="roster-race" [id]="char.race" [name]="race_name">
+		<meta is="roster-class" [id]="char.class" [name]="class_name">
 		<gt-box {inactive}="!char.active" dark>
 			<div #layout>
 				<bnet-thumb [char]></bnet-thumb>
 				<div #infos>
 					<div #name {class-color}="char.class">{{char.name}}</div>
 					<div>
-						<b>{{char.level}}</b>
-						<b>{{race-name}}</b>
-						<b>{{class-name}}</b>
+						{{char.level}}
+						{{race_name}}
+						{{class_name}}
 					</div>
 					<div #meta>
 						<gt-timeago [date]="char.last_update"></gt-timeago>
 						&ndash;
-						<b>{{char.ilvl}}</b> ilvl
+						{{char.ilvl}} ilvl
 					</div>
 				</div>
 				<div #icon {main}="char.main" {active}="char.active">

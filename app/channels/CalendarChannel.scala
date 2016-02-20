@@ -3,8 +3,8 @@ package channels
 import akka.actor.Props
 import gtp3._
 import models._
-import models.mysql._
 import models.calendar.Events
+import models.mysql._
 import utils.SmartTimestamp
 import reactive.ExecutionContext
 
@@ -23,8 +23,18 @@ class CalendarChannel(user: User) extends ChannelHandler {
 				val year = matched.group(1).toInt
 				val month = matched.group(2).toInt - 1
 
-				val query = Events.between(SmartTimestamp(year, month, 1), SmartTimestamp(year, month + 1, 0), user)
-				for (events <- query.sortBy { case (e, a) => e.date.asc }.run) send("events", events)
+				val from = SmartTimestamp(year, month, 1)
+				val to = SmartTimestamp(year, month + 1, 0)
+
+				for (events <- Events.between(from, to, user).sortBy { case (e, a) => e.date.asc }.run) {
+					send("events", events)
+				}
+
+				/*for {
+					events <- query.sortBy { case (e, a) => e.date.asc }.run
+				} {
+					send("events", events)
+				}*/
 		}
 	}
 }

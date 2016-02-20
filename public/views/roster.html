@@ -19,9 +19,9 @@
 							<gt-button {active}="!players_view" (tap)="ViewChars" collapse-right><i>supervisor_account</i> Characters</gt-button>
 						</div>
 						<div #results>
-							<gt-roster-item [repeat]="results" [data]="item" [player]="players_view"></gt-roster-item>
+							<gt-roster-item *for="results" [data]="item" [player]="players_view"></gt-roster-item>
 						</div>
-						<div #empty [if]="equals(results.length, 0)">
+						<div #empty *if="results.length == 0">
 							<gt-alert icon="search" dark>
 								Your search has not yielded any results.<br>
 								You should try removing some filters.
@@ -253,21 +253,21 @@
 			<div #flex>
 				<!--<bnet-thumb [char]="data.main"></bnet-thumb>-->
 				<div #name>
-					<b [if]="player" {class-color}="data.main.class">{{data.user.name}}</b>
-					<b [if]="!player" {class-color}="data.class">{{data.name}}</b>
-					<span [if]="!player">
-						<i #invalid [if]="data.invalid">cloud_off</i>
+					<b *if="player" {class-color}="data.main.class">{{data.user.name}}</b>
+					<b *if="!player" {class-color}="data.class">{{data.name}}</b>
+					<span *if="!player">
+						<i #invalid *if="data.invalid">cloud_off</i>
 					</span>
 				</div>
-				<div #chars [if]="player">
-					<div .char [repeat]="alts_list">
+				<div #chars *if="player">
+					<div .char *for="alts_list">
 						<b .name {class-color}="item.class">{{item.name}}</b>
 						<span .infos>
 							<b>{{item.level}}</b> (<b>{{item.ilvl}}</b>)
 						</span>
 					</div>
 				</div>
-				<div #infos [if]="!player">
+				<div #infos *if="!player">
 					<meta is="roster-user" [id]="data.owner" [user]="infos">
 					<meta is="roster-main" [user]="data.owner" [main]>
 					<div .info>

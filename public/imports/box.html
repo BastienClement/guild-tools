@@ -1,8 +1,8 @@
 <dom-module id="gt-box">
 	<link rel="stylesheet/less" href="/assets/less/box.less" ns="gt-box">
 	<template>
-		<h2 [if]="heading">{{heading}}</h2>
-		<div #wrapper {scrollable} {has-heading}>
+		<h2 *if="heading">{{heading}}</h2>
+		<div #wrapper {scrollable} {heading}>
 			<content></content>
 		</div>
 	</template>

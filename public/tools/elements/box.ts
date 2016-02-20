@@ -7,11 +7,6 @@ export class GtBox extends PolymerElement {
 
 	@Property({ reflect: true })
 	public dark: boolean;
-
-	@Property({ computed: "heading" })
-	private get "has-heading"(): boolean {
-		return !!this.heading;
-	}
 }
 
 @Element("gt-alert", "/assets/imports/box.html")

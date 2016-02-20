@@ -4,9 +4,9 @@ interface Polymer {
 	Base: PolymerBase;
 	dom: ShadyDOMContructor;
 
-	is<T extends PolymerElement>(el: Node | PolymerElement, ctor: { new (): T; }): boolean;
-	cast<T extends PolymerElement>(el: Node | PolymerElement, ctor: { new (): T; }): T;
-	enclosing<T extends PolymerElement>(el: Node | PolymerElement, ctor: { new (): T; }): T;
+	is<T extends PolymerElement>(el: Node, ctor: { new (): T; }): boolean;
+	cast<T extends PolymerElement>(el: Node, ctor: { new (): T; }): T;
+	enclosing<T extends PolymerElement>(el: Node, ctor: { new (): T; }): T;
 }
 
 interface PolymerBase {
@@ -18,15 +18,15 @@ interface PolymerBase {
 }
 
 interface ShadyDOMContructor {
-	(parent: Node | PolymerElement): ShadyDOM;
+	(parent: Node): ShadyDOM;
 	<T extends Event>(event: T): ShadyDOM;
 	flush(): void;
 }
 
 interface ShadyDOM {
-	appendChild<T extends Node|PolymerElement>(node: T): T;
-	insertBefore<T extends Node|PolymerElement>(node: T, beforeNode: Node | PolymerElement): T;
-	removeChild<T extends Node|PolymerElement>(node: T): T;
+	appendChild<T extends Node>(node: T): T;
+	insertBefore<T extends Node>(node: T, beforeNode: Node): T;
+	removeChild<T extends Node>(node: T): T;
 
 	childNodes: Node[];
 	children: Element[];
@@ -40,8 +40,8 @@ interface ShadyDOM {
 	textContent: string;
 	innerHTML: string;
 
-	querySelector<T extends Node|PolymerElement>(selector: string): T;
-	querySelectorAll<T extends Node|PolymerElement>(selector: string): T[];
+	querySelector<T extends Node>(selector: string): T;
+	querySelectorAll<T extends Node>(selector: string): T[];
 
 	getDistributedNodes(): Node[];
 	getDestinationInsertionPoints(): Node[];
@@ -60,16 +60,11 @@ interface ShadyDOM {
 
 declare var Polymer: Polymer;
 
-interface PolymerElement {}
-
-interface Node {
-	appendChild(e: PolymerElement): Node;
-	removeChild(e: PolymerElement): Node;
-}
+interface PolymerElement extends HTMLElement {}
 
 interface NodeSelector {
-	querySelector<T extends Node>(selector: string): T;
-	querySelectorAll<T extends Node>(selector: string): NodeListOf<T>;
+	querySelector<T extends Element>(selector: string): T;
+	querySelectorAll<T extends Element>(selector: string): NodeListOf<T>;
 }
 
 interface Element {
@@ -81,4 +76,7 @@ interface Document {
 }
 
 interface HTMLTemplateElement extends HTMLElement {}
-interface DocumentFragment extends Document {}
+
+interface DocumentFragment extends Document {
+	host: Element;
+}

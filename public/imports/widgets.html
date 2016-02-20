@@ -11,7 +11,7 @@
 	<link rel="stylesheet/less" href="/assets/less/widgets.less" ns="gt-input">
 	<template>
 		<label #outer {data-valid}="!error">
-			<span #label [if]>{{label}}</span>
+			<span #label *if>{{label}}</span>
 			<span #wrapper>
 				<input #input [type] [value]="value::change" {disabled}>
 			</span>

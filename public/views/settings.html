@@ -5,17 +5,17 @@
 			<div #layout>
 				<div #left>
 					<ul #selector>
-						<li [repeat]="tabs" {tab}="item.2" {active}="equals(tab, item.2)" (click)="SelectTab">
+						<li *for="tabs" {tab}="item.2" {active}="equals(tab, item.2)" (click)="SelectTab">
 							<i>{{item.1}}</i>
 							<b>{{item.0}}</b>
 						</li>
 					</ul>
 				</div>
 				<div #right>
-					<div [if]="equals(tab, 'general')">
+					<div *if="tab == 'general'">
 						<h2>General settings</h2>
 					</div>
-					<div [if]="equals(tab, 'advanced')">
+					<div *if="tab == 'advanced'">
 						<h2>Streaming</h2>
 						<gt-label>
 							<gt-checkbox [checked]="streams_zerolatency" (tap)="ToggleLocalStorage" key="streams.zerolatency"></gt-checkbox> Disable playback buffering
