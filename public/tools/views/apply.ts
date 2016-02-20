@@ -153,7 +153,7 @@ export class ApplyDetails extends PolymerElement {
 			id: 0,
 			apply: this.apply,
 			user: this.app.user.id,
-			date: new Date().toISOString(),
+			date: new Date(),
 			text: this.messageBody,
 			secret: this.messageType == "private",
 			system: false

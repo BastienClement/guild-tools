@@ -2,7 +2,7 @@ import { Component } from "utils/di";
 import { Service } from "utils/service";
 import { join, synchronized } from "utils/async";
 import { Server, ServiceChannel } from "client/server";
-import { PolymerElement, Provider, Inject, Property, On } from "elements/polymer";
+import { PolymerElement, Element, Provider, Inject, Property, On } from "elements/polymer";
 
 export interface User {
 	id: number;

@@ -180,9 +180,9 @@
 			</div>
 			<div #actions {hidden}="!editable">
 				<div #roles {disabled}="!char.active">
-					<img #role-tank src="/assets/images/roles/TANK.png" {active}="equals(char.role, 'TANK')">
-					<img #role-healing src="/assets/images/roles/HEALING.png" {active}="equals(char.role, 'HEALING')">
-					<img #role-dps src="/assets/images/roles/DPS.png" {active}="equals(char.role, 'DPS')">
+					<img #role-tank src="/assets/images/roles/TANK.png" {active}="char.role == 'TANK'">
+					<img #role-healing src="/assets/images/roles/HEALING.png" {active}="char.role == 'HEALING'">
+					<img #role-dps src="/assets/images/roles/DPS.png" {active}="char.role == 'DPS'">
 				</div>
 				<span {hidden}="!char.active">
 					<gt-button #btn-main {hidden}="char.main">Main</gt-button>
@@ -221,9 +221,9 @@
 							Character main role
 						</div>
 						<div #roles>
-							<img src="/assets/images/roles/TANK.png" role="TANK" (click)="roleClicked" {active}="equals(role, 'TANK')">
-							<img src="/assets/images/roles/HEALING.png" role="HEALING" (click)="roleClicked" {active}="equals(role, 'HEALING')">
-							<img src="/assets/images/roles/DPS.png" role="DPS" (click)="roleClicked" {active}="equals(role, 'DPS')">
+							<img src="/assets/images/roles/TANK.png" role="TANK" (click)="roleClicked" {active}="role == 'TANK'">
+							<img src="/assets/images/roles/HEALING.png" role="HEALING" (click)="roleClicked" {active}="role == 'HEALING'">
+							<img src="/assets/images/roles/DPS.png" role="DPS" (click)="roleClicked" {active}="role == 'DPS'">
 						</div>
 						<div #actions>
 							<gt-button (click)="close">Cancel</gt-button>

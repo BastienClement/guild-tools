@@ -32,6 +32,26 @@ const EmptyBuffer = new ArrayBuffer(0);
 
 const CompressWorker = new ServiceWorker("/assets/modules/workers/compress.js");
 
+/**
+ * Revive special encoded value
+ * Currently, only support timestamp to Date.
+ */
+function reviver(k: string, v: any): any {
+	if (typeof v === "object" && v !== null) {
+		let keys = Object.keys(v);
+		if (keys.length == 1) {
+			let k = keys[0];
+			switch (k) {
+				case "$date": return new Date(v[k]);
+			}
+		}
+	}
+	return v;
+}
+
+/**
+ * Payload utilities
+ */
 export const Payload = {
 	/**
 	 * Decode the frame payload data
@@ -57,7 +77,7 @@ export const Payload = {
 
 		// Decode JSON data
 		if (flags & PayloadFlags.JSONDATA) {
-			payload = JSON.parse(payload);
+			payload = JSON.parse(payload, reviver);
 		}
 
 		return payload;

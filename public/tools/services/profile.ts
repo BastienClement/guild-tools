@@ -8,7 +8,7 @@ export type ProfileData = {
 	realname: string;
 	btag: string;
 	phone: string;
-	birthday: string;
+	birthday: Date;
 	mail: string;
 	location: string;
 }

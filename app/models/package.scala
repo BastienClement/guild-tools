@@ -39,14 +39,14 @@ package object models {
 		val format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 		format.setTimeZone(TimeZone.getTimeZone("UTC"))
 		def reads(json: JsValue) = JsSuccess(new Timestamp(format.parse(json.as[String]).getTime))
-		def writes(ts: Timestamp) = JsString(format.format(ts))
+		def writes(ts: Timestamp) = Json.obj("$date" -> format.format(ts))
 	}
 
 	implicit val smartTimestampFormat = new Format[SmartTimestamp] {
 		val format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 		format.setTimeZone(TimeZone.getTimeZone("UTC"))
 		def reads(json: JsValue) = JsSuccess(SmartTimestamp(format.parse(json.as[String]).getTime))
-		def writes(ts: SmartTimestamp) = JsString(format.format(ts))
+		def writes(ts: SmartTimestamp) = Json.obj("$date" -> format.format(ts))
 	}
 
 	implicit val userJsonWriter = new Writes[User] {

@@ -38,6 +38,8 @@ export class Loader {
 	 * Fetch a server-side resource as text
 	 */
 	public fetch(url: string, cache: boolean = true): Promise<string> {
+		if (url.lastIndexOf("@dummy") != -1) return Promise.resolve("");
+
 		// Check the cache for the resource
 		if (this.fetch_cache.has(url)) return this.fetch_cache.get(url);
 
@@ -320,6 +322,22 @@ export class Loader {
 		}
 	}
 
+	private compileBindingSugar(binding: string): string {
+		let matches = binding.match(/^([^\s]+)\s*([<=>]=?|!=)\s*([^\s]+)$/);
+		if (matches) {
+			switch (matches[2]) {
+				case "=":
+				case "==": return `eq(${matches[1]}, ${matches[3]})`;
+				case "!=": return `neq(${matches[1]}, ${matches[3]})`;
+				case "<": return `lt(${matches[1]}, ${matches[3]})`;
+				case "<=": return `lte(${matches[1]}, ${matches[3]})`;
+				case ">": return `gt(${matches[1]}, ${matches[3]})`;
+				case ">=": return `gte(${matches[1]}, ${matches[3]})`;
+			}
+		}
+		return binding;
+	}
+
 	/**
 	 * Compile Polymer sugars inside a template
 	 */
@@ -339,13 +357,7 @@ export class Loader {
 			// Get value
 			let value = node.getAttribute(from) || def;
 			if (value) {
-
-				if (to == "if") {
-					let matches = value.match(/^([^\s]+)\s*==\s*([^\s]+)$/);
-					if (matches) {
-						value = `equals(${matches[1]}, ${matches[2]})`;
-					}
-				}
+				value = this.compileBindingSugar(value);
 
 				node.removeAttribute(from);
 				if (addBraces && !value.match(/\{\{.*\}\}/)) {
@@ -426,7 +438,7 @@ export class Loader {
 				switch (name[0]) {
 					case "[":
 						node.removeAttribute(name);
-						node.setAttribute(bind, `{{${value || bind}}}`);
+						node.setAttribute(bind, `{{${this.compileBindingSugar(value) || bind}}}`);
 						break;
 					case "(":
 						node.removeAttribute(name);
@@ -487,7 +499,7 @@ export class Loader {
 		// Copy attributes
 		for (let attr of attrs) {
 			let attr_node = <Attr> new_node.attributes.getNamedItem(`${attr[2]}$`).cloneNode(false);
-			attr_node.value = `{{${attr[1] || attr[2]}}}`;
+			attr_node.value = `{{${this.compileBindingSugar(attr[1]) || attr[2]}}}`;
 			node.attributes.setNamedItem(attr_node);
 			node.removeAttribute(attr[0]);
 		}

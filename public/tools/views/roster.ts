@@ -13,6 +13,14 @@ const RosterTabs: TabsGenerator = (view, path, user) => [
 ];
 
 ///////////////////////////////////////////////////////////////////////////////
+// <gt-roster-main>
+
+@Element("gt-roster-main", "/assets/views/roster.html")
+export class GtRosterMain extends PolymerElement {
+	@Property public user: number;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // <gt-roster-filters-dropdown>
 
 @Element("gt-roster-filters-dropdown", "/assets/views/roster.html")

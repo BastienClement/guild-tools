@@ -23,6 +23,8 @@ class RBNode<K, V> {
 	}
 }
 
+type Walker<K, V, A, T> = (key: K, value: V, arg: A, left?: () => T, right?: () => T) => T;
+
 export class RBTree<K, V> {
 	private root: RBNode<K, V> = RBNode.nil;
 
@@ -274,6 +276,21 @@ export class RBTree<K, V> {
 	private maxNode(x: RBNode<K, V>): RBNode<K, V> {
 		if (x.right.nil) return x;
 		return this.maxNode(x.right);
+	}
+
+	/***************************************************************************
+	 *  Generic walk
+	 ***************************************************************************/
+
+	public walk<T, A>(walker: Walker<K, V, A, T>, arg?: A): T {
+		if (this.root.nil) return null;
+		return this.walkNode(this.root, walker, arg);
+	}
+
+	private walkNode<A, T>(node: RBNode<K, V>, walker: Walker<K, V, A, T>, arg: A) : T {
+		let left = node.left.nil ? null : () => this.walkNode(node.left, walker, arg);
+		let right = node.right.nil ? null : () => this.walkNode(node.right, walker, arg);
+		return walker(node.key, node.value, arg, left, right);
 	}
 
 	/***************************************************************************

@@ -9,13 +9,13 @@ export const enum CalendarAnswer {
 	Pending = 0,
 	Accepted = 1,
 	Declined = 2
-}
+};
 
 export const enum CalendarEventState {
 	Open = 0,
 	Closed = 1,
 	Canceled = 2
-}
+};
 
 export const enum CalendarEventType {
 	Roster = 1,
@@ -23,27 +23,35 @@ export const enum CalendarEventType {
 	Restricted = 3,
 	Announce = 4,
 	Guild = 5
-}
+};
 
 export type CalendarAnswerData = {
 	user: number;
 	event: number;
 	answer: CalendarAnswer;
-	date: string,
+	date: Date,
 	promote: boolean;
-}
+};
 
 export type CalendarEvent = {
 	id: number;
 	title: string;
 	desc: string;
-	date: string;
+	date: Date;
 	time: number;
 	type: CalendarEventType;
 	state: CalendarEventState;
 	owner: number;
 	answer?: CalendarAnswerData;
-}
+};
+
+export type Slack = {
+	id: number;
+	user: number;
+	from: Date;
+	to: Date;
+	reason?: string;
+};
 
 /**
  * Calendar service
@@ -87,6 +95,11 @@ export class CalendarService extends Service {
 	private events = new RBTree<number, CalendarEvent[]>();
 
 	/**
+	 * Slack by month.
+	 */
+	private slacks = new RBTree<string, Slack[]>();
+
+	/**
 	 * Are the events for a particular day sorted ?
 	 */
 	private sorted = new Map<number, boolean>();
@@ -115,12 +128,12 @@ export class CalendarService extends Service {
 	 * @param to
 	 */
 	public getEvents(from: Date, to: Date = from): CalendarEvent[] {
-		let f_key = this.hashDate(from);
-		let t_key = this.hashDate(to);
-
 		// FIXME: maybe request every month in the interval ?
 		this.requestMonth(from);
 		this.requestMonth(to);
+
+		let f_key = this.hashDate(from);
+		let t_key = this.hashDate(to);
 
 		let res = <CalendarEvent[]> [];
 
@@ -136,6 +149,32 @@ export class CalendarService extends Service {
 		}
 
 		return res;
+	}
+
+	/**
+	 * Returns slacks for a given date.
+	 * Erroneous behaviour when called with from and to more than one month away.
+	 * @param from
+	 * @param to
+	 */
+	public getSlack(from: Date, to: Date = from): Slack[] {
+		// FIXME: maybe request every month in the interval ?
+		this.requestMonth(from);
+		this.requestMonth(to);
+
+		let f_key = this.hashMonth(from);
+		let t_key = this.hashMonth(to);
+
+		let slacks: Slack[] = this.slacks.get(f_key) || [];
+
+		if (t_key != f_key) {
+			let t_slacks = this.slacks.get(t_key);
+			if (t_slacks) {
+				slacks = slacks.concat(t_slacks);
+			}
+		}
+
+		return slacks.filter(s => s.to >= from && s.from <= to);
 	}
 
 	/**
@@ -157,21 +196,27 @@ export class CalendarService extends Service {
 	/**
 	 * Events data received
 	 * @param list    a list of events
+	 * @param slacks  a list of slacks objects
+	 * @param mkey    the month-key used when making the request
 	 */
-	@ServiceChannel.Dispatch("channel", "events")
-	private EventsReceived(list: [CalendarEvent, CalendarAnswerData][]) {
-		let current_date: string;
+	@ServiceChannel.Dispatch("channel", "events", true)
+	private EventsReceived(list: [CalendarEvent, CalendarAnswerData][], slacks: Slack[], mkey: string) {
+		let current_date: number;
 		let current_set: Array<CalendarEvent>;
 
 		for (let [event, answer] of list) {
 			// Add own answer to event object
 			event.answer = answer;
 
+			let event_time = event.date.getTime();
+
 			// Create set if not exists
-			if (event.date != current_date) {
-				current_date = event.date;
-				let hash = this.hashDate(new Date(event.date));
+			if (event_time != current_date) {
+				current_date = event_time;
+
+				let hash = this.hashDate(event.date);
 				this.sorted.set(hash, false);
+
 				current_set = this.events.get(hash);
 				if (!current_set) {
 					current_set = [];
@@ -185,7 +230,19 @@ export class CalendarService extends Service {
 			this.emit("event-updated", event);
 		}
 
+		if (slacks.length) {
+			this.slacks.put(mkey, slacks);
+		}
+
 		this.emit("events-updated");
+	}
+
+	/**
+	 * Requests answers for an event
+	 * @param event
+	 */
+	public async answersForEvent(event: number) {
+		return await this.channel.request<CalendarAnswerData[]>("event-answers", event);
 	}
 
 	/**
@@ -201,10 +258,10 @@ export class CalendarService extends Service {
 }
 
 /**
- * Application data fetcher
+ * Calendar events fetcher
  */
 @Provider("calendar-events")
-class CalendarEventProvider extends PolymerElement {
+class CalendarEventsProvider extends PolymerElement {
 	@Inject
 	@On({
 		"events-updated": "update"
@@ -221,10 +278,29 @@ class CalendarEventProvider extends PolymerElement {
 		if (await microtask, !this.date) return;
 		this.events = this.service.getEvents(this.date);
 	}
+}
 
-	/*private ApplyUpdated(apply: Apply) {
-		if (apply.id == this.apply) this.update();
-	}*/
+/**
+ * Calendar slacks fetcher
+ */
+@Provider("calendar-slacks")
+class CalendarSlacksProvider extends PolymerElement {
+	@Inject
+	@On({
+		"events-updated": "update"
+	})
+	private service: CalendarService;
+
+	@Property({ observer: "update" })
+	public date: Date;
+
+	@Property({ notify: true })
+	public slacks: Slack[];
+
+	public async update() {
+		if (await microtask, !this.date) return;
+		this.slacks = this.service.getSlack(this.date);
+	}
 }
 
 /**

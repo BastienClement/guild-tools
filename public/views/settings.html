@@ -5,7 +5,7 @@
 			<div #layout>
 				<div #left>
 					<ul #selector>
-						<li *for="tabs" {tab}="item.2" {active}="equals(tab, item.2)" (click)="SelectTab">
+						<li *for="tabs" {tab}="item.2" {active}="tab == item.2" (click)="SelectTab">
 							<i>{{item.1}}</i>
 							<b>{{item.0}}</b>
 						</li>

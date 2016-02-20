@@ -10,7 +10,7 @@ export interface NewsData {
 	link: string;
 	source: string;
 	tags: string;
-	time: string;
+	time: Date;
 	title: string;
 }
 

@@ -3,7 +3,7 @@ package channels
 import akka.actor.Props
 import gtp3._
 import models._
-import models.calendar.Events
+import models.calendar.{Answers, Slacks, Events}
 import models.mysql._
 import utils.SmartTimestamp
 import reactive.ExecutionContext
@@ -17,7 +17,8 @@ object CalendarChannel extends ChannelValidator {
 
 class CalendarChannel(user: User) extends ChannelHandler {
 	message("request-events") { p =>
-		"^(201[0-9])\\-(0[1-9]|1[0-2])$".r.findFirstMatchIn(p.string) match {
+		val month_key = p.string
+		"^(201[0-9])\\-(0[1-9]|1[0-2])$".r.findFirstMatchIn(month_key) match {
 			case None => throw new IllegalArgumentException(s"Bad date requested: ${p.string}")
 			case Some(matched) =>
 				val year = matched.group(1).toInt
@@ -26,15 +27,16 @@ class CalendarChannel(user: User) extends ChannelHandler {
 				val from = SmartTimestamp(year, month, 1)
 				val to = SmartTimestamp(year, month + 1, 0)
 
-				for (events <- Events.between(from, to, user).sortBy { case (e, a) => e.date.asc }.run) {
-					send("events", events)
-				}
+				val events = Events.between(from, to, user).sortBy { case (e, a) => e.date.asc }.run
+				val slacks = Slacks.between(from, to).run.map(_.map(_.conceal))
 
-				/*for {
-					events <- query.sortBy { case (e, a) => e.date.asc }.run
-				} {
-					send("events", events)
-				}*/
+				for ((e, s) <- events.zip(slacks)) {
+					send("events", (e, s, month_key))
+				}
 		}
+	}
+
+	request("event-answers") { p =>
+		Answers.forEvent(p.as[Int], user).run
 	}
 }

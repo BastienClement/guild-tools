@@ -28,4 +28,8 @@ object Answers extends TableQuery(new Answers(_)) {
 	val Pending = 0
 	val Accepted = 1
 	val Declined = 2
+
+	def forEvent(event: Rep[Int], user: User) = {
+		Answers.filter(_.event === event && Events.byId(event, user).exists)
+	}
 }

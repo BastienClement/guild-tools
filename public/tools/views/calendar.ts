@@ -2,6 +2,7 @@ import { Element, Dependencies, PolymerElement, Inject, Property, Listener, Poly
 import { View, TabsGenerator } from "elements/app";
 import { GtBox, GtAlert } from "elements/box";
 import { GtButton } from "elements/widgets";
+import { GtRosterMain } from "views/roster";
 import { GtTooltip, GtContextMenu } from "elements/floating";
 import { CalendarService, CalendarEvent, CalendarEventType, CalendarEventState, CalendarAnswer } from "services/calendar";
 
@@ -47,8 +48,13 @@ export class GtCalendarOverview extends PolymerElement {
 // <gt-calendar-cell-event-tooltip>
 
 @Element("gt-calendar-cell-event-tooltip", "/assets/views/calendar.html")
+@Dependencies(GtRosterMain)
 export class GtCalendarCellEventTooltip extends PolymerElement {
-	@Property public event: CalendarEvent;
+	@Inject private service: CalendarService;
+
+	@Property({ observer: "EventChanged" })
+	public event: CalendarEvent;
+
 	@Property public time: string;
 
 	@Property({ computed: "event.type" })
@@ -67,6 +73,28 @@ export class GtCalendarCellEventTooltip extends PolymerElement {
 			default: return "Event";
 		}
 	}
+
+	private declined: number[] = [];
+
+	public async loadAnswers() {
+		if (this.declined.length > 0) return;
+		let declined: number[] = [];
+
+		let answers = await this.service.answersForEvent(this.event.id);
+		for (let answer of answers) {
+			if (answer.answer == CalendarAnswer.Declined) {
+				declined.push(answer.user);
+			}
+		}
+
+		this.declined = declined;
+	}
+
+	private EventChanged() {
+		if (this.declined.length > 0) {
+			this.declined = [];
+		}
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -75,7 +103,8 @@ export class GtCalendarCellEventTooltip extends PolymerElement {
 @Element("gt-calendar-cell-event", "/assets/views/calendar.html")
 @Dependencies(GtTooltip, GtCalendarCellEventTooltip, GtContextMenu)
 export class GtCalendarCellEvent extends PolymerElement {
-	public event: CalendarEvent;
+	@Inject private service: CalendarService;
+	@Property public event: CalendarEvent;
 
 	@Property({ computed: "event.type", reflect: true })
 	private get announce(): boolean {
@@ -125,17 +154,20 @@ export class GtCalendarCellEvent extends PolymerElement {
 	private DeleteEvent() {
 		console.log("delete");
 	}
+
+	@Listener("floating-show")
+	private OnTooltipOpen() {
+		let tooltip = <GtCalendarCellEventTooltip> this.$.tooltip;
+		tooltip.loadAnswers();
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // <gt-calendar-cell>
 
 @Element("gt-calendar-cell", "/assets/views/calendar.html")
-@Dependencies(GtCalendarCellEvent)
+@Dependencies(GtCalendarCellEvent, GtRosterMain, GtTooltip)
 export class GtCalendarCell extends PolymerElement {
-	@Inject
-	private service: CalendarService;
-
 	public date: CalendarDate;
 
 	@Property({ computed: "date.date" })

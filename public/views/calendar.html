@@ -63,8 +63,18 @@
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="gt-calendar-colors">
 	<template>
 		<meta is="calendar-events" [date]="date.date" [events]>
+		<meta is="calendar-slacks" [date]="date.date" [slacks]>
 		<div #day>
 			<b>{{day}}</b>
+			<span #slacks {hidden}="!slacks.length">
+				<i>flash_on</i><b>{{slacks.length}}</b>
+				<gt-tooltip>
+					<div style="margin-bottom: 8px;">Slackers this day:</div>
+					<div *for="slacks">
+						<gt-roster-main [user]="item.user"></gt-roster-main>
+					</div>
+				</gt-tooltip>
+			</span>
 		</div>
 		<div #events>
 			<gt-calendar-cell-event *for="events" [event]="item"></gt-calendar-cell-event>
@@ -80,7 +90,7 @@
 	<template>
 		<meta is="calendar-icon" [type]="event.type" [icon]>
 		<gt-tooltip>
-			<gt-calendar-cell-event-tooltip [event] [time]></gt-calendar-cell-event-tooltip>
+			<gt-calendar-cell-event-tooltip #tooltip [event] [time]></gt-calendar-cell-event-tooltip>
 		</gt-tooltip>
 		<gt-context-menu>
 			<ul>
@@ -100,15 +110,15 @@
 			</ul>
 		</gt-context-menu>
 		<div #layout {type}="event.type" {state}="event.state" {answer}="event.answer.answer">
-			<i #icon *if>{{icon}}</i>
+			<i #icon {hidden}="!icon">{{icon}}</i>
 			<b #title>{{event.title}}</b>
-			<i #note *if="event.desc">edit</i>
-			<b #time *if="showTime">{{time}}</b>
-			<span #actions *if="event.state == 0">
+			<i #note {hidden}="!event.desc">edit</i>
+			<b #time {hidden}="!showTime">{{time}}</b>
+			<span #actions {hidden}="event.state != 0">
 				<i>check</i>
 				<i>clear</i>
 			</span>
-			<span #actions *if="!equals(event.state, 0)">
+			<span #actions {hidden}="event.state == 0">
 				<i>lock_outline</i>
 			</span>
 		</div>
@@ -130,7 +140,13 @@
 			<b {class-color}="main.class">{{main.name}}</b>
 			<b #type>{{eventType}}</b>
 		</div>
-		<div #desc *if="event.desc">{{event.desc}}</div>
+		<div #desc {hidden}="!event.desc">{{event.desc}}</div>
+		<div #declined {hidden}="declined.length == 0">
+			<div .title>Declined:</div>
+			<span .decline *for="declined">
+				<gt-roster-main [user]="item"></gt-roster-main>
+			</span>
+		</div>
 	</template>
 </dom-module>
 

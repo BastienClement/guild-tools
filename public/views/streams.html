@@ -4,7 +4,7 @@
 		<meta is="streams-list" [list]="streams">
 		<div #left>
 			<gt-box #live-list scrollable heading="Live Streams">
-				<gt-alert icon="pause_circle_outline" dark {hidden}="!equals(streams.length, 0)">
+				<gt-alert icon="pause_circle_outline" dark {hidden}="streams.length != 0">
 					No live stream available
 				</gt-alert>
 				<div *for="streams">

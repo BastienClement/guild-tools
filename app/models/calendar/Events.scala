@@ -1,11 +1,11 @@
 package models.calendar
 
 import java.sql.Timestamp
-import models.mysql._
 import models._
+import models.mysql._
 import reactive.ExecutionContext
-import utils.{SmartTimestamp, PubSub}
 import slick.lifted.Case
+import utils.PubSub
 
 case class Event(id: Int, title: String, desc: String, owner: Int, date: Timestamp, time: Int, `type`: Int, state: Int) {
 	val visibility = `type`
@@ -85,9 +85,14 @@ object Events extends TableQuery(new Events(_)) with PubSub[User] {
 			.Else(false)
 	}
 
-	def between(from: SmartTimestamp, to: SmartTimestamp, user: User) = {
-		val events = this.filter(_.date.between(from.toSQL, to.toSQL))
-		val ev_answr = events joinLeft Answers.filter(_.user === user.id) on { case (ev, an) => ev.id === an.event }
+	def forUser(user: User) = {
+		val ev_answr = this joinLeft Answers.filter(_.user === user.id) on { case (ev, an) => ev.id === an.event }
 		ev_answr.withFilter(canAccess(user))
+	}
+
+	def byId(id: Rep[Int], user: User) = forUser(user).filter { case (e, a) => e.id === id }
+
+	def between(from: Rep[Timestamp], to: Rep[Timestamp], user: User) = {
+		this.forUser(user).filter { case (e, a) => e.date.between(from, to) }
 	}
 }

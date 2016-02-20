@@ -15,7 +15,7 @@ export interface ChatMessage {
 	user?: number;
 	from: string;
 	text: string;
-	date: string;
+	date: Date;
 }
 
 /**

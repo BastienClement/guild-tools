@@ -100,7 +100,7 @@ let defer_node = (function() {
 export function defer<T>(fn: () => T): Promise<T> {
 	let defer = Promise.defer<T>();
 	if (defer_queue.push([fn, defer]) == 1) {
-		defer_toggle = -defer_toggle
+		defer_toggle = -defer_toggle;
 		defer_node.data = <any> defer_toggle;
 	}
 	return defer.promise;

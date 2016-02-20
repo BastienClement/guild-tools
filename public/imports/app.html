@@ -106,7 +106,7 @@
 <dom-module id="gt-sidebar">
 	<link rel="stylesheet/less" href="/assets/less/application.less" ns="gt-sidebar">
 	<template>
-		<div .icon *for="icons" (click)="IconClicked" {active}="equals(item.key, module)"><i>{{item.icon}}</i></div>
+		<div .icon *for="icons" (click)="IconClicked" {active}="item.key == module"><i>{{item.icon}}</i></div>
 	</template>
 </dom-module>
 

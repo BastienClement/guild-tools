@@ -89,6 +89,7 @@ class FloatingItem {
 	public async show(e: MouseEvent) {
 		if (this.owner.visible) return;
 		this.transition = true;
+		this.owner.fire("floating-show");
 
 		Polymer.dom(this.node.parentNode).insertBefore(this.placeholder, this.owner);
 		Polymer.dom(document.body).appendChild(this.owner);
@@ -115,6 +116,7 @@ class FloatingItem {
 		Polymer.dom(this.placeholder.parentNode).insertBefore(this.owner, this.placeholder);
 		this.placeholder.parentNode.removeChild(this.placeholder);
 
+		this.owner.fire("floating-hide");
 		this.transition = false;
 	}
 }
@@ -180,8 +182,9 @@ export class GtTooltip extends PolymerElement {
 		this.parent.removeEventListener("mousemove", this.move_listener);
 	}
 
-	@Listener("dom-change")
 	private update() {
+		if (!this.visible) return;
+
 		let x = this.x + 10;
 		let y = window.innerHeight - this.y + 10;
 
@@ -279,7 +282,15 @@ export class GtContextMenu extends PolymerElement {
 		this.update();
 	}
 
+	public hide() {
+		document.removeEventListener("mousedown", this.close_listener);
+		document.removeEventListener("click", this.close_listener);
+		this.removeEventListener("mousedown", this.stop_listener);
+	}
+
 	private update() {
+		if (!this.visible) return;
+
 		let x = this.x - 1;
 		let y = this.y - 1;
 
@@ -296,12 +307,6 @@ export class GtContextMenu extends PolymerElement {
 
 		this.style.left = x + "px";
 		this.style.top = y + "px";
-	}
-
-	public hide() {
-		document.removeEventListener("mousedown", this.close_listener);
-		document.removeEventListener("click", this.close_listener);
-		this.removeEventListener("mousedown", this.stop_listener);
 	}
 
 	public open(event: MouseEvent) {

@@ -10,7 +10,7 @@ import { PolymerElement, Provider, Inject, Property, On } from "elements/polymer
 export interface Apply {
 	id: number;
 	user: number;
-	date: string;
+	date: Date;
 	stage: number;
 	have_posts: boolean;
 	updated: string;
@@ -23,7 +23,7 @@ export interface ApplyMessage {
 	id: number;
 	apply: number;
 	user: number;
-	date: string;
+	date: Date;
 	text: string;
 	secret: boolean;
 	system: boolean;

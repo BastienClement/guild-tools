@@ -8,7 +8,7 @@
 			<gt-alert dark icon="done" *if="!applys.length">
 				There is no open application to review at the moment
 			</gt-alert>
-			<apply-list-item *for="applys" [apply]="item" (click)="SelectApply" {selected}="equals(selected, item)"></apply-list-item>
+			<apply-list-item *for="applys" [apply]="item" (click)="SelectApply" {selected}="selected == item"></apply-list-item>
 		</gt-box>
 		<div #main-box>
 			<apply-details [apply]="selected" *if="selected"></apply-details>
@@ -58,7 +58,7 @@
 		<gt-box #main heading=" " scrollable>
 			<div #tabs>
 				<gt-button collapse-right (click)="ShowDiscussion" {active}="tab == 1">Discussion</gt-button>
-				<gt-button collapse-right (click)="ShowDetails" {active}="equals(tab, 2)">Details</gt-button>
+				<gt-button collapse-right (click)="ShowDetails" {active}="tab == 2">Details</gt-button>
 			</div>
 			<div #links>
 				<gt-button collapse-right (click)="ShowManage" *if="app.user.promoted">Manage</gt-button>
@@ -83,12 +83,12 @@
 				<h2>Characters</h2>
 				<apply-details-char *for="chars" [id]="item"></apply-details-char>
 			</gt-box>
-			<gt-box #discussion scrollable dark {active}="equals(tab, 1)" {editor-open}="editOpen">
+			<gt-box #discussion scrollable dark {active}="tab == 1" {editor-open}="editOpen">
 				<apply-details-message *for="feed" [message]="item"></apply-details-message>
 				<div #preview-separator *if="editOpen"></div>
 				<apply-details-message [message]="messagePreview" *if="editOpen"></apply-details-message>
 			</gt-box>
-			<div #reply {visible}="equals(tab, 1)" {open}="editOpen">
+			<div #reply {visible}="tab == 1" {open}="editOpen">
 				<div #reply-wrapper (click)="OpenEdit">
 					<gt-button><i>edit_mode</i> New message</gt-button>
 				</div>
@@ -116,13 +116,13 @@
 					</div>
 				</div>
 			</div>
-			<gt-box #details scrollable dark {active}="equals(tab, 2)">
+			<gt-box #details scrollable dark {active}="tab == 2">
 				<div .no-data *if="body_type == 0">
 					<i>highlight_off</i>
 					<div>Details are not available for this application...</div>
 				</div>
 				<div .json-data *if="body_type == 1">
-					<div .json-item *for="body" {heading}="equals(item.0, '-')">
+					<div .json-item *for="body" {heading}="item.0 == '-'">
 						<h3>{{item.1}}</h3>
 						<div .row>
 							<div .label>{{item.0}}</div>

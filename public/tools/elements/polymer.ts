@@ -124,7 +124,7 @@ export abstract class PolymerElement extends HTMLElement {
 	/**
 	 * Dispatches a custom event with an optional detail value.
 	 */
-	protected fire: PolymerFireInterface;
+	public fire: PolymerFireInterface;
 
 	/**
 	 * Immediately calls the debouncer callback and inactivates it.
@@ -836,9 +836,44 @@ export function apply_polymer_fns() {
 	};
 
 	/**
-	 * Equals function
+	 * == function
 	 */
-	Base.equals = function<T>(a: T, b: T) {
+	Base.eq = function<T>(a: T, b: T) {
 		return a === b;
+	};
+
+	/**
+	 * != function
+	 */
+	Base.neq = function<T>(a: T, b: T) {
+		return a !== b;
+	};
+
+	/**
+	 * < function
+	 */
+	Base.lt = function<T>(a: T, b: T) {
+		return a < b;
+	};
+
+	/**
+	 * <= function
+	 */
+	Base.lte = function<T>(a: T, b: T) {
+		return a <= b;
+	};
+
+	/**
+	 * > function
+	 */
+	Base.gt = function<T>(a: T, b: T) {
+		return a > b;
+	};
+
+	/**
+	 * >= function
+	 */
+	Base.gte = function<T>(a: T, b: T) {
+		return a >= b;
 	};
 }
