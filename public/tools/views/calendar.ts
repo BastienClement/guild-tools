@@ -4,7 +4,7 @@ import { GtBox, GtAlert } from "elements/box";
 import { GtButton } from "elements/widgets";
 import { GtRosterMain } from "views/roster";
 import { GtTooltip, GtContextMenu } from "elements/floating";
-import { CalendarService, CalendarEvent, CalendarEventType, CalendarEventState, CalendarAnswer } from "services/calendar";
+import { CalendarService, CalendarEvent, CalendarEventType, CalendarEventState, CalendarAnswer, CalendarAnswerData } from "services/calendar";
 
 const CalendarTabs: TabsGenerator = (view, path, user) => [
 	{ title: "Calendar", link: "/calendar", active: view == "views/calendar/GtCalendar" },
@@ -77,7 +77,7 @@ export class GtCalendarCellEventTooltip extends PolymerElement {
 	private declined: number[] = [];
 
 	public async loadAnswers() {
-		if (this.declined.length > 0) return;
+		if (this.event.type == CalendarEventType.Announce) return;
 		let declined: number[] = [];
 
 		let answers = await this.service.answersForEvent(this.event.id);
@@ -90,7 +90,8 @@ export class GtCalendarCellEventTooltip extends PolymerElement {
 		this.declined = declined;
 	}
 
-	private EventChanged() {
+	private EventChanged(current: CalendarEvent, previous: CalendarEvent) {
+		if (previous && previous.id == current.id) return;
 		if (this.declined.length > 0) {
 			this.declined = [];
 		}
@@ -104,7 +105,8 @@ export class GtCalendarCellEventTooltip extends PolymerElement {
 @Dependencies(GtTooltip, GtCalendarCellEventTooltip, GtContextMenu)
 export class GtCalendarCellEvent extends PolymerElement {
 	@Inject private service: CalendarService;
-	@Property public event: CalendarEvent;
+	@Property public id: number;
+	@Property private event: CalendarEvent;
 
 	@Property({ computed: "event.type", reflect: true })
 	private get announce(): boolean {
@@ -116,6 +118,11 @@ export class GtCalendarCellEvent extends PolymerElement {
 		return this.event.type != CalendarEventType.Announce;
 	}
 
+	@Property({ computed: "event" })
+	private get answer(): CalendarAnswerData {
+		return this.event.answer || null;
+	}
+
 	@Property({ computed: "event.time" })
 	private get time(): string {
 		let time = String(this.event.time + 10000);
@@ -125,6 +132,17 @@ export class GtCalendarCellEvent extends PolymerElement {
 	@Property({ computed: "event.type event.state" })
 	private get canAcceptDecline(): boolean {
 		return this.event.state == CalendarEventState.Open && this.event.type != CalendarEventType.Announce;
+	}
+
+	@Property({ computed: "event.owner answer" })
+	private get canEdit(): boolean {
+		return this.app.user.promoted || this.event.owner == this.app.user.id ||
+			(this.answer && this.answer.promote);
+	}
+
+	@Property({ computed: "canAcceptDecline canEdit" })
+	private get canContextMenu(): boolean {
+		return this.canAcceptDecline || this.canEdit;
 	}
 
 	@Listener("click")
@@ -140,7 +158,7 @@ export class GtCalendarCellEvent extends PolymerElement {
 	private DeclineEvent() { this.ChangeAnswer(CalendarAnswer.Declined); }
 
 	private ChangeState(state: CalendarEventState) {
-		console.log("change state", state);
+		this.service.changeEventState(this.event.id, state);
 	}
 
 	private OpenEvent() { this.ChangeState(CalendarEventState.Open); }
@@ -152,7 +170,9 @@ export class GtCalendarCellEvent extends PolymerElement {
 	}
 
 	private DeleteEvent() {
-		console.log("delete");
+		if (confirm("Are you sure ?")) {
+			console.log("delete");
+		}
 	}
 
 	@Listener("floating-show")

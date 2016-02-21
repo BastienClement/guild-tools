@@ -366,7 +366,7 @@ export abstract class PolymerElement extends HTMLElement {
 /**
  * Interface of PolymerElement#fire
  */
-interface PolymerFireInterface {
+type PolymerFireInterface = {
 	(type: string, options?: PolymerFireOptions): void;
 	(type: string, details: any, options?: PolymerFireOptions): void;
 }
@@ -374,7 +374,7 @@ interface PolymerFireInterface {
 /**
  * PolymerElement#fire options object
  */
-interface PolymerFireOptions {
+type PolymerFireOptions = {
 	node?: HTMLElement;
 	bubbles?: boolean;
 	cancelable?: boolean;
@@ -383,7 +383,7 @@ interface PolymerFireOptions {
 /**
  * Dummy interface for the opaque type of the value returned by PolymerElement#async
  */
-interface PolymerAsyncHandler {}
+type PolymerAsyncHandler = {};
 
 /**
  * The Polymer returned to replace the original class constructor
@@ -393,10 +393,12 @@ export interface PolymerProxy<T extends PolymerElement> extends Constructor<T> {
 	[key: string]: any;
 }
 
+type PolymerBehavior = any;
+
 /**
  * Metadata about the Polymer element
  */
-export interface PolymerMetadata<T extends PolymerElement> {
+export type PolymerMetadata<T extends PolymerElement> = {
 	selector: string;
 	template: string;
 	proto: any;
@@ -404,6 +406,7 @@ export interface PolymerMetadata<T extends PolymerElement> {
 	loaded: boolean;
 	domModule?: HTMLElement;
 	constructor?: Function;
+	behaviors?: PolymerBehavior[];
 	base?: Constructor<any>;
 }
 
@@ -417,16 +420,16 @@ export interface PolymerModelEvent<T> extends Event {
 /**
  * Registration of DI-enabled properties
  */
-interface InjectionBinding {
+type InjectionBinding = {
 	ctor: Constructor<any>;
 	property: string;
 }
 
-interface EventMapping {
+type EventMapping = {
 	[event: string]: string | boolean;
 }
 
-interface ElementBindings {
+type ElementBindings = {
 	[property: string]: EventMapping;
 }
 
@@ -619,6 +622,9 @@ export function Element(selector: string, template?: string, ext?: string) {
 		meta.proto = target.prototype;
 		meta.loaded = false;
 
+		// Define behaviors
+		target.prototype.behaviors = (meta.behaviors || (meta.behaviors = []));
+
 		// Copy it on the proxy
 		Reflect.defineMetadata("polymer:meta", meta, proxy);
 		Reflect.deleteMetadata("polymer:meta", target);
@@ -651,7 +657,7 @@ export function Provider(selector: string) {
 }
 
 /**
- * Delcare Polymer element dependencies
+ * Declare Polymer element dependencies
  */
 export function Dependencies(...dependencies: (Constructor<any> | { prototype: Service })[]) {
 	return <T extends PolymerElement>(target: Constructor<T>) => {
@@ -663,9 +669,20 @@ export function Dependencies(...dependencies: (Constructor<any> | { prototype: S
 }
 
 /**
+ * Declare Polymer behaviors
+ */
+export function Behaviors(...behaviors: any[]) {
+	return <T extends PolymerElement>(target: Constructor<T>) => {
+		const meta: PolymerMetadata<T> = Reflect.getMetadata("polymer:meta", target) || <any>{};
+		meta.behaviors = (meta.behaviors || []).concat(behaviors);
+		Reflect.defineMetadata("polymer:meta", meta, target);
+	};
+}
+
+/**
  * Declare a Polymer Property
  */
-interface PolymerPropertyConfig {
+type PolymerPropertyConfig = {
 	reflect?: boolean;
 	readOnly?: boolean;
 	notify?: boolean;

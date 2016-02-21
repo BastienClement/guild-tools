@@ -3,10 +3,10 @@ package channels
 import akka.actor.Props
 import gtp3._
 import models._
-import models.calendar.{Answers, Slacks, Events}
+import models.calendar.{Answers, Events, Slacks}
 import models.mysql._
-import utils.SmartTimestamp
 import reactive.ExecutionContext
+import utils.SmartTimestamp
 
 object CalendarChannel extends ChannelValidator {
 	def open(request: ChannelRequest) = {
@@ -16,6 +16,16 @@ object CalendarChannel extends ChannelValidator {
 }
 
 class CalendarChannel(user: User) extends ChannelHandler {
+	init {
+		Events.subscribe(user)
+	}
+
+	akka {
+		case Events.Created(event) => send("event-created", event)
+		case Events.Updated(event) => send("event-updated", event)
+		case Events.Deleted(event) => send("event-deleted", event)
+	}
+
 	message("request-events") { p =>
 		val month_key = p.string
 		"^(201[0-9])\\-(0[1-9]|1[0-2])$".r.findFirstMatchIn(month_key) match {
@@ -27,16 +37,29 @@ class CalendarChannel(user: User) extends ChannelHandler {
 				val from = SmartTimestamp(year, month, 1)
 				val to = SmartTimestamp(year, month + 1, 0)
 
-				val events = Events.between(from, to, user).sortBy { case (e, a) => e.date.asc }.run
-				val slacks = Slacks.between(from, to).run.map(_.map(_.conceal))
+				val events = Events.findBetween(from, to).filter(Events.canAccess(user))
+				val events_answers = Answers.withOwnAnswer(events, user).run
+				val slacks = Slacks.findBetween(from, to).run.map(_.map(_.conceal))
 
-				for ((e, s) <- events.zip(slacks)) {
-					send("events", (e, s, month_key))
+				for ((ea, s) <- events_answers.zip(slacks)) {
+					send("events", (ea, s, month_key))
 				}
 		}
 	}
 
 	request("event-answers") { p =>
-		Answers.forEvent(p.as[Int], user).run
+		val event = p.as[Int]
+		for {
+			_ <- Events.ifAccessible(user, event)
+			answers <- Answers.findForEvent(event).run
+		} yield answers
+	}
+
+	message("change-event-state") { p =>
+		val event = p("event").as[Int]
+		val state = p("state").as[Int]
+		for (_ <- Events.ifEditable(user, event)) {
+			Events.changeState(event, state)
+		}
 	}
 }

@@ -4,6 +4,7 @@ import java.sql.Timestamp
 import models._
 import models.mysql._
 import reactive.ExecutionContext
+import scala.concurrent.Future
 import slick.lifted.Case
 import utils.PubSub
 
@@ -18,8 +19,8 @@ case class Event(id: Int, title: String, desc: String, owner: Int, date: Timesta
 	val isAnnounce = visibility == EventVisibility.Announce
 
 	/**
-	 * Expand this event to include tabs and slots data
-	 */
+	  * Expand this event to include tabs and slots data
+	  */
 	lazy val expand =
 		for {
 			tabs <- Tabs.filter(_.event === this.id).run
@@ -32,8 +33,8 @@ case class Event(id: Int, title: String, desc: String, owner: Int, date: Timesta
 		}
 
 	/**
-	 * Create a partially visible expanded version of this event
-	 */
+	  * Create a partially visible expanded version of this event
+	  */
 	lazy val partial = for (expanded <- this.expand) yield {
 		// Remove note from hidden tab
 		var visibles_tabs = Set[String]()
@@ -74,25 +75,135 @@ object Events extends TableQuery(new Events(_)) with PubSub[User] {
 	case class Updated(event: Event)
 	case class Deleted(event: Event)
 
-	def canAccess(user: User)(row: (Events, Rep[Option[Answers]])): Rep[Boolean] = {
-		val (event, answer) = row
+	/**
+	  * Checks if a user can access an event.
+	  * Pure scala version.
+	  *
+	  * @param user   the user to test
+	  * @param event  the event
+	  * @param answer the answer of this user for this event
+	  * @return whether the user is allowed to access the event
+	  */
+	def canAccess(user: User, event: Event, answer: Option[Answer] = None): Boolean = {
+		event.visibility match {
+			case EventVisibility.Announce => user.fs
+			case EventVisibility.Guild => user.fs
+			case EventVisibility.Public => true
+			case EventVisibility.Roster => user.roster
+			case EventVisibility.Restricted => answer.isDefined
+			case _ => false
+		}
+	}
+
+	/**
+	  * Checks if a user can access an event.
+	  * SQL version. Can be used as a .filter()
+	  *
+	  * @param user  the user to test
+	  * @param event the event
+	  * @return whether the user is allowed to access the event
+	  */
+	def canAccess(user: User)(event: Events): Rep[Boolean] = {
+		val answer = Answers.findForEventAndUser(event.id, user.id).exists
 		Case
 			.If(event.visibility === EventVisibility.Announce).Then(user.fs)
 			.If(event.visibility === EventVisibility.Guild).Then(user.fs)
 			.If(event.visibility === EventVisibility.Public).Then(true)
 			.If(event.visibility === EventVisibility.Roster).Then(user.roster)
-			.If(event.visibility === EventVisibility.Restricted).Then(answer.isDefined)
+			.If(event.visibility === EventVisibility.Restricted).Then(answer)
 			.Else(false)
 	}
 
-	def forUser(user: User) = {
-		val ev_answr = this joinLeft Answers.filter(_.user === user.id) on { case (ev, an) => ev.id === an.event }
-		ev_answr.withFilter(canAccess(user))
+	/**
+	  * Checks if a user can access an event.
+	  * This version takes an event id instead of an event object.
+	  *
+	  * @param user the user to test
+	  * @param id   the event id
+	  * @return whether the user is allowed to access the event
+	  */
+	def canAccess(user: User, id: Int): Rep[Boolean] = {
+		Events.findById(id).filter(canAccess(user)).exists
 	}
 
-	def byId(id: Rep[Int], user: User) = forUser(user).filter { case (e, a) => e.id === id }
+	/**
+	  * Checks if a user is allowed to edit an event.
+	  * A user is allowed to edit an event if they are the event owner or if they are promoted,
+	  * either globally (devs, officers) or specifically for this event.
+	  *
+	  * @param user  the user to test
+	  * @param event the event
+	  * @return whether the user is allowed to edit the event
+	  */
+	def canEdit(user: User)(event: Events): Rep[Boolean] = {
+		val promoted = Answers.findForEventAndUser(event.id, user.id).filter(_.promote).exists
+		event.owner === user.id || user.promoted || promoted
+	}
 
-	def between(from: Rep[Timestamp], to: Rep[Timestamp], user: User) = {
-		this.forUser(user).filter { case (e, a) => e.date.between(from, to) }
+	/**
+	  * Runs an action if the given event is accessible by the user.
+	  *
+	  * @param user   the user to test
+	  * @param id     the event id
+	  */
+	def ifAccessible[T](user: User, id: Int): Future[Event] = {
+		Events.findById(id).filter(canAccess(user)).head
+	}
+
+	/**
+	  * Runs an action if the given event is editable by the user.
+	  *
+	  * @param user   the user to test
+	  * @param id     the event id
+	  */
+	def ifEditable[T](user: User, id: Int): Future[Event] = {
+		Events.findById(id).filter(canEdit(user)).head
+	}
+
+	/**
+	  * Finds an event by ID.
+	  *
+	  * @param id the event ID
+	  * @return a Query for this event
+	  */
+	def findById(id: Rep[Int]) = {
+		Events.filter(_.id === id)
+	}
+
+	/**
+	  * Finds events between two dates.
+	  *
+	  * @param from the lower-bound date
+	  * @param to   the upper-bound date
+	  * @return a Query for events between the two dates
+	  */
+	def findBetween(from: Rep[Timestamp], to: Rep[Timestamp]) = {
+		Events.filter(_.date.between(from, to))
+	}
+
+	/**
+	  * Changes the state (Open, Close, Canceled) of an event.
+	  *
+	  * @param event_id  the event id
+	  * @param state  the new event state
+	  */
+	def changeState(event_id: Int, state: Int) = {
+		require(EventState.isValid(state))
+		for (n <- Events.findById(event_id).filter(_.state =!= state).map(_.state).update(state).run if n > 0) {
+			publishUpdate(event_id)
+		}
+	}
+
+	private def publishUpdate(event_id: Int, event_type: (Event) => Any = Updated.apply _) = {
+		val queries = for {
+			e <- Events.findById(event_id).result.head
+			a <- Answers.findForEvent(event_id).result
+		} yield (e, a)
+
+		for ((event, raw_answers) <- queries.run) {
+			val answers = raw_answers.map(a => (a.user, a)).toMap
+			val dispatch_event = event_type(event)
+			this.publish(dispatch_event, u => canAccess(u, event, answers.get(u.id)))
+		}
 	}
 }

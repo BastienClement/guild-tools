@@ -15,5 +15,6 @@ class GtApplication @Inject() (gt: GuildTools) extends Controller {
 		Props(new WSActor(out, request))
 	}
 
+	def broken(path: String) = Action { Ok(views.html.broken.render()) }
 	def unsupported = Action { Ok(views.html.unsupported.render()) }
 }

@@ -77,7 +77,7 @@
 			</span>
 		</div>
 		<div #events>
-			<gt-calendar-cell-event *for="events" [event]="item"></gt-calendar-cell-event>
+			<gt-calendar-cell-event *for="events" [id]="item"></gt-calendar-cell-event>
 		</div>
 	</template>
 </dom-module>
@@ -88,25 +88,28 @@
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="gt-calendar-cell-event">
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="gt-calendar-colors">
 	<template>
+		<meta is="calendar-event" [id] [event]>
 		<meta is="calendar-icon" [type]="event.type" [icon]>
 		<gt-tooltip>
 			<gt-calendar-cell-event-tooltip #tooltip [event] [time]></gt-calendar-cell-event-tooltip>
 		</gt-tooltip>
-		<gt-context-menu>
+		<gt-context-menu *if="canContextMenu">
 			<ul>
 				<template *if="canAcceptDecline">
 					<li (click)="AcceptEvent"><i>check</i> Accept</li>
 					<li (click)="DeclineEvent"><i>clear</i> Decline</li>
 					<li .separator></li>
 				</template>
-				<template *if="!announce">
-					<li (click)="OpenEvent"><i>panorama_fish_eye</i> Open</li>
-					<li (click)="CloseEvent"><i>lock_outline</i> Close</li>
-					<li (click)="CancelEvent"><i>remove_circle_outline</i> Cancel</li>
-					<li .separator></li>
+				<template *if="canEdit">
+					<template *if="!announce">
+						<li (click)="OpenEvent"><i>panorama_fish_eye</i> Open</li>
+						<li (click)="CloseEvent"><i>lock_outline</i> Close</li>
+						<li (click)="CancelEvent"><i>remove_circle_outline</i> Cancel</li>
+						<li .separator></li>
+					</template>
+					<li (click)="EditEvent"><i>edit</i> Edit</li>
+					<li (click)="DeleteEvent"><i>delete_forever</i> Delete</li>
 				</template>
-				<li (click)="EditEvent"><i>edit</i> Edit</li>
-				<li (click)="DeleteEvent"><i>delete_forever</i> Delete</li>
 			</ul>
 		</gt-context-menu>
 		<div #layout {type}="event.type" {state}="event.state" {answer}="event.answer.answer">

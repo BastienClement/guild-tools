@@ -32,6 +32,10 @@ GET         /wt/application/charter           controllers.webtools.ApplicationCo
 GET         /wt/calendar/unread_events        controllers.webtools.CalendarController.unread_events
 GET         /wt/*path                         controllers.webtools.WebTools.catchall(path)
 
+# Auth
+GET         /auth/                            controllers.authentication.AuthController.main
+GET         /auth/*path                       controllers.GtApplication.broken(path)
+
 # REST API
 POST        /api/bugsack                      controllers.APIController.bugsack
 GET         /api/socket_url                   controllers.APIController.socketURL

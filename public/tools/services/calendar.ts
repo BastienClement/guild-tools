@@ -152,6 +152,14 @@ export class CalendarService extends Service {
 	}
 
 	/**
+	 * Get a single event data
+	 * @param id    the event id
+	 */
+	public getEvent(id: number): CalendarEvent {
+		return this.index.get(id);
+	}
+
+	/**
 	 * Returns slacks for a given date.
 	 * Erroneous behaviour when called with from and to more than one month away.
 	 * @param from
@@ -246,6 +254,39 @@ export class CalendarService extends Service {
 	}
 
 	/**
+	 * Change an event state.
+	 * @param event     an event id
+	 * @param state     the new event state
+	 */
+	public changeEventState(event: number, state: CalendarEventState) {
+		this.channel.send("change-event-state", { event, state });
+	}
+
+	/**
+	 * Events data received
+	 * @param event the updated event
+	 */
+	@ServiceChannel.Dispatch("channel", "event-updated")
+	private EventUpdated(event: CalendarEvent) {
+		let current = this.index.get(event.id);
+		if (!current) return;
+
+		event.answer = current.answer;
+		this.index.put(event.id, event);
+
+		let hash = this.hashDate(event.date);
+		let day = this.events.get(hash);
+
+		for (let i = 0; i < day.length; i++) {
+			if (day[i].id == event.id) {
+				day[i] = event;
+			}
+		}
+
+		this.emit("event-updated", event);
+	}
+
+	/**
 	 * Close the channel when the apply service is paused.
 	 * Also clear every cached event since we will no longer be informed if an event is updated.
 	 */
@@ -264,7 +305,8 @@ export class CalendarService extends Service {
 class CalendarEventsProvider extends PolymerElement {
 	@Inject
 	@On({
-		"events-updated": "update"
+		"events-updated": "update",
+		"event-updated": "EventUpdated"
 	})
 	private service: CalendarService;
 
@@ -272,11 +314,42 @@ class CalendarEventsProvider extends PolymerElement {
 	public date: Date;
 
 	@Property({ notify: true })
-	public events: CalendarEvent[];
+	public events: number[];
 
 	public async update() {
 		if (await microtask, !this.date) return;
-		this.events = this.service.getEvents(this.date);
+		this.events = this.service.getEvents(this.date).map(e => e.id);
+	}
+
+	private EventUpdated(event: CalendarEvent) {
+		if (event.date.getTime() == this.date.getTime()) this.update();
+	}
+}
+
+/**
+ * Calendar event provider
+ */
+@Provider("calendar-event")
+class CalendarEventProvider extends PolymerElement {
+	@Inject
+	@On({
+		"event-updated": "EventUpdated"
+	})
+	private service: CalendarService;
+
+	@Property({ observer: "update" })
+	public id: number;
+
+	@Property({ notify: true })
+	public event: CalendarEvent;
+
+	public async update() {
+		if (await microtask, !this.id) return;
+		this.set("event", this.service.getEvent(this.id));
+	}
+
+	private EventUpdated(event: CalendarEvent) {
+		if (event.id == this.event.id) this.update();
 	}
 }
 

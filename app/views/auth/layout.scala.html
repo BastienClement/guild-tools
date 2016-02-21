@@ -1,0 +1,20 @@
+@(title: String)(content: Html)
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>From Scratch - @title</title>
+
+<link rel="stylesheet" href='@routes.Assets.versioned("auth/auth.css")'>
+
+<div id="wrapper">
+	<div id="header">
+		<img src="@routes.Assets.versioned("images/login_logo.png")">
+	</div>
+	<div id="content">
+		@content
+	</div>
+	<div id="footer">
+		Footer
+	</div>
+</div>
+
+

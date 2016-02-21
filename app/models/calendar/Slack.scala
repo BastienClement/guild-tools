@@ -18,7 +18,7 @@ class Slacks(tag: Tag) extends Table[Slack](tag, "gt_slacks") {
 }
 
 object Slacks extends TableQuery(new Slacks(_)) {
-	def between(from: Rep[Timestamp], to: Rep[Timestamp]) = {
+	def findBetween(from: Rep[Timestamp], to: Rep[Timestamp]) = {
 		this.filter(s => s.from >= from && s.to <= to)
 	}
 }

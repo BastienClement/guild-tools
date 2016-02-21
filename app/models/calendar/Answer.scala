@@ -29,7 +29,15 @@ object Answers extends TableQuery(new Answers(_)) {
 	val Accepted = 1
 	val Declined = 2
 
-	def forEvent(event: Rep[Int], user: User) = {
-		Answers.filter(_.event === event && Events.byId(event, user).exists)
+	def findForEvent(event: Rep[Int]) = {
+		Answers.filter(_.event === event)
+	}
+
+	def findForEventAndUser(event: Rep[Int], user: Rep[Int]) = {
+		findForEvent(event).filter(_.user === user)
+	}
+
+	def withOwnAnswer(events: Query[Events, Event, Seq], user: User) = {
+		events.joinLeft(Answers).on { case (e, a) => e.id === a.event && a.user === user.id}
 	}
 }
