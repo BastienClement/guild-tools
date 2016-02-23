@@ -49,17 +49,22 @@ class CalendarChannel(user: User) extends ChannelHandler {
 
 	request("event-answers") { p =>
 		val event = p.as[Int]
-		for {
-			_ <- Events.ifAccessible(user, event)
-			answers <- Answers.findForEvent(event).run
-		} yield answers
+		Events.ifAccessible(user, event) {
+			Answers.findForEvent(event).run.await
+		}
 	}
 
 	message("change-event-state") { p =>
 		val event = p("event").as[Int]
-		val state = p("state").as[Int]
-		for (_ <- Events.ifEditable(user, event)) {
-			Events.changeState(event, state)
+		Events.ifEditable(user, event) {
+			Events.changeState(event, p("state").as[Int])
 		}
+	}
+
+	message("change-event-answer") { p =>
+		val event = p("event").as[Int]
+		val answer = p("answer").as[Int]
+		val char = p("char").asOpt[Int]
+		val note = p("note").as[String]
 	}
 }

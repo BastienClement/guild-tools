@@ -146,8 +146,8 @@ object Events extends TableQuery(new Events(_)) with PubSub[User] {
 	  * @param user   the user to test
 	  * @param id     the event id
 	  */
-	def ifAccessible[T](user: User, id: Int): Future[Event] = {
-		Events.findById(id).filter(canAccess(user)).head
+	def ifAccessible[T](user: User, id: Int)(action: => T): Future[T] = {
+		for (_ <- Events.findById(id).filter(canAccess(user)).head) yield action
 	}
 
 	/**
@@ -156,8 +156,8 @@ object Events extends TableQuery(new Events(_)) with PubSub[User] {
 	  * @param user   the user to test
 	  * @param id     the event id
 	  */
-	def ifEditable[T](user: User, id: Int): Future[Event] = {
-		Events.findById(id).filter(canEdit(user)).head
+	def ifEditable[T](user: User, id: Int)(action: => T): Future[T] = {
+		for (_ <- Events.findById(id).filter(canEdit(user)).head) yield action
 	}
 
 	/**
