@@ -36,59 +36,65 @@ class GuildTools @Inject() (lifecycle: ApplicationLifecycle) {
 		val pwd = Play.configuration.getString("dev.dir").get
 		val tsc = Play.configuration.getString("dev.tsc").get
 		val node = Play.configuration.getString("dev.node").getOrElse("node")
+		val watch = Play.configuration.getBoolean("dev.tsc.watch").getOrElse(true)
 
-		val ws = FileSystems.getDefault.newWatchService()
-		val watch_dir = FileSystems.getDefault.getPath(pwd, "public", "tools")
-		watch_dir.register(ws, SWEK.ENTRY_CREATE, SWEK.ENTRY_DELETE, SWEK.ENTRY_MODIFY)
-
-		val thread = new Thread {
-			def compile() = {
-				println("TSC   - Compiling Typescript files")
-				val logger = ProcessLogger { line => println("TSC   - " + line) }
-				val process = Process(Seq(node, tsc), new File(s"$pwd/public/tools"), "PATH" -> path).run(logger)
-				process.exitValue()
-				println("TSC   - Done")
+		if (watch) {
+			val logger = ProcessLogger { line =>
+				println("TSC   - " + line)
 			}
 
-			override def run() = {
-				compile()
-				var running = true
-				while (running) {
-					try {
-						val wk = ws.take()
+			println("TSC   - Starting Typescript compiler")
+			val process = Process(Seq(node, tsc, "-w"), new File(s"$pwd/public/tools"), "PATH" -> path).run(logger)
 
-						wk.pollEvents()
-						compile()
-						wk.pollEvents()
+			stopHook {
+				println("TSC   - Stopping Typescript compiler")
+				process.destroy()
+			}
+		} else {
+			val ws = FileSystems.getDefault.newWatchService()
+			val watch_dir = FileSystems.getDefault.getPath(pwd, "public", "tools")
+			watch_dir.register(ws, SWEK.ENTRY_CREATE, SWEK.ENTRY_DELETE, SWEK.ENTRY_MODIFY)
 
-						if (!wk.reset()) {
-							running = false
-							println("TSC   - Key has been unregistered")
+			val thread = new Thread {
+				def compile() = {
+					println("TSC   - Compiling Typescript files")
+					val logger = ProcessLogger { line => println("TSC   - " + line) }
+					val process = Process(Seq(node, tsc), new File(s"$pwd/public/tools"), "PATH" -> path).run(logger)
+					process.exitValue()
+					println("TSC   - Done")
+				}
+
+				override def run() = {
+					compile()
+					var running = true
+					while (running) {
+						try {
+							val wk = ws.take()
+
+							wk.pollEvents()
+							compile()
+							wk.pollEvents()
+
+							if (!wk.reset()) {
+								running = false
+								println("TSC   - Key has been unregistered")
+							}
+						} catch {
+							case _: InterruptedException => running = false
 						}
-					} catch {
-						case _: InterruptedException => running = false
 					}
 				}
 			}
+
+			println("TSC   - Starting Typescript compiler")
+			thread.start()
+
+			stopHook {
+				println("TSC   - Stopping Typescript compiler")
+				thread.interrupt()
+				thread.join()
+			}
 		}
-
-		println("TSC   - Starting Typescript compiler")
-		thread.start()
-
-		stopHook {
-			println("TSC   - Stopping Typescript compiler")
-			thread.interrupt()
-			thread.join()
-		}
-
-		/*val process = Process(Seq(node, tsc), new File(s"$pwd/public/tools"), "PATH" -> path) run ProcessLogger { line =>
-			println("TSC   - " + line)
-		}
-
-		stopHook {
-			println("TSC   - Stopping Typescript compiler")
-			process.destroy()
-		}*/
 	}
 
 	def setupCharacterRefresher(): Unit = {
