@@ -26,6 +26,11 @@ class CalendarChannel(user: User) extends ChannelHandler {
 		case Events.Deleted(event) => send("event-deleted", event)
 	}
 
+	/**
+	  * Requests events and slacks data for a specific month.
+	  * The month is given as the "month-key" in client-side application.
+	  * (Actually identical to the first part of an ISO date string.
+	  */
 	message("request-events") { p =>
 		val month_key = p.string
 		"^(201[0-9])\\-(0[1-9]|1[0-2])$".r.findFirstMatchIn(month_key) match {
@@ -47,6 +52,9 @@ class CalendarChannel(user: User) extends ChannelHandler {
 		}
 	}
 
+	/**
+	  * Requests answers to a specific event.
+	  */
 	request("event-answers") { p =>
 		val event = p.as[Int]
 		Events.ifAccessible(user, event) {
@@ -54,6 +62,9 @@ class CalendarChannel(user: User) extends ChannelHandler {
 		}
 	}
 
+	/**
+	  * Changes an event state.
+	  */
 	message("change-event-state") { p =>
 		val event = p("event").as[Int]
 		Events.ifEditable(user, event) {
@@ -61,6 +72,9 @@ class CalendarChannel(user: User) extends ChannelHandler {
 		}
 	}
 
+	/**
+	  * Changes the user's answer to an event.
+	  */
 	message("change-event-answer") { p =>
 		val event = p("event").as[Int]
 		val answer = p("answer").as[Int]

@@ -9,5 +9,6 @@ object EventVisibility {
 	val Restricted = 3
 	val Announce = 4
 	val Guild = 5
+
 	def isValid(v: Int) = v > 0 && v < 6
 }

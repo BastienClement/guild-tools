@@ -30,7 +30,7 @@ class StreamChannel(val user: User) extends ChannelHandler {
 
 	/**
 	  * Format the stream for the client-side.
-	  * Ensure that we do not expose sensitive informations.
+	  * Ensure that we do not expose sensitive information.
 	  */
 	def formatStream(stream: StreamService.ActiveStream) = {
 		(stream.meta.user, stream.live, stream.meta.progress, stream.viewersIds)

@@ -67,7 +67,7 @@ class Events(tag: Tag) extends Table[Event](tag, "gt_events_visible") {
 	def state = column[Int]("state")
 	def garbage = column[Boolean]("garbage")
 
-	def * = (id, title, desc, owner, date, time, visibility, state) <> (Event.tupled, Event.unapply)
+	def * = (id, title, desc, owner, date, time, visibility, state) <>(Event.tupled, Event.unapply)
 }
 
 object Events extends TableQuery(new Events(_)) with PubSub[User] {
@@ -79,10 +79,10 @@ object Events extends TableQuery(new Events(_)) with PubSub[User] {
 	  * Checks if a user can access an event.
 	  * Pure scala version.
 	  *
-	  * @param user   the user to test
-	  * @param event  the event
-	  * @param answer the answer of this user for this event
-	  * @return whether the user is allowed to access the event
+	  * @param user   The user to test
+	  * @param event  The event
+	  * @param answer The answer of this user for this event
+	  * @return Whether the user is allowed to access the event
 	  */
 	def canAccess(user: User, event: Event, answer: Option[Answer] = None): Boolean = {
 		event.visibility match {
@@ -99,9 +99,9 @@ object Events extends TableQuery(new Events(_)) with PubSub[User] {
 	  * Checks if a user can access an event.
 	  * SQL version. Can be used as a .filter()
 	  *
-	  * @param user  the user to test
-	  * @param event the event
-	  * @return whether the user is allowed to access the event
+	  * @param user  The user to test
+	  * @param event The event
+	  * @return Whether the user is allowed to access the event
 	  */
 	def canAccess(user: User)(event: Events): Rep[Boolean] = {
 		val answer = Answers.findForEventAndUser(event.id, user.id).exists
@@ -118,9 +118,9 @@ object Events extends TableQuery(new Events(_)) with PubSub[User] {
 	  * Checks if a user can access an event.
 	  * This version takes an event id instead of an event object.
 	  *
-	  * @param user the user to test
-	  * @param id   the event id
-	  * @return whether the user is allowed to access the event
+	  * @param user The user to test
+	  * @param id   The event id
+	  * @return Whether the user is allowed to access the event
 	  */
 	def canAccess(user: User, id: Int): Rep[Boolean] = {
 		Events.findById(id).filter(canAccess(user)).exists
@@ -131,9 +131,9 @@ object Events extends TableQuery(new Events(_)) with PubSub[User] {
 	  * A user is allowed to edit an event if they are the event owner or if they are promoted,
 	  * either globally (devs, officers) or specifically for this event.
 	  *
-	  * @param user  the user to test
-	  * @param event the event
-	  * @return whether the user is allowed to edit the event
+	  * @param user  The user to test
+	  * @param event The event
+	  * @return Whether the user is allowed to edit the event
 	  */
 	def canEdit(user: User)(event: Events): Rep[Boolean] = {
 		val promoted = Answers.findForEventAndUser(event.id, user.id).filter(_.promote).exists
@@ -143,8 +143,8 @@ object Events extends TableQuery(new Events(_)) with PubSub[User] {
 	/**
 	  * Runs an action if the given event is accessible by the user.
 	  *
-	  * @param user   the user to test
-	  * @param id     the event id
+	  * @param user The user to test
+	  * @param id   The event id
 	  */
 	def ifAccessible[T](user: User, id: Int)(action: => T): Future[T] = {
 		for (_ <- Events.findById(id).filter(canAccess(user)).head) yield action
@@ -153,8 +153,8 @@ object Events extends TableQuery(new Events(_)) with PubSub[User] {
 	/**
 	  * Runs an action if the given event is editable by the user.
 	  *
-	  * @param user   the user to test
-	  * @param id     the event id
+	  * @param user The user to test
+	  * @param id   The event's ID
 	  */
 	def ifEditable[T](user: User, id: Int)(action: => T): Future[T] = {
 		for (_ <- Events.findById(id).filter(canEdit(user)).head) yield action
@@ -163,8 +163,8 @@ object Events extends TableQuery(new Events(_)) with PubSub[User] {
 	/**
 	  * Finds an event by ID.
 	  *
-	  * @param id the event ID
-	  * @return a Query for this event
+	  * @param id The event's ID
+	  * @return A Query for this event
 	  */
 	def findById(id: Rep[Int]) = {
 		Events.filter(_.id === id)
@@ -173,9 +173,9 @@ object Events extends TableQuery(new Events(_)) with PubSub[User] {
 	/**
 	  * Finds events between two dates.
 	  *
-	  * @param from the lower-bound date
-	  * @param to   the upper-bound date
-	  * @return a Query for events between the two dates
+	  * @param from The lower-bound date
+	  * @param to   The upper-bound date
+	  * @return A Query for events between the two dates
 	  */
 	def findBetween(from: Rep[Timestamp], to: Rep[Timestamp]) = {
 		Events.filter(_.date.between(from, to))
@@ -184,8 +184,8 @@ object Events extends TableQuery(new Events(_)) with PubSub[User] {
 	/**
 	  * Changes the state (Open, Close, Canceled) of an event.
 	  *
-	  * @param event_id  the event id
-	  * @param state  the new event state
+	  * @param event_id The event id
+	  * @param state    The new event state
 	  */
 	def changeState(event_id: Int, state: Int) = {
 		require(EventState.isValid(state))
@@ -194,7 +194,14 @@ object Events extends TableQuery(new Events(_)) with PubSub[User] {
 		}
 	}
 
-	private def publishUpdate(event_id: Int, event_type: (Event) => Any = Updated.apply _) = {
+	/**
+	  * Publishes an updated message to PubSub subscribers.
+	  *
+	  * @param event_id The calendar event ID
+	  * @param message  An optional constructor for the message object.
+	  *                 Defaults to Events.Updated.apply
+	  */
+	private def publishUpdate(event_id: Int, message: (Event) => Any = Updated.apply _) = {
 		val queries = for {
 			e <- Events.findById(event_id).result.head
 			a <- Answers.findForEvent(event_id).result
@@ -202,8 +209,8 @@ object Events extends TableQuery(new Events(_)) with PubSub[User] {
 
 		for ((event, raw_answers) <- queries.run) {
 			val answers = raw_answers.map(a => (a.user, a)).toMap
-			val dispatch_event = event_type(event)
-			this.publish(dispatch_event, u => canAccess(u, event, answers.get(u.id)))
+			val dispatch_message = message(event)
+			this.publish(dispatch_message, u => canAccess(u, event, answers.get(u.id)))
 		}
 	}
 }

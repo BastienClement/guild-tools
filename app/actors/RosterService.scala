@@ -102,7 +102,7 @@ trait RosterService extends PubSub[User] {
 								}
 							}
 
-						// Another error occured, just update the last_update, but don't count as failure
+						// Another error occurred, just update the last_update, but don't count as failure
 						case cause =>
 							val query = char map { c => c.last_update } update Platform.currentTime
 							query.run map {

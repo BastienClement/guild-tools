@@ -238,7 +238,7 @@ class Domain {
 	/**
 	  * Atomically executes an block on this domain.
 	  * During the block execution, no observer will be notified of invalidations
-	  * occuring in the domain. Once the block execution completes, every pending
+	  * occurring in the domain. Once the block execution completes, every pending
 	  * observers will be notified in a topologically-based order.
 	  *
 	  * @param block The block to execute
