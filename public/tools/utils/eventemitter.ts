@@ -1,4 +1,4 @@
-import { defer } from "utils/async";
+import { defer } from "Async";
 
 /**
  * Handler registration object

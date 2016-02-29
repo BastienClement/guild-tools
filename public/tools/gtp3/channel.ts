@@ -1,10 +1,10 @@
-import { EventEmitter } from "utils/eventemitter";
-import { NumberPool } from "gtp3/numberpool";
-import { FrameType, Protocol } from "gtp3/protocol";
-import { Socket, ChannelRequest } from "gtp3/socket";
-import { Stream } from "gtp3/stream";
-import { Frame, MessageFrame, RequestFrame, SuccessFrame, FailureFrame, CloseFrame } from "gtp3/frames";
-import { Payload, PayloadFlags } from "gtp3/payload";
+import {EventEmitter} from "../utils/EventEmitter";
+import {NumberPool} from "./NumberPool";
+import {Protocol, FrameType} from "./Protocol";
+import {PayloadFlags, Payload} from "./Payload";
+import {Socket, ChannelRequest} from "./Socket";
+import {Frame, MessageFrame, RequestFrame, CloseFrame, SuccessFrame, FailureFrame} from "./Frames";
+import {Stream} from "./Stream";
 
 /**
  * Channel states
@@ -84,8 +84,8 @@ export class Channel extends EventEmitter {
 	 * Open a new byte stream on a sub-channel
 	 */
 	/*openStream(stream_type: string, token: string = ""): Promise<Stream> {
-		return this.socket.openStream(stream_type, token, this.remote_id);
-	}*/
+	 return this.socket.openStream(stream_type, token, this.remote_id);
+	 }*/
 
 	/**
 	 * Close the channel and attempt to flush output buffer

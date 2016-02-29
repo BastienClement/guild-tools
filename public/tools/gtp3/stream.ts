@@ -1,5 +1,5 @@
-import { EventEmitter } from "utils/eventemitter";
-import { Channel } from "gtp3/channel";
+import {EventEmitter} from "../utils/EventEmitter";
+import {Channel} from "./Channel";
 
 /**
  * Data stream over message channel implementation

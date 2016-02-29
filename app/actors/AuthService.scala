@@ -6,7 +6,7 @@ import models.mysql._
 import reactive._
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import utils.{Cache, SmartTimestamp}
+import utils.{Phpass, Cache, SmartTimestamp}
 
 private[actors] class AuthServiceImpl extends AuthService
 
@@ -60,14 +60,15 @@ trait AuthService {
 	  */
 	def auth(session: String): Future[User] = {
 		val sess_query = Sessions.filter(_.token === session)
-		sess_query.map(_.user).head flatMap { user_id =>
+		sess_query.map(_.user).head.flatMap { user_id =>
 			sess_query.map(_.last_access).update(SmartTimestamp.now).run
-			Users.filter(u => u.id === user_id && u.group.inSet(allowed_groups)).head
+			Users.filter(u => u.id === user_id).head
 		}
 	}
 
 	/**
 	  * Cache of hash setting for every user.
+	  *
 	  * @todo Fix case-sensitiveness if user cannot be found
 	  */
 	private val setting_cache = Cache.async[String, String](1.minute) { user =>
@@ -103,6 +104,29 @@ trait AuthService {
 		}
 	}
 
+
+	/**
+	  * Perform user authentication and return a new session token.
+	  */
+	def login(username: String, password: String, ip: Option[String], ua: Option[String]): Future[String] = {
+		val user_credentials = for {
+			u <- Users if u.name === username || u.name_clean === username.toLowerCase
+		} yield (u.pass, u.id)
+
+		val hash = new Phpass()
+
+		user_credentials.headOption flatMap {
+			case Some((pass_ref, user_id)) if hash.isMatch(password, pass_ref) =>
+				createSession(user_id, ip, ua) recover {
+					case e =>
+						println(e)
+						throw new Exception("Unable to login")
+				}
+
+			case _ => throw new Exception("Invalid credentials")
+		}
+	}
+
 	/**
 	  * Create a session for a given user.
 	  * Unlink `login`, this method does not perform authentication and always succeed.
@@ -125,9 +149,20 @@ trait AuthService {
 
 	/**
 	  * Remove a session from the database.
+	  *
 	  * @todo Kill every socket open with this session
 	  */
 	def logout(session: String): Future[Unit] = DB.run {
 		for (_ <- Sessions.filter(_.token === session).delete) yield ()
+	}
+
+	/**
+	  * Checks if a given session is active and valid.
+	  *
+	  * @param session   The session ID
+	  */
+	def sessionActive(session: String): Future[Boolean] = {
+		val update = Sessions.filter(_.token === session).map(_.last_access).update(SmartTimestamp.now)
+		for (n <- update.run) yield n > 0
 	}
 }

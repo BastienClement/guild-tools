@@ -1,6 +1,7 @@
 // Ensure Reflect.getMetadata is available
-if (typeof Reflect !== "object" || typeof Reflect.getMetadata !== "function")
+if (typeof Reflect !== "object" || typeof Reflect.getMetadata !== "function") {
 	throw new Error("Using DI without Reflect.getMetadata() support");
+}
 
 /**
  * Loose Interface of a T-constructor
@@ -46,8 +47,7 @@ export class Injector {
 		});
 
 		// Instantiate the module
-		instance = Object.create(constructor.prototype);
-		instance = constructor.apply(instance, deps_instances) || instance;
+		instance = new constructor(...deps_instances);
 
 		// Cache the instance for reuse and remove the module from the injecting set
 		this.instances.set(constructor, instance);

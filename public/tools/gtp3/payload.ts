@@ -1,6 +1,6 @@
-import { Protocol } from "gtp3/protocol";
-import { UTF8Encoder, UTF8Decoder } from "gtp3/codecs";
-import { ServiceWorker } from "utils/worker";
+import {ServiceWorker} from "../utils/Worker";
+import {UTF8Decoder, UTF8Encoder} from "./Codecs";
+import {Protocol} from "./Protocol";
 
 /**
  * Frame flags indicating high-level encoding
@@ -30,7 +30,7 @@ type PayloadAndFlags = [ArrayBuffer, number];
  */
 const EmptyBuffer = new ArrayBuffer(0);
 
-const CompressWorker = new ServiceWorker("/assets/modules/workers/compress.js");
+const CompressWorker = new ServiceWorker("/assets/workers/compress.js");
 
 /**
  * Revive special encoded value
@@ -42,7 +42,8 @@ function reviver(k: string, v: any): any {
 		if (keys.length == 1) {
 			let k = keys[0];
 			switch (k) {
-				case "$date": return new Date(v[k]);
+				case "$date":
+					return new Date(v[k]);
 			}
 		}
 	}

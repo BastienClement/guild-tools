@@ -1,13 +1,13 @@
-import { Queue } from "utils/queue";
-import { EventEmitter } from "utils/eventemitter";
-
-import { Channel } from "gtp3/channel";
-import { NumberPool } from "gtp3/numberpool";
-import { UInt64 } from "gtp3/bufferstream";
-import { FrameType, Protocol } from "gtp3/protocol";
-
-import { Frame, HelloFrame, ResumeFrame, HandshakeFrame, SyncFrame, AckFrame, PingFrame, PongFrame,
-	RequestAckFrame, OpenFrame, OpenSuccessFrame, OpenFailureFrame, ResetFrame } from "gtp3/frames";
+import {Channel} from "./Channel";
+import {EventEmitter} from "../utils/EventEmitter";
+import {UInt64} from "./BufferStream";
+import {NumberPool} from "./NumberPool";
+import {Protocol, FrameType} from "./Protocol";
+import {Queue} from "../utils/Queue";
+import {
+	Frame, HelloFrame, ResumeFrame, PingFrame, OpenFrame, AckFrame, HandshakeFrame, SyncFrame,
+	OpenSuccessFrame, OpenFailureFrame, ResetFrame, RequestAckFrame
+} from "./Frames";
 
 /**
  * States of the socket

@@ -1,6 +1,6 @@
-import { EventEmitter } from "utils/eventemitter";
-import { DispatchTable } from "client/server";
-import { defer } from "utils/async";
+import {EventEmitter} from "./EventEmitter";
+import {defer} from "./Async";
+import {DispatchTable} from "../client/server/ServiceChannel";
 
 /**
  * An event emitter with pause() and resume() methods, automatically called

@@ -1,6 +1,5 @@
 export class UInt64 {
 	constructor(public hi: number, public lo: number) {}
-
 	static Zero: UInt64 = new UInt64(0, 0);
 }
 

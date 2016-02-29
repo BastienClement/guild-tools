@@ -16,6 +16,7 @@ interface SystemInterface {
 
 declare const System: SystemInterface;
 declare const APP: boolean;
+declare const DEV: boolean;
 
 interface StyleFixInterface {
 	link(e: HTMLLinkElement): void;

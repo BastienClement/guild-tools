@@ -1,11 +1,13 @@
 {
 	"compilerOptions": {
 		"target": "ES6",
-		"outDir": "../modules",
+		"outFile": "tools.js",
+		"module": "system",
 		"noImplicitAny": true,
 		"removeComments": false,
 		"preserveConstEnums": true,
-		"inlineSourceMap": true,
+		"inlineSourceMap": false,
+		"sourceMap": true,
 		"experimentalDecorators": true,
 		"emitDecoratorMetadata": true
 	}

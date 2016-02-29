@@ -12,7 +12,7 @@ package object utils {
 	  * Generate random tokens
 	  */
 	val secureRandom = new SecureRandom
-	def randomToken(): String = new BigInteger(130, secureRandom).toString(32)
+	def randomToken(): String = new BigInteger(320, secureRandom).toString(32)
 
 	/**
 	  * Return the Akka system schduler
