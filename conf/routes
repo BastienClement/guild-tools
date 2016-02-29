@@ -37,6 +37,7 @@ GET         /wt/*path                         controllers.webtools.WebTools.catc
 GET         /auth/                            controllers.AuthController.main
 GET         /auth/sso                         controllers.AuthController.sso
 POST        /auth/login                       controllers.AuthController.auth
+GET         /auth/logout                      controllers.AuthController.logout
 GET         /auth/*path                       controllers.GtApplication.broken(path)
 POST        /auth/*path                       controllers.GtApplication.broken(path)
 

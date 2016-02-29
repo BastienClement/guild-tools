@@ -113,4 +113,20 @@ class AuthController extends Controller {
 			}
 		}
 	}
+
+	/**
+	  * Logouts
+	  */
+	def logout() = Action.async { req =>
+		val service = req.getQueryString("service").getOrElse("")
+		val token = req.getQueryString("token").getOrElse("")
+		req.cookies.get("FS_SESSION").map { cookie =>
+			AuthService.logout(cookie.value)
+		}.getOrElse(Future.successful(())).map { _ =>
+			Redirect(serviceURL(service), Map(
+				"logout" -> Seq("yes"),
+				"token" -> Seq(token)
+			)).withCookies(Cookie("FS_SESSION", ""))
+		}
+	}
 }

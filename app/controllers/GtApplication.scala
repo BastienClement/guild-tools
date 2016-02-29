@@ -21,7 +21,10 @@ class GtApplication @Inject() (gt: GuildTools) extends Controller {
 
 	def sso = Action { req =>
 		val session = req.getQueryString("session").map(sanitizeSession).getOrElse("")
-		val target = req.getQueryString("token").getOrElse("/").replaceAll("('|\\\\)", "")
+		val target = req.getQueryString("token").getOrElse("/").replaceAll("('|\\\\)", "").trim match {
+			case "" => "/"
+			case str => str
+		}
 		Redirect(target).flashing("session" -> session)
 	}
 
