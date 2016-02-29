@@ -7,11 +7,28 @@ import {Application} from "../client/Application";
 
 let global: any = window;
 let old_HTMLElement = global.HTMLElement;
-global.HTMLElement = function HTMLElement() {};
+global.HTMLElement = function PolymerElement() {};
 
 function restore_HTMLElement() {
 	global.HTMLElement = old_HTMLElement;
 }
+
+/** Stack of dynamic constructor targets */
+const dyn_target = <any[]> [];
+
+/**
+ * Manages polymer dynamic constructor target.
+ * Polymer @Element annotation will call this to create a createdCallback
+ * that will automatically save the element instance in the dyn_target stack
+ * and remove it when the lifecycle callback returns.
+ */
+export const PolymerDynamicTarget = (scope: () => void) => {
+	return function() {
+		dyn_target.push(this);
+		scope.apply(this, arguments);
+		dyn_target.pop();
+	};
+};
 
 /**
  * Dummy class to expose Polymer functions on elements
@@ -360,11 +377,17 @@ export abstract class PolymerElement extends HTMLElement {
 	protected host: <T>(ctor: Constructor<T>) => T;
 
 	/**
-	 * Default constructor throwing error before the element is properly loaded.
+	 * Dummy constructor for Polymer elements.
+	 * This constructor will no call its super class initializer.
+	 * Instead it will return the top most scope from the dyn_target stack thus
+	 * setting the this variable in the child constructor to the correct polymer
+	 * instance.
+	 * Child constructor will effectively be invoked on the element instance.
 	 */
 	constructor() {
-		if (1 < 2) throw new Error("Polymer element is not yet loaded");
-		super();
+		// Dummy code to make Typescript compiler happy
+		if (0 > 1) super();
+		return dyn_target[dyn_target.length - 1];
 	}
 }
 

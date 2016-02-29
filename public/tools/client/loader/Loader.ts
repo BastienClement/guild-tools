@@ -2,7 +2,8 @@ import {Component, Constructor} from "../../utils/DI";
 import {PolymerCompiler} from "./Polymer";
 import {PolymerElement} from "../../polymer/PolymerElement";
 import {LessCompiler} from "./Less";
-import {PolymerElementDeclaration} from "../../polymer/Element";
+import {PolymerElementDeclaration} from "../../polymer/Annotations";
+import {polymer_overloads} from "../../polymer/PolymerOverloads";
 
 // The Response object returned by fetch()
 interface FetchResponse {
@@ -115,7 +116,7 @@ export class Loader {
 	}
 
 	/** Keep references to already imported Polymer elements */
-	private element_cache = new Set<Constructor<PolymerElement>>();
+	private element_cache = new Map<Constructor<PolymerElement>, Constructor<any>>();
 
 	/** Keep track of Polymer status */
 	private polymer_loaded: PolymerLoadState = PolymerLoadState.Unloaded;
@@ -134,7 +135,7 @@ export class Loader {
 	public async loadElement<T extends PolymerElement>(ctor: Constructor<T>): Promise<Constructor<T>> {
 		// Check if the element was already loaded once
 		if (this.element_cache.has(ctor)) {
-			return ctor;
+			return this.element_cache.get(ctor);
 		}
 
 		// Ensure that Polymer is loaded
@@ -152,6 +153,9 @@ export class Loader {
 				await this.loadDocument(POLYMER_PATH);
 				this.polymer_loaded = PolymerLoadState.Loaded;
 
+				// Apply overloads
+				polymer_overloads();
+
 				// Load auto-load elements
 				await Promise.all(this.polymer_autoloads.map(a => this.loadElement(a)));
 				this.polymer_autoloads = null;
@@ -167,7 +171,7 @@ export class Loader {
 			return await this.loadElement(ctor);
 		}
 
-		this.element_cache.add(ctor);
+		this.element_cache.set(ctor, null);
 		let decl = Reflect.getMetadata<PolymerElementDeclaration>("polymer:declaration", ctor);
 		if (!decl) throw new Error(`No @Element declaration found for element ${ctor.name}`);
 
@@ -193,6 +197,7 @@ export class Loader {
 
 		// Register
 		let ret = <any> Polymer(ctor);
+		this.element_cache.set(ctor, ret);
 
 		delete doc._currentScript;
 		return ret;

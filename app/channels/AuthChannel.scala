@@ -1,16 +1,17 @@
 package channels
 
+import java.util.concurrent.atomic.AtomicInteger
+
 import actors._
 import akka.actor.{ActorRef, Props}
 import gtp3.Socket.{Opener, SetUser}
 import gtp3._
-import java.util.concurrent.atomic.AtomicInteger
 import models._
 import play.api.libs.json.{JsNull, Json}
 import reactive._
+
 import scala.collection.mutable
 import scala.concurrent.Future
-import scala.concurrent.duration._
 
 object AuthChannel extends ChannelValidator {
 	/** Keep track of socket for which an authenticated channel has already been opened */

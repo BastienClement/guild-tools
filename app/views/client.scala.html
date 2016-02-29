@@ -65,12 +65,16 @@
 		var DEV = false;
 	}
 
+	function sso_url() {
+		var sso = DEV ? "/auth/sso" : "https://auth.fs-guild.net/sso";
+		return sso + "?service=gt&token=" + encodeURIComponent(document.location.pathname);
+	}
+
 	var ready = new Promise(function(res, rej) {
 		if (!localStorage.getItem("auth.session")) {
 			// Fail fast if authentication data is not available
 			(function() {
-				var sso = DEV ? "/auth/sso" : "https://auth.fs-guild.net/sso";
-				document.location.href = sso + "?service=gt&token=" + encodeURIComponent(document.location.pathname);
+				document.location.href = sso_url();
 			})();
 		} else {
 			(function() {

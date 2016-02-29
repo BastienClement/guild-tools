@@ -1,14 +1,8 @@
 import {PolymerElement} from "../../polymer/PolymerElement";
-import {Element} from "../../polymer/Element";
+import {Element, Property} from "../../polymer/Annotations";
 
 @Element({
 	selector: "gt-app"
 })
 export class GtApp extends PolymerElement {
-	public view: any = null;
-
-	constructor() {
-		super();
-		console.log("called constructor");
-	}
 }

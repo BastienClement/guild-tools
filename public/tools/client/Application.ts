@@ -75,11 +75,6 @@ export class Application {
 			socket_endpoint.then(ep => this.server.connect(ep))
 		]);
 
-		// Open the authentication channel and attempt authentication
-		let auth_channel = await this.server.openChannel("auth");
-
-		return;
-
 		// Display the title bar if running in standalone
 		let loader_title = document.getElementById("loader-titlebar");
 		if (this.standalone) {
@@ -87,6 +82,23 @@ export class Application {
 		} else {
 			loader_title.remove();
 		}
+
+		// Open the authentication channel and attempt authentication
+		try {
+			this.user = null;
+			let auth_channel = await this.server.openChannel("auth");
+			this.user = await auth_channel.request<User>("auth", localStorage.getItem("auth.session"));
+			auth_channel.close();
+		} catch (e) {
+			location.href = "/unauthorized";
+			return;
+		}
+
+		if (!this.user) {
+			location.href = (<any> window).sso_url();
+			return;
+		}
+
 		// Start the authentication process
 		if (!fast) await Promise.delay(500);
 
@@ -112,10 +124,10 @@ export class Application {
 		]);
 
 		// Create the main container element
-		body.appendChild(<any> (this.root = new GtApp()));
+		body.appendChild(<any> (this.root = await this.loader.createElement(GtApp)));
 
 		// Remove the loading title bar
-		if (GtApp) loader_title.remove();
+		if (this.standalone) loader_title.remove();
 
 		console.log("loading done");
 		//setInterval(() => this.server.ping(), 10000);
