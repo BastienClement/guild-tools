@@ -65,30 +65,29 @@
 		var DEV = false;
 	}
 
-	var defer = Promise.defer();
-	var ready = defer.promise;
-
-	if (!localStorage.getItem("auth.session")) {
-		// Fail fast if authentication data is not available
-		(function() {
-			var sso = DEV ? "/auth/sso" : "https://auth.fs-guild.net/sso";
-			document.location.href = sso + "?service=gt&token=" + encodeURIComponent(document.location.pathname);
-		})();
-	} else {
-		(function() {
-			var xhr = new XMLHttpRequest();
-			xhr.open("GET", '@routes.Assets.versioned("less/loading.css")', true);
-			xhr.responseType = "text";
-			xhr.onload = function() {
-				var style = document.createElement("style");
-				style.type = "text/css";
-				style.appendChild(document.createTextNode(this.response));
-				document.head.appendChild(style);
-				defer.resolve();
-			};
-			xhr.send();
-		})();
-	}
+	var ready = new Promise(function(res, rej) {
+		if (!localStorage.getItem("auth.session")) {
+			// Fail fast if authentication data is not available
+			(function() {
+				var sso = DEV ? "/auth/sso" : "https://auth.fs-guild.net/sso";
+				document.location.href = sso + "?service=gt&token=" + encodeURIComponent(document.location.pathname);
+			})();
+		} else {
+			(function() {
+				var xhr = new XMLHttpRequest();
+				xhr.open("GET", '@routes.Assets.versioned("less/loading.css")', true);
+				xhr.responseType = "text";
+				xhr.onload = function() {
+					var style = document.createElement("style");
+					style.type = "text/css";
+					style.appendChild(document.createTextNode(this.response));
+					document.head.appendChild(style);
+					res();
+				};
+				xhr.send();
+			})();
+		}
+	});
 </script>
 
 <!-- Check browser compatibility -->

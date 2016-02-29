@@ -1,4 +1,4 @@
-package controllers.authentication
+package controllers
 
 import java.util.concurrent.ExecutionException
 
@@ -8,6 +8,7 @@ import play.api.mvc.{Action, Controller, Cookie}
 import reactive.ExecutionContext
 
 import scala.concurrent.Future
+import scala.concurrent.duration._
 import scala.util.Try
 
 class AuthController extends Controller {
@@ -31,6 +32,11 @@ class AuthController extends Controller {
 		}
 	}
 
+	/**
+	  * Constructs the session cookie.
+	  *
+	  * @param session The session token
+	  */
 	def sessionCookie(session: String) = Cookie(
 		name = "FS_SESSION",
 		value = session,
@@ -58,22 +64,24 @@ class AuthController extends Controller {
 	  * Perform authentication.
 	  */
 	def auth() = Action.async { req =>
-		Try {
-			val post = req.body.asFormUrlEncoded.get.map { case (k, v) => (k, v.headOption.getOrElse("")) }
-			val user = post("user").trim
-			val pass = post("pass").trim
+		utils.atLeast(2.seconds) {
+			Try {
+				val post = req.body.asFormUrlEncoded.get.map { case (k, v) => (k, v.headOption.getOrElse("")) }
+				val user = post("user").trim
+				val pass = post("pass").trim
 
-			AuthService.login(user, pass, Some(req.remoteAddress), req.headers.get("User-Agent")).map { session =>
-				Redirect(serviceURL(req.session.get("service").getOrElse("")), Map(
-					"session" -> Seq(session),
-					"token" -> Seq(req.session.get("token").getOrElse(""))
-				)).withCookies(sessionCookie(session))
-			}.recover {
-				case e: ExecutionException => Redirect(url("/")).flashing("error" -> e.getCause.getMessage)
-				case e => Redirect(url("/")).flashing("error" -> e.getMessage)
+				AuthService.login(user, pass, Some(req.remoteAddress), req.headers.get("User-Agent")).map { session =>
+					Redirect(serviceURL(req.session.get("service").getOrElse("")), Map(
+						"session" -> Seq(session),
+						"token" -> Seq(req.session.get("token").getOrElse(""))
+					)).withCookies(sessionCookie(session))
+				}.recover {
+					case e: ExecutionException => Redirect(url("/")).flashing("error" -> e.getCause.getMessage)
+					case e => Redirect(url("/")).flashing("error" -> e.getMessage)
+				}
+			}.getOrElse {
+				Future.successful(Redirect(url("/")).flashing("error" -> "An unknown error occured"))
 			}
-		}.getOrElse {
-			Future.successful(Redirect(url("/")).flashing("error" -> "An unknown error occured"))
 		}
 	}
 
@@ -83,23 +91,25 @@ class AuthController extends Controller {
 	  * display the login page if it is not.
 	  */
 	def sso() = Action.async { req =>
-		val service = req.getQueryString("service").getOrElse("")
-		val token = req.getQueryString("token").getOrElse("")
-		val session = req.cookies.get("FS_SESSION")
+		utils.atLeast(1.seconds) {
+			val service = req.getQueryString("service").getOrElse("")
+			val token = req.getQueryString("token").getOrElse("")
+			val session = req.cookies.get("FS_SESSION")
 
-		val valid = session match {
-			case Some(cookie) => AuthService.sessionActive(cookie.value)
-			case None => Future.successful(false)
-		}
+			val valid = session match {
+				case Some(cookie) => AuthService.sessionActive(cookie.value)
+				case None => Future.successful(false)
+			}
 
-		valid.map {
-			case true => Redirect(serviceURL(service), Map(
-				"session" -> Seq(session.get.value),
-				"token" -> Seq(token)
-			)).withCookies(sessionCookie(session.get.value))
+			valid.map {
+				case true => Redirect(serviceURL(service), Map(
+					"session" -> Seq(session.get.value),
+					"token" -> Seq(token)
+				)).withCookies(sessionCookie(session.get.value))
 
-			case false => Redirect(url("/")).withSession {
-				req.session + ("service" -> service) + ("token" -> token)
+				case false => Redirect(url("/")).withSession {
+					req.session + ("service" -> service) + ("token" -> token)
+				}
 			}
 		}
 	}

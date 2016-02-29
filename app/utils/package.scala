@@ -29,7 +29,7 @@ package object utils {
 	}
 
 	/**
-	  * MD5 hash with hex string result
+	  * SHA1 hash with hex string result
 	  */
 	def sha1(data: String): String = {
 		val bytes = MessageDigest.getInstance("SHA1").digest(data.getBytes)
