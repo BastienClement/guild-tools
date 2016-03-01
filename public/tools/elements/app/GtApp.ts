@@ -6,10 +6,12 @@ import {GtTitleBar} from "./GtTitleBar";
 import {Server} from "../../client/server/Server";
 import {RosterService} from "../../services/roster/Roster";
 import {GtDialog} from "../widgets/GtDialog";
+import {GtButton} from "../widgets/GtButton";
 
 @Element({
 	selector: "gt-app",
-	template: "/assets/imports/app.html"
+	template: "/assets/imports/app.html",
+	dependencies: [GtDialog, GtTitleBar, GtSidebar, GtView, GtButton]
 })
 export class GtApp extends PolymerElement {
 	@Property
@@ -40,10 +42,10 @@ export class GtApp extends PolymerElement {
 	private details: string = null;
 
 	private ready() {
-		/*this.titlebar = this.$.title;
+		this.titlebar = this.$.title;
 		this.sidebar = this.$.side;
 		this.view = this.$.view;
-		this.disconnected = this.$.disconnected;*/
+		this.disconnected = this.$.disconnected;
 	}
 
 	public showDisconnected(state: boolean) {

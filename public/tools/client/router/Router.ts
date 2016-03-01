@@ -1,6 +1,7 @@
 import {Component, Constructor} from "../../utils/DI";
 import {Loader} from "../loader/Loader";
 import {EventEmitter} from "../../utils/EventEmitter";
+import {PolymerElement} from "../../polymer/PolymerElement";
 
 /**
  * One specific route configuration

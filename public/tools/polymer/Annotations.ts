@@ -38,47 +38,89 @@ export function Element(decl: PolymerElementDeclaration) {
 		/**
 		 * Constructor helper
 		 */
-		target.prototype.createdCallback = PolymerDynamicTarget(function() {
+		target.prototype.createdCallback = function() {
+			// Construct a dummy object for obtaining default properties values
+			let props = Object.create(null);
+
 			// Perform injections
 			// Since this is the first thing done, we can be sure that injected objects are available
 			// at any moment inside the object (including Polymer own initialization)
 			let inject_bindings = Reflect.getMetadata<InjectionBinding[]>("polymer:injects", target.prototype);
 			if (inject_bindings) {
 				for (let binding of inject_bindings) {
-					this[binding.property] = DefaultInjector.get(binding.ctor);
+					props[binding.property] = DefaultInjector.get(binding.ctor);
 				}
 			}
 
 			// Automatically inject the Application
-			this.app = DefaultInjector.get<Application>(Application);
+			props.app = DefaultInjector.get<Application>(Application);
 
-			// Define custom sugars
-			Object.defineProperty(this, "node", {
-				get: function() { return Polymer.dom(<any> this); }
-			});
+			// Call the original constructor
+			// Elements *must not* extends the default TypeScript constructor
+			// By default, only properties initialization is performed
+			PolymerDynamicTarget(props, () => new target);
 
-			Object.defineProperty(this, "shadow", {
-				get: function() { return Polymer.dom(<any> this.root); }
-			});
+			// Since Polymer sometimes calls ready() before returning from
+			// callbackCreated, this method ensure that the initialization
+			// is complete before calling ready()
+			let committed = false;
+			const init_commit = () => {
+				if (committed) return;
+				else committed = true;
 
-			Object.defineProperty(this, "__data__", {
-				value: Object.create(null),
-				writable: false
-			});
+				// Define custom sugars
+				//noinspection TypeScriptValidateTypes
+				Object.defineProperty(this, "node", {
+					get: function() { return Polymer.dom(<any> this); }
+				});
 
-			Object.defineProperty(this, "_nodes", {
-				value: [],
-				writable: false
-			});
+				//noinspection TypeScriptValidateTypes
+				Object.defineProperty(this, "shadow", {
+					get: function() { return Polymer.dom(<any> this.root); }
+				});
 
-			// Call the actual constructor on the polymer object
-			// PolymerDynamicTarget ensures that its `this` object is
-			// the same `this` as this function's.
-			new target;
+				// Copy injected components on the final object
+				for (let key in props) {
+					if (this[key] === void 0 && !this.properties[key]) {
+						this[key] = props[key];
+						delete props[key];
+					}
+				}
 
-			// Initialize Polymer
+				// If a custom initializer is defined, call it
+				// When this function is called, default argument values are not
+				// yet available. On the other hand, this function can override them.
+				if (this.init) this.init();
+			};
+
+			// Hook the ready callback and apply default values obtained
+			// from the constructor. Deferring this to the ready event
+			// ensure that polymer properly notify listeners.
+			let ready = this.ready;
+			this.ready = () => {
+				// Ensure initialization is done
+				init_commit();
+
+				// Copy default values
+				for (let key in props) {
+					// Ensure no one define the value before
+					if (this[key] === void 0) {
+						this[key] = props[key];
+					}
+				}
+
+				// Call the old ready function
+				if (ready) ready.call(this);
+			};
+
+			// Call polymer constructor
+			// Elements *must not* use the created() callback either.
+			// Use init() instead
 			Polymer.Base.createdCallback.apply(this, arguments);
-		});
+
+			// Finalize intialization
+			init_commit();
+		};
 
 		/**
 		 * When the element is attached, register every listener defined using
@@ -253,7 +295,7 @@ export function Inject<T>(target: any, property: string) {
 export function Listener(...events: string[]) {
 	return (target: any, property: string) => {
 		let listeners = Reflect.getMetadata<any>("polymer:listeners", target) || {};
-		for (let event of events) target.listeners[event] = property;
+		for (let event of events) listeners[event] = property;
 		Reflect.defineMetadata("polymer:listeners", listeners, target);
 	};
 }

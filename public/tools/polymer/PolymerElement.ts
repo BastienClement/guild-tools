@@ -22,12 +22,10 @@ const dyn_target = <any[]> [];
  * that will automatically save the element instance in the dyn_target stack
  * and remove it when the lifecycle callback returns.
  */
-export const PolymerDynamicTarget = (scope: () => void) => {
-	return function() {
-		dyn_target.push(this);
-		scope.apply(this, arguments);
-		dyn_target.pop();
-	};
+export const PolymerDynamicTarget = (self: any, block: () => void) => {
+	dyn_target.push(self);
+	block.apply(self, arguments);
+	dyn_target.pop();
 };
 
 /**

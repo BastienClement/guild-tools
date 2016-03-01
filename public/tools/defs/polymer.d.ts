@@ -62,6 +62,10 @@ declare var Polymer: Polymer;
 
 interface PolymerElement extends HTMLElement {}
 
+interface PolymerModelEvent<T> extends Event {
+	model: { item: T };
+}
+
 interface NodeSelector {
 	querySelector<T extends Element>(selector: string): T;
 	querySelectorAll<T extends Element>(selector: string): NodeListOf<T>;
