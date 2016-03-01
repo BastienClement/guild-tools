@@ -6,6 +6,23 @@ import {Notify} from "../../utils/Service";
 import {ServiceChannel} from "./ServiceChannel";
 
 /**
+ * The user information object from the server
+ */
+export type UserInformations = {
+	id: number;
+	name: string;
+	group: number;
+	color: string;
+	officer: boolean;
+	developer: boolean;
+	promoted: boolean;
+	member: boolean;
+	roster: boolean;
+	fs: boolean;
+}
+
+
+/**
  * Interface to the GuildTools server
  */
 @Component

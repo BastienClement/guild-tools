@@ -1,7 +1,6 @@
 import {Component, Constructor} from "../../utils/DI";
-import { EventEmitter } from "../../utils/EventEmitter";
-import { Notify } from "../../utils/Service";
 import {Loader} from "../loader/Loader";
+import {EventEmitter} from "../../utils/EventEmitter";
 
 /**
  * One specific route configuration
@@ -55,9 +54,9 @@ export class Router extends EventEmitter {
 	private routes: RoutePattern[] = [];
 
 	// Current main-view information
-	@Notify public activePath: string;
-	@Notify public activeArguments: ArgumentsObject;
-	@Notify public activeView: Constructor<PolymerElement>;
+	public activePath: string;
+	public activeArguments: ArgumentsObject;
+	public activeView: Constructor<PolymerElement>;
 
 	/**
 	 * User will be redirected to this path if no view matches the current path
@@ -82,6 +81,13 @@ export class Router extends EventEmitter {
 			let [pattern, tags] = compilePattern(path);
 			this.routes.push({ pattern, tags, view });
 		}
+	}
+
+	/**
+	 * Notify listeners that the current route changed.
+	 */
+	private notify() {
+		this.emit("route-updated", this.activePath, this.activeArguments, this.activeView);
 	}
 
 	/**
@@ -111,6 +117,7 @@ export class Router extends EventEmitter {
 				this.activePath = path;
 				this.activeArguments = args;
 				this.activeView = route.view;
+				this.notify();
 				return;
 			}
 		}
@@ -122,6 +129,7 @@ export class Router extends EventEmitter {
 			this.activePath = null;
 			this.activeArguments = null;
 			this.activeView = null;
+			this.notify();
 		}
 	}
 

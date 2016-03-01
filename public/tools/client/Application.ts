@@ -1,10 +1,9 @@
 import {Component, Injector} from "../utils/DI";
-import {Server} from "./server/Server";
+import {Server, UserInformations} from "./server/Server";
 import {Router} from "./router/Router";
 import {GtApp} from "../elements/app/GtApp";
 import {Channel} from "../gtp3/Channel";
 import {Loader} from "./loader/Loader";
-import {User} from "./server/User";
 import {routes} from "./router/routes"
 
 // LocalStorage key storing user's session
@@ -38,7 +37,7 @@ export class Application {
 	/**
 	 * The current user
 	 */
-	public user: User = null;
+	public user: UserInformations = null;
 
 	/**
 	 * The master channel
@@ -87,7 +86,7 @@ export class Application {
 		try {
 			this.user = null;
 			let auth_channel = await this.server.openChannel("auth");
-			this.user = await auth_channel.request<User>("auth", localStorage.getItem("auth.session"));
+			this.user = await auth_channel.request<UserInformations>("auth", localStorage.getItem("auth.session"));
 			auth_channel.close();
 		} catch (e) {
 			location.href = "/unauthorized";

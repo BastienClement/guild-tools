@@ -66,6 +66,11 @@ export function Element(decl: PolymerElementDeclaration) {
 				writable: false
 			});
 
+			Object.defineProperty(this, "_nodes", {
+				value: [],
+				writable: false
+			});
+
 			// Call the actual constructor on the polymer object
 			// PolymerDynamicTarget ensures that its `this` object is
 			// the same `this` as this function's.
