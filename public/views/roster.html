@@ -36,7 +36,7 @@
 </dom-module>
 
 <dom-module id="roster-filters">
-	<link rel="stylesheet/less" href="/assets/less/roster.less" ns="gt-roster-filters">
+	<link rel="stylesheet/less" href="/assets/less/roster.less" ns="roster-filters">
 	<template>
 		<gt-box heading="Filters" scrollable {visible}="show_filters">
 			<roster-filters-dropdown icon="star" title="Guild rank">
@@ -232,7 +232,7 @@
 </dom-module>
 
 <dom-module id="roster-filters-dropdown">
-	<link rel="stylesheet/less" href="/assets/less/roster.less" ns="gt-roster-filters-dropdown">
+	<link rel="stylesheet/less" href="/assets/less/roster.less" ns="roster-filters-dropdown">
 	<template>
 		<h3 (tap)="Toggle">
 			<i {hidden}="!open">keyboard_arrow_down</i>
@@ -246,8 +246,8 @@
 	</template>
 </dom-module>
 
-<dom-module id="gt-roster-item">
-	<link rel="stylesheet/less" href="/assets/less/roster.less" ns="gt-roster-item">
+<dom-module id="roster-item">
+	<link rel="stylesheet/less" href="/assets/less/roster.less" ns="roster-item">
 	<template>
 		<gt-box dark>
 			<div #flex>

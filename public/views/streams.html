@@ -25,7 +25,7 @@
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
 <dom-module id="gt-streams-item">
-	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams-item">
+	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="streams-item">
 	<template>
 		<meta is="roster-main" [user]="stream.user" [main]>
 		<gt-box dark>
@@ -46,7 +46,7 @@
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
 <dom-module id="gt-streams-viewers">
-	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams-viewers">
+	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="streams-viewers">
 	<template>
 		<gt-box #viewers scrollable heading="Viewers">
 			<div #count>{{viewers.length}}</div>
@@ -58,7 +58,7 @@
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
 <dom-module id="gt-streams-viewers-item">
-	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams-viewers-item">
+	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="streams-viewers-item">
 	<template>
 		<meta is="roster-main" [user] [main]>
 		<gt-box dark>
@@ -70,7 +70,7 @@
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
 <dom-module id="gt-streams-player">
-	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams-player">
+	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="streams-player">
 	<template>
 		<gt-alert dark icon="error_outline" *if="error">
 			<b>{{error}}</b>
@@ -81,7 +81,7 @@
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
 <dom-module id="gt-streams-settings">
-	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams-settings">
+	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="streams-settings">
 	<template>
 		<div #layout>
 			<i>airplay</i>
@@ -129,7 +129,7 @@
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
 <dom-module id="gt-streams-whitelist">
-	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams-whitelist">
+	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="streams-whitelist">
 	<template>
 		Whitelist
 	</template>

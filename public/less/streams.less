@@ -20,7 +20,7 @@
 
 	#live-list {
 		flex: 2;
-		gt-streams-item {
+		streams-item {
 			margin-bottom: 6px;
 		}
 	}
@@ -38,7 +38,7 @@
 		.placeholder-layout();
 	}
 
-	gt-streams-player {
+	streams-player {
 		.pos(absolute);
 		z-index: 15;
 		transition: all .2s ease-out;
@@ -49,9 +49,9 @@
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// <gt-streams-item>
+// <streams-item>
 
-:namespace("gt-streams-item") {
+:namespace("streams-item") {
 	:host {
 		display: block;
 	}
@@ -126,9 +126,9 @@
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// <gt-streams-viewers>
+// <streams-viewers>
 
-:namespace("gt-streams-viewers") {
+:namespace("streams-viewers") {
 	:host {
 		display: block;
 	}
@@ -150,9 +150,9 @@
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// <gt-streams-viewers-item>
+// <streams-viewers-item>
 
-:namespace("gt-streams-viewers-item") {
+:namespace("streams-viewers-item") {
 	:host, gt-box {
 		display: inline-block;
 	}
@@ -164,9 +164,9 @@
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// <gt-streams-settings>
+// <streams-settings>
 
-:namespace("gt-streams-settings") {
+:namespace("streams-settings") {
 	:host {
 		display: flex;
 		align-items: center;
@@ -241,9 +241,9 @@
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// <gt-streams-player>
+// <streams-player>
 
-:namespace("gt-streams-player") {
+:namespace("streams-player") {
 	:host > iframe {
 		height: 100%;
 		width: 100%;
@@ -265,8 +265,8 @@
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// <gt-streams-whitelist>
+// <streams-whitelist>
 
-:namespace("gt-streams-whitelist") {
+:namespace("streams-whitelist") {
 
 }
