@@ -102,7 +102,7 @@
 
 		var valid = (function() {
 			var version = parseInt(bowser.version.split(".")[0]);
-			if (bowser.chrome) return version >= 44;
+			if (bowser.chrome) return version >= 49;
 			//else if (bowser.firefox) return version >= 41;
 			else return false;
 		})();
