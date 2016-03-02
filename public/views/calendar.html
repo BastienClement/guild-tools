@@ -2,7 +2,7 @@
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="gt-calendar">
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="gt-calendar-colors">
 	<template>
-		<!--<gt-calendar-overview></gt-calendar-overview>-->
+		<!--<calendar-overview></calendar-overview>-->
 		<gt-box #calendar>
 			<div #layout>
 				<gt-box #header>
@@ -33,7 +33,7 @@
 					<div #body>
 						<div .row *for="layout" *as="row">
 							<div .column *for="row">
-								<gt-calendar-cell [date]="item"></gt-calendar-cell>
+								<calendar-cell [date]="item"></calendar-cell>
 							</div>
 						</div>
 					</div>
@@ -71,13 +71,13 @@
 				<gt-tooltip>
 					<div style="margin-bottom: 8px;">Slackers this day:</div>
 					<div *for="slacks">
-						<gt-roster-main [user]="item.user"></gt-roster-main>
+						<roster-main [user]="item.user"></roster-main>
 					</div>
 				</gt-tooltip>
 			</span>
 		</div>
 		<div #events>
-			<gt-calendar-cell-event *for="events" [id]="item"></gt-calendar-cell-event>
+			<calendar-cell-event *for="events" [id]="item"></calendar-cell-event>
 		</div>
 	</template>
 </dom-module>
@@ -91,7 +91,7 @@
 		<meta is="calendar-event" [id] [event]>
 		<meta is="calendar-icon" [type]="event.type" [icon]>
 		<gt-tooltip>
-			<gt-calendar-cell-event-tooltip #tooltip [event] [time]></gt-calendar-cell-event-tooltip>
+			<calendar-cell-event-tooltip #tooltip [event] [time]></calendar-cell-event-tooltip>
 		</gt-tooltip>
 		<gt-context-menu *if="canContextMenu">
 			<ul>
@@ -147,7 +147,7 @@
 		<div #declined {hidden}="declined.length == 0">
 			<div .title>Declined:</div>
 			<span .decline *for="declined">
-				<gt-roster-main [user]="item"></gt-roster-main>
+				<roster-main [user]="item"></roster-main>
 			</span>
 		</div>
 	</template>

@@ -77,8 +77,9 @@ export class GtView extends PolymerElement {
 
 		// Use a crazy HTML generation system to create the element since we need to have
 		// router-provided attributes defined before the createdCallback() method is called
-		let element_meta = new_view ? Reflect.getMetadata<PolymerElementDeclaration>("polymer:meta", new_view) : null;
-		factory.innerHTML = `<${element_meta.selector}${arg_string.join()}></${element_meta.selector}>`;
+		let decl = Reflect.getMetadata<PolymerElementDeclaration>("polymer:declaration", new_view);
+		if (!decl) return;
+		factory.innerHTML = `<${decl.selector}${arg_string.join()}></${decl.selector}>`;
 
 		// Element has been constructed by the HTML parser
 		let element = <any> factory.firstElementChild;

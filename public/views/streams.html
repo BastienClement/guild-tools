@@ -8,13 +8,13 @@
 					No live stream available
 				</gt-alert>
 				<div *for="streams">
-					<gt-streams-item (click)="SelectStream" [stream]="item" {active}="StreamIsActive(item.user, selected)"></gt-streams-item>
+					<streams-item (click)="SelectStream" [stream]="item" {active}="StreamIsActive(item.user, selected)"></streams-item>
 				</div>
 			</gt-box>
-			<gt-streams-viewers [stream]="selected" {hidden}="!selected"></gt-streams-viewers>
+			<streams-viewers [stream]="selected" {hidden}="!selected"></streams-viewers>
 		</div>
 		<div #main-box>
-			<gt-streams-player {hide}="!selected" [stream]="selected"></gt-streams-player>
+			<streams-player {hide}="!selected" [stream]="selected"></streams-player>
 			<div #placeholder {hide}="selected">
 				<i>airplay</i>
 			</div>
@@ -50,7 +50,7 @@
 	<template>
 		<gt-box #viewers scrollable heading="Viewers">
 			<div #count>{{viewers.length}}</div>
-			<gt-streams-viewers-item *for="viewers" [user]="item"></gt-streams-viewers-item>
+			<streams-viewers-item *for="viewers" [user]="item"></streams-viewers-item>
 		</gt-box>
 	</template>
 </dom-module>

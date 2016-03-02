@@ -4,9 +4,9 @@ import {GtView} from "./GtView";
 import {GtSidebar} from "./GtSidebar";
 import {GtTitleBar} from "./GtTitleBar";
 import {Server} from "../../client/server/Server";
-import {RosterService} from "../../services/roster/Roster";
 import {GtDialog} from "../widgets/GtDialog";
 import {GtButton} from "../widgets/GtButton";
+import {RosterService} from "../../services/roster/RosterService";
 
 @Element({
 	selector: "gt-app",

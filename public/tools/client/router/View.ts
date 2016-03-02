@@ -1,5 +1,5 @@
 import {Constructor} from "../../utils/DI";
-import {User} from "../../services/roster/Roster";
+import {User} from "../../services/roster/RosterService";
 
 // Tab
 export interface Tab {
