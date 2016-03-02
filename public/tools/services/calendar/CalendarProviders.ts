@@ -6,7 +6,7 @@ import {CalendarEventType, CalendarEvent, CalendarService, Slack} from "./Calend
  * Calendar events fetcher
  */
 @Provider("calendar-events")
-class CalendarEventsProvider extends PolymerElement {
+export class CalendarEventsProvider extends PolymerElement {
 	@Inject
 	@On({
 		"events-updated": "update",
@@ -14,14 +14,15 @@ class CalendarEventsProvider extends PolymerElement {
 	})
 	private service: CalendarService;
 
-	@Property({observer: "update"})
+	@Property({ observer: "update" })
 	public date: Date;
 
-	@Property({notify: true})
+	@Property({ notify: true })
 	public events: number[];
 
 	public async update() {
 		if (await microtask, !this.date) return;
+		console.log(this);
 		this.events = this.service.getEvents(this.date).map(e => e.id);
 	}
 
@@ -34,17 +35,17 @@ class CalendarEventsProvider extends PolymerElement {
  * Calendar event provider
  */
 @Provider("calendar-event")
-class CalendarEventProvider extends PolymerElement {
+export class CalendarEventProvider extends PolymerElement {
 	@Inject
 	@On({
 		"event-updated": "EventUpdated"
 	})
 	private service: CalendarService;
 
-	@Property({observer: "update"})
+	@Property({ observer: "update" })
 	public id: number;
 
-	@Property({notify: true})
+	@Property({ notify: true })
 	public event: CalendarEvent;
 
 	public async update() {
@@ -61,17 +62,17 @@ class CalendarEventProvider extends PolymerElement {
  * Calendar slacks fetcher
  */
 @Provider("calendar-slacks")
-class CalendarSlacksProvider extends PolymerElement {
+export class CalendarSlacksProvider extends PolymerElement {
 	@Inject
 	@On({
 		"events-updated": "update"
 	})
 	private service: CalendarService;
 
-	@Property({observer: "update"})
+	@Property({ observer: "update" })
 	public date: Date;
 
-	@Property({notify: true})
+	@Property({ notify: true })
 	public slacks: Slack[];
 
 	public async update() {
@@ -84,11 +85,11 @@ class CalendarSlacksProvider extends PolymerElement {
  * Translate event type to icon string
  */
 @Provider("calendar-icon")
-class CalendarIconProvider extends PolymerElement {
-	@Property({observer: "update"})
+export class CalendarIconProvider extends PolymerElement {
+	@Property({ observer: "update" })
 	public type: CalendarEventType;
 
-	@Property({notify: true})
+	@Property({ notify: true })
 	public icon: string;
 
 	public update() {

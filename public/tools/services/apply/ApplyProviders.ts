@@ -7,7 +7,7 @@ import {join} from "../../utils/Async";
  * Translate numeric apply stages to textual names
  */
 @Provider("apply-stage-name")
-class StageNameProvider extends PolymerElement {
+export class ApplyStageNameProvider extends PolymerElement {
 	@Property({observer: "update"})
 	public stage: number;
 
@@ -44,7 +44,7 @@ class StageNameProvider extends PolymerElement {
  * Application data fetcher
  */
 @Provider("apply-data")
-class DataProvider extends PolymerElement {
+export class ApplyDataProvider extends PolymerElement {
 	@Inject
 	@On({"apply-updated": "ApplyUpdated"})
 	private service: ApplyService;
@@ -70,7 +70,7 @@ class DataProvider extends PolymerElement {
  * Application unread status
  */
 @Provider("apply-unread")
-class UnreadProvider extends PolymerElement {
+export class ApplyUnreadProvider extends PolymerElement {
 	@Inject
 	@On({"unread-updated": "UnreadUpdated"})
 	private service: ApplyService;

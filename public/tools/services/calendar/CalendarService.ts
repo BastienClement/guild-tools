@@ -258,7 +258,7 @@ export class CalendarService extends Service {
 	 * @param state     the new event state
 	 */
 	public changeEventState(event: number, state: CalendarEventState) {
-		this.channel.send("change-event-state", {event, state});
+		this.channel.send("change-event-state", { event, state });
 	}
 
 	/**

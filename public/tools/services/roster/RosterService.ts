@@ -82,6 +82,7 @@ export class RosterService extends Service {
 			this.UserUpdated(user, chars);
 		}
 		this.preloaded = true;
+		this.emit("preload-done");
 		return true;
 	}
 

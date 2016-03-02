@@ -1,5 +1,5 @@
 import {UserRecord, Char} from "./RosterService";
-import {RankProvider, ClassProvider, RaceProvider} from "./RosterProviders";
+import {RosterRankProvider, RosterClassProvider, RosterRaceProvider} from "./RosterProviders";
 
 /**
  * Filtering types
@@ -17,7 +17,7 @@ const EMPTY_ARRAY: any[] = [];
 type NameProvider<T> = { humanize(arg: any): string };
 const providers: { [name: string]: NameProvider<any> } = {};
 
-for (let name of ["RankProvider", "ClassProvider", "RaceProvider"]) {
+for (let name of ["RosterRankProvider", "RosterClassProvider", "RosterRaceProvider"]) {
 	(async () => {
 		providers[name] = <any> (await Promise.require("services/roster/RosterProviders", name));
 	})();
@@ -97,13 +97,13 @@ export const compile_filters: FilterFactory = (defs: FilterDefinition[]) => {
 		let [filter, arg] = def;
 		switch (filter) {
 			case "rank":
-				provider_filter(arg, "RankProvider", user_filters, (record: UserRecord) => record.infos.group);
+				provider_filter(arg, "RosterRankProvider", user_filters, (record: UserRecord) => record.infos.group);
 				break;
 			case "class":
-				provider_filter(arg, "ClassProvider", char_filters, (char: Char) => char.class);
+				provider_filter(arg, "RosterClassProvider", char_filters, (char: Char) => char.class);
 				break;
 			case "race":
-				provider_filter(arg, "RaceProvider", char_filters, (char: Char) => char.race);
+				provider_filter(arg, "RosterRaceProvider", char_filters, (char: Char) => char.race);
 				break;
 			case "level":
 				interval_filter(arg, char_filters, (char: Char) => char.level);

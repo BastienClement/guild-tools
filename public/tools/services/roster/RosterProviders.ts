@@ -7,7 +7,7 @@ import {RosterService, Char, User} from "./RosterService";
  * Data provider for the main character of a user
  */
 @Provider("roster-main")
-export class MainProvider extends PolymerElement {
+export class RosterMainProvider extends PolymerElement {
 	@Inject
 	@On({ "char-updated": "CharUpdated" })
 	private roster: RosterService;
@@ -35,7 +35,7 @@ export class MainProvider extends PolymerElement {
  * Data provider for the list of a user's characters
  */
 @Provider("roster-chars")
-export class CharsProvider extends PolymerElement {
+export class RosterCharsProvider extends PolymerElement {
 	@Inject
 	@On({
 		"char-updated": "CharUpdated",
@@ -69,7 +69,7 @@ export class CharsProvider extends PolymerElement {
  * Data provider for character details
  */
 @Provider("roster-char")
-export class CharProvider extends PolymerElement {
+export class RosterCharProvider extends PolymerElement {
 	@Inject
 	@On({ "char-updated": "CharUpdated" })
 	private roster: RosterService;
@@ -97,7 +97,7 @@ export class CharProvider extends PolymerElement {
  * Provider for user details
  */
 @Provider("roster-user")
-export class UserProvider extends PolymerElement {
+export class RosterUserProvider extends PolymerElement {
 	@Inject
 	@On({ "user-updated": "UserUpdated" })
 	private roster: RosterService;
@@ -126,7 +126,7 @@ export class UserProvider extends PolymerElement {
  * Translate class id to names
  */
 @Provider("roster-class")
-export class ClassProvider extends PolymerElement {
+export class RosterClassProvider extends PolymerElement {
 	@Property({ observer: "update" })
 	public id: number;
 
@@ -151,7 +151,7 @@ export class ClassProvider extends PolymerElement {
 	}
 
 	public update() {
-		this.name = ClassProvider.humanize(this.id);
+		this.name = RosterClassProvider.humanize(this.id);
 	}
 }
 
@@ -159,7 +159,7 @@ export class ClassProvider extends PolymerElement {
  * Translate race id to names
  */
 @Provider("roster-race")
-export class RaceProvider extends PolymerElement {
+export class RosterRaceProvider extends PolymerElement {
 	@Property({ observer: "update" })
 	public id: number;
 
@@ -187,7 +187,7 @@ export class RaceProvider extends PolymerElement {
 	}
 
 	public update() {
-		this.name = RaceProvider.humanize(this.id);
+		this.name = RosterRaceProvider.humanize(this.id);
 	}
 }
 
@@ -195,7 +195,7 @@ export class RaceProvider extends PolymerElement {
  * Translate rank id to names
  */
 @Provider("roster-rank")
-export class RankProvider extends PolymerElement {
+export class RosterRankProvider extends PolymerElement {
 	@Property({ observer: "update" })
 	public id: number;
 
@@ -215,6 +215,6 @@ export class RankProvider extends PolymerElement {
 	}
 
 	public update() {
-		this.name = RankProvider.humanize(this.id);
+		this.name = RosterRankProvider.humanize(this.id);
 	}
 }
