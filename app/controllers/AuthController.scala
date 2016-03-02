@@ -74,7 +74,7 @@ class AuthController extends Controller {
 					Redirect(serviceURL(req.session.get("service").getOrElse("")), Map(
 						"session" -> Seq(session),
 						"token" -> Seq(req.session.get("token").getOrElse(""))
-					)).withCookies(sessionCookie(session))
+					)).withCookies(sessionCookie(session)).withNewSession
 				}.recover {
 					case e: ExecutionException => Redirect(url("/")).flashing("error" -> e.getCause.getMessage)
 					case e => Redirect(url("/")).flashing("error" -> e.getMessage)
