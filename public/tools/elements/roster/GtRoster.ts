@@ -8,9 +8,10 @@ import {RosterFilters} from "./RosterFilters";
 import {RosterItem} from "./RosterItem";
 import {PolymerElement} from "../../polymer/PolymerElement";
 import {RosterService, QueryResult} from "../../services/roster/RosterService";
+import {On} from "../../polymer/Annotations";
 
 const RosterTabs: TabsGenerator = (view, path, user) => [
-	{title: "Roster", link: "/roster", active: view == GtRoster}
+	{ title: "Roster", link: "/roster", active: view == GtRoster }
 ];
 
 @View("roster", RosterTabs)
@@ -21,12 +22,13 @@ const RosterTabs: TabsGenerator = (view, path, user) => [
 })
 export class GtRoster extends PolymerElement {
 	@Inject
+	@On({ "preload-done": "OnPreloadDone" })
 	private roster: RosterService;
 
 	/**
 	 * Current display mode
 	 */
-	@Property({observer: "UpdateFilters"})
+	@Property({ observer: "UpdateFilters" })
 	private players_view = true;
 
 	private ViewPlayers() {
@@ -51,7 +53,7 @@ export class GtRoster extends PolymerElement {
 	/**
 	 * Indicates if a filter is currently defined
 	 */
-	@Property({computed: "raw_search"})
+	@Property({ computed: "raw_search" })
 	private get has_search(): boolean {
 		return this.raw_search.trim().length > 0;
 	}
@@ -59,7 +61,7 @@ export class GtRoster extends PolymerElement {
 	/**
 	 * List of filters from the filters selector panel
 	 */
-	@Property({observer: "UpdateFilters"})
+	@Property({ observer: "UpdateFilters" })
 	public filters: string = "";
 
 	/**
@@ -101,5 +103,13 @@ export class GtRoster extends PolymerElement {
 				this.matching = `${this.results.length} char${s}`;
 			}
 		}, instant ? void 0 : 250);
+	}
+
+	/**
+	 * When the roster service finish preloading users, force refresh of
+	 * the roster list because we have obviously no results shown.
+	 */
+	private OnPreloadDone() {
+		this.UpdateSearch(true);
 	}
 }
