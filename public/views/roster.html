@@ -19,7 +19,7 @@
 							<gt-button {active}="!players_view" (tap)="ViewChars" collapse-right><i>supervisor_account</i> Characters</gt-button>
 						</div>
 						<div #results>
-							<gt-roster-item *for="results" [data]="item" [player]="players_view"></gt-roster-item>
+							<roster-item *for="results" [data]="item" [player]="players_view"></roster-item>
 						</div>
 						<div #empty *if="results.length == 0">
 							<gt-alert icon="search" dark>
@@ -29,17 +29,17 @@
 						</div>
 					</gt-box>
 				</div>
-				<gt-roster-filters #filters-box [filters]></gt-roster-filters>
+				<roster-filters #filters-box [filters]></roster-filters>
 			</div>
 		</div>
 	</template>
 </dom-module>
 
-<dom-module id="gt-roster-filters">
-	<link rel="stylesheet/less" href="/assets/less/roster.less" ns="gt-roster-filters">
+<dom-module id="roster-filters">
+	<link rel="stylesheet/less" href="/assets/less/roster.less" ns="roster-filters">
 	<template>
 		<gt-box heading="Filters" scrollable {visible}="show_filters">
-			<gt-roster-filters-dropdown icon="star" title="Guild rank">
+			<roster-filters-dropdown icon="star" title="Guild rank">
 				<gt-label>
 					<gt-checkbox [checked]="rank_officer" (click)="Update"></gt-checkbox> Officer
 				</gt-label>
@@ -58,9 +58,9 @@
 				<gt-label>
 					<gt-checkbox [checked]="rank_guest" (click)="Update"></gt-checkbox> Guest
 				</gt-label>
-			</gt-roster-filters-dropdown>
+			</roster-filters-dropdown>
 
-			<gt-roster-filters-dropdown icon="filter_tilt_shift" title="Character class">
+			<roster-filters-dropdown icon="filter_tilt_shift" title="Character class">
 				<gt-label>
 					<gt-checkbox [checked]="class_warrior" (click)="Update"></gt-checkbox> <span class-color="1">Warrior</span>
 				</gt-label>
@@ -97,9 +97,9 @@
 				<gt-label>
 					<gt-checkbox [checked]="class_dh" (click)="Update"></gt-checkbox> <span class-color="12">Demon Hunter</span>
 				</gt-label>
-			</gt-roster-filters-dropdown>
+			</roster-filters-dropdown>
 
-			<gt-roster-filters-dropdown icon="trending_up" title="Character level">
+			<roster-filters-dropdown icon="trending_up" title="Character level">
 				<gt-label>
 					<gt-checkbox [checked]="level_1_99" (click)="Update"></gt-checkbox> 1 - 99
 				</gt-label>
@@ -112,9 +112,9 @@
 				<gt-label>
 					<gt-checkbox [checked]="level_110" (click)="Update"></gt-checkbox> 110
 				</gt-label>
-			</gt-roster-filters-dropdown>
+			</roster-filters-dropdown>
 
-			<gt-roster-filters-dropdown icon="poll" title="Character item-level">
+			<roster-filters-dropdown icon="poll" title="Character item-level">
 				<gt-label>
 					<gt-checkbox [checked]="ilvl_0_699" (click)="Update"></gt-checkbox> 0 - 699
 				</gt-label>
@@ -127,9 +127,9 @@
 				<gt-label>
 					<gt-checkbox [checked]="ilvl_730_plus" (click)="Update"></gt-checkbox> 730+
 				</gt-label>
-			</gt-roster-filters-dropdown>
+			</roster-filters-dropdown>
 
-			<gt-roster-filters-dropdown icon="flag" title="Character attribute">
+			<roster-filters-dropdown icon="flag" title="Character attribute">
 				<gt-label>
 					<gt-checkbox [checked]="flag_main" (click)="Update"></gt-checkbox> Main
 				</gt-label>
@@ -154,9 +154,9 @@
 				<gt-label>
 					<gt-checkbox [checked]="flag_unguilded" (click)="Update"></gt-checkbox> Unguilded
 				</gt-label>
-			</gt-roster-filters-dropdown>
+			</roster-filters-dropdown>
 
-			<gt-roster-filters-dropdown icon="whatshot" title="Character role">
+			<roster-filters-dropdown icon="whatshot" title="Character role">
 				<gt-label>
 					<gt-checkbox [checked]="role_tank" (click)="Update"></gt-checkbox> Tank
 				</gt-label>
@@ -169,9 +169,9 @@
 				<gt-label>
 					<gt-checkbox [checked]="role_dps" (click)="Update"></gt-checkbox> Ranged
 				</gt-label>
-			</gt-roster-filters-dropdown>
+			</roster-filters-dropdown>
 
-			<gt-roster-filters-dropdown icon="local_offer" title="Character armor type">
+			<roster-filters-dropdown icon="local_offer" title="Character armor type">
 				<gt-label>
 					<gt-checkbox [checked]="armor_cloth" (click)="Update"></gt-checkbox> Cloth
 				</gt-label>
@@ -184,9 +184,9 @@
 				<gt-label>
 					<gt-checkbox [checked]="armor_plate" (click)="Update"></gt-checkbox> Plate
 				</gt-label>
-			</gt-roster-filters-dropdown>
+			</roster-filters-dropdown>
 
-			<gt-roster-filters-dropdown icon="adjust" title="Character race">
+			<roster-filters-dropdown icon="adjust" title="Character race">
 				<gt-label>
 					<gt-checkbox [checked]="race_orc" (click)="Update"></gt-checkbox> Orc
 				</gt-label>
@@ -226,13 +226,13 @@
 				<gt-label>
 					<gt-checkbox [checked]="race_pandaren" (click)="Update"></gt-checkbox> Pandaren
 				</gt-label>
-			</gt-roster-filters-dropdown>
+			</roster-filters-dropdown>
 		</gt-box>
 	</template>
 </dom-module>
 
-<dom-module id="gt-roster-filters-dropdown">
-	<link rel="stylesheet/less" href="/assets/less/roster.less" ns="gt-roster-filters-dropdown">
+<dom-module id="roster-filters-dropdown">
+	<link rel="stylesheet/less" href="/assets/less/roster.less" ns="roster-filters-dropdown">
 	<template>
 		<h3 (tap)="Toggle">
 			<i {hidden}="!open">keyboard_arrow_down</i>
@@ -246,8 +246,8 @@
 	</template>
 </dom-module>
 
-<dom-module id="gt-roster-item">
-	<link rel="stylesheet/less" href="/assets/less/roster.less" ns="gt-roster-item">
+<dom-module id="roster-item">
+	<link rel="stylesheet/less" href="/assets/less/roster.less" ns="roster-item">
 	<template>
 		<gt-box dark>
 			<div #flex>
@@ -291,7 +291,7 @@
 	</template>
 </dom-module>
 
-<dom-module id="gt-roster-main">
+<dom-module id="roster-main">
 	<link rel="stylesheet/less" href="@dummy">
 	<template>
 		<meta is="roster-main" [user] [main]>

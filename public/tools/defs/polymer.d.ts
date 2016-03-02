@@ -5,7 +5,6 @@ interface Polymer {
 	dom: ShadyDOMContructor;
 
 	is<T extends PolymerElement>(el: Node, ctor: { new (): T; }): boolean;
-	cast<T extends PolymerElement>(el: Node, ctor: { new (): T; }): T;
 	enclosing<T extends PolymerElement>(el: Node, ctor: { new (): T; }): T;
 }
 
@@ -61,6 +60,10 @@ interface ShadyDOM {
 declare var Polymer: Polymer;
 
 interface PolymerElement extends HTMLElement {}
+
+interface PolymerModelEvent<T> extends Event {
+	model: { item: T };
+}
 
 interface NodeSelector {
 	querySelector<T extends Element>(selector: string): T;

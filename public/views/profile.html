@@ -3,7 +3,7 @@
 	<template>
 		<div #left>
 			<profile-user [user] #profile></profile-user>
-			<profile-infos #infos [user]></profile-infos>
+			<profile-info #infos [user]></profile-info>
 			<gt-box #stats heading="Statistics" scrollable>
 				<div style="display: flex; align-items: center; justify-content: center; height: 100%; width: 100%; position: absolute; top: 0; left: 0;">
 					<i style="color: #64B4FF; opacity: 0.5; font-size: 60px;">build</i>
@@ -57,7 +57,7 @@
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
-<dom-module id="profile-infos">
+<dom-module id="profile-info">
 	<link rel="stylesheet/less" href="/assets/less/profile.less" ns="profile-infos">
 	<template>
 		<meta is="roster-user" [id]="user" [user]="infos">

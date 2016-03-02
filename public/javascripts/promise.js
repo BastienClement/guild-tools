@@ -10,10 +10,10 @@ Promise.defer = (function () {
 			self.reject = rej;
 		});
 	}
-	
+
 	return function () {
 		return new PromiseResolver();
-	}
+	};
 })();
 
 Promise.onload = function (node) {

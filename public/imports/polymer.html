@@ -7,9 +7,6 @@ The complete set of contributors may be found at http://polymer.github.io/CONTRI
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
-
-
-
 <script>
 (function(){function a(){document.body.removeAttribute("unresolved")}window.WebComponents?addEventListener("WebComponentsReady",a):"interactive"===document.readyState||"complete"===document.readyState?a():addEventListener("DOMContentLoaded",a)})();
 window.Polymer={Settings:function(){for(var a=window.Polymer||{},c=location.search.slice(1).split("&"),b=0,d;b<c.length&&(d=c[b]);b++)d=d.split("="),d[0]&&(a[d[0]]=d[1]||!0);a="shadow"===a.dom;b=(c=Boolean(Element.prototype.createShadowRoot))&&!window.ShadowDOMPolyfill;d=a&&c;var e=Boolean("import"in document.createElement("link"));return{wantShadow:a,hasShadow:c,nativeShadow:b,useShadow:d,useNativeShadow:d&&b,useNativeImports:e,useNativeCustomElements:!window.CustomElements||window.CustomElements.useNative}}()};

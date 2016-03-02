@@ -21,3 +21,5 @@ dist
 /public/javascripts/compiler.sh
 .vscode
 guild-tools.eml
+/public/tools/tools.js
+/public/tools/tools.js.map

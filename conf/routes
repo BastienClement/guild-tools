@@ -8,6 +8,7 @@ GET         /assets/*file                     controllers.Assets.versioned(path=
 # Main client pages and GTP3 socket listener
 GET         /                                 controllers.GtApplication.client
 GET         /gtp3                             controllers.GtApplication.gtp3
+GET         /sso                              controllers.GtApplication.sso
 
 # WebTools
 GET         /wt/                              controllers.webtools.WebTools.main
@@ -33,8 +34,12 @@ GET         /wt/calendar/unread_events        controllers.webtools.CalendarContr
 GET         /wt/*path                         controllers.webtools.WebTools.catchall(path)
 
 # Auth
-GET         /auth/                            controllers.authentication.AuthController.main
+GET         /auth/                            controllers.AuthController.main
+GET         /auth/sso                         controllers.AuthController.sso
+POST        /auth/login                       controllers.AuthController.auth
+GET         /auth/logout                      controllers.AuthController.logout
 GET         /auth/*path                       controllers.GtApplication.broken(path)
+POST        /auth/*path                       controllers.GtApplication.broken(path)
 
 # REST API
 POST        /api/bugsack                      controllers.APIController.bugsack
@@ -50,6 +55,7 @@ POST        /api/live/stop                    controllers.LiveController.stop
 POST        /api/live/unpublish               controllers.LiveController.unpublish
 
 # Simple pages
+GET         /unauthorized                     controllers.GtApplication.unauthorized
 GET         /unsupported                      controllers.GtApplication.unsupported
 GET         /clappr/:stream                   controllers.LiveController.clappr(stream)
 

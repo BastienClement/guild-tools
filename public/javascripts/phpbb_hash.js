@@ -26,6 +26,7 @@ var phpbb_hash = (function() {
 		var hash = CryptoJS.MD5(data);
 
 		if (raw) {
+			console.log(hash.words);
 			return hash;
 		}
 
@@ -109,7 +110,7 @@ var phpbb_hash = (function() {
 		var passBytes = CryptoJS.enc.Utf8.parse(password);
 		var hash = md5(salt + password, true);
 		do {
-			hash = md5(hash.concat(passBytes), true);	
+			hash = md5(hash.concat(passBytes), true);
 		} while (--count);
 
 		output = setting.substr(0, 12);

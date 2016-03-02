@@ -8,13 +8,13 @@
 					No live stream available
 				</gt-alert>
 				<div *for="streams">
-					<gt-streams-item (click)="SelectStream" [stream]="item" {active}="StreamIsActive(item.user, selected)"></gt-streams-item>
+					<streams-item (click)="SelectStream" [stream]="item" {active}="StreamIsActive(item.user, selected)"></streams-item>
 				</div>
 			</gt-box>
-			<gt-streams-viewers [stream]="selected" {hidden}="!selected"></gt-streams-viewers>
+			<streams-viewers [stream]="selected" {hidden}="!selected"></streams-viewers>
 		</div>
 		<div #main-box>
-			<gt-streams-player {hide}="!selected" [stream]="selected"></gt-streams-player>
+			<streams-player {hide}="!selected" [stream]="selected"></streams-player>
 			<div #placeholder {hide}="selected">
 				<i>airplay</i>
 			</div>
@@ -24,8 +24,8 @@
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
-<dom-module id="gt-streams-item">
-	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams-item">
+<dom-module id="streams-item">
+	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="streams-item">
 	<template>
 		<meta is="roster-main" [user]="stream.user" [main]>
 		<gt-box dark>
@@ -45,20 +45,20 @@
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
-<dom-module id="gt-streams-viewers">
-	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams-viewers">
+<dom-module id="streams-viewers">
+	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="streams-viewers">
 	<template>
 		<gt-box #viewers scrollable heading="Viewers">
 			<div #count>{{viewers.length}}</div>
-			<gt-streams-viewers-item *for="viewers" [user]="item"></gt-streams-viewers-item>
+			<streams-viewers-item *for="viewers" [user]="item"></streams-viewers-item>
 		</gt-box>
 	</template>
 </dom-module>
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
-<dom-module id="gt-streams-viewers-item">
-	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams-viewers-item">
+<dom-module id="streams-viewers-item">
+	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="streams-viewers-item">
 	<template>
 		<meta is="roster-main" [user] [main]>
 		<gt-box dark>
@@ -69,8 +69,8 @@
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
-<dom-module id="gt-streams-player">
-	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams-player">
+<dom-module id="streams-player">
+	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="streams-player">
 	<template>
 		<gt-alert dark icon="error_outline" *if="error">
 			<b>{{error}}</b>
@@ -81,7 +81,7 @@
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
 <dom-module id="gt-streams-settings">
-	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams-settings">
+	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="streams-settings">
 	<template>
 		<div #layout>
 			<i>airplay</i>
@@ -129,7 +129,7 @@
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
 <dom-module id="gt-streams-whitelist">
-	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams-whitelist">
+	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="streams-whitelist">
 	<template>
 		Whitelist
 	</template>

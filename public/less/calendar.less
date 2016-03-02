@@ -78,7 +78,7 @@
 						.column {
 							display: table-cell;
 
-							gt-calendar-cell {
+							calendar-cell {
 								width: 100%;
 								min-height: 125px;
 							}
@@ -101,9 +101,9 @@
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// <gt-calendar-cell>
+// <calendar-cell>
 
-:namespace("gt-calendar-cell") {
+:namespace("calendar-cell") {
 	:host {
 		display: block;
 		padding: 12px;
@@ -127,15 +127,15 @@
 		}
 	}
 
-	gt-calendar-cell-event {
+	calendar-cell-event {
 		margin-top: 3px;
 	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// <gt-calendar-cell-event>
+// <calendar-cell-event>
 
-:namespace("gt-calendar-cell-event") {
+:namespace("calendar-cell-event") {
 	:host {
 		display: block;
 		padding: 3px 8px;
@@ -192,9 +192,9 @@
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// <gt-calendar-overview>
+// <calendar-overview>
 
-:namespace("gt-calendar-overview") {
+:namespace("calendar-overview") {
 	:host {
 		display: block;
 		width: 330px;
@@ -215,9 +215,9 @@
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// <gt-calendar-cell-event-tooltip>
+// <calendar-cell-event-tooltip>
 
-:namespace("gt-calendar-cell-event-tooltip") {
+:namespace("calendar-cell-event-tooltip") {
 	.row {
 		display: flex;
 		align-items: center;
@@ -238,7 +238,7 @@
 		font-size: 13px;
 
 		.title {
-			color: @light-blue;
+			font-weight: 300;
 		}
 
 		.decline {
@@ -248,9 +248,9 @@
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// <gt-calendar-colors>
+// <calendar-colors>
 
-:namespace("gt-calendar-colors") {
+:namespace("calendar-colors") {
 	[state="0"] { color: #ffef64; }
 
 	[answer="1"] { color: #70ea5c; }

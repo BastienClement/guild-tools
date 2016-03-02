@@ -1,3 +1,5 @@
+@import play.api.Play
+@(session: Option[String])
 <!DOCTYPE html>
 <meta charset="UTF-8">
 <title>Guild Tools</title>
@@ -8,6 +10,7 @@
 	body {
 		overflow: hidden;
 		background-color: #2e3740;
+		font-size: 14px;
 	}
 
 	.cloak {
@@ -34,24 +37,6 @@
 	}
 </style>
 
-<!-- Load the loading stylesheet -->
-<script>
-	var APP = typeof require == "function";
-	if (APP) document.querySelector("html").classList.add("app");
-	(function() {
-		var xhr = new XMLHttpRequest();
-		xhr.open("GET", '@routes.Assets.versioned("less/loading.css")', true);
-		xhr.responseType = "text";
-		xhr.onload = function() {
-			var style = document.createElement("style");
-			style.type = "text/css";
-			style.appendChild(document.createTextNode(this.response));
-			document.head.appendChild(style);
-		};
-		xhr.send();
-	})();
-</script>
-
 <!-- Loading cover spinner -->
 <div id="loader" class="cloak">
 	<div class="spinner"><b></b><b></b><b></b><b></b><b></b><b></b></div>
@@ -65,14 +50,49 @@
 <div id="background"></div>
 <div id="app-loader" class="cloak"><img src="/assets/images/spinner.svg"></div>
 
-<!-- Base framework -->
-<script src='@routes.Assets.versioned("javascripts/reflect.js")'></script>
-<script src='@routes.Assets.versioned("javascripts/traceur-runtime.js")'></script>
-<script src='@routes.Assets.versioned("javascripts/system.js")'></script>
-<script src='@routes.Assets.versioned("tools/config.js")'></script>
-<script src='@routes.Assets.versioned("javascripts/webcomponents-lite.js")'></script>
-<script src='@routes.Assets.versioned("javascripts/promise.js")'></script>
-<script src='@routes.Assets.versioned("javascripts/prefixfree.js")'></script>
+<!-- Load the loading stylesheet -->
+<script>
+	@if(session.isDefined) {
+		localStorage.setItem("auth.session", '@session.get');
+	}
+
+	var APP = typeof require == "function";
+	if (APP) document.querySelector("html").classList.add("app");
+
+	@if(Play.isDev(Play.current)) {
+		var DEV = true;
+	} else {
+		var DEV = false;
+	}
+
+	function sso_url() {
+		var sso = DEV ? "/auth/sso" : "https://auth.fs-guild.net/sso";
+		return sso + "?service=gt&token=" + encodeURIComponent(document.location.pathname);
+	}
+
+	var ready = new Promise(function(res, rej) {
+		if (!localStorage.getItem("auth.session")) {
+			// Fail fast if authentication data is not available
+			(function() {
+				document.location.href = sso_url();
+			})();
+		} else {
+			(function() {
+				var xhr = new XMLHttpRequest();
+				xhr.open("GET", '@routes.Assets.versioned("less/loading.css")', true);
+				xhr.responseType = "text";
+				xhr.onload = function() {
+					var style = document.createElement("style");
+					style.type = "text/css";
+					style.appendChild(document.createTextNode(this.response));
+					document.head.appendChild(style);
+					res();
+				};
+				xhr.send();
+			})();
+		}
+	});
+</script>
 
 <!-- Check browser compatibility -->
 <script src='@routes.Assets.versioned("javascripts/bowser.js")'></script>
@@ -95,9 +115,23 @@
 	})();
 </script>
 
+<!-- Base framework -->
+<script src='@routes.Assets.versioned("javascripts/reflect.js")'></script>
+<script src='@routes.Assets.versioned("javascripts/system.js")'></script>
+<script src='@routes.Assets.versioned("tools/config.js")'></script>
+<script src='@routes.Assets.versioned("javascripts/promise.js")'></script>
+<script src='@routes.Assets.versioned("javascripts/prefixfree.js")'></script>
+
 <!-- Load application -->
 <script>
-	System.import("client/boot").then(function(boot) {
-		boot.default();
+	ready.then(function() {
+		var script = document.createElement("script");
+		script.src = '@routes.Assets.versioned("tools/tools.js")';
+		script.onload = function() {
+			System.import("boot").then(function(boot) {
+				boot.default();
+			});
+		};
+		document.head.appendChild(script);
 	});
 </script>
