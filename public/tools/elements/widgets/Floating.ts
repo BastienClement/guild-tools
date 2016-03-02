@@ -51,7 +51,7 @@ export class FloatingItem {
 	private transition = false;
 
 	// The floating item's placeholder while visible
-	private placeholder: HTMLElement = <any> new GtFloatingPlaceholder();
+	private placeholder: GtFloatingPlaceholder = GtFloatingPlaceholder.new();
 
 	// Listener for placeholder detached
 	private detached_listener: () => void;
