@@ -20,7 +20,7 @@ class AuthController extends Controller {
 	  *
 	  * @param service The service code
 	  */
-	def serviceURL(service: String) = {
+	def serviceURL(service: String, default: String = url("/account")) = {
 		val prod = Play.isProd(Play.current)
 		val dev = Play.isDev(Play.current)
 
@@ -28,7 +28,7 @@ class AuthController extends Controller {
 			case "gt" if prod => "https://gt.fs-guild.net/sso"
 			case "gt" if dev => "/sso"
 
-			case _ => url("/account")
+			case _ => default
 		}
 	}
 
@@ -102,14 +102,22 @@ class AuthController extends Controller {
 			}
 
 			valid.map {
-				case true => Redirect(serviceURL(service), Map(
-					"session" -> Seq(session.get.value),
-					"token" -> Seq(token)
-				)).withCookies(sessionCookie(session.get.value))
+				case true =>
+					Redirect(serviceURL(service), Map(
+						"session" -> Seq(session.get.value),
+						"token" -> Seq(token)
+					)).withCookies(sessionCookie(session.get.value))
 
-				case false => Redirect(url("/")).withSession {
-					req.session + ("service" -> service) + ("token" -> token)
-				}
+				case false if req.getQueryString("noauth").isDefined =>
+					Redirect(serviceURL(service, url("/")), Map(
+						"session" -> Seq(""),
+						"token" -> Seq(token)
+					))
+
+				case false =>
+					Redirect(url("/")).withSession {
+						req.session + ("service" -> service) + ("token" -> token)
+					}
 			}
 		}
 	}
