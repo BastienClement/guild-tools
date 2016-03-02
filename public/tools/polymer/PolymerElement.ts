@@ -1,5 +1,7 @@
 import {Constructor} from "../utils/DI";
 import {Application} from "../client/Application";
+import {DefaultInjector} from "../utils/DI";
+import {Loader} from "../client/loader/Loader";
 
 //
 // The HTMLElement Hack
@@ -385,7 +387,15 @@ export abstract class PolymerElement extends HTMLElement {
 	constructor() {
 		// Dummy code to make Typescript compiler happy
 		if (0 > 1) super();
+
+		// Element is being instantiated with new
+		if (dyn_target.length < 1) debugger;
+
 		return dyn_target[dyn_target.length - 1];
+	}
+
+	static "new"(): any {
+		return DefaultInjector.get(Loader).createElement(<any> this);
 	}
 }
 
