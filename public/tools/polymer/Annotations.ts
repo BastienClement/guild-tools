@@ -206,11 +206,13 @@ export function Element(decl: PolymerElementDeclaration) {
 }
 
 /**
- * Declare a Polymer data provider
+ * Declare a Polymer data provider.
+ * The provider will be registered with a -provider suffix to prevent
+ * name clashes with custom elements.
  */
 export function Provider(selector: string) {
 	return Element({
-		selector: selector,
+		selector: selector + "-provider",
 		extending: "meta"
 	});
 }

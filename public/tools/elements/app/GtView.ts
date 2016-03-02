@@ -9,7 +9,8 @@ import {Loader} from "../../client/loader/Loader";
 const factory = document.createElement("div");
 
 @Element({
-	selector: "gt-view"
+	selector: "gt-view",
+	template: "/assets/imports/app.html"
 })
 export class GtView extends PolymerElement {
 	@Inject

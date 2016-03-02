@@ -133,6 +133,9 @@ export class Loader {
 	 * @param ctor  The polymer element constructor
 	 */
 	public async loadElement<T extends PolymerElement>(ctor: Constructor<T>): Promise<Constructor<T>> {
+		// Constructor is undefined, probably a circular dependency issue.
+		if (!ctor) debugger;
+
 		// Check if the element was already loaded once
 		if (this.element_cache.has(ctor)) {
 			return this.element_cache.get(ctor);

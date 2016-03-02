@@ -199,6 +199,13 @@ export class PolymerCompiler {
 			promote_node("dom-repeat");
 		}
 
+		// Transform <meta is="..."> to <meta is="...-provider">
+		let meta_is_nodes = <NodeListOf<HTMLMetaElement>> template.querySelectorAll("meta[is]");
+		for (let i = 0; i < meta_is_nodes.length; ++i) {
+			let meta = meta_is_nodes[i];
+			meta.setAttribute("is", meta.getAttribute("is") + "-provider");
+		}
+		
 		// Recurse on children
 		let children = <any> template.querySelectorAll("template");
 		for (let i = 0; children && i < children.length; ++i) {

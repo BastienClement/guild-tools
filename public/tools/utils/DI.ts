@@ -24,6 +24,9 @@ export class Injector {
 	 * Construct a module using dependency injection
 	 */
 	get<T>(constructor: Constructor<T>): T {
+		// Constructor is undefined, probably a circular dependency issue.
+		if (!constructor) debugger;
+
 		// Ensure we are creating a DI-enabled component
 		if (!Reflect.getMetadata("di:component", constructor)) {
 			throw new Error("Attempted to get a non-component by dependency injection");

@@ -14,16 +14,25 @@ export type CharPredicate = Predicate<Char>;
 
 const EMPTY_ARRAY: any[] = [];
 
+type NameProvider<T> = { humanize(arg: any): string };
+const providers: { [name: string]: NameProvider<any> } = {};
+
+for (let name of ["RankProvider", "ClassProvider", "RaceProvider"]) {
+	(async () => {
+		providers[name] = <any> (await Promise.require("services/roster/RosterProviders", name));
+	})();
+}
+
 export const compile_filters: FilterFactory = (defs: FilterDefinition[]) => {
 	let user_filters: UserPredicate[] = [];
 	let char_filters: CharPredicate[] = [];
 
 	// Constructs a filter accepting multiple comma-separated alternatives
 	type NameProvider<T> = { humanize(arg: T): string };
-	const provider_filter = <T, U>(arg: string, provider: NameProvider<T>, category: Predicate<U>[], extractor: (s: U) => T) => {
+	const provider_filter = <T, U>(arg: string, provider: string, category: Predicate<U>[], extractor: (s: U) => T) => {
 		// Transform alternatives string to array of predicate functions
 		let filters = arg.split(",").map((option: string) => {
-			return (arg: T) => provider.humanize(arg).toLowerCase().replace(" ", "") == option;
+			return (arg: T) => providers[provider].humanize(arg).toLowerCase().replace(" ", "") == option;
 		});
 
 		// Register the overall filter
@@ -88,13 +97,13 @@ export const compile_filters: FilterFactory = (defs: FilterDefinition[]) => {
 		let [filter, arg] = def;
 		switch (filter) {
 			case "rank":
-				provider_filter(arg, RankProvider, user_filters, (record: UserRecord) => record.infos.group);
+				provider_filter(arg, "RankProvider", user_filters, (record: UserRecord) => record.infos.group);
 				break;
 			case "class":
-				provider_filter(arg, ClassProvider, char_filters, (char: Char) => char.class);
+				provider_filter(arg, "ClassProvider", char_filters, (char: Char) => char.class);
 				break;
 			case "race":
-				provider_filter(arg, RaceProvider, char_filters, (char: Char) => char.race);
+				provider_filter(arg, "RaceProvider", char_filters, (char: Char) => char.race);
 				break;
 			case "level":
 				interval_filter(arg, char_filters, (char: Char) => char.level);

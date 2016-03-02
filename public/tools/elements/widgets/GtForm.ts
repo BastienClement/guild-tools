@@ -16,7 +16,7 @@ export class GtForm extends PolymerElement {
 	 * Trigger the submit event
 	 */
 	public submit() {
-		for (let input of this.node.querySelectorAll("gt-input[required]").map(n => Polymer.cast(n, GtInput))) {
+		for (let input of this.node.querySelectorAll("gt-input[required]").map(n => <GtInput> n)) {
 			if (input.value.match(/^\s*$/)) {
 				input.error = "This field is required";
 				input.focus();

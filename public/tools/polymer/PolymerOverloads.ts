@@ -8,7 +8,7 @@ export function polymer_overloads() {
 	 * Check if an Node is an instance of the given Polymer element
 	 */
 	Polymer.is = <T extends PolymerElement>(node: any, ctor: Constructor<T>): node is T => {
-		const selector = Reflect.getMetadata<{ selector: string; }>("polymer:meta", ctor).selector;
+		const selector = Reflect.getMetadata<{ selector: string; }>("polymer:declaration", ctor).selector;
 		return (<any> node).is == selector;
 	};
 
