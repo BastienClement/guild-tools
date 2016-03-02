@@ -25,7 +25,9 @@ class GtApplication @Inject() (gt: GuildTools) extends Controller {
 			case "" => "/"
 			case str => str
 		}
-		Redirect(target).flashing("session" -> session)
+
+		if (session == "") Redirect("/unauthorized")
+		else Redirect(target).flashing("session" -> session)
 	}
 
 	def catchall(path: String) = client
