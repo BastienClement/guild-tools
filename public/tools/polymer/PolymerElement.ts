@@ -2,6 +2,7 @@ import {Constructor} from "../utils/DI";
 import {Application} from "../client/Application";
 import {DefaultInjector} from "../utils/DI";
 import {Loader} from "../client/loader/Loader";
+import {PolymerElementDeclaration} from "./Annotations";
 
 //
 // The HTMLElement Hack
@@ -394,8 +395,18 @@ export abstract class PolymerElement extends HTMLElement {
 		return dyn_target[dyn_target.length - 1];
 	}
 
+	/**
+	 * Construct a new instance of this element.
+	 */
 	static "new"(): any {
 		return DefaultInjector.get(Loader).createElement(<any> this);
+	}
+
+	/**
+	 * Returns the declaration object of this element.
+	 */
+	static declaration() {
+		return Reflect.getMetadata<PolymerElementDeclaration>("polymer:declaration", this);
 	}
 }
 

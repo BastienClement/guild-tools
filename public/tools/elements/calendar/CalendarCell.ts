@@ -4,11 +4,13 @@ import {GtTooltip} from "../widgets/GtTooltip";
 import {CalendarDate} from "./GtCalendar";
 import {CalendarCellEvent} from "./CalendarCellEvent";
 import {RosterMain} from "../roster/RosterMain";
+import {CalendarEventProvider, CalendarSlacksProvider} from "../../services/calendar/CalendarProviders";
 
 @Element({
 	selector: "calendar-cell",
 	template: "/assets/views/calendar.html",
-	dependencies: [CalendarCellEvent, RosterMain, GtTooltip]
+	dependencies: [CalendarCellEvent, RosterMain, GtTooltip,
+		CalendarEventProvider, CalendarSlacksProvider]
 })
 export class CalendarCell extends PolymerElement {
 	public date: CalendarDate;

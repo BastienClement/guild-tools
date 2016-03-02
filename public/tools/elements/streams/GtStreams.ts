@@ -10,9 +10,9 @@ import {GtStreamsSettings} from "./GtStreamsSettings";
 import {GtStreamsWhitelist} from "./GtStreamsWhitelist";
 
 export const StreamsTabs: TabsGenerator = (view, path, user) => [
-	{title: "Live Streams", link: "/streams", active: view == GtStreams},
-	{title: "Publish", link: "/streams/settings", active: view == GtStreamsSettings},
-	{title: "Whitelist", link: "/streams/whitelist", active: view == GtStreamsWhitelist, hidden: !user.promoted}
+	{ title: "Live Streams", link: "/streams", active: view == "gt-streams" },
+	{ title: "Publish", link: "/streams/settings", active: view == "gt-streams-settings" },
+	{ title: "Whitelist", link: "/streams/whitelist", active: view == "gt-streams-whitelist", hidden: !user.promoted }
 ];
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -26,7 +26,7 @@ export const StreamsTabs: TabsGenerator = (view, path, user) => [
 })
 export class GtStreams extends PolymerElement {
 	@Inject
-	@On({"offline": "StreamOffline"})
+	@On({ "offline": "StreamOffline" })
 	private service: StreamsService;
 
 	@Property

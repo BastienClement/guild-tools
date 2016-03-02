@@ -11,6 +11,8 @@ import {
 import {GtContextMenu} from "../widgets/GtContextMenu";
 import {GtTooltip} from "../widgets/GtTooltip";
 import {RosterMain} from "../roster/RosterMain";
+import {CalendarEventProvider, CalendarIconProvider} from "../../services/calendar/CalendarProviders";
+import {RosterMainProvider} from "../../services/roster/RosterProviders";
 
 ///////////////////////////////////////////////////////////////////////////////
 // <gt-calendar-cell-event-tooltip>
@@ -18,24 +20,24 @@ import {RosterMain} from "../roster/RosterMain";
 @Element({
 	selector: "calendar-cell-event-tooltip",
 	template: "/assets/views/calendar.html",
-	dependencies: [RosterMain]
+	dependencies: [RosterMain, RosterMainProvider]
 })
 export class CalendarCellEventTooltip extends PolymerElement {
 	@Inject
 	private service: CalendarService;
 
-	@Property({observer: "EventChanged"})
+	@Property({ observer: "EventChanged" })
 	public event: CalendarEvent;
 
 	@Property
 	public time: string;
 
-	@Property({computed: "event.type"})
+	@Property({ computed: "event.type" })
 	private get showTime(): boolean {
 		return this.event.type != CalendarEventType.Announce;
 	}
 
-	@Property({computed: "event.type"})
+	@Property({ computed: "event.type" })
 	private get eventType(): string {
 		switch (this.event.type) {
 			case CalendarEventType.Announce:
@@ -83,7 +85,8 @@ export class CalendarCellEventTooltip extends PolymerElement {
 @Element({
 	selector: "calendar-cell-event",
 	template: "/assets/views/calendar.html",
-	dependencies: [GtTooltip, CalendarCellEventTooltip, GtContextMenu]
+	dependencies: [GtTooltip, CalendarCellEventTooltip, GtContextMenu,
+		CalendarEventProvider, CalendarIconProvider]
 })
 export class CalendarCellEvent extends PolymerElement {
 	@Inject
@@ -93,39 +96,39 @@ export class CalendarCellEvent extends PolymerElement {
 	@Property
 	private event: CalendarEvent;
 
-	@Property({computed: "event.type", reflect: true})
+	@Property({ computed: "event.type", reflect: true })
 	private get announce(): boolean {
 		return this.event.type == CalendarEventType.Announce;
 	}
 
-	@Property({computed: "event.type"})
+	@Property({ computed: "event.type" })
 	private get showTime(): boolean {
 		return this.event.type != CalendarEventType.Announce;
 	}
 
-	@Property({computed: "event"})
+	@Property({ computed: "event" })
 	private get answer(): CalendarAnswerData {
 		return this.event.answer || null;
 	}
 
-	@Property({computed: "event.time"})
+	@Property({ computed: "event.time" })
 	private get time(): string {
 		let time = String(this.event.time + 10000);
 		return time.slice(1, 3) + ":" + time.slice(3);
 	}
 
-	@Property({computed: "event.type event.state"})
+	@Property({ computed: "event.type event.state" })
 	private get canAcceptDecline(): boolean {
 		return this.event.state == CalendarEventState.Open && this.event.type != CalendarEventType.Announce;
 	}
 
-	@Property({computed: "event.owner answer"})
+	@Property({ computed: "event.owner answer" })
 	private get canEdit(): boolean {
 		return this.app.user.promoted || this.event.owner == this.app.user.id ||
 			(this.answer && this.answer.promote);
 	}
 
-	@Property({computed: "canAcceptDecline canEdit"})
+	@Property({ computed: "canAcceptDecline canEdit" })
 	private get canContextMenu(): boolean {
 		return this.canAcceptDecline || this.canEdit;
 	}

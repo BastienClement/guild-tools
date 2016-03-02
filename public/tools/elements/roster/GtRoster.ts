@@ -11,7 +11,7 @@ import {RosterService, QueryResult} from "../../services/roster/RosterService";
 import {On} from "../../polymer/Annotations";
 
 const RosterTabs: TabsGenerator = (view, path, user) => [
-	{ title: "Roster", link: "/roster", active: view == GtRoster }
+	{ title: "Roster", link: "/roster", active: view == "gt-roster" }
 ];
 
 @View("roster", RosterTabs)

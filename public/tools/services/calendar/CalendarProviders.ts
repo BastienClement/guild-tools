@@ -22,7 +22,6 @@ export class CalendarEventsProvider extends PolymerElement {
 
 	public async update() {
 		if (await microtask, !this.date) return;
-		console.log(this);
 		this.events = this.service.getEvents(this.date).map(e => e.id);
 	}
 

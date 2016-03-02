@@ -7,9 +7,9 @@ import {CalendarCell} from "./CalendarCell";
 import {CalendarOverview} from "./CalendarOverview";
 
 const CalendarTabs: TabsGenerator = (view, path, user) => [
-	{ title: "Calendar", link: "/calendar", active: view == GtCalendar },
-	{ title: "Absences", link: "/calendar/absences", active: view == null },
-	{ title: "Composer", link: "/calendar/composer", active: view == null, hidden: !user.promoted }
+	{ title: "Calendar", link: "/calendar", active: view == "gt-calendar" },
+	{ title: "Absences", link: "/calendar/absences", active: view == "gt-calendar-absences" },
+	{ title: "Composer", link: "/calendar/composer", active: view == "gt-calender-composer", hidden: !user.promoted }
 ];
 
 /**

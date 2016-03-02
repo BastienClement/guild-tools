@@ -6,7 +6,7 @@ import {ProfileChars} from "./ProfileChars";
 import {PolymerElement} from "../../polymer/PolymerElement";
 
 const ProfileTabs: TabsGenerator = (view, path, user) => [
-	{ title: "Profile", link: "/profile", active: view == GtProfile }
+	{ title: "Profile", link: "/profile", active: view == "gt-profile" }
 ];
 
 @View("profile", ProfileTabs)

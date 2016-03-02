@@ -5,6 +5,7 @@ import {ViewMetadata, Tab} from "../../client/router/View";
 import {Router} from "../../client/router/Router";
 import {Server} from "../../client/server/Server";
 import {ChatService} from "../../services/chat/ChatService";
+import {PolymerElementDeclaration} from "../../polymer/Annotations";
 
 @Element({
 	selector: "gt-title-bar",
@@ -61,9 +62,10 @@ export class GtTitleBar extends PolymerElement {
 	private async UpdateTabs() {
 		// Get tabs generator from view metadata
 		let meta = Reflect.getMetadata<ViewMetadata>("view:meta", this.router.activeView);
-		if (!meta) return;
+		let decl = Reflect.getMetadata<PolymerElementDeclaration>("polymer:declaration", this.router.activeView);
+		if (!meta || !decl) return;
 
-		this.tabs = meta.tabs(this.router.activeView, this.router.activePath, this.app.user).filter(t => !t.hidden);
+		this.tabs = meta.tabs(decl.selector, this.router.activePath, this.app.user).filter(t => !t.hidden);
 	}
 
 	// ========================================================================

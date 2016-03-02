@@ -11,12 +11,14 @@ import {defer, throttled} from "../../utils/Async";
 import {GtMarkdown} from "../misc/GtMarkdown";
 import {ApplyManage} from "./ApplyManage";
 import {Char} from "../../services/roster/RosterService";
+import {ApplyDataProvider} from "../../services/apply/ApplyProviders";
+import {RosterMainProvider} from "../../services/roster/RosterProviders";
 
 
 @Element({
 	selector: "apply-details-char",
 	template: "/assets/views/apply.html",
-	dependencies: [GtBox, GtTimeago]
+	dependencies: [GtBox, GtTimeago, ApplyDataProvider, RosterMainProvider]
 })
 export class ApplyDetailsChar extends PolymerElement {
 	@Property public id: number;

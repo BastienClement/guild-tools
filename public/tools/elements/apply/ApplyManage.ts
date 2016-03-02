@@ -5,11 +5,12 @@ import {GtProgressCircular} from "../widgets/GtProgressCircular";
 import {GtBox} from "../widgets/GtBox";
 import {PolymerElement} from "../../polymer/PolymerElement";
 import {ApplyService, Apply} from "../../services/apply/ApplyService";
+import {ApplyStageNameProvider} from "../../services/apply/ApplyProviders";
 
 @Element({
 	selector: "apply-manage",
 	template: "/assets/views/apply.html",
-	dependencies: [GtBox, GtProgressCircular, GtButton, GtCheckbox]
+	dependencies: [GtBox, GtProgressCircular, GtButton, GtCheckbox, ApplyStageNameProvider]
 })
 export class ApplyManage extends PolymerElement {
 	@Inject

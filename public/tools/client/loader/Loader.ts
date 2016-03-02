@@ -210,8 +210,8 @@ export class Loader {
 	 * Loads and instantiates a Polymer element.
 	 * @param ctor  The element constructor
 	 */
-	public async createElement<T extends PolymerElement>(ctor: Constructor<T>): Promise<T> {
-		return new (await this.loadElement(ctor));
+	public createElement<T extends PolymerElement>(ctor: Constructor<T>): T {
+		return <any> document.createElement((<any> ctor).declaration().selector);
 	}
 
 	/**

@@ -10,7 +10,7 @@ export interface Tab {
 }
 
 // Function generating current tabs list
-export type TabsGenerator = (view: Constructor<PolymerElement>, path: string, user: User) => Tab[];
+export type TabsGenerator = (view: string, path: string, user: User) => Tab[];
 
 // Metadata for views
 export interface ViewMetadata {

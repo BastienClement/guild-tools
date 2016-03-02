@@ -13,18 +13,6 @@ export function polymer_overloads() {
 	};
 
 	/**
-	 * Type-safe cast of Node to Polymer elements
-	 */
-	Polymer.cast = <any> (<T extends PolymerElement>(node: Node, ctor: Constructor<T>) => {
-		if (Polymer.is(node, ctor)) {
-			return node;
-		} else {
-			const selector = Reflect.getMetadata<{ selector: string; }>("polymer:meta", ctor).selector;
-			throw new TypeError(`Node <${node.nodeName}> is not castable to <${selector}>`);
-		}
-	});
-
-	/**
 	 * Find the closed parent node of a given type
 	 * TODO: prevent crossing shadow-dom boundaries
 	 */

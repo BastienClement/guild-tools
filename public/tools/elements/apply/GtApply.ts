@@ -9,16 +9,18 @@ import {ApplyService} from "../../services/apply/ApplyService";
 import {ApplyDetails} from "./ApplyDetails";
 import {GtTimeago} from "../misc/GtTimeago";
 import {BnetThumb} from "../misc/BnetThumb";
+import {ApplyDataProvider} from "../../services/apply/ApplyProviders";
+import {RosterMainProvider} from "../../services/roster/RosterProviders";
 
 const ApplyTabs: TabsGenerator = (view, path, user) => [
-	{title: "Applys", link: "/apply", active: view == GtApply},
-	{title: "Archives", link: "/apply/archives", active: view == null}
+	{title: "Applys", link: "/apply", active: view == "gt-apply"},
+	{title: "Archives", link: "/apply/archives", active: view == "gt-apply-archives"}
 ];
 
 @Element({
 	selector: "apply-list-item",
 	template: "/assets/views/apply.html",
-	dependencies: [GtBox, BnetThumb, GtTimeago]
+	dependencies: [GtBox, BnetThumb, GtTimeago, ApplyDataProvider, RosterMainProvider]
 })
 export class ApplyListItem extends PolymerElement {
 	@Property public apply: number;
