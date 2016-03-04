@@ -26,7 +26,7 @@ class GtApplication @Inject() (gt: GuildTools) extends Controller {
 			case str => str
 		}
 
-		if (session == "") Redirect("/unauthorized")
+		if (session == "" && req.getQueryString("logout").isEmpty) Redirect("/unauthorized")
 		else Redirect(target).flashing("session" -> session)
 	}
 
