@@ -1,7 +1,7 @@
 package actors
 
 import models._
-import models.authentication.{Sessions, Session}
+import models.authentication.{Users, Sessions, Session}
 import models.mysql._
 import reactive._
 import scala.concurrent.Future
@@ -81,23 +81,23 @@ trait AuthService {
 	  * @param ua        Remote User Agent
 	  */
 	def login(username: String, password: String, ip: Option[String], ua: Option[String]): Future[String] = {
-		val user = username.toLowerCase
 		val pass = password.substring(0, 100.min(password.length))
-		val bucket = buckets(user)
+		val bucket = buckets(username.toLowerCase)
 
 		if (!bucket.take()) {
 			Future.failed(new Exception("Authentication is not available right now."))
 		} else {
-			val user_credentials = for {
-				u <- PhpBBUsers if u.name.toLowerCase === user || u.name_clean.toLowerCase === user
-			} yield (u.pass, u.id)
+			val credentials = Users.findByUsername(username).map(u => (u.password, u.id)).head.recoverWith {
+				case _ => PhpBBUsers.findByUsername(username).map(u => (u.pass, u.id)).head
+			}
 
-			user_credentials.headOption.flatMap {
-				case Some((pass_ref, user_id)) if Hasher.checkPassword(pass, pass_ref) =>
+			credentials.flatMap {
+				case (pass_ref, user_id) if Hasher.checkPassword(pass, pass_ref) =>
+					if (pass_ref.startsWith("$H$")) Users.upgradeAccount(user_id, pass)
 					val session = createSession(user_id, ip, ua)
 					session.andThen { case Success(_) => bucket.put() }
 					session.recover { case e => throw new Exception("Unable to login") }
-
+			}.recover {
 				case e => throw new Exception("Invalid username or password")
 			}
 		}

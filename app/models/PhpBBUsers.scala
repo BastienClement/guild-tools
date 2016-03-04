@@ -27,4 +27,9 @@ class PhpBBUsers(tag: Tag) extends Table[User](tag, "phpbb_users") {
 	def * = (id, name, group) <> (User.tupled, User.unapply)
 }
 
-object PhpBBUsers extends TableQuery(new PhpBBUsers(_))
+object PhpBBUsers extends TableQuery(new PhpBBUsers(_)) {
+	def findByUsername(username: Rep[String]) = {
+		val user = username.toLowerCase
+		PhpBBUsers.filter(u => u.name.toLowerCase === user || u.name_clean === user)
+	}
+}
