@@ -124,17 +124,15 @@ class AuthController extends Controller {
 			}
 
 		if (sso_buckets(req.remoteAddress).take()) {
-			utils.atLeast(500.milliseconds) {
-				val valid = session match {
-					case Some(cookie) => AuthService.sessionActive(cookie.value)
-					case None => Future.successful(false)
-				}
+			val valid = session match {
+				case Some(cookie) => AuthService.sessionActive(cookie.value)
+				case None => Future.successful(false)
+			}
 
-				valid.map {
-					case true => success_redirect
-					case false if ignore => ignore_redirect
-					case false => auth_redirect
-				}
+			valid.map {
+				case true => success_redirect
+				case false if ignore => ignore_redirect
+				case false => auth_redirect
 			}
 		} else if (req.getQueryString("noauth").isDefined) {
 			Future.successful(ignore_redirect)
