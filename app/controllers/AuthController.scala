@@ -29,6 +29,8 @@ class AuthController extends Controller {
 		val dev = Play.isDev(Play.current)
 
 		service match {
+			case "www" => "https://www.fs-guild.net/sso.php"
+
 			case "gt" if prod => "https://gt.fs-guild.net/sso"
 			case "gt" if dev => "/sso"
 
