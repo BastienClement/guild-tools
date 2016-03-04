@@ -10,10 +10,14 @@ import reactive.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
+import utils.{TokenBucket, Cache}
 
 class AuthController extends Controller {
 	/** The path of the main auth page */
 	def url(path: String) = (if (Play.isProd(Play.current)) "" else "/auth") + path
+
+	/** Token buckets for rate-limiting the /sso page */
+	private val sso_buckets = Cache(1.hour) { (source: String) => new TokenBucket(15, 10000) }
 
 	/**
 	  * Guesses the correct service URL for redirection after authentication.
@@ -62,6 +66,7 @@ class AuthController extends Controller {
 
 	/**
 	  * Perform authentication.
+	  * This action is indirectly rate-limited by the call to AuthService.login
 	  */
 	def auth() = Action.async { req =>
 		utils.atLeast(1.seconds) {
@@ -91,34 +96,48 @@ class AuthController extends Controller {
 	  * display the login page if it is not.
 	  */
 	def sso() = Action.async { req =>
-		utils.atLeast(1.seconds) {
-			val service = req.getQueryString("service").getOrElse("")
-			val token = req.getQueryString("token").getOrElse("")
-			val session = req.cookies.get("FSID")
+		val service = req.getQueryString("service").getOrElse("")
+		val token = req.getQueryString("token").getOrElse("")
+		val session = req.cookies.get("FSID")
+		val ignore = req.getQueryString("noauth").isDefined
 
-			val valid = session match {
-				case Some(cookie) => AuthService.sessionActive(cookie.value)
-				case None => Future.successful(false)
+		// Current session is valid, redirect to service
+		def success_redirect =
+			Redirect(serviceURL(service), Map(
+				"session" -> Seq(session.get.value),
+				"token" -> Seq(token)
+			)).withCookies(sessionCookie(session.get.value))
+
+		// Current session is invalid, but the service does not want authentication
+		def ignore_redirect =
+			Redirect(serviceURL(service, url("/")), Map(
+				"session" -> Seq(""),
+				"token" -> Seq(token)
+			))
+
+		// Current session is invalid and service is requesting authentication
+		def auth_redirect =
+			Redirect(url("/")).withSession {
+				req.session + ("service" -> service) + ("token" -> token)
 			}
 
-			valid.map {
-				case true =>
-					Redirect(serviceURL(service), Map(
-						"session" -> Seq(session.get.value),
-						"token" -> Seq(token)
-					)).withCookies(sessionCookie(session.get.value))
+		if (sso_buckets(req.remoteAddress).take()) {
+			utils.atLeast(500.milliseconds) {
+				val valid = session match {
+					case Some(cookie) => AuthService.sessionActive(cookie.value)
+					case None => Future.successful(false)
+				}
 
-				case false if req.getQueryString("noauth").isDefined =>
-					Redirect(serviceURL(service, url("/")), Map(
-						"session" -> Seq(""),
-						"token" -> Seq(token)
-					))
-
-				case false =>
-					Redirect(url("/")).withSession {
-						req.session + ("service" -> service) + ("token" -> token)
-					}
+				valid.map {
+					case true => success_redirect
+					case false if ignore => ignore_redirect
+					case false => auth_redirect
+				}
 			}
+		} else if (req.getQueryString("noauth").isDefined) {
+			Future.successful(ignore_redirect)
+		} else {
+			Future.successful(Redirect(url("/throttled")))
 		}
 	}
 
@@ -137,4 +156,9 @@ class AuthController extends Controller {
 			)).withCookies(Cookie("FSID", ""))
 		}
 	}
+
+	/**
+	  * Throttled
+	  */
+	def throttled() = Action { Ok(views.html.auth.throttled.render()) }
 }
