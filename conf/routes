@@ -3,6 +3,7 @@
 # ~~~~
 
 # Static assets
+GET         /assets/                          controllers.GtApplication.broken
 GET         /assets/*file                     controllers.Assets.versioned(path="/public", file: Asset)
 
 # Main client pages and GTP3 socket listener
@@ -39,8 +40,8 @@ GET         /auth/sso                         controllers.AuthController.sso
 POST        /auth/login                       controllers.AuthController.auth
 GET         /auth/logout                      controllers.AuthController.logout
 GET         /auth/throttled                   controllers.AuthController.throttled
-GET         /auth/*path                       controllers.GtApplication.broken(path)
-POST        /auth/*path                       controllers.GtApplication.broken(path)
+GET         /auth/*path                       controllers.GtApplication.broken_path(path)
+POST        /auth/*path                       controllers.GtApplication.broken_path(path)
 
 # REST API
 POST        /api/bugsack                      controllers.APIController.bugsack

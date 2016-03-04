@@ -31,7 +31,9 @@ class GtApplication @Inject() (gt: GuildTools) extends Controller {
 	}
 
 	def catchall(path: String) = client
-	def broken(path: String) = Action { Ok(views.html.broken.render()) }
 	def unauthorized = Action { Ok(views.html.unauthorized.render()) }
 	def unsupported = Action { Ok(views.html.unsupported.render()) }
+
+	def broken_path(path: String) = broken
+	def broken = Action { Ok(views.html.broken.render()) }
 }
