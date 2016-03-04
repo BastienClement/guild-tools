@@ -1,4 +1,4 @@
-package utils;
+package utils.crypto;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
