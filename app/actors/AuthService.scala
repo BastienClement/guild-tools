@@ -1,6 +1,7 @@
 package actors
 
 import models._
+import models.authentication.{Sessions, Session}
 import models.mysql._
 import reactive._
 import scala.concurrent.Future
@@ -44,7 +45,7 @@ object AuthService extends StaticActor[AuthService, AuthServiceImpl]("AuthServic
 		val sess_query = Sessions.filter(_.token === token)
 		sess_query.map(_.user).head.flatMap { user_id =>
 			sess_query.map(_.last_access).update(SmartTimestamp.now).run
-			Users.filter(u => u.id === user_id).head
+			PhpBBUsers.filter(u => u.id === user_id).head
 		}
 	}
 
@@ -88,7 +89,7 @@ trait AuthService {
 			Future.failed(new Exception("Authentication is not available right now."))
 		} else {
 			val user_credentials = for {
-				u <- Users if u.name.toLowerCase === user || u.name_clean.toLowerCase === user
+				u <- PhpBBUsers if u.name.toLowerCase === user || u.name_clean.toLowerCase === user
 			} yield (u.pass, u.id)
 
 			user_credentials.headOption.flatMap {
@@ -97,7 +98,7 @@ trait AuthService {
 					session.andThen { case Success(_) => bucket.put() }
 					session.recover { case e => throw new Exception("Unable to login") }
 
-				case e => throw new Exception("Invalid credentials")
+				case e => throw new Exception("Invalid username or password")
 			}
 		}
 	}

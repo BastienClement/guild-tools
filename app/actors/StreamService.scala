@@ -237,7 +237,7 @@ trait StreamService {
 	  */
 	private def streams_list = {
 		val query = for {
-			user <- Users if user.group inSet AuthService.roster_groups
+			user <- PhpBBUsers if user.group inSet AuthService.roster_groups
 			stream <- Streams if stream.user === user.id
 		} yield stream
 

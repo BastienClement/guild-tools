@@ -64,7 +64,7 @@ object WtController {
 			user <- DB.run {
 				for {
 					session <- PhpBBSessions.filter(_.token === token).result.head
-					user <- Users.filter(u => u.id === session.user && u.group.inSet(AuthService.allowed_groups)).result.head
+					user <- PhpBBUsers.filter(u => u.id === session.user && u.group.inSet(AuthService.allowed_groups)).result.head
 				} yield user
 			}
 			ip = Some(request.remoteAddress)

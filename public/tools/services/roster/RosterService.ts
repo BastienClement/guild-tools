@@ -9,7 +9,6 @@ export interface User {
 	id: number;
 	name: string;
 	group: number;
-	color: string;
 	officer: boolean;
 	developer: boolean;
 	promoted: boolean;
@@ -130,7 +129,6 @@ export class RosterService extends Service {
 			id: id,
 			name: `User#${id}`,
 			group: 0,
-			color: "64B4FF",
 			officer: false,
 			developer: false,
 			promoted: false,

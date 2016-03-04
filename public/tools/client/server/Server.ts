@@ -12,7 +12,6 @@ export type UserInformations = {
 	id: number;
 	name: string;
 	group: number;
-	color: string;
 	officer: boolean;
 	developer: boolean;
 	promoted: boolean;

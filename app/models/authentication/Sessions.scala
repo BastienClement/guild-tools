@@ -1,4 +1,4 @@
-package models
+package models.authentication
 
 import java.sql.Timestamp
 import models.mysql._
