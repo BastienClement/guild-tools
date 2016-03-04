@@ -38,9 +38,9 @@ class AuthController extends Controller {
 	  * @param session The session token
 	  */
 	def sessionCookie(session: String) = Cookie(
-		name = "FS_SESSION",
+		name = "FSID",
 		value = session,
-		maxAge = Some(60 * 60 * 24 * 7),
+		maxAge = Some(60 * 60 * 24 * 5),
 		httpOnly = true,
 		secure = true
 	)
@@ -49,7 +49,7 @@ class AuthController extends Controller {
 	  * Main login form.
 	  */
 	def main() = Action.async { req =>
-		val valid = req.cookies.get("FS_SESSION") match {
+		val valid = req.cookies.get("FSID") match {
 			case Some(cookie) => AuthService.sessionActive(cookie.value)
 			case None => Future.successful(false)
 		}
@@ -64,7 +64,7 @@ class AuthController extends Controller {
 	  * Perform authentication.
 	  */
 	def auth() = Action.async { req =>
-		utils.atLeast(2.seconds) {
+		utils.atLeast(1.seconds) {
 			Try {
 				val post = req.body.asFormUrlEncoded.get.map { case (k, v) => (k, v.headOption.getOrElse("")) }
 				val user = post("user").trim
@@ -94,7 +94,7 @@ class AuthController extends Controller {
 		utils.atLeast(1.seconds) {
 			val service = req.getQueryString("service").getOrElse("")
 			val token = req.getQueryString("token").getOrElse("")
-			val session = req.cookies.get("FS_SESSION")
+			val session = req.cookies.get("FSID")
 
 			val valid = session match {
 				case Some(cookie) => AuthService.sessionActive(cookie.value)
@@ -128,13 +128,13 @@ class AuthController extends Controller {
 	def logout() = Action.async { req =>
 		val service = req.getQueryString("service").getOrElse("")
 		val token = req.getQueryString("token").getOrElse("")
-		req.cookies.get("FS_SESSION").map { cookie =>
+		req.cookies.get("FSID").map { cookie =>
 			AuthService.logout(cookie.value)
 		}.getOrElse(Future.successful(())).map { _ =>
-			Redirect(serviceURL(service), Map(
+			Redirect(serviceURL(service, url("/")), Map(
 				"logout" -> Seq("yes"),
 				"token" -> Seq(token)
-			)).withCookies(Cookie("FS_SESSION", ""))
+			)).withCookies(Cookie("FSID", ""))
 		}
 	}
 }

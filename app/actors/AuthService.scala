@@ -7,6 +7,7 @@ import utils.{Cache, Phpass, SmartTimestamp}
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.util.Success
 
 private[actors] class AuthServiceImpl extends AuthService
 
@@ -68,6 +69,51 @@ object AuthService extends StaticActor[AuthService, AuthServiceImpl]("AuthServic
   */
 trait AuthService {
 	/**
+	  * Token bucket implementation.
+	  * Each login attempt consumes a token in the user's bucket.
+	  * If there is no more token available, the user cannot sign in.
+	  * 1 token is restored every 15 seconds, and the buckets can hold at most 10 tokens.
+	  */
+	private class Bucket {
+		/** The bucket can hold a maximum of 10 tokens */
+		private val max = 10.0
+
+		/** Restore 1 token every 15 seconds */
+		private val rate = 1.0 / (1000 * 15.0)
+
+		/** Current amount of tokens in the bucket */
+		private var amount: Double = max
+
+		/** Last query timestamp */
+		private var update: Long = System.currentTimeMillis()
+
+		/** Checks if there is at least one token in the bucket and removes it */
+		def available(): Boolean = synchronized {
+			val now = System.currentTimeMillis()
+			val dt = now - update
+			update = now
+
+			// Fill the bucket
+			amount = Math.min(max, amount + dt * rate)
+
+			if (amount > 1.0) {
+				amount -= 1.0
+				true
+			} else {
+				false
+			}
+		}
+
+		/** Restores a token in the bucket */
+		def restore() = synchronized {
+			amount = Math.min(max, amount + 1)
+		}
+	}
+
+	/** User buckets */
+	private val buckets = Cache(1.hour) { (user: String) => new Bucket }
+
+	/**
 	  * Performs user authentication and return a new session token.
 	  *
 	  * @param username  The user's login name
@@ -76,19 +122,26 @@ trait AuthService {
 	  * @param ua        Remote User Agent
 	  */
 	def login(username: String, password: String, ip: Option[String], ua: Option[String]): Future[String] = {
-		val user_credentials = for {
-			u <- Users if u.name === username || u.name_clean === username.toLowerCase
-		} yield (u.pass, u.id)
+		val user = username.toLowerCase
+		val bucket = buckets(user)
 
-		val hash = new Phpass()
+		if (!bucket.available()) {
+			Future.failed(new Exception("Authentication is not available right now."))
+		} else {
+			val user_credentials = for {
+				u <- Users if u.name.toLowerCase === user || u.name_clean.toLowerCase === user
+			} yield (u.pass, u.id)
 
-		user_credentials.headOption flatMap {
-			case Some((pass_ref, user_id)) if hash.isMatch(password, pass_ref) =>
-				createSession(user_id, ip, ua) recover {
-					case e => throw new Exception("Unable to login")
-				}
+			val hash = new Phpass()
 
-			case e => throw new Exception("Invalid credentials")
+			user_credentials.headOption.flatMap {
+				case Some((pass_ref, user_id)) if hash.isMatch(password, pass_ref) =>
+					val session = createSession(user_id, ip, ua)
+					session.andThen { case Success(_) => bucket.restore() }
+					session.recover { case e => throw new Exception("Unable to login") }
+
+				case e => throw new Exception("Invalid credentials")
+			}
 		}
 	}
 
