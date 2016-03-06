@@ -26,7 +26,7 @@ object Users extends TableQuery(new Users(_)) {
 	  */
 	def findByUsername(username: Rep[String]) = {
 		val user = username.toLowerCase
-		Users.filter(u => u.name.toLowerCase === user || u.name_clean === user)
+		Users.filter(u => u.name.toLowerCase === user || u.name_clean === user).filter(_.password =!= "")
 	}
 
 	/**

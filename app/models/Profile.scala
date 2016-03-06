@@ -20,4 +20,6 @@ class Profiles(tag: Tag) extends Table[Profile](tag, "gt_profiles") {
 	def * = (user, realname, battletag, phone, birthday, mail, location) <> (Profile.tupled, Profile.unapply)
 }
 
-object Profiles extends TableQuery(new Profiles(_))
+object Profiles extends TableQuery(new Profiles(_)) {
+	def findById(user: Rep[Int]) = Profiles.filter(_.user === user)
+}

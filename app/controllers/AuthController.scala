@@ -1,20 +1,20 @@
 package controllers
 
-import java.util.concurrent.ExecutionException
-
 import actors.AuthService
+import java.util.concurrent.ExecutionException
+import models.{Profile, Profiles, User}
 import play.api.Play
-import play.api.mvc.{Action, Controller, Cookie}
+import play.api.mvc._
 import reactive.ExecutionContext
-
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
-import utils.{TokenBucket, Cache}
+import utils.{Cache, TokenBucket}
+import models.mysql._
 
 class AuthController extends Controller {
 	/** The path of the main auth page */
-	def url(path: String) = (if (Play.isProd(Play.current)) "" else "/auth") + path
+	private def url(path: String) = (if (Play.isProd(Play.current)) "" else "/auth") + path
 
 	/** Token buckets for rate-limiting the /sso page */
 	private val sso_buckets = Cache(1.hour) { (source: String) => new TokenBucket(15, 10000) }
@@ -24,7 +24,7 @@ class AuthController extends Controller {
 	  *
 	  * @param service The service code
 	  */
-	def serviceURL(service: String, default: String = url("/account")) = {
+	private def serviceURL(service: String, default: String = url("/account")) = {
 		val prod = Play.isProd(Play.current)
 		val dev = Play.isDev(Play.current)
 
@@ -43,7 +43,7 @@ class AuthController extends Controller {
 	  *
 	  * @param session The session token
 	  */
-	def sessionCookie(session: String) = Cookie(
+	private def sessionCookie(session: String) = Cookie(
 		name = "FSID",
 		value = session,
 		maxAge = Some(60 * 60 * 24 * 5),
@@ -51,10 +51,50 @@ class AuthController extends Controller {
 		secure = true
 	)
 
+	/** A request with user information */
+	class AuthRequest[A](val optUser: Option[User], request: Request[A])
+		extends WrappedRequest[A](request) {
+		val user = optUser.orNull
+		val authenticated = optUser.isDefined
+
+		def url(path: String) = AuthController.this.url(path)
+	}
+
+	/** Authenticated action */
+	object AuthAction extends ActionBuilder[AuthRequest] {
+		def transform[A](request: Request[A]) = {
+			for {
+				user <- request.cookies.get("FSID").map(_.value) match {
+					case Some(sessid) => AuthService.auth(sessid).map(Some(_))
+					case _ => Future.successful(None)
+				}
+			} yield {
+				new AuthRequest(user, request)
+			}
+		}
+
+		override def invokeBlock[A](request: Request[A], block: (AuthRequest[A]) => Future[Result]) = {
+			transform(request).flatMap { implicit req =>
+				block(req)
+			}
+		}
+	}
+
+	/** Only allow authenticated users to access the action */
+	val Authenticated = AuthAction andThen new ActionFilter[AuthRequest] {
+		def filter[A](request: AuthRequest[A]) = Future.successful {
+			if (!request.authenticated) {
+				Some(Redirect(url("/")))
+			} else {
+				None
+			}
+		}
+	}
+
 	/**
 	  * Main login form.
 	  */
-	def main() = Action.async { req =>
+	def main = Action.async { req =>
 		val valid = req.cookies.get("FSID") match {
 			case Some(cookie) => AuthService.sessionActive(cookie.value)
 			case None => Future.successful(false)
@@ -70,7 +110,7 @@ class AuthController extends Controller {
 	  * Perform authentication.
 	  * This action is indirectly rate-limited by the call to AuthService.login
 	  */
-	def auth() = Action.async { req =>
+	def auth = Action.async { req =>
 		utils.atLeast(1.seconds) {
 			Try {
 				val post = req.body.asFormUrlEncoded.get.map { case (k, v) => (k, v.headOption.getOrElse("")) }
@@ -97,7 +137,7 @@ class AuthController extends Controller {
 	  * Will redirect the user back to the service if the session is valid or
 	  * display the login page if it is not.
 	  */
-	def sso() = Action.async { req =>
+	def sso = Action.async { req =>
 		val service = req.getQueryString("service").getOrElse("")
 		val token = req.getQueryString("token").getOrElse("")
 		val session = req.cookies.get("FSID")
@@ -144,7 +184,7 @@ class AuthController extends Controller {
 	/**
 	  * Logouts
 	  */
-	def logout() = Action.async { req =>
+	def logout = Action.async { req =>
 		val service = req.getQueryString("service").getOrElse("")
 		val token = req.getQueryString("token").getOrElse("")
 		req.cookies.get("FSID").map { cookie =>
@@ -157,8 +197,21 @@ class AuthController extends Controller {
 		}
 	}
 
+	def account = Authenticated.async { implicit req =>
+		lazy val defaultProfile = {
+			val dash = Some("-")
+			Profile(req.user.id, dash, dash, dash, None, dash, dash)
+		}
+
+		for {
+			profile <- Profiles.findById(req.user.id).headOption
+		} yield {
+			Ok(views.html.auth.account.render(profile.getOrElse(defaultProfile), req))
+		}
+	}
+
 	/**
 	  * Throttled
 	  */
-	def throttled() = Action { Ok(views.html.auth.throttled.render()) }
+	def throttled = Action { Ok(views.html.auth.throttled.render()) }
 }

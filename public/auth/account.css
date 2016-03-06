@@ -1,0 +1,53 @@
+.profile {
+	margin-top: 14px;
+}
+
+.profile > div {
+	margin-bottom: 8px;
+}
+
+.profile i {
+	margin-right: 8px;
+}
+
+.profile span {
+	display: inline-block;
+	width: 30%;
+	font-family: "Roboto Condensed";
+}
+
+.profile b {
+	font-weight: 400;
+}
+
+.profile #access {
+	margin: 18px 0;
+}
+
+.profile #access b {
+	background: rgba(17, 17, 17, 0.2);
+	border-radius: 50%;
+	border: 2px dotted rgba(100, 180, 255, 0.5);
+	display: inline-block;
+	padding: 1px 2px 3px;
+	height: 1em;
+	width: 1em;
+	box-sizing: content-box;
+	font-family: "Roboto Condensed";
+	color: #8eafce;
+	text-align: center;
+	vertical-align: middle;
+}
+
+.profile #btag {
+	margin-top: 18px;
+}
+
+.actions {
+	margin-top: 18px;
+	font-size: 15px;
+}
+
+.actions i {
+	vertical-align: -4px;
+}

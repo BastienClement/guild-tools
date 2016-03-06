@@ -1,19 +1,32 @@
-@(title: String)(content: Html)
+@(title: String, clazz: String)(content: Html)(implicit req: AuthController#AuthRequest[AnyContent])
 <!DOCTYPE html>
 <meta charset="utf-8">
-<title>From Scratch - @title</title>
+<title>@title &ndash; From Scratch</title>
 
+<link rel="shortcut icon" href='@routes.Assets.versioned("images/favicon.ico")'>
 <link rel="stylesheet" href='@routes.Assets.versioned("auth/auth.css")'>
 
-<div id="wrapper">
-	<div id="header">
-		<img src="@routes.Assets.versioned("images/login_logo.png")">
+<div class="header">
+	<div class="wrapper">
+		<a href='@req.url("/")'><img src="@routes.Assets.versioned("images/login_logo.png")"></a>
 	</div>
-	<div id="content">
+</div>
+
+<div class="subheader">
+	<div class="wrapper">
+		<div class="right">
+			@if(req.authenticated) {
+				<span class="username">@req.user.name</span> &ndash;
+			}
+			<a class="btn" href='@req.url("/logout")'><i class="material-icons">exit_to_app</i> Logout</a>
+		</div>
+		<h1>@title</h1>
+	</div>
+</div>
+
+<div class="wrapper">
+	<div class="content @clazz">
 		@content
-	</div>
-	<div id="footer">
-		Footer
 	</div>
 </div>
 
