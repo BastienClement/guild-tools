@@ -1,4 +1,4 @@
-@(profile: Profile)(implicit req: AuthController#AuthRequest[AnyContent])
+@(profile: ProfileData)(implicit req: AuthController#AuthRequest[AnyContent])
 @auth.layout("My Account", "account") {
 	<link rel="stylesheet" href='@routes.Assets.versioned("auth/account.css")'>
 	<div class="columns">
@@ -37,7 +37,7 @@
 				<div id="bday">
 					<i class="material-icons">cake</i>
 					<span>Age</span>
-					<b>24</b>
+					<b>@profile.birthday</b>
 				</div>
 
 				<div id="location">

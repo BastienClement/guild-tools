@@ -1,6 +1,4 @@
 import java.sql.Timestamp
-import java.text.SimpleDateFormat
-import java.util.TimeZone
 import models.application.{Application, ApplicationMessage}
 import models.calendar._
 import play.api.Play
@@ -36,15 +34,13 @@ package object models {
 	}
 
 	implicit val timestampFormat = new Format[Timestamp] {
-		val format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-		format.setTimeZone(TimeZone.getTimeZone("UTC"))
+		val format = SmartTimestamp.iso
 		def reads(json: JsValue) = JsSuccess(new Timestamp(format.parse(json.as[String]).getTime))
 		def writes(ts: Timestamp) = Json.obj("$date" -> format.format(ts))
 	}
 
 	implicit val smartTimestampFormat = new Format[SmartTimestamp] {
-		val format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-		format.setTimeZone(TimeZone.getTimeZone("UTC"))
+		val format = SmartTimestamp.iso
 		def reads(json: JsValue) = JsSuccess(SmartTimestamp(format.parse(json.as[String]).getTime))
 		def writes(ts: SmartTimestamp) = Json.obj("$date" -> format.format(ts))
 	}

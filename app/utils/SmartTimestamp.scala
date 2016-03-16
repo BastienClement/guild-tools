@@ -19,6 +19,12 @@ object SmartTimestamp {
 	format.setTimeZone(TimeZone.getTimeZone("UTC"))
 
 	/**
+	  * ISO Date format
+	  */
+	val iso = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+	format.setTimeZone(TimeZone.getTimeZone("UTC"))
+
+	/**
 	  * Convert a SQL timestamp to a SmartTimestamp
 	  */
 	implicit def fromTimestamp(t: Timestamp): SmartTimestamp = SmartTimestamp(t.getTime)

@@ -203,15 +203,11 @@ class AuthController extends Controller {
 	  * Main account page
 	  */
 	def account = Authenticated.async { implicit req =>
-		lazy val defaultProfile = {
-			val dash = Some("-")
-			Profile(req.user.id, dash, dash, dash, None, dash, dash)
-		}
-
 		for {
-			profile <- Profiles.findById(req.user.id).headOption
+			opt_profile <- Profiles.findById(req.user.id).headOption
 		} yield {
-			Ok(views.html.auth.account.render(profile.getOrElse(defaultProfile), req))
+			val profile = opt_profile.map(_.concealFor(req.optUser).withPlaceholders).getOrElse(Profiles.empty)
+			Ok(views.html.auth.account.render(profile, req))
 		}
 	}
 

@@ -63,7 +63,7 @@ case class Profile(user: Int,
 	  */
 	def withPlaceholders = ProfileData(user,
 		realname.getOrElse("–"), btag.getOrElse("–"), phone.getOrElse("–"),
-		birthday.map(SmartTimestamp.format.format(_)).getOrElse("–"),
+		birthday.map(SmartTimestamp.iso.format(_)).getOrElse("–"),
 		mail.getOrElse("–"), location.getOrElse("–"))
 }
 
@@ -100,5 +100,13 @@ class Profiles(tag: Tag) extends Table[Profile](tag, "gt_profiles") {
   * Query helpers
   */
 object Profiles extends TableQuery(new Profiles(_)) {
+	/**
+	  * Queries Profile based on the user's ID
+	  */
 	def findById(user: Rep[Int]) = Profiles.filter(_.user === user)
+
+	/**
+	  * An empty profile used in case Option[ProfileData] is None.
+	  */
+	val empty = ProfileData(-1, "–", "–", "–", "–", "–", "–")
 }
