@@ -1,18 +1,23 @@
 package actors
 
+import akka.actor.ActorRef
 import models._
-import models.authentication.{Users, Sessions, Session}
+import models.authentication.{Session, Sessions, Users}
 import models.mysql._
 import reactive._
+import utils.crypto.Hasher
+import utils.{Cache, PubSub, SmartTimestamp, TokenBucket}
+
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Success
-import utils.crypto.Hasher
-import utils.{TokenBucket, Cache, SmartTimestamp}
 
 private[actors] class AuthServiceImpl extends AuthService
 
-object AuthService extends StaticActor[AuthService, AuthServiceImpl]("AuthService") {
+object AuthService extends StaticActor[AuthService, AuthServiceImpl]("AuthService") with PubSub[String] {
+	/** Message sent to subscribers when a session is closed */
+	case object SessionClosed
+
 	/** The set of every user having developer rights */
 	val developer_users = Set(1647)
 
@@ -56,6 +61,21 @@ object AuthService extends StaticActor[AuthService, AuthServiceImpl]("AuthServic
 	def auth(session: String): Future[User] = userForSession(session)
 
 	/**
+	  * Returns the user corresponding to a session token and register the
+	  * calling actor as a subscriber for the SessionClosed message.
+	  *
+	  * @param session The session token
+	  * @param sub     The calling actor
+	  * @return The user associated to the session
+	  */
+	def authAndSubscribe(session: String)(implicit sub: ActorRef): Future[User] = {
+		userForSession(session).andThen {
+			case Success(_) => subscribe(sub, session)
+			case _ => // auth failed, no need to subscribe
+		}
+	}
+
+	/**
 	  * Checks if a given session is active and valid.
 	  *
 	  * @param session The session ID
@@ -75,10 +95,10 @@ trait AuthService {
 	/**
 	  * Performs user authentication and return a new session token.
 	  *
-	  * @param username  The user's login name
-	  * @param password  The user's password (raw)
-	  * @param ip        Remote IP address
-	  * @param ua        Remote User Agent
+	  * @param username The user's login name
+	  * @param password The user's password (plain text)
+	  * @param ip       Remote IP address
+	  * @param ua       Remote User Agent
 	  */
 	def login(username: String, password: String, ip: Option[String], ua: Option[String]): Future[String] = {
 		val pass = password.substring(0, 100.min(password.length))
@@ -132,7 +152,11 @@ trait AuthService {
 	  *
 	  * @todo Kill every socket open with this session
 	  */
-	def logout(session: String): Future[Unit] = DB.run {
-		for (_ <- Sessions.filter(_.token === session).delete) yield ()
+	def logout(session: String): Future[Unit] = {
+		val del = for (_ <- Sessions.filter(_.token === session).delete) yield ()
+		del.run.andThen { case _ =>
+			AuthService.userForSession.clear(session)
+			AuthService.publish(AuthService.SessionClosed, _ == session)
+		}
 	}
 }
