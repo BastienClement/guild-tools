@@ -86,7 +86,9 @@ class Socket(val id: Long, val opener: Opener) extends Actor {
 
 		case ForceStop =>
 			state = "KILLED"
-			out ! Kill
+			if (out != null) {
+				out ! Kill
+			}
 			self ! Kill
 
 		// Received a buffer from the WebSocket
