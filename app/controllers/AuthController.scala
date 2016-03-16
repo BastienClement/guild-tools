@@ -2,6 +2,7 @@ package controllers
 
 import actors.AuthService
 import java.util.concurrent.ExecutionException
+import models.authentication.Sessions
 import models.{Profile, Profiles, User}
 import play.api.Play
 import play.api.mvc._
@@ -11,6 +12,7 @@ import scala.concurrent.duration._
 import scala.util.Try
 import utils.{Cache, TokenBucket}
 import models.mysql._
+import models._
 
 class AuthController extends Controller {
 	/** The path of the main auth page */
@@ -24,7 +26,7 @@ class AuthController extends Controller {
 	  *
 	  * @param service The service code
 	  */
-	private def serviceURL(service: String, default: String = url("/account")) = {
+	private def serviceURL(service: String, default: String = url("/")) = {
 		val prod = Play.isProd(Play.current)
 		val dev = Play.isDev(Play.current)
 
@@ -197,6 +199,9 @@ class AuthController extends Controller {
 		}
 	}
 
+	/**
+	  * Main account page
+	  */
 	def account = Authenticated.async { implicit req =>
 		lazy val defaultProfile = {
 			val dash = Some("-")
@@ -207,6 +212,17 @@ class AuthController extends Controller {
 			profile <- Profiles.findById(req.user.id).headOption
 		} yield {
 			Ok(views.html.auth.account.render(profile.getOrElse(defaultProfile), req))
+		}
+	}
+
+	/**
+	  * Lists active sessions
+	  */
+	def sessions = Authenticated.async { implicit req =>
+		for {
+			sessions <- Sessions.findByUser(req.user.id).sortBy(_.last_access.desc).run
+		} yield {
+			Ok(views.html.auth.sessions.render(sessions, req))
 		}
 	}
 

@@ -16,4 +16,6 @@ class Sessions(tag: Tag) extends Table[Session](tag, "gt_sessions") {
 	def * = (token, user, ip, ua, created, last_access) <> (Session.tupled, Session.unapply)
 }
 
-object Sessions extends TableQuery(new Sessions(_))
+object Sessions extends TableQuery(new Sessions(_)) {
+	def findByUser(user: Rep[Int]) = Sessions.filter(_.user === user)
+}

@@ -1,0 +1,79 @@
+@import models.authentication.Session
+@(sessions: Seq[Session])(implicit req: AuthController#AuthRequest[AnyContent])
+@auth.layout("Connexions actives", "sessions") {
+
+	<div class="box black" style="margin-bottom: 16px;">
+		<p>
+			Cette page liste toutes les sessions actuellement actives sur votre compte.
+			Vous pouvez choisir de terminer manuellement une session si vous estimez qu'elle ne devrait plus être ouverte.
+			Les sessions sans activité depuis 5 jours sont automatiquement fermées.
+		</p>
+	</div>
+
+	<table class="box">
+		<thead>
+			<tr>
+				<th>Adresse IP</th>
+				<th>User-Agent</th>
+				<th>Ouverte</th>
+				<th>Dernière activité</th>
+				<th class="ac">Actions</th>
+			</tr>
+		</thead>
+		<tbody>
+			@for(session <- sessions) {
+				<tr class="row">
+					<td class="ip">@session.ip.getOrElse("-")</td>
+					<td class="ua">@session.ua.getOrElse("-")</td>
+					<td class="cr">@session.created.toString.substring(0, 19)</td>
+					<td class="la">@session.last_access.toString.substring(0, 19)</td>
+					<td class="ac">
+						<a href='@req.url("/account/sessions?close=" + session.token)' class="btn">
+							Terminer
+						</a>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+
+	<style>
+		table {
+			border-collapse: collapse;
+		}
+
+		thead {
+			background: rgba(100, 180, 255, 0.1);
+			font-size: 15px;
+		}
+
+		th, td {
+			text-align: left;
+			padding: 12px;
+		}
+
+		th {
+			font-weight: 500;
+		}
+
+		td {
+			/*vertical-align: top;*/
+			white-space: nowrap;
+		}
+
+		.row td {
+			border-top: 1px solid #426585;
+		}
+
+		.ua {
+			font: 400 12px "Roboto";
+			width: 40%;
+			white-space: normal;
+		}
+
+		.ac {
+			text-align: right;
+			width: 100px;
+		}
+	</style>
+}

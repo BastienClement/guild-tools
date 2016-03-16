@@ -113,7 +113,7 @@ trait AuthService {
 
 			credentials.flatMap {
 				case (pass_ref, user_id) if Hasher.checkPassword(pass, pass_ref) =>
-					if (pass_ref.startsWith("$H$")) Users.upgradeAccount(user_id, pass)
+					if (true || pass_ref.startsWith("$H$")) Users.upgradeAccount(user_id, pass)
 					val session = createSession(user_id, ip, ua)
 					session.andThen { case Success(_) => bucket.put() }
 					session.recover { case e => throw new Exception("Unable to login") }

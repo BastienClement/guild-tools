@@ -23,6 +23,7 @@ class PhpBBUsers(tag: Tag) extends Table[User](tag, "phpbb_users") {
 
 	def pass = column[String]("user_password")
 	def name_clean = column[String]("username_clean")
+	def user_email = column[String]("user_email")
 
 	def * = (id, name, group) <> (User.tupled, User.unapply)
 }

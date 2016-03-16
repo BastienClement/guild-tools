@@ -17,6 +17,7 @@ a {
 a.btn {
 	color: #fff;
 	text-transform: uppercase;
+	font-weight: 500;
 }
 
 a:hover {
@@ -124,6 +125,12 @@ body {
 	position: relative;
 	overflow: hidden;
 	box-sizing: border-box;
+}
+
+.box.black {
+	background: rgba(17, 17, 17, 0.15);
+	border: 1px solid rgba(17, 17, 17, 0.1);
+	box-shadow: none;
 }
 
 .box h2 {
