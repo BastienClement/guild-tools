@@ -2,6 +2,7 @@ name := """guild-tools"""
 
 version := "6.0"
 
+inConfig(Compile)(mappings in packageBin <++= Defaults.sourceMappings)
 lazy val root = (project in file(".")).enablePlugins(PlayScala, SbtWeb)
 
 scalaVersion := "2.11.7"
