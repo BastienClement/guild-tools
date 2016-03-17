@@ -2,8 +2,9 @@ package controllers
 
 import actors.AuthService
 import java.util.concurrent.ExecutionException
+import models.mysql._
+import models._
 import models.authentication.Sessions
-import models.{Profile, Profiles, User}
 import play.api.Play
 import play.api.mvc._
 import reactive.ExecutionContext
@@ -11,8 +12,6 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
 import utils.{Cache, TokenBucket}
-import models.mysql._
-import models._
 
 class AuthController extends Controller {
 	/** The path of the main auth page */
@@ -206,7 +205,7 @@ class AuthController extends Controller {
 		for {
 			opt_profile <- Profiles.findById(req.user.id).headOption
 		} yield {
-			val profile = opt_profile.map(_.concealFor(req.optUser).withPlaceholders).getOrElse(Profiles.empty)
+			val profile = opt_profile.map(_.withPlaceholders).getOrElse(Profiles.empty)
 			Ok(views.html.auth.account.render(profile, req))
 		}
 	}
