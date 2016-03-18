@@ -2,9 +2,10 @@ package utils
 
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
+import java.time.Clock
 import java.util.concurrent.TimeUnit
-import java.util.{TimeZone, Calendar, GregorianCalendar}
-import scala.compat.Platform
+import java.util.{Calendar, GregorianCalendar, TimeZone}
+
 import scala.concurrent.duration.FiniteDuration
 import scala.language.implicitConversions
 
@@ -12,17 +13,23 @@ import scala.language.implicitConversions
   * Time manipulation object
   */
 object SmartTimestamp {
+	/** System clock with UTC timezone */
+	val clock = Clock.systemUTC()
+
+	/** Default UTC TimeZone */
+	val utc = TimeZone.getTimeZone("UTC")
+
 	/**
 	  * Display format
 	  */
 	val format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-	format.setTimeZone(TimeZone.getTimeZone("UTC"))
+	format.setTimeZone(utc)
 
 	/**
 	  * ISO Date format
 	  */
 	val iso = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-	format.setTimeZone(TimeZone.getTimeZone("UTC"))
+	iso.setTimeZone(utc)
 
 	/**
 	  * Convert a SQL timestamp to a SmartTimestamp
@@ -33,7 +40,7 @@ object SmartTimestamp {
 	/**
 	  * Create a SmartTimestamp for the current time
 	  */
-	def now: SmartTimestamp = SmartTimestamp(Platform.currentTime)
+	def now: SmartTimestamp = SmartTimestamp(clock.instant().toEpochMilli)
 
 	/**
 	  * Create a SmartTimestamp for the current day at 00:00:00
@@ -49,6 +56,7 @@ object SmartTimestamp {
 	def apply(year: Int, month: Int, day: Int, hours: Int = 0, mins: Int = 0, secs: Int = 0): SmartTimestamp = {
 		val calendar = new GregorianCalendar()
 		calendar.set(year, month, day, hours, mins, secs)
+		calendar.setTimeZone(utc)
 		SmartTimestamp(calendar.getTime.getTime)
 	}
 
@@ -69,6 +77,7 @@ class SmartTimestamp(val time: Long) extends Timestamp(time) {
 	  */
 	lazy val calendar = {
 		val c = new GregorianCalendar()
+		c.setTimeZone(SmartTimestamp.utc)
 		c.setTimeInMillis(time)
 		c
 	}
@@ -76,19 +85,19 @@ class SmartTimestamp(val time: Long) extends Timestamp(time) {
 	/**
 	  * Comparators
 	  */
-	def == (that: SmartTimestamp): Boolean = time == that.time
-	def != (that: SmartTimestamp): Boolean = time != that.time
-	def > (that: SmartTimestamp): Boolean = time > that.time
-	def < (that: SmartTimestamp): Boolean = time < that.time
-	def >= (that: SmartTimestamp): Boolean = time >= that.time
-	def <= (that: SmartTimestamp): Boolean = time <= that.time
+	def ==(that: SmartTimestamp): Boolean = time == that.time
+	def !=(that: SmartTimestamp): Boolean = time != that.time
+	def >(that: SmartTimestamp): Boolean = time > that.time
+	def <(that: SmartTimestamp): Boolean = time < that.time
+	def >=(that: SmartTimestamp): Boolean = time >= that.time
+	def <=(that: SmartTimestamp): Boolean = time <= that.time
 
 	/**
 	  * Date arithmetic
 	  */
-	def + (that: FiniteDuration): SmartTimestamp = SmartTimestamp(time + that.toMillis)
-	def - (that: FiniteDuration): SmartTimestamp = SmartTimestamp(time - that.toMillis)
-	def - (that: SmartTimestamp): FiniteDuration = FiniteDuration(time - that.time, TimeUnit.MILLISECONDS)
+	def +(that: FiniteDuration): SmartTimestamp = SmartTimestamp(time + that.toMillis)
+	def -(that: FiniteDuration): SmartTimestamp = SmartTimestamp(time - that.toMillis)
+	def -(that: SmartTimestamp): FiniteDuration = FiniteDuration(time - that.time, TimeUnit.MILLISECONDS)
 
 	def between(a: SmartTimestamp, b: SmartTimestamp): Boolean = this >= a && this <= b
 
