@@ -46,8 +46,9 @@ class AuthChannel(val socket: ActorRef, val opener: Opener) extends ChannelHandl
 	def authorized(user: User) = AuthService.allowed_groups.contains(user.group)
 
 	request("auth") { payload =>
-		AuthService.auth(payload.string).map { user =>
-			socket ! SetUser(user)
+		val session = payload.string
+		AuthService.auth(session).map { user =>
+			socket ! SetUser(user, session)
 			(Json.toJson(user), Some(user))
 		}.recover {
 			case e => (JsNull, None)

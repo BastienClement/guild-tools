@@ -1,9 +1,11 @@
 package gtp3
 
+import actors.AuthService
 import akka.actor._
 import gt.GuildTools
 import gtp3.Socket._
 import models.User
+
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.compat.Platform
@@ -30,7 +32,7 @@ object Socket {
 	case class OutgoingFrame(buf: Array[Byte])
 
 	// Define the authenticated user of this socket
-	case class SetUser(user: User)
+	case class SetUser(user: User, session: String)
 
 	// The opener of a socket
 	case class Opener(ip: String, ua: Option[String])
@@ -84,7 +86,7 @@ class Socket(val id: Long, val opener: Opener) extends Actor {
 			state = "DISCONNECTED"
 			out = null
 
-		case ForceStop =>
+		case ForceStop | AuthService.SessionClosed =>
 			state = "KILLED"
 			if (out != null) {
 				out ! Kill
@@ -168,8 +170,9 @@ class Socket(val id: Long, val opener: Opener) extends Actor {
 			self ! OpenFailureFrame(0, open.sender_channel, code, message)
 
 		// Update the user attached to the socket for future open requests
-		case SetUser(u) =>
+		case SetUser(u, session) =>
 			user = u
+			AuthService.subscribe(session)
 
 		// A channel actor is terminated, remove the channel
 		case Terminated(channel) =>
