@@ -63,7 +63,7 @@
 		<meta is="roster-user" [id]="user" [user]="infos">
 		<meta is="roster-rank" [id]="infos.group" [name]="rank_name">
 		<gt-box heading="Profile" scrollable>
-			<gt-button *if="editable"><i>edit</i> Edit</gt-button>
+			<gt-button *if="editable" (click)="EditProfile"><i>edit</i> Edit</gt-button>
 			<div #username>
 				<i>person</i>
 				<span>Username</span>

@@ -93,8 +93,7 @@ class ProfileChannel(val user: User) extends ChannelHandler {
 	request("user-profile") { p =>
 		val id = p("id").as[Int]
 		Profiles.filter(_.user === id).head.map { data =>
-			if (user.promoted || user.id == id) data
-			else data.conceal
+			data.concealFor(user)
 		}.recover { case _ =>
 			models.Profile(id, None, None, None, None, None, None)
 		}
