@@ -1,0 +1,14 @@
+@()
+@error() {
+	<p>
+		Your connection is not secure.
+	</p>
+	<p>
+		For some reason, your browser don't seem to be using HTTPS. Unfortunatly, an encrypted transport layer is
+		a requirement for authentication security. Requests from non-secure channels are therefore forbidden.
+	</p>
+	<p>
+		Please use HTTPS.
+	</p>
+	<p class="mono gray">auth::nonsecure</p>
+}

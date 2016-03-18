@@ -76,7 +76,8 @@ class AuthController extends Controller {
 
 		override def invokeBlock[A](request: Request[A], block: (AuthRequest[A]) => Future[Result]) = {
 			transform(request).flatMap { implicit req =>
-				block(req)
+				if (req.secure) block(req)
+				else Future.successful(Redirect(url("/nonsecure")))
 			}
 		}
 	}
@@ -96,14 +97,18 @@ class AuthController extends Controller {
 	  * Main login form.
 	  */
 	def main = Action.async { req =>
-		val valid = req.cookies.get("FSID") match {
-			case Some(cookie) => AuthService.sessionActive(cookie.value)
-			case None => Future.successful(false)
-		}
+		if (req.secure) {
+			val valid = req.cookies.get("FSID") match {
+				case Some(cookie) => AuthService.sessionActive(cookie.value)
+				case None => Future.successful(false)
+			}
 
-		valid.map {
-			case true => Redirect(url("/account"))
-			case false => Ok(views.html.auth.main.render(req.flash.get("error").orElse(req.getQueryString("error"))))
+			valid.map {
+				case true => Redirect(url("/account"))
+				case false => Ok(views.html.auth.main.render(req.flash.get("error").orElse(req.getQueryString("error"))))
+			}
+		} else {
+			Future.successful(Redirect(url("/nonsecure")))
 		}
 	}
 
@@ -220,6 +225,11 @@ class AuthController extends Controller {
 			Ok(views.html.auth.sessions.render(sessions, req))
 		}
 	}
+
+	/**
+	  * Non-secure connection
+	  */
+	def nonsecure = Action { Ok(views.html.auth.nonsecure.render()) }
 
 	/**
 	  * Throttled

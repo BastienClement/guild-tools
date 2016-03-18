@@ -42,6 +42,7 @@ GET         /auth/account                     controllers.AuthController.account
 GET         /auth/account/sessions            controllers.AuthController.sessions
 GET         /auth/logout                      controllers.AuthController.logout
 GET         /auth/throttled                   controllers.AuthController.throttled
+GET         /auth/nonsecure                   controllers.AuthController.nonsecure
 GET         /auth/*path                       controllers.GtApplication.broken_path(path)
 POST        /auth/*path                       controllers.GtApplication.broken_path(path)
 
