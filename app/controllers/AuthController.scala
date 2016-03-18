@@ -2,9 +2,9 @@ package controllers
 
 import actors.AuthService
 import java.util.concurrent.ExecutionException
-import models.mysql._
 import models._
 import models.authentication.Sessions
+import models.mysql._
 import play.api.Play
 import play.api.mvc._
 import reactive.ExecutionContext
@@ -12,6 +12,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
 import utils.{Cache, TokenBucket}
+import utils.Implicits._
 
 class AuthController extends Controller {
 	/** The path of the main auth page */
@@ -77,7 +78,7 @@ class AuthController extends Controller {
 		override def invokeBlock[A](request: Request[A], block: (AuthRequest[A]) => Future[Result]) = {
 			transform(request).flatMap { implicit req =>
 				if (req.secure) block(req)
-				else Future.successful(Redirect(url("/nonsecure")))
+				else Redirect(url("/nonsecure"))
 			}
 		}
 	}
@@ -108,7 +109,7 @@ class AuthController extends Controller {
 				case false => Ok(views.html.auth.main.render(req.flash.get("error").orElse(req.getQueryString("error"))))
 			}
 		} else {
-			Future.successful(Redirect(url("/nonsecure")))
+			Redirect(url("/nonsecure"))
 		}
 	}
 
@@ -133,7 +134,7 @@ class AuthController extends Controller {
 					case e => Redirect(url("/")).flashing("error" -> e.getMessage)
 				}
 			}.getOrElse {
-				Future.successful(Redirect(url("/")).flashing("error" -> "An unknown error occured"))
+				Redirect(url("/")).flashing("error" -> "An unknown error occured")
 			}
 		}
 	}
@@ -181,9 +182,9 @@ class AuthController extends Controller {
 				case false => auth_redirect
 			}
 		} else if (req.getQueryString("noauth").isDefined) {
-			Future.successful(ignore_redirect)
+			ignore_redirect
 		} else {
-			Future.successful(Redirect(url("/throttled")))
+			Redirect(url("/throttled"))
 		}
 	}
 

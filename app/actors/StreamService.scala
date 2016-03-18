@@ -9,6 +9,7 @@ import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.duration.{Deadline, _}
+import utils.Implicits._
 import utils._
 
 private[actors] class StreamServiceImpl extends StreamService
@@ -255,14 +256,12 @@ trait StreamService {
 	  * Creates a new Streaming ticket.
 	  * Requires that the stream can be watched by the user.
 	  */
-	def createTicket(owner_id: Int, user: User) = {
+	def createTicket(owner_id: Int, user: User): Future[Ticket] = {
 		if (!user.promoted && viewers.contains(user.id)) {
-			Future.failed(new Exception("You are not allowed to watch multiple streams at the same time."))
+			StacklessException("You are not allowed to watch multiple streams at the same time.")
 		} else {
 			for {
-				stream <- Streams.filter(_.user === owner_id).head recover {
-					case _ => throw new Exception("The requested stream does not exists.")
-				}
+				stream <- Streams.filter(_.user === owner_id).head.otherwise("The requested stream does not exists.")
 			} yield {
 				if (stream.progress && !whitelist.contains(user.id))
 					throw new Exception("Access to this stream is currently restricted.")

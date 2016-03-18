@@ -100,7 +100,7 @@ trait WtController {
 		  */
 		override def invokeBlock[A](request: Request[A], block: (UserRequest[A]) => Future[Result]) = {
 			val result = for {
-				req <- transform(request) recover { case _ => throw AuthFailed }
+				req <- transform(request).recoverWith { case _ => Future.failed(AuthFailed) }
 				res <- block(req)
 			} yield {
 				if (req.set_cookie) res.withCookies(Cookie("gt_session", req.token, maxAge = Some(60 * 60 * 24 * 7)))

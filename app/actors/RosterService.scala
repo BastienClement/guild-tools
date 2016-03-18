@@ -8,7 +8,8 @@ import reactive.ExecutionContext
 import scala.compat.Platform
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import utils.{Cache, CacheCell, PubSub}
+import utils._
+import utils.Implicits._
 
 private[actors] class RosterServiceImpl extends RosterService
 
@@ -83,43 +84,39 @@ trait RosterService extends PubSub[User] {
 			// Request for the updated char
 			val char = getOwnChar(id, user)
 			val res =
-				char.filter(c => c.last_update < Platform.currentTime - (1000 * 60 * 15)).head recover {
-					case cause => throw new Exception("Cannot refresh character at this time", cause)
-				} flatMap { oc =>
-					BattleNet.fetchChar(oc.server, oc.name) recoverWith {
-						case BnetFailure(response) if response.status == 404 =>
-							char.map(_.failures).head map { f =>
-								val failures = f + 1
-								val invalid = failures >= 3
-								char map {
-									c => (c.active, c.failures, c.invalid, c.last_update)
-								} update {
-									(oc.active && (!invalid || oc.main), failures, invalid, Platform.currentTime)
+				char.filter(c => c.last_update < Platform.currentTime - (1000 * 60 * 15)).head
+					.otherwise("Cannot refresh character at this time")
+					.flatMap { oc =>
+						BattleNet.fetchChar(oc.server, oc.name).recoverWith {
+							case BnetFailure(response) if response.status == 404 =>
+								char.map(_.failures).head.map { f =>
+									val failures = f + 1
+									val invalid = failures >= 3
+									char.map {
+										c => (c.active, c.failures, c.invalid, c.last_update)
+									}.update {
+										(oc.active && (!invalid || oc.main), failures, invalid, Platform.currentTime)
+									}
+								}.flatMap { query =>
+									query.run.flatMap(_ => StacklessException("Battle.net Error: " + response.body))
 								}
-							} flatMap { query =>
-								query.run map {
-									_ => throw new Exception("Battle.net Error: " + response.body)
-								}
-							}
 
-						// Another error occurred, just update the last_update, but don't count as failure
-						case cause =>
-							val query = char map { c => c.last_update } update Platform.currentTime
-							query.run map {
-								_ => throw new Exception("Error while updating character", cause)
+							// Another error occurred, just update the last_update, but don't count as failure
+							case cause =>
+								char.map(c => c.last_update).update(SmartTimestamp.time).run
+									.flatMap(_ => StacklessException("Error while updating character", cause))
+						}.map { nc =>
+							char.map {
+								c => (c.klass, c.race, c.gender, c.level, c.achievements, c.thumbnail, c.ilvl, c.failures, c.invalid, c.last_update)
+							}.update {
+								(nc.clazz, nc.race, nc.gender, nc.level, nc.achievements, nc.thumbnail, math.max(nc.ilvl, oc.ilvl), 0, false, SmartTimestamp.time)
 							}
-					} map { nc =>
-						char map {
-							c => (c.klass, c.race, c.gender, c.level, c.achievements, c.thumbnail, c.ilvl, c.failures, c.invalid, c.last_update)
-						} update {
-							(nc.clazz, nc.race, nc.gender, nc.level, nc.achievements, nc.thumbnail, math.max(nc.ilvl, oc.ilvl), 0, false, Platform.currentTime)
+						}.flatMap {
+							query => query.run
+						}.flatMap {
+							_ => char.head
 						}
-					} flatMap {
-						query => query.run
-					} flatMap {
-						_ => char.head
 					}
-				}
 
 			res andThen {
 				case _ => inflightUpdates -= id
@@ -141,7 +138,7 @@ trait RosterService extends PubSub[User] {
 			Chars.filter(char => char.id === id && char.main === !main).map(_.main).update(main)
 
 		val query = for {
-			// Fetch new and old main chars
+		// Fetch new and old main chars
 			new_main <- getOwnChar(id, user).result.head
 			old_main <- Chars.filter(char => char.main === true && char.owner === new_main.owner).result.head
 
@@ -150,7 +147,7 @@ trait RosterService extends PubSub[User] {
 			old_updated <- update_char(old_main.id, false)
 
 			// Ensure we have updated two chars
-			_ = if (new_updated + old_updated == 2) () else throw new Exception("Failed to update chars")
+			_ = if (new_updated + old_updated != 2) throw StacklessException("Failed to update chars")
 		} yield {
 			(notifyUpdate(new_main.copy(main = true)), notifyUpdate(old_main.copy(main = false)))
 		}
@@ -189,7 +186,7 @@ trait RosterService extends PubSub[User] {
 		for {
 			char <- getOwnChar(id, user).filter(c => c.main === false && c.active === false).result.head
 			count <- Chars.filter(c => c.id === char.id).delete
-			_ = if (count > 0) () else throw new Exception("Failed to delete this character")
+			_ = if (count < 1) throw StacklessException("Failed to delete this character")
 		} yield {
 			user_chars.clear(char.owner)
 			roster_chars.clear()
@@ -211,7 +208,7 @@ trait RosterService extends PubSub[User] {
 	def registerChar(char: Char, owner: Int, role: Option[String]): Future[Char] = DB.run {
 		val count_main = Chars.filter(c => c.owner === owner && c.main === true).size.result
 		val query = for {
-			// Count the number of main for this user
+		// Count the number of main for this user
 			pre_count <- count_main
 			// Construct the char for insertion with correct role, owner and main flag
 			insert_char = char.copy(role = role.getOrElse(char.role), owner = owner, main = pre_count < 1)

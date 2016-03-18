@@ -6,8 +6,8 @@ import models.authentication.{Session, Sessions, Users}
 import models.mysql._
 import reactive._
 import utils.crypto.Hasher
-import utils.{Cache, PubSub, SmartTimestamp, TokenBucket}
-
+import utils._
+import utils.Implicits._
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Success
@@ -105,7 +105,7 @@ trait AuthService {
 		val bucket = buckets(username.toLowerCase)
 
 		if (!bucket.take()) {
-			Future.failed(new Exception("Authentication is not available right now."))
+			StacklessException("Authentication is not available right now.")
 		} else {
 			val credentials = Users.findByUsername(username).map(u => (u.password, u.id)).head.recoverWith {
 				case _ => PhpBBUsers.findByUsername(username).map(u => (u.pass, u.id)).head
@@ -114,12 +114,10 @@ trait AuthService {
 			credentials.flatMap {
 				case (pass_ref, user_id) if Hasher.checkPassword(pass, pass_ref) =>
 					if (true || pass_ref.startsWith("$H$")) Users.upgradeAccount(user_id, pass)
-					val session = createSession(user_id, ip, ua)
-					session.andThen { case Success(_) => bucket.put() }
-					session.recover { case e => throw new Exception("Unable to login") }
-			}.recover {
-				case e => throw new Exception("Invalid username or password")
-			}
+					createSession(user_id, ip, ua)
+						.andThen { case Success(_) => bucket.put() }
+						.otherwise("Unable to login")
+			}.otherwise("Invalid username or password")
 		}
 	}
 

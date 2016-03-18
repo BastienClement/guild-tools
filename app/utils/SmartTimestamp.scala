@@ -38,9 +38,14 @@ object SmartTimestamp {
 	implicit def toTimestamp(s: SmartTimestamp): Timestamp = s.toSQL
 
 	/**
+	  * Return the current UTC time
+	  */
+	def time: Long = clock.instant().toEpochMilli
+
+	/**
 	  * Create a SmartTimestamp for the current time
 	  */
-	def now: SmartTimestamp = SmartTimestamp(clock.instant().toEpochMilli)
+	def now: SmartTimestamp = SmartTimestamp(time)
 
 	/**
 	  * Create a SmartTimestamp for the current day at 00:00:00
