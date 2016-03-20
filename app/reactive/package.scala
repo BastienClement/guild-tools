@@ -1,9 +1,9 @@
-import play.libs.Akka
+import gt.GuildTools
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.{higherKinds, implicitConversions}
 
 package object reactive {
-	implicit lazy val ExecutionContext: ExecutionContext = Akka.system.dispatchers.lookup("default-pool")
+	implicit lazy val ExecutionContext: ExecutionContext = GuildTools.system.dispatchers.lookup("default-pool")
 	implicit lazy val DefaultDomain = new Domain
 
 	/**

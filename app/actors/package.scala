@@ -1,8 +1,7 @@
 import akka.actor._
+import gt.GuildTools
 import gtp3.Socket.{Disconnect, ForceStop, OutgoingFrame}
 import play.api.Logger
-import play.api.Play.current
-import play.api.libs.concurrent.Akka
 import scala.concurrent.duration._
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
@@ -13,11 +12,14 @@ import scala.reflect.ClassTag
   * concurrency needs to be handled properly.
   */
 package object actors {
+	/** The default application's System */
+	lazy val system = GuildTools.system
+
 	/**
 	  * Constructs persistent TypedActors.
 	  */
 	private[actors] abstract class StaticActor[A <: AnyRef, B <: A : ClassTag](name: String, timeout: FiniteDuration = 1.minute) {
-		private[actors] val $actor: A = TypedActor(Akka.system).typedActorOf(TypedProps[B].withTimeout(timeout), name)
+		private[actors] val $actor: A = TypedActor(system).typedActorOf(TypedProps[B].withTimeout(timeout), name)
 	}
 
 	/**
@@ -39,8 +41,8 @@ package object actors {
 	}
 
 	// Subscribe the logger to the event stream
-	private val DeadLetterLogger = Akka.system.actorOf(Props[DeadLetterLogger], "DeadlettersLogger")
-	Akka.system.eventStream.subscribe(DeadLetterLogger, classOf[DeadLetter])
+	private val DeadLetterLogger = system.actorOf(Props[DeadLetterLogger], "DeadlettersLogger")
+	system.eventStream.subscribe(DeadLetterLogger, classOf[DeadLetter])
 
 	/**
 	  * A tagged ActorRef.

@@ -1,12 +1,12 @@
 package controllers
 
 import channels.NewsFeedChannel
-import play.api.Play._
+import gt.GuildTools
 import play.api.mvc.{Action, Controller}
 
 class PingController extends Controller {
-	private val secret = current.configuration.getString("ping.secret") getOrElse ""
-	private val sources = current.configuration.getStringSeq("ping.sources") getOrElse Nil
+	private val secret = GuildTools.conf.getString("ping.secret").getOrElse("")
+	private val sources = GuildTools.conf.getStringSeq("ping.sources").getOrElse(Nil)
 
 	private def PingAction(execute: => Unit) = Action { request =>
 		val key = request.queryString.getOrElse("key", Nil)

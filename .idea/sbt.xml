@@ -11,13 +11,7 @@
             <option value="$PROJECT_DIR$/project" />
           </set>
         </option>
-        <option name="sbtVersion" value="0.13.9" />
-        <option name="myModules">
-          <set>
-            <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/project" />
-          </set>
-        </option>
+        <option name="sbtVersion" value="0.13.11" />
       </SbtProjectSettings>
     </option>
   </component>

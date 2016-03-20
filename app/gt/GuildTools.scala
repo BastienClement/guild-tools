@@ -1,15 +1,18 @@
 package gt
 
-import com.google.inject.Inject
+import akka.actor.ActorSystem
+import com.google.inject.{Inject, Singleton}
 import java.io.File
 import java.nio.file.{FileSystems, StandardWatchEventKinds => SWEK}
-import play.api.Play.current
+import play.api.db.slick.DatabaseConfigProvider
 import play.api.inject.ApplicationLifecycle
-import play.api.{Mode, Play}
+import play.api.libs.ws.WSClient
+import play.api.{Configuration, Environment, Logger, Mode}
 import scala.compat.Platform
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.sys.process._
+import slick.driver.JdbcProfile
 import utils.CacheCell
 
 object GuildTools {
@@ -18,10 +21,32 @@ object GuildTools {
 	val serverVersion = CacheCell(15.minutes) { "git rev-parse HEAD".!!.trim }
 	val serverStart = Platform.currentTime
 	def serverUptime = Platform.currentTime - serverStart
+
+	// Workaround for dump and useless DI requirement
+	private[gt] var self: GuildTools = null
+
+	lazy val env = self.env
+	lazy val conf = self.conf
+	lazy val system = self.system
+	lazy val ws = self.ws
+	lazy val db = self.dbc.get[JdbcProfile].db
+
+	lazy val prod = env.mode == Mode.Prod
+	lazy val dev = env.mode == Mode.Dev
 }
 
-class GuildTools @Inject() (lifecycle: ApplicationLifecycle) {
-	Play.mode match {
+@Singleton
+class GuildTools @Inject() (val lifecycle: ApplicationLifecycle,
+                            val env: Environment,
+                            val conf: Configuration,
+                            val system: ActorSystem,
+                            val ws: WSClient,
+                            val dbc: DatabaseConfigProvider) {
+	// Leak this instance
+	Logger.info("Starting GuildTools server...")
+	GuildTools.self = this
+
+	env.mode match {
 		case Mode.Dev =>
 			setupTypescriptCompiler()
 
@@ -32,22 +57,22 @@ class GuildTools @Inject() (lifecycle: ApplicationLifecycle) {
 	def stopHook(fn: => Unit): Unit = lifecycle.addStopHook(() => Future.successful(fn))
 
 	def setupTypescriptCompiler(): Unit = {
-		val path = Play.configuration.getString("dev.path").get
-		val pwd = Play.configuration.getString("dev.dir").get
-		val tsc = Play.configuration.getString("dev.tsc").get
-		val node = Play.configuration.getString("dev.node").getOrElse("node")
-		val watch = Play.configuration.getBoolean("dev.tsc.watch").getOrElse(true)
+		val path = conf.getString("dev.path").get
+		val pwd = conf.getString("dev.dir").get
+		val tsc = conf.getString("dev.tsc").get
+		val node = conf.getString("dev.node").getOrElse("node")
+		val watch = conf.getBoolean("dev.tsc.watch").getOrElse(true)
 
 		if (watch) {
 			val logger = ProcessLogger { line =>
-				println("TSC   - " + line)
+				Logger.debug("[TSC]: " + line)
 			}
 
-			println("TSC   - Starting Typescript compiler")
+			Logger.info("[TSC]: Starting Typescript compiler")
 			val process = Process(Seq(node, tsc, "-w"), new File(s"$pwd/public/tools"), "PATH" -> path).run(logger)
 
 			stopHook {
-				println("TSC   - Stopping Typescript compiler")
+				Logger.info("[TSC]: Stopping Typescript compiler")
 				process.destroy()
 			}
 		} else {

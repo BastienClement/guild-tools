@@ -1,8 +1,7 @@
 package utils
 
 import akka.actor.{Actor, ActorRef, Props, Terminated}
-import play.api.Play.current
-import play.api.libs.concurrent.Akka
+import gt.GuildTools
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 import scala.language.existentials
@@ -50,7 +49,7 @@ object PubSub {
 	/**
 	  * The Watcher instance
 	  */
-	private val Watcher = Akka.system.actorOf(Props[WatcherActor], "PubSubWatcher")
+	private val Watcher = GuildTools.system.actorOf(Props[WatcherActor], "PubSubWatcher")
 
 	/**
 	  * A dummy object used to distinguish between same-signature method at runtime

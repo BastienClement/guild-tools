@@ -1,20 +1,18 @@
+import gt.GuildTools
 import java.sql.Timestamp
 import models.application.{Application, ApplicationMessage}
 import models.calendar._
-import play.api.Play
-import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.json._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.language.implicitConversions
 import slick.dbio.{DBIOAction, NoStream}
-import slick.driver.JdbcProfile
 import slick.lifted.Query
 import utils.SmartTimestamp
 
 package object models {
-	val DB = DatabaseConfigProvider.get[JdbcProfile](Play.current).db
-	val mysql = slick.driver.MySQLDriver.api
+	lazy val DB = GuildTools.db
+	lazy val mysql = slick.driver.MySQLDriver.api
 
 	implicit class QueryExecutor[A](val q: Query[_, A, Seq]) extends AnyVal {
 		import mysql._

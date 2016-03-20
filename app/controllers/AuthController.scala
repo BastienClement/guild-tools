@@ -1,22 +1,25 @@
 package controllers
 
 import actors.AuthService
+import gt.GuildTools
 import java.util.concurrent.ExecutionException
 import models._
 import models.authentication.Sessions
 import models.mysql._
-import play.api.Play
 import play.api.mvc._
 import reactive.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
-import utils.{Cache, TokenBucket}
 import utils.Implicits._
+import utils.{Cache, TokenBucket}
 
 class AuthController extends Controller {
+	/** Base path of the Auth interface */
+	private val base = if (GuildTools.prod) "" else "/auth"
+
 	/** The path of the main auth page */
-	private def url(path: String) = (if (Play.isProd(Play.current)) "" else "/auth") + path
+	private def url(path: String) = base + path
 
 	/** Token buckets for rate-limiting the /sso page */
 	private val sso_buckets = Cache(1.hour) { (source: String) => new TokenBucket(15, 10000) }
@@ -27,14 +30,11 @@ class AuthController extends Controller {
 	  * @param service The service code
 	  */
 	private def serviceURL(service: String, default: String = url("/")) = {
-		val prod = Play.isProd(Play.current)
-		val dev = Play.isDev(Play.current)
-
 		service match {
 			case "www" => "https://www.fs-guild.net/sso.php"
 
-			case "gt" if prod => "https://gt.fs-guild.net/sso"
-			case "gt" if dev => "/sso"
+			case "gt" if GuildTools.prod => "https://gt.fs-guild.net/sso"
+			case "gt" if GuildTools.dev => "/sso"
 
 			case _ => default
 		}

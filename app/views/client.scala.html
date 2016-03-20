@@ -1,4 +1,4 @@
-@import play.api.Play
+@import gt.GuildTools
 @(session: Option[String])
 <!DOCTYPE html>
 <meta charset="UTF-8">
@@ -51,18 +51,18 @@
 
 <!-- Load the loading stylesheet -->
 <script>
-	@if(session.isDefined) {
-		localStorage.setItem("auth.session", '@session.get');
-	}
+@if(session.isDefined) {
+	localStorage.setItem("auth.session", '@session.get');
+}
 
 	var APP = typeof require == "function";
 	if (APP) document.querySelector("html").classList.add("app");
 
-	@if(Play.isDev(Play.current)) {
-		var DEV = true;
-	} else {
-		var DEV = false;
-	}
+@if(GuildTools.dev) {
+	var DEV = true;
+} else {
+	var DEV = false;
+}
 
 	function sso_url() {
 		var sso = DEV ? "/auth/sso" : "https://auth.fs-guild.net/sso";
@@ -125,12 +125,12 @@
 <script>
 	ready.then(function() {
 		var script = document.createElement("script");
-		script.src = '@routes.Assets.versioned("tools/tools.js")';
 		script.onload = function() {
 			System.import("boot").then(function(boot) {
 				boot.default();
 			});
 		};
+		script.src = '@routes.Assets.versioned("tools/tools.js")';
 		document.head.appendChild(script);
 	});
 </script>

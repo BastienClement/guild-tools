@@ -1,16 +1,17 @@
 package controllers
 
-import scala.util.Try
+import com.google.inject.Inject
+import gt.GuildTools
 import models._
 import models.mysql._
-import play.api.Play.current
 import play.api.cache.Cached
 import play.api.libs.json.Json
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.api.mvc.{Action, Controller, RequestHeader}
+import scala.util.Try
 import utils.SmartTimestamp
 
-class APIController extends Controller {
+class APIController @Inject() (val cached: Cached) extends Controller {
 	def catchall(path: String) = Action {
 		NotFound(Json.obj("error" -> "Undefined API call"))
 	}
@@ -34,9 +35,9 @@ class APIController extends Controller {
 		NoContent
 	}
 
-	def socketURL = Cached((_: RequestHeader) => "api/socket_url", 3600) {
+	def socketURL = cached((_: RequestHeader) => "api/socket_url", 3600) {
 		Action {
-			Ok(current.configuration.getString("socket.url") getOrElse "")
+			Ok(GuildTools.conf.getString("socket.url").getOrElse(""))
 		}
 	}
 }

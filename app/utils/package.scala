@@ -1,6 +1,6 @@
+import gt.GuildTools
 import java.math.BigInteger
 import java.security.{MessageDigest, SecureRandom}
-import play.libs.Akka
 import reactive.ExecutionContext
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future, Promise}
@@ -17,7 +17,7 @@ package object utils {
 	/**
 	  * Return the Akka system schduler
 	  */
-	def scheduler = Akka.system().scheduler
+	lazy val scheduler = GuildTools.system.scheduler
 
 	/**
 	  * MD5 hash with hex string result

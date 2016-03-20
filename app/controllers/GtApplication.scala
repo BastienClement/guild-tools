@@ -1,22 +1,24 @@
 package controllers
 
 import akka.actor.Props
+import akka.stream.Materializer
 import com.google.inject.Inject
 import gt.GuildTools
 import gtp3.WSActor
-import play.api.Play.current
+import play.api.libs.streams.ActorFlow
 import play.api.mvc.{Action, Controller, WebSocket}
 
-class GtApplication @Inject() (gt: GuildTools) extends Controller {
+class GtApplication @Inject() (implicit val mat: Materializer) extends Controller {
+	implicit val ac = GuildTools.system
+
 	def sanitizeSession(session: String) = session.replaceAll("[^a-z0-9]", "")
 
 	def client = Action { req =>
 		Ok(views.html.client.render(req.flash.get("session").map(sanitizeSession)))
 	}
 
-
-	def gtp3 = WebSocket.acceptWithActor[Array[Byte], Array[Byte]] { request => out =>
-		Props(new WSActor(out, request))
+	def gtp3 = WebSocket.accept[Array[Byte], Array[Byte]] { request =>
+		ActorFlow.actorRef { out => Props(new WSActor(out, request)) }
 	}
 
 	def sso = Action { req =>
