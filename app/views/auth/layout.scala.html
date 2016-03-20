@@ -20,7 +20,13 @@
 			}
 			<a class="btn" href='@req.url("/logout")'><i class="material-icons">exit_to_app</i> Logout</a>
 		</div>
-		<h1>@title</h1>
+		<h1>
+			@if(title != "Mon compte") {
+				<a href='@req.url("/account")'>Mon compte</a>
+				<i class="material-icons" style="position: relative; top: -2px;">chevron_right</i>
+			}
+			@title
+		</h1>
 	</div>
 </div>
 
