@@ -28,9 +28,13 @@
 					<td class="cr">@session.created.toString.substring(0, 19)</td>
 					<td class="la">@session.last_access.toString.substring(0, 19)</td>
 					<td class="ac">
-						<a href='@req.url("/account/sessions?close=" + session.token)' class="btn">
-							Terminer
-						</a>
+						@if(req.sessid != session.token) {
+							<a href='@req.url("/account/sessions?close=" + session.token)' class="btn">
+								Terminer
+							</a>
+						} else {
+							<em>Connexion actuelle</em>
+						}
 					</td>
 				</tr>
 			}
