@@ -1,17 +1,20 @@
 # This is the main configuration file for the application.
 # ~~~~~
 
-play.crypto.secret=""
+play.crypto.secret="*******"
 play.i18n.langs="en"
 
 play.ws.compressionEnabled=true
 play.ws.ssl.default=true
+play.ws.ssl.disabledKeyAlgorithms=[]
+
+play.modules.enabled += "gt.Loader"
 
 slick.dbs.default.driver="slick.driver.MySQLDriver$"
 slick.dbs.default.db.driver=com.mysql.jdbc.Driver
-slick.dbs.default.db.url="jdbc:mysql://localhost/database"
-slick.dbs.default.db.user=""
-slick.dbs.default.db.password=""
+slick.dbs.default.db.url="jdbc:mysql://localhost:3306/*******?useSSL=false"
+slick.dbs.default.db.user="*******"
+slick.dbs.default.db.password="*******"
 
 default-pool {
 	fork-join-executor {
@@ -23,14 +26,9 @@ default-pool {
 
 assets.defaultCache="no-cache"
 
-bnet.apiKey=""
+bnet.apiKey="*******"
 
 socket.url="ws://$host/gtp3"
 
-ping.secret=""
+ping.secret="*******"
 ping.sources=["0:0:0:0:0:0:0:1", "127.0.0.1"]
-
-dev.path=""
-dev.dir=""
-dev.tsc=""
-dev.node=""
