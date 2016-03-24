@@ -59,6 +59,8 @@ class AuthController extends Controller {
 		val user = optUser.orNull
 		val authenticated = optUser.isDefined
 
+		val sessid = request.cookies.get("FSID").map(_.value).getOrElse("")
+
 		def url(path: String) = AuthController.this.url(path)
 	}
 
