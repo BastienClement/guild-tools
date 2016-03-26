@@ -224,7 +224,28 @@ class AuthController extends Controller {
 	  * Lists active sessions
 	  */
 	def sessions = Authenticated.async { implicit req =>
+		val close = req.getQueryString("close") match {
+			case Some("all") =>
+				Sessions.findByUser(req.user.id).run.flatMap { sessions =>
+					Future.sequence {
+						sessions.filter(_.token != req.sessid).map { session =>
+							AuthService.logout(session.token)
+						}
+					}
+				}
+
+			case Some(session) =>
+				Sessions.filter(_.token === session).map(_.user).head.flatMap {
+					case id if id == req.user.id => AuthService.logout(session)
+					case _ => Future.successful(())
+				}
+
+			case None =>
+				Future.successful(())
+		}
+
 		for {
+			_ <- close
 			sessions <- Sessions.findByUser(req.user.id).sortBy(_.last_access.desc).run
 		} yield {
 			Ok(views.html.auth.sessions.render(sessions, req))

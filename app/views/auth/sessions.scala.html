@@ -2,12 +2,19 @@
 @(sessions: Seq[Session])(implicit req: AuthController#AuthRequest[AnyContent])
 @auth.layout("Connexions actives", "sessions") {
 
-	<div class="box black" style="margin-bottom: 20px;">
-		<p>
-			Cette page liste toutes les sessions actuellement actives sur votre compte.
-			Vous pouvez choisir de terminer manuellement une session si vous estimez qu'elle ne devrait plus être ouverte.
-			Les sessions sans activité depuis 5 jours sont automatiquement fermées.
-		</p>
+	<div style="display: flex; margin-bottom: 20px;">
+		<div class="box black">
+			<p>
+				Cette page liste toutes les sessions actuellement actives sur votre compte.
+				Vous pouvez choisir de terminer manuellement une session si vous estimez qu'elle ne devrait plus être ouverte.
+				Les sessions sans activité depuis 5 jours sont automatiquement fermées.
+			</p>
+		</div>
+		<a href='@req.url("/account/sessions?close=all")' class="block"
+			style="margin: 0 0 0 8px; font-size: inherit; white-space: nowrap; line-height: 41px;">
+			<i class="material-icons" style="margin-top: 0;">cloud_off</i>
+			Terminer toutes les connexions
+		</a>
 	</div>
 
 	<table class="box">
@@ -33,7 +40,7 @@
 								Terminer
 							</a>
 						} else {
-							<em>Connexion actuelle</em>
+							<em>Connexion active</em>
 						}
 					</td>
 				</tr>
