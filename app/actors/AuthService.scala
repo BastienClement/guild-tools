@@ -5,12 +5,12 @@ import models._
 import models.authentication.{Session, Sessions, Users}
 import models.mysql._
 import reactive._
-import utils.crypto.Hasher
-import utils._
-import utils.Implicits._
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Success
+import utils.Implicits._
+import utils._
+import utils.crypto.Hasher
 
 private[actors] class AuthServiceImpl extends AuthService
 
@@ -47,9 +47,7 @@ object AuthService extends StaticActor[AuthService, AuthServiceImpl]("AuthServic
 	  * Cache of users corresponding to session tokens.
 	  */
 	val userForSession = Cache.async[String, User](15.seconds) { token =>
-		val sess_query = Sessions.filter(_.token === token)
-		sess_query.map(_.user).head.flatMap { user_id =>
-			sess_query.map(_.last_access).update(SmartTimestamp.now).run
+		Sessions.filter(_.token === token).map(_.user).head.flatMap { user_id =>
 			PhpBBUsers.filter(u => u.id === user_id).head
 		}
 	}
@@ -58,7 +56,18 @@ object AuthService extends StaticActor[AuthService, AuthServiceImpl]("AuthServic
 	  * Returns the user corresponding to a session token.
 	  * Provided for compatibility.
 	  */
-	def auth(session: String): Future[User] = userForSession(session)
+	def auth(session: String, ip: Option[String] = None, ua: Option[String] = None): Future[User] = {
+		userForSession(session) andThen {
+			case Success(user) =>
+				for (sess <- Sessions.filter(_.token === session).head) {
+					Sessions.filter(_.token === session).map {
+						s => (s.last_access, s.ip, s.ua)
+					}.update {
+						(SmartTimestamp.now, ip.orElse(sess.ip), ua.orElse(sess.ua))
+					}.run
+				}
+		}
+	}
 
 	/**
 	  * Returns the user corresponding to a session token and register the
@@ -68,11 +77,9 @@ object AuthService extends StaticActor[AuthService, AuthServiceImpl]("AuthServic
 	  * @param sub     The calling actor
 	  * @return The user associated to the session
 	  */
-	def authAndSubscribe(session: String)(implicit sub: ActorRef): Future[User] = {
-		userForSession(session).andThen {
-			case Success(_) => subscribe(sub, session)
-			case _ => // auth failed, no need to subscribe
-		}
+	def authAndSubscribe(session: String, ip: Option[String] = None, ua: Option[String] = None)
+	                    (implicit sub: ActorRef): Future[User] = {
+		auth(session, ip, ua).andThen { case Success(_) => subscribe(sub, session) }
 	}
 
 	/**
@@ -115,8 +122,8 @@ trait AuthService {
 				case (pass_ref, user_id) if Hasher.checkPassword(pass, pass_ref) =>
 					if (true || pass_ref.startsWith("$H$")) Users.upgradeAccount(user_id, pass)
 					createSession(user_id, ip, ua)
-						.andThen { case Success(_) => bucket.put() }
-						.otherwise("Unable to login")
+					.andThen { case Success(_) => bucket.put() }
+					.otherwise("Unable to login")
 			}.otherwise("Invalid username or password")
 		}
 	}

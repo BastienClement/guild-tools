@@ -55,7 +55,7 @@ class AuthController extends Controller {
 
 	/** A request with user information */
 	class AuthRequest[A](val optUser: Option[User], request: Request[A])
-		extends WrappedRequest[A](request) {
+			extends WrappedRequest[A](request) {
 		val user = optUser.orNull
 		val authenticated = optUser.isDefined
 
@@ -67,9 +67,11 @@ class AuthController extends Controller {
 	/** Authenticated action */
 	object AuthAction extends ActionBuilder[AuthRequest] {
 		def transform[A](request: Request[A]) = {
+			val ip = Some(request.remoteAddress)
+			val ua = request.headers.get("User-Agent")
 			for {
 				user <- request.cookies.get("FSID").map(_.value) match {
-					case Some(sessid) => AuthService.auth(sessid).map(Some(_))
+					case Some(sessid) => AuthService.auth(sessid, ip, ua).map(Some(_)).recover { case _ => None }
 					case _ => Future.successful(None)
 				}
 			} yield {

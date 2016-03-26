@@ -47,7 +47,7 @@ class AuthChannel(val socket: ActorRef, val opener: Opener) extends ChannelHandl
 
 	request("auth") { payload =>
 		val session = payload.string
-		AuthService.auth(session).map { user =>
+		AuthService.auth(session, opener.ip, opener.ua).map { user =>
 			socket ! SetUser(user, session)
 			(Json.toJson(user), Some(user))
 		}.recover {
