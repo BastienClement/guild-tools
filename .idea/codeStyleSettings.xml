@@ -16,6 +16,19 @@
           </value>
         </option>
         <option name="LINE_SEPARATOR" value="&#10;" />
+        <ScalaCodeStyleSettings>
+          <option name="importLayout">
+            <array>
+              <option value="all other imports" />
+            </array>
+          </option>
+          <option name="SPACE_AFTER_MODIFIERS_CONSTRUCTOR" value="true" />
+          <option name="SPACE_BEFORE_INFIX_METHOD_CALL_PARENTHESES" value="true" />
+          <option name="PRESERVE_SPACE_AFTER_METHOD_DECLARATION_NAME" value="true" />
+          <option name="SPACE_BEFORE_INFIX_LIKE_METHOD_PARENTHESES" value="true" />
+          <option name="SPACES_IN_ONE_LINE_BLOCKS" value="true" />
+          <option name="SPACES_AROUND_AT_IN_PATTERNS" value="true" />
+        </ScalaCodeStyleSettings>
         <XML>
           <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
         </XML>
@@ -37,6 +50,19 @@
             <option name="SMART_TABS" value="true" />
           </indentOptions>
         </codeStyleSettings>
+        <codeStyleSettings language="JavaScript">
+          <indentOptions>
+            <option name="USE_TAB_CHARACTER" value="true" />
+            <option name="SMART_TABS" value="true" />
+          </indentOptions>
+        </codeStyleSettings>
+        <codeStyleSettings language="LESS">
+          <indentOptions>
+            <option name="INDENT_SIZE" value="4" />
+            <option name="USE_TAB_CHARACTER" value="true" />
+            <option name="SMART_TABS" value="true" />
+          </indentOptions>
+        </codeStyleSettings>
         <codeStyleSettings language="Scala">
           <option name="BLANK_LINES_AFTER_PACKAGE" value="0" />
           <option name="BLANK_LINES_BEFORE_IMPORTS" value="0" />
@@ -44,18 +70,25 @@
           <option name="BLANK_LINES_AROUND_CLASS" value="0" />
           <option name="BLANK_LINES_AROUND_METHOD" value="0" />
           <option name="BLANK_LINES_AROUND_METHOD_IN_INTERFACE" value="0" />
+          <option name="ALIGN_MULTILINE_CHAINED_METHODS" value="true" />
           <option name="KEEP_SIMPLE_BLOCKS_IN_ONE_LINE" value="true" />
           <option name="KEEP_SIMPLE_METHODS_IN_ONE_LINE" value="true" />
           <indentOptions>
-            <option name="INDENT_SIZE" value="4" />
-            <option name="CONTINUATION_INDENT_SIZE" value="8" />
-            <option name="TAB_SIZE" value="4" />
+            <option name="INDENT_SIZE" value="3" />
+            <option name="CONTINUATION_INDENT_SIZE" value="6" />
+            <option name="TAB_SIZE" value="3" />
+            <option name="USE_TAB_CHARACTER" value="true" />
+            <option name="SMART_TABS" value="true" />
+          </indentOptions>
+        </codeStyleSettings>
+        <codeStyleSettings language="TypeScript">
+          <indentOptions>
             <option name="USE_TAB_CHARACTER" value="true" />
             <option name="SMART_TABS" value="true" />
           </indentOptions>
         </codeStyleSettings>
       </value>
     </option>
-    <option name="PREFERRED_PROJECT_CODE_STYLE" value="Default (1)" />
+    <option name="USE_PER_PROJECT_SETTINGS" value="true" />
   </component>
 </project>
