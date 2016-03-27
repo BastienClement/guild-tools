@@ -12,9 +12,9 @@ import scala.concurrent.duration.FiniteDuration
 import scala.language.implicitConversions
 
 object DateTime {
-	val clock = Clock.systemUTC()
-	val isoFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX")
-	val utc = ZoneOffset.UTC
+	private val clock = Clock.systemUTC()
+	private val isoFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX")
+	private val utc = ZoneOffset.UTC
 
 	/** Converts a Instant to a DateTime */
 	implicit def fromInstant(instant: Instant): DateTime = new DateTime(instant.truncatedTo(ChronoUnit.MILLIS))
