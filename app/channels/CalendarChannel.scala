@@ -6,7 +6,8 @@ import models._
 import models.calendar.{Answers, Events, Slacks}
 import models.mysql._
 import reactive.ExecutionContext
-import utils.SmartTimestamp
+import utils.DateTime
+import utils.DateTime.Units
 
 object CalendarChannel extends ChannelValidator {
 	def open(request: ChannelRequest) = {
@@ -37,10 +38,12 @@ class CalendarChannel(user: User) extends ChannelHandler {
 			case None => throw new IllegalArgumentException(s"Bad date requested: ${p.string}")
 			case Some(matched) =>
 				val year = matched.group(1).toInt
-				val month = matched.group(2).toInt - 1
+				val month = matched.group(2).toInt
 
-				val from = SmartTimestamp(year, month, 1)
-				val to = SmartTimestamp(year, month + 1, 0)
+				val from = DateTime(year, month, 1)
+				val to = DateTime(year, month, 1) + 1.month - 1.day
+
+				println(from, to)
 
 				val events = Events.findBetween(from, to).filter(Events.canAccess(user))
 				val events_answers = Answers.withOwnAnswer(events, user).run

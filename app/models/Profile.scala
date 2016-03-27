@@ -1,8 +1,7 @@
 package models
 
-import java.sql.Timestamp
 import models.mysql._
-import utils.SmartTimestamp
+import utils.DateTime
 
 /**
   * Profile data without Option
@@ -15,7 +14,7 @@ case class ProfileData(user: Int, realname: String, btag: String, phone: String,
   */
 case class Profile(user: Int,
                    realname: Option[String], btag: Option[String], phone: Option[String],
-                   birthday: Option[Timestamp], mail: Option[String], location: Option[String],
+                   birthday: Option[DateTime], mail: Option[String], location: Option[String],
                    realname_visibility: Int = 0, btag_visibility: Int = 0, phone_visibility: Int = 0,
                    birthday_visibility: Int = 0, mail_visibility: Int = 0, location_visibility: Int = 0
                   ) {
@@ -61,10 +60,12 @@ case class Profile(user: Int,
 	  * Extracts data from the profile object and replace missing values with placeholders.
 	  * Note that the birthday is converted from Timestamp to String.
 	  */
-	def withPlaceholders = ProfileData(user,
-		realname.getOrElse("–"), btag.getOrElse("–"), phone.getOrElse("–"),
-		birthday.map(SmartTimestamp.iso.format(_)).getOrElse("–"),
-		mail.getOrElse("–"), location.getOrElse("–"))
+	def withPlaceholders = {
+		ProfileData(user,
+			realname.getOrElse("–"), btag.getOrElse("–"), phone.getOrElse("–"),
+			birthday.map(dt => dt.toISOString).getOrElse("–"),
+			mail.getOrElse("–"), location.getOrElse("–"))
+	}
 }
 
 /**
@@ -82,7 +83,7 @@ class Profiles(tag: Tag) extends Table[Profile](tag, "gt_profiles") {
 	def phone = column[Option[String]]("phone")
 	def phone_visibility = column[Int]("phone_visibility")
 
-	def birthday = column[Option[Timestamp]]("birthday")
+	def birthday = column[Option[DateTime]]("birthday")
 	def birthday_visibility = column[Int]("birthday_visibility")
 
 	def mail = column[Option[String]]("mail")
@@ -92,8 +93,8 @@ class Profiles(tag: Tag) extends Table[Profile](tag, "gt_profiles") {
 	def location_visibility = column[Int]("location_visibility")
 
 	def * = (user, realname, battletag, phone, birthday, mail, location,
-		realname_visibility, battletag_visibility, phone_visibility, birthday_visibility,
-		mail_visibility, location_visibility) <> (Profile.tupled, Profile.unapply)
+			realname_visibility, battletag_visibility, phone_visibility, birthday_visibility,
+			mail_visibility, location_visibility) <> (Profile.tupled, Profile.unapply)
 }
 
 /**

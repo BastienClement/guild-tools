@@ -7,7 +7,7 @@ import models.mysql._
 import reactive._
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.util.Success
+import scala.util.{Failure, Success}
 import utils.Implicits._
 import utils._
 import utils.crypto.Hasher
@@ -63,8 +63,10 @@ object AuthService extends StaticActor[AuthService, AuthServiceImpl]("AuthServic
 					Sessions.filter(_.token === session).map {
 						s => (s.last_access, s.ip, s.ua)
 					}.update {
-						(SmartTimestamp.now, ip.orElse(sess.ip), ua.orElse(sess.ua))
-					}.run
+						(DateTime.now, ip.orElse(sess.ip), ua.orElse(sess.ua))
+					}.run andThen {
+						case Failure(e) => e.printStackTrace()
+					}
 				}
 		}
 	}
@@ -139,7 +141,7 @@ trait AuthService {
 	def createSession(user: Int, ip: Option[String], ua: Option[String]): Future[String] = {
 		def attempt(count: Int = 1): Future[String] = {
 			val token = utils.randomToken()
-			val now = SmartTimestamp.now
+			val now = DateTime.now
 			val res = for {
 				_ <- DB.run(Sessions += Session(token, user, ip, ua, now, now))
 			} yield token

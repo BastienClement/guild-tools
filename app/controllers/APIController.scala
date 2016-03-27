@@ -9,7 +9,7 @@ import play.api.libs.json.Json
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.api.mvc.{Action, Controller, RequestHeader}
 import scala.util.Try
-import utils.SmartTimestamp
+import utils.DateTime
 
 class APIController @Inject() (val cached: Cached) extends Controller {
 	def catchall(path: String) = Action {
@@ -26,7 +26,7 @@ class APIController @Inject() (val cached: Cached) extends Controller {
 		val navigator = (report \ "nav").asOpt[String] getOrElse ""
 
 		val key = (user, error, stack)
-		val bug = BugReport(utils.md5(key.toString()), user, SmartTimestamp.now, rev, error, stack, navigator)
+		val bug = BugReport(utils.md5(key.toString()), user, DateTime.now, rev, error, stack, navigator)
 
 		Try {
 			DB.run { BugSack += bug }

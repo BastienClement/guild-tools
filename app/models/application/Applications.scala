@@ -1,14 +1,14 @@
 package models.application
 
 import java.sql.Timestamp
-import models.{User, _}
+import models._
 import models.application.ApplicationEvents.ApplyUpdated
 import models.mysql._
 import reactive.ExecutionContext
 import scala.util.Success
-import utils.SmartTimestamp
+import utils.DateTime
 
-case class Application(id: Int, user: Int, date: Timestamp, stage: Int, have_posts: Boolean, updated: Timestamp)
+case class Application(id: Int, user: Int, date: DateTime, stage: Int, have_posts: Boolean, updated: DateTime)
 
 object Applications extends TableQuery(new Applications(_)) {
 	/** Filter for applications that a given user can access */
@@ -68,7 +68,7 @@ object Applications extends TableQuery(new Applications(_)) {
 	  */
 	def create(user: User, data_type: DataType, data: String) = {
 		// Current time
-		val now = SmartTimestamp.now.toSQL
+		val now = DateTime.now
 
 		// The default application stage
 		val stage = Stage.Pending.id
@@ -141,12 +141,12 @@ object Applications extends TableQuery(new Applications(_)) {
 class Applications(tag: Tag) extends Table[Application](tag, "gt_apply") {
 	def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
 	def user = column[Int]("user")
-	def date = column[Timestamp]("date")
+	def date = column[DateTime]("date")
 	def stage = column[Int]("stage")
 	def data_type = column[DataType]("data_type")
 	def data = column[String]("data")
 	def have_posts = column[Boolean]("have_posts")
-	def updated = column[Timestamp]("updated")
+	def updated = column[DateTime]("updated")
 
 	def * = (id, user, date, stage, have_posts, updated) <> (Application.tupled, Application.unapply)
 }

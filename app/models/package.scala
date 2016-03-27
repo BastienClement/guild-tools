@@ -1,5 +1,4 @@
 import gt.GuildTools
-import java.sql.Timestamp
 import models.application.{Application, ApplicationMessage}
 import models.calendar._
 import play.api.libs.json._
@@ -8,7 +7,6 @@ import scala.concurrent.{Await, Future}
 import scala.language.implicitConversions
 import slick.dbio.{DBIOAction, NoStream}
 import slick.lifted.Query
-import utils.SmartTimestamp
 
 package object models {
 	lazy val DB = GuildTools.db
@@ -29,18 +27,6 @@ package object models {
 	implicit class AwaitableFuture[A](val f: Future[A]) extends AnyVal {
 		@inline def await: A = await(30.seconds)
 		@inline def await(limit: Duration): A = Await.result(f, limit)
-	}
-
-	implicit val timestampFormat = new Format[Timestamp] {
-		val format = SmartTimestamp.iso
-		def reads(json: JsValue) = JsSuccess(new Timestamp(format.parse(json.as[String]).getTime))
-		def writes(ts: Timestamp) = Json.obj("$date" -> format.format(ts))
-	}
-
-	implicit val smartTimestampFormat = new Format[SmartTimestamp] {
-		val format = SmartTimestamp.iso
-		def reads(json: JsValue) = JsSuccess(SmartTimestamp(format.parse(json.as[String]).getTime))
-		def writes(ts: SmartTimestamp) = Json.obj("$date" -> format.format(ts))
 	}
 
 	implicit val userJsonWriter = new Writes[User] {

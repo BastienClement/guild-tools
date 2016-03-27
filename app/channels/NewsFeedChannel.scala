@@ -4,9 +4,8 @@ import akka.actor.{ActorRef, Props}
 import gtp3._
 import models._
 import models.mysql._
-import reactive._
-import utils.{CacheCell, SmartTimestamp}
 import scala.concurrent.duration._
+import utils.CacheCell
 
 object NewsFeedChannel extends ChannelValidator {
 	def open(request: ChannelRequest) = request.accept(Props(new NewsFeedChannel))

@@ -1,13 +1,12 @@
 package models.application
 
-import java.sql.Timestamp
-import models.User
+import models._
 import models.application.ApplicationEvents.{ApplyUpdated, MessagePosted, UnreadUpdated}
 import models.mysql._
 import reactive.ExecutionContext
-import utils.SmartTimestamp
+import utils.DateTime
 
-case class ApplicationMessage(id: Int, apply: Int, user: Int, date: Timestamp, text: String, secret: Boolean, system: Boolean)
+case class ApplicationMessage(id: Int, apply: Int, user: Int, date: DateTime, text: String, secret: Boolean, system: Boolean)
 
 object ApplicationFeed extends TableQuery(new ApplicationFeed(_)) {
 	/**
@@ -32,7 +31,7 @@ object ApplicationFeed extends TableQuery(new ApplicationFeed(_)) {
 		if (secret && !sender.member)
 			throw new Exception("You are not allowed to post private messages on applications")
 
-		val now = SmartTimestamp.now.toSQL
+		val now = DateTime.now
 		val msg = ApplicationMessage(0, apply_id, sender.id, now, message, secret, system)
 
 		/**
@@ -68,7 +67,7 @@ class ApplicationFeed(tag: Tag) extends Table[ApplicationMessage](tag, "gt_apply
 	def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
 	def apply = column[Int]("apply")
 	def user = column[Int]("user")
-	def date = column[Timestamp]("date")
+	def date = column[DateTime]("date")
 	def text = column[String]("text")
 	def secret = column[Boolean]("secret")
 	def system = column[Boolean]("system")

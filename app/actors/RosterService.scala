@@ -103,13 +103,13 @@ trait RosterService extends PubSub[User] {
 
 							// Another error occurred, just update the last_update, but don't count as failure
 							case cause =>
-								char.map(c => c.last_update).update(SmartTimestamp.time).run
+								char.map(c => c.last_update).update(DateTime.now.timestamp).run
 									.flatMap(_ => StacklessException("Error while updating character", cause))
 						}.map { nc =>
 							char.map {
 								c => (c.klass, c.race, c.gender, c.level, c.achievements, c.thumbnail, c.ilvl, c.failures, c.invalid, c.last_update)
 							}.update {
-								(nc.clazz, nc.race, nc.gender, nc.level, nc.achievements, nc.thumbnail, math.max(nc.ilvl, oc.ilvl), 0, false, SmartTimestamp.time)
+								(nc.clazz, nc.race, nc.gender, nc.level, nc.achievements, nc.thumbnail, math.max(nc.ilvl, oc.ilvl), 0, false, DateTime.now.timestamp)
 							}
 						}.flatMap {
 							query => query.run

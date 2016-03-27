@@ -1,14 +1,14 @@
 package models
 
-import java.sql.Timestamp
 import models.mysql._
+import utils.DateTime
 
-case class BugReport(key: String, user: Int, date: Timestamp, rev: String, error: String, stack: String, navigator: String)
+case class BugReport(key: String, user: Int, date: DateTime, rev: String, error: String, stack: String, navigator: String)
 
 class BugSack(tag: Tag) extends Table[BugReport](tag, "gt_bugsack") {
 	def key = column[String]("key", O.PrimaryKey)
 	def user = column[Int]("user")
-	def date = column[Timestamp]("date")
+	def date = column[DateTime]("date")
 	def rev = column[String]("rev")
 	def error = column[String]("error")
 	def stack = column[String]("stack")

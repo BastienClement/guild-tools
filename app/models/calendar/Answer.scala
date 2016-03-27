@@ -1,10 +1,10 @@
 package models.calendar
 
-import java.sql.Timestamp
-import models.mysql._
 import models._
+import models.mysql._
+import utils.DateTime
 
-case class Answer(user: Int, event: Int, date: Timestamp, answer: Int, note: Option[String], char: Option[Int], promote: Boolean) {
+case class Answer(user: Int, event: Int, date: DateTime, answer: Int, note: Option[String], char: Option[Int], promote: Boolean) {
 	if (answer < 0 || answer > 2) {
 		throw new Exception("Invalid answer value")
 	}
@@ -15,7 +15,7 @@ case class Answer(user: Int, event: Int, date: Timestamp, answer: Int, note: Opt
 class Answers(tag: Tag) extends Table[Answer](tag, "gt_answers") {
 	def user = column[Int]("user", O.PrimaryKey)
 	def event = column[Int]("event", O.PrimaryKey)
-	def date = column[Timestamp]("date")
+	def date = column[DateTime]("date")
 	def answer = column[Int]("answer")
 	def note = column[Option[String]]("note")
 	def char = column[Option[Int]]("char")

@@ -1,14 +1,13 @@
 package models.calendar
 
-import java.sql.Timestamp
 import models._
 import models.mysql._
 import reactive.ExecutionContext
 import scala.concurrent.Future
 import slick.lifted.Case
-import utils.PubSub
+import utils.{DateTime, PubSub}
 
-case class Event(id: Int, title: String, desc: String, owner: Int, date: Timestamp, time: Int, `type`: Int, state: Int) {
+case class Event(id: Int, title: String, desc: String, owner: Int, date: DateTime, time: Int, `type`: Int, state: Int) {
 	val visibility = `type`
 
 	// Check visibility and state
@@ -61,7 +60,7 @@ class Events(tag: Tag) extends Table[Event](tag, "gt_events_visible") {
 	def title = column[String]("title")
 	def desc = column[String]("desc")
 	def owner = column[Int]("owner")
-	def date = column[Timestamp]("date")
+	def date = column[DateTime]("date")
 	def time = column[Int]("time")
 	def visibility = column[Int]("type")
 	def state = column[Int]("state")
@@ -177,7 +176,7 @@ object Events extends TableQuery(new Events(_)) with PubSub[User] {
 	  * @param to   The upper-bound date
 	  * @return A Query for events between the two dates
 	  */
-	def findBetween(from: Rep[Timestamp], to: Rep[Timestamp]) = {
+	def findBetween(from: Rep[DateTime], to: Rep[DateTime]) = {
 		Events.filter(_.date.between(from, to))
 	}
 
@@ -201,7 +200,7 @@ object Events extends TableQuery(new Events(_)) with PubSub[User] {
 	  * @param message  An optional constructor for the message object.
 	  *                 Defaults to Events.Updated.apply
 	  */
-	private def publishUpdate(event_id: Int, message: (Event) => Any = Updated.apply _) = {
+	private def publishUpdate(event_id: Int, message: (Event) => Any = Updated.apply) = {
 		val queries = for {
 			e <- Events.findById(event_id).result.head
 			a <- Answers.findForEvent(event_id).result
