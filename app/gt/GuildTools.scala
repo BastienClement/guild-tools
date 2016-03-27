@@ -65,7 +65,7 @@ class GuildTools @Inject() (val lifecycle: ApplicationLifecycle,
 
 		if (watch) {
 			val logger = ProcessLogger { line =>
-				Logger.debug("[TSC]: " + line)
+				Logger.info("[TSC]: " + line)
 			}
 
 			Logger.info("[TSC]: Starting Typescript compiler")

@@ -43,8 +43,6 @@ class CalendarChannel(user: User) extends ChannelHandler {
 				val from = DateTime(year, month, 1)
 				val to = DateTime(year, month, 1) + 1.month - 1.day
 
-				println(from, to)
-
 				val events = Events.findBetween(from, to).filter(Events.canAccess(user))
 				val events_answers = Answers.withOwnAnswer(events, user).run
 				val slacks = Slacks.findBetween(from, to).run.map(_.map(_.conceal))

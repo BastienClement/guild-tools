@@ -4,7 +4,7 @@ import java.sql.Timestamp
 import java.time._
 import java.time.format.DateTimeFormatter
 import java.time.temporal.{ChronoUnit, TemporalAmount}
-import java.util.GregorianCalendar
+import java.util.{Calendar, GregorianCalendar}
 import java.util.concurrent.TimeUnit
 import models.mysql._
 import play.api.libs.json.{Format, JsSuccess, JsValue, Json}
@@ -133,6 +133,7 @@ class DateTime private (val instant: Instant) {
 	private lazy val toTimestamp = {
 		val cal = new GregorianCalendar
 		cal.set(year, month - 1, day, hour, minute, second)
+		cal.set(Calendar.MILLISECOND, 0)
 		new Timestamp(cal.getTimeInMillis)
 	}
 }
