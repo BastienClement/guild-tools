@@ -64,9 +64,7 @@ object AuthService extends StaticActor[AuthService, AuthServiceImpl]("AuthServic
 						s => (s.last_access, s.ip, s.ua)
 					}.update {
 						(DateTime.now, ip.orElse(sess.ip), ua.orElse(sess.ua))
-					}.run andThen {
-						case Failure(e) => e.printStackTrace()
-					}
+					}.run
 				}
 		}
 	}
