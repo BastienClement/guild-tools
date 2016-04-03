@@ -29,6 +29,10 @@
           <option name="SPACES_IN_ONE_LINE_BLOCKS" value="true" />
           <option name="SPACES_AROUND_AT_IN_PATTERNS" value="true" />
         </ScalaCodeStyleSettings>
+        <TypeScriptCodeStyleSettings>
+          <option name="SPACE_AFTER_TYPE_COLON" value="true" />
+          <option name="SPACES_WITHIN_OBJECT_LITERAL_BRACES" value="true" />
+        </TypeScriptCodeStyleSettings>
         <XML>
           <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
         </XML>
