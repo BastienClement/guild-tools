@@ -6,7 +6,7 @@
         <entry key="guild-tools">
           <value>
             <ProjectSettingsEntry>
-              <option name="playDistrPath" value="$USER_HOME$/.ivy2/cache/com.typesafe.play/play_2.11/jars/play_2.11-2.5.0.jar" />
+              <option name="playDistrPath" value="$USER_HOME$/.ivy2/cache/com.typesafe.play/play_2.11/jars/play_2.11-2.5.1.jar" />
             </ProjectSettingsEntry>
           </value>
         </entry>
@@ -14,8 +14,8 @@
           <value>
             <ProjectSettingsEntry>
               <option name="version" value="2.3.9" />
-              <option name="sourceDir" value="$PROJECT_DIR$/app" />
-              <option name="confDir" value="$PROJECT_DIR$/app" />
+              <option name="sourceDir" value="D:\workspace\scala\guild-tools\app" />
+              <option name="confDir" value="D:\workspace\scala\guild-tools\app" />
               <option name="templateImports">
                 <list>
                   <option value="models._" />
@@ -32,7 +32,7 @@
                   <option value="controllers.Assets.Asset" />
                 </list>
               </option>
-              <option name="uri" value="$PROJECT_DIR$" />
+              <option name="uri" value="/D:/workspace/scala/guild-tools" />
             </ProjectSettingsEntry>
           </value>
         </entry>

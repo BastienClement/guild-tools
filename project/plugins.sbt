@@ -1,4 +1,4 @@
-resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
+resolvers += "Typesafe repository" at "https://dl.bintray.com/typesafe/maven-releases/"
 
 resolvers += Resolver.sonatypeRepo("releases")
 
@@ -6,7 +6,7 @@ addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.1.9")
 
 // The Play plugin
 
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.5.0")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.5.1")
 
 // web plugins
 
