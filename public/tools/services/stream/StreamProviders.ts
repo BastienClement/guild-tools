@@ -15,7 +15,7 @@ class StreamsListProvider extends PolymerElement {
 	})
 	private service: StreamsService;
 
-	@Property({notify: true})
+	@Property({ notify: true })
 	public list: ActiveStream[] = this.service.getStreamsList();
 
 	private ListUpdate() {

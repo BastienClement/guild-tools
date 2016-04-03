@@ -58,7 +58,7 @@ export class StreamsService extends Service {
 	@ServiceChannel.Dispatch("channel", "list")
 	private StreamsList(list: [number, boolean, boolean, number[]][]) {
 		//noinspection TypeScriptValidateTypes
-		this.streams = list.map(([user, live, progress, viewers]) => ({user, live, progress, viewers}));
+		this.streams = list.map(([user, live, progress, viewers]) => ({ user, live, progress, viewers }));
 		this.rebuildIndex();
 		this.emit("list-update");
 	}
@@ -68,7 +68,7 @@ export class StreamsService extends Service {
 	 */
 	@ServiceChannel.Dispatch("channel", "notify", true)
 	private Notify(user: number, live: boolean, progress: boolean, viewers: number[]) {
-		let stream = {user, live, progress, viewers};
+		let stream = { user, live, progress, viewers };
 		let [idx, found] = this.findStreamIndex(user);
 		this.streams[idx] = stream;
 		if (!found) this.rebuildIndex();

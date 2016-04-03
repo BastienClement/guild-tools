@@ -1,5 +1,4 @@
 import {UserRecord, Char} from "./RosterService";
-import {RosterRankProvider, RosterClassProvider, RosterRaceProvider} from "./RosterProviders";
 
 /**
  * Filtering types

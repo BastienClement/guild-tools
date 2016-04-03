@@ -11,8 +11,6 @@ import {
 import {GtContextMenu} from "../widgets/GtContextMenu";
 import {GtTooltip} from "../widgets/GtTooltip";
 import {RosterMain} from "../roster/RosterMain";
-import {CalendarEventProvider, CalendarIconProvider} from "../../services/calendar/CalendarProviders";
-import {RosterMainProvider} from "../../services/roster/RosterProviders";
 
 ///////////////////////////////////////////////////////////////////////////////
 // <gt-calendar-cell-event-tooltip>
@@ -20,7 +18,7 @@ import {RosterMainProvider} from "../../services/roster/RosterProviders";
 @Element({
 	selector: "calendar-cell-event-tooltip",
 	template: "/assets/views/calendar.html",
-	dependencies: [RosterMain, RosterMainProvider]
+	dependencies: [RosterMain]
 })
 export class CalendarCellEventTooltip extends PolymerElement {
 	@Inject
@@ -85,8 +83,7 @@ export class CalendarCellEventTooltip extends PolymerElement {
 @Element({
 	selector: "calendar-cell-event",
 	template: "/assets/views/calendar.html",
-	dependencies: [GtTooltip, CalendarCellEventTooltip, GtContextMenu,
-		CalendarEventProvider, CalendarIconProvider]
+	dependencies: [GtTooltip, CalendarCellEventTooltip, GtContextMenu]
 })
 export class CalendarCellEvent extends PolymerElement {
 	@Inject

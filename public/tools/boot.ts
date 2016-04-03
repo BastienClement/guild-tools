@@ -1,6 +1,7 @@
 import {Injector, Constructor} from "./utils/DI";
 import {Application} from "./client/Application";
 import "./utils/Async";
+import "./services/Providers"
 
 /**
  * Prevents right-click context menu unless the shift key is pressed.
