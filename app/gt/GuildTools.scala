@@ -7,7 +7,7 @@ import java.nio.file.{FileSystems, StandardWatchEventKinds => SWEK}
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.inject.ApplicationLifecycle
 import play.api.libs.ws.WSClient
-import play.api.{Configuration, Environment, Logger, Mode}
+import play.api._
 import scala.compat.Platform
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -22,8 +22,14 @@ object GuildTools {
 	val serverStart = Platform.currentTime
 	def serverUptime = Platform.currentTime - serverStart
 
-	// Workaround for dump and useless DI requirement
-	private[gt] var self: GuildTools = null
+	// Workaround for dumb and useless DI requirement
+	private[gt] var self_ref: GuildTools = null
+
+	lazy val self = synchronized {
+		//noinspection LoopVariableNotUpdated
+		while (self_ref == null) wait()
+		self_ref
+	}
 
 	lazy val env = self.env
 	lazy val conf = self.conf
@@ -42,9 +48,12 @@ class GuildTools @Inject() (val lifecycle: ApplicationLifecycle,
                             val system: ActorSystem,
                             val ws: WSClient,
                             val dbc: DatabaseConfigProvider) {
-	// Leak this instance
-	Logger.info("Starting GuildTools server...")
-	GuildTools.self = this
+	GuildTools.synchronized {
+		// Leak this instance
+		Logger.info("Starting GuildTools server...")
+		GuildTools.self_ref = this
+		GuildTools.notifyAll()
+	}
 
 	env.mode match {
 		case Mode.Dev =>
