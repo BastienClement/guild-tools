@@ -23,14 +23,8 @@ object GuildTools {
 	def serverUptime = Platform.currentTime - serverStart
 
 	// Workaround for dumb and useless DI requirement
-	private[gt] var self_ref: GuildTools = null
-
-	lazy val self = synchronized {
-		//noinspection LoopVariableNotUpdated
-		if (self_ref == null) wait(5000)
-		if (self_ref == null) throw new Exception("Failed to load current Application")
-		self_ref
-	}
+	@Inject
+	private[gt] var self: GuildTools = null
 
 	lazy val env = self.env
 	lazy val conf = self.conf
@@ -42,21 +36,14 @@ object GuildTools {
 	lazy val dev = env.mode == Mode.Dev
 }
 
+@Singleton
 class GuildTools @Inject() (val lifecycle: ApplicationLifecycle,
                             val env: Environment,
                             val conf: Configuration,
                             val system: ActorSystem,
                             val ws: WSClient,
                             val dbc: DatabaseConfigProvider) {
-	println("instantiating...")
-
-	GuildTools.synchronized {
-		// Leak this instance
-		Logger.info("Starting GuildTools server...")
-		GuildTools.self_ref = this
-		GuildTools.notifyAll()
-	}
-	println("instantiated...")
+	Logger.info("Starting GuildTools server...")
 
 	env.mode match {
 		case Mode.Dev =>
