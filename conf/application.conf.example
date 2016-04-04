@@ -2,7 +2,7 @@
 # ~~~~~
 
 play.crypto.secret="*******"
-play.i18n.langs="en"
+play.i18n.langs=["en"]
 
 play.ws.compressionEnabled=true
 play.ws.ssl.default=true
