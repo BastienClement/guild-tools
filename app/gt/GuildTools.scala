@@ -42,7 +42,6 @@ object GuildTools {
 	lazy val dev = env.mode == Mode.Dev
 }
 
-@Singleton
 class GuildTools @Inject() (val lifecycle: ApplicationLifecycle,
                             val env: Environment,
                             val conf: Configuration,
