@@ -27,7 +27,8 @@ object GuildTools {
 
 	lazy val self = synchronized {
 		//noinspection LoopVariableNotUpdated
-		while (self_ref == null) wait()
+		if (self_ref == null) wait(5000)
+		if (self_ref == null) throw new Exception("Failed to load current Application")
 		self_ref
 	}
 
