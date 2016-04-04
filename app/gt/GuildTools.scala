@@ -49,12 +49,15 @@ class GuildTools @Inject() (val lifecycle: ApplicationLifecycle,
                             val system: ActorSystem,
                             val ws: WSClient,
                             val dbc: DatabaseConfigProvider) {
+	println("instantiating...")
+
 	GuildTools.synchronized {
 		// Leak this instance
 		Logger.info("Starting GuildTools server...")
 		GuildTools.self_ref = this
 		GuildTools.notifyAll()
 	}
+	println("instantiated...")
 
 	env.mode match {
 		case Mode.Dev =>
