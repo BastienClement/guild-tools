@@ -12,6 +12,6 @@ import {View} from "../../client/router/View";
 export class GtApplyRedirect extends PolymerElement {
 	@Listener("apply.click")
 	private ApplyNow() {
-		document.location.href = "http://www.fs-guild.net/tools/#/apply";
+		document.location.href = "http://www.fromscratch.gg/tools/#/apply";
 	}
 }

@@ -1,6 +1,6 @@
 Copyright (c) 2014-2015 Bastien Clément / From Scratch. All rights reserved.
-  <http://www.fs-guild.net/>
-  
+  <http://www.fromscratch.gg/>
+
                         FROM SCRATCH GUILD TOOLS LICENSE
 
 #------------------------------------------------------------------------------#

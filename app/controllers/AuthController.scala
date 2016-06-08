@@ -31,9 +31,9 @@ class AuthController extends Controller {
 	  */
 	private def serviceURL(service: String, default: String = url("/")) = {
 		service match {
-			case "www" => "https://www.fs-guild.net/sso.php"
+			case "www" => "https://www.fromscratch.gg/sso.php"
 
-			case "gt" if GuildTools.prod => "https://gt.fs-guild.net/sso"
+			case "gt" if GuildTools.prod => "https://gt.fromscratch.gg/sso"
 			case "gt" if GuildTools.dev => "/sso"
 
 			case _ => default

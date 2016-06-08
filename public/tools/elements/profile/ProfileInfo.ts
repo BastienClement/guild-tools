@@ -142,7 +142,7 @@ export class ProfileInfo extends PolymerElement {
 	 * Click handler for the Edit button
 	 */
 	private EditProfile() {
-		let base = this.app.dev ? "/auth" : "//auth.fs-guild.net";
+		let base = this.app.dev ? "/auth" : "//auth.fromscratch.gg";
 		document.location.href = base + "/user/" + this.user;
 	}
 }

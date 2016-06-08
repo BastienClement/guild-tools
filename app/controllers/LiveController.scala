@@ -117,8 +117,8 @@ class LiveController @Inject() (ws: WSClient) extends Controller {
 	  */
 	def clappr(stream: String) = Action {
 		val host = GuildTools.env.mode match {
-			case Mode.Dev => "tv-dev.fs-guild.net"
-			case Mode.Prod => "tv.fs-guild.net"
+			case Mode.Dev => "tv-dev.fromscratch.gg"
+			case Mode.Prod => "tv.fromscratch.gg"
 		}
 		Ok(views.html.clappr.render(host, stream.replaceAll("[^a-zA-Z0-9]", "")))
 	}
