@@ -6,7 +6,7 @@
         <entry key="guild-tools">
           <value>
             <ProjectSettingsEntry>
-              <option name="playDistrPath" value="$USER_HOME$/.ivy2/cache/com.typesafe.play/play_2.11/jars/play_2.11-2.5.1.jar" />
+              <option name="playDistrPath" value="$USER_HOME$/.ivy2/cache/com.typesafe.play/play_2.11/jars/play_2.11-2.5.4.jar" />
             </ProjectSettingsEntry>
           </value>
         </entry>
@@ -33,6 +33,31 @@
                 </list>
               </option>
               <option name="uri" value="/D:/workspace/scala/guild-tools" />
+            </ProjectSettingsEntry>
+          </value>
+        </entry>
+        <entry key="server">
+          <value>
+            <ProjectSettingsEntry>
+              <option name="sourceDir" value="D:\workspace\scala\guild-tools\server\app" />
+              <option name="confDir" value="D:\workspace\scala\guild-tools\server\app" />
+              <option name="templateImports">
+                <list>
+                  <option value="models._" />
+                  <option value="controllers._" />
+                  <option value="play.api.i18n._" />
+                  <option value="views.xml._" />
+                  <option value="play.api.templates.PlayMagic._" />
+                  <option value="play.api.mvc._" />
+                  <option value="play.api.data._" />
+                </list>
+              </option>
+              <option name="routesImports">
+                <list>
+                  <option value="controllers.Assets.Asset" />
+                </list>
+              </option>
+              <option name="uri" value="/D:/workspace/scala/guild-tools/server" />
             </ProjectSettingsEntry>
           </value>
         </entry>

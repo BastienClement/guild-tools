@@ -4,15 +4,14 @@ import akka.actor.ActorSystem
 import com.google.inject.{Inject, Singleton}
 import java.io.File
 import java.nio.file.{FileSystems, StandardWatchEventKinds => SWEK}
+import play.api._
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.inject.ApplicationLifecycle
 import play.api.libs.ws.WSClient
-import play.api._
 import scala.compat.Platform
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.sys.process._
-import slick.driver.JdbcProfile
 import utils.CacheCell
 
 object GuildTools {
@@ -30,7 +29,6 @@ object GuildTools {
 	lazy val conf = self.conf
 	lazy val system = self.system
 	lazy val ws = self.ws
-	lazy val db = self.dbc.get[JdbcProfile].db
 
 	lazy val prod = env.mode == Mode.Prod
 	lazy val dev = env.mode == Mode.Dev
@@ -47,7 +45,7 @@ class GuildTools @Inject() (val lifecycle: ApplicationLifecycle,
 
 	env.mode match {
 		case Mode.Dev =>
-			setupTypescriptCompiler()
+			//setupTypescriptCompiler()
 
 		case Mode.Prod =>
 			setupCharacterRefresher()

@@ -7,7 +7,8 @@
       <parameter value="-encoding" />
       <parameter value="utf8" />
     </parameters>
-    <profile name="SBT 1" modules="root">
+    <option name="incrementalityType" value="SBT" />
+    <profile name="SBT 1" modules="root,server">
       <option name="deprecationWarnings" value="true" />
       <option name="uncheckedWarnings" value="true" />
       <option name="featureWarnings" value="true" />
@@ -15,6 +16,23 @@
         <parameter value="-encoding" />
         <parameter value="utf8" />
       </parameters>
+    </profile>
+    <profile name="SBT 2" modules="guild-tools,sharedJVM" />
+    <profile name="SBT 3" modules="sharedJS">
+      <parameters>
+        <parameter value="-P:scalajs:mapSourceURI:file:/D:/workspace/scala/guild-tools/shared/src/main/scala/-&gt;27d77756843ce85c770b/" />
+      </parameters>
+      <plugins>
+        <plugin path="C:\Users\galed\.ivy2\cache\org.scala-js\scalajs-compiler_2.11.8\jars\scalajs-compiler_2.11.8-0.6.10.jar" />
+      </plugins>
+    </profile>
+    <profile name="SBT 4" modules="client">
+      <parameters>
+        <parameter value="-P:scalajs:mapSourceURI:file:/D:/workspace/scala/guild-tools/client/src/-&gt;f0fba772cc3577156c78/" />
+      </parameters>
+      <plugins>
+        <plugin path="C:\Users\galed\.ivy2\cache\org.scala-js\scalajs-compiler_2.11.8\jars\scalajs-compiler_2.11.8-0.6.10.jar" />
+      </plugins>
     </profile>
   </component>
 </project>

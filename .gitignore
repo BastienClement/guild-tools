@@ -1,41 +1,29 @@
 # IntelliJ
 .idea/workspace.xml
-.idea/tasks.xml
 .idea/dictionaries
 .idea/vcs.xml
 .idea/jsLibraryMappings.xml
 .idea/dataSources.ids
 .idea/dataSources.xml
 .idea/dataSources.local.xml
-.idea/sqlDataSources.xml
-.idea/dynamic.xml
 .idea/uiDesigner.xml
 .idea/libraries
-*.iws
-.idea_modules/
-/out/
 
 # SBT
-/logs/
 /project/project/
 /project/target/
-/target/
-/tmp/
-/dist/
-/bin/
-/conf/application.conf
-/RUNNING_PID
+target/
+
+# Config
+application.conf
 
 # Generated files
-/public/javascripts/compiler.jar
-/public/javascripts/compiler.sh
-/public/tools/tools.js
-/public/tools/tools.js.map
+/shared/.js
+/shared/.jvm
+/server/public/javascripts/compiler.jar
+/server/public/javascripts/compiler.sh
+/server/public/tools/tools.js
+/server/public/tools/tools.js.map
 
-# Various
-/.history
-/.classpath
-/.project
-/.settings
-/.worksheet
-/.cache
+# Trash
+/server/logs/

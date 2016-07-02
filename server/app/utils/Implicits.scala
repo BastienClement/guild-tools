@@ -61,7 +61,9 @@ object Implicits {
 		  * @param msg Message of the new exception
 		  */
 		@inline def otherwise(msg: String): Future[T] = future.recoverWith {
-			case e => Future.failed(new StacklessException(msg, e))
+			case e =>
+				println(e)
+				Future.failed(new StacklessException(msg, e))
 		}
 	}
 }

@@ -2,7 +2,7 @@ import {Element, Inject, Property} from "../../polymer/Annotations";
 import {GtButton} from "../widgets/GtButton";
 import {GtBox} from "../widgets/GtBox";
 import {PolymerElement} from "../../polymer/PolymerElement";
-import {ProfileService, ProfileData} from "./../../services/profile/ProfileService";
+import {ProfileService, ProfileData} from "../../services/profile/ProfileService";
 import moment from "moment";
 
 ///////////////////////////////////////////////////////////////////////////////

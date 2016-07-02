@@ -3,7 +3,7 @@ import {GtInput} from "../widgets/GtInput";
 import {GtForm} from "../widgets/GtForm";
 import {GtBox} from "../widgets/GtBox";
 import {PolymerElement} from "../../polymer/PolymerElement";
-import {ProfileService} from "./../../services/profile/ProfileService";
+import {ProfileService} from "../../services/profile/ProfileService";
 import {Char} from "../../services/roster/RosterService";
 
 ///////////////////////////////////////////////////////////////////////////////

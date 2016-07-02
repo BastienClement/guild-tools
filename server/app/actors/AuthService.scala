@@ -7,7 +7,7 @@ import models.mysql._
 import reactive._
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.util.{Failure, Success}
+import scala.util.Success
 import utils.Implicits._
 import utils._
 import utils.crypto.Hasher

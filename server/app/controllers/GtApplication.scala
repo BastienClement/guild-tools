@@ -5,16 +5,17 @@ import akka.stream.Materializer
 import com.google.inject.Inject
 import gt.GuildTools
 import gtp3.WSActor
+import play.api.Environment
 import play.api.libs.streams.ActorFlow
 import play.api.mvc.{Action, Controller, WebSocket}
 
-class GtApplication @Inject() (implicit val mat: Materializer) extends Controller {
+class GtApplication @Inject() (implicit val mat: Materializer, val env: Environment) extends Controller {
 	implicit val ac = GuildTools.system
 
 	def sanitizeSession(session: String) = session.replaceAll("[^a-z0-9]", "")
 
 	def client = Action { req =>
-		Ok(views.html.client.render(req.flash.get("session").map(sanitizeSession)))
+		Ok(views.html.client.render(req.flash.get("session").map(sanitizeSession), env))
 	}
 
 	def gtp3 = WebSocket.accept[Array[Byte], Array[Byte]] { request =>
