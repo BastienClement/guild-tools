@@ -1,4 +1,4 @@
-<dom-module id="gt-app">
+<xuen-component id="gt-app">
 	<link rel="stylesheet/less" href="/assets/less/application.less" ns="gt-app">
 	<template>
 		<gt-title-bar #title {is_app}></gt-title-bar>
@@ -53,11 +53,11 @@
 			</div>
 		</gt-dialog>
 	</template>
-</dom-module>
+</xuen-component>
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
-<dom-module id="gt-title-bar">
+<xuen-component id="gt-title-bar">
 	<link rel="stylesheet/less" href="/assets/less/application.less" ns="gt-title-bar">
 	<template>
 		<div #logo {loading}>
@@ -99,24 +99,24 @@
 			<i #window-close>close</i>
 		</div>
 	</template>
-</dom-module>
+</xuen-component>
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
-<dom-module id="gt-sidebar">
+<xuen-component id="gt-sidebar">
 	<link rel="stylesheet/less" href="/assets/less/application.less" ns="gt-sidebar">
 	<template>
 		<div .icon *for="icons" (click)="IconClicked" {active}="item.key == module"><i>{{item.icon}}</i></div>
 	</template>
-</dom-module>
+</xuen-component>
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
-<dom-module id="gt-view">
+<xuen-component id="gt-view">
 	<link rel="stylesheet/less" href="/assets/less/application.less" ns="gt-view">
 	<template>
 		<div #wrapper>
 			<content></content>
 		</div>
 	</template>
-</dom-module>
+</xuen-component>

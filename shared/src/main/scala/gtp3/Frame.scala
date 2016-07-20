@@ -1,7 +1,7 @@
 package gtp3
 
 import scodec._
-import scodec.bits.{BitVector, ByteVector}
+import scodec.bits._
 import scodec.codecs._
 
 private object g {
