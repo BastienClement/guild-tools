@@ -5,28 +5,20 @@ import facade.ShadowDOM._
 import org.scalajs.dom._
 import scala.collection.mutable
 import scala.scalajs.js
+import scala.scalajs.js.DynamicImplicits._
 import util.Implicits._
 import util.Serializer
-import xuen.expr.{Interpreter, Parser}
+import xuen.expr.Expression.LiteralPrimitive
+import xuen.expr.{Expression, Interpreter, Parser}
 import xuen.rx.syntax.ExplicitExtractor
-import xuen.rx.{Obs, Rx}
+import xuen.rx.{Obs, Rx, Var}
 
 /**
-  * A component template, defined by a <xuen-component> tag.
-  *
-  * @param element the <xuen-component> element
+  * A component template, defined by a <template> tag.
   */
-case class Template(element: Element) {
-	/** The selector of the associated component */
-	val selector = element.getAttribute("id")
-	if (selector == null) throw XuenException("Unable to determine template selector")
-
-	/** The template element in the <xuen-component> */
-	val template = element.querySelector(s"xuen-component[id='$selector'] > template").as[HTMLTemplateElement]
-	if (template == null) throw XuenException(s"No <template> element found in <xuen-component id='$selector'>")
-
-	type BindingBuilder[N <: Node] = (N, Context) => Option[(Rx[_], Obs)]
-	type BindingAdapter = (Element) => Node
+case class Template(template: HTMLTemplateElement) {
+	private type BindingBuilder[N <: Node] = (N, Context) => Option[(Rx[_], Obs)]
+	private type BindingAdapter = (Element) => Node
 
 	private[this] val bindingDefinitions = mutable.Map.empty[String, (BindingAdapter, mutable.Set[BindingBuilder[Node]])]
 
@@ -34,13 +26,13 @@ case class Template(element: Element) {
 	compile(template.content)
 
 	/** Removes the xuen-bindings attribute tag */
-	def elementBindingsAdapter(element: Element): Node = {
+	private def elementBindingsAdapter(element: Element): Node = {
 		element.removeAttribute("xuen-bindings")
 		element
 	}
 
 	/** Registers a binding on an Element node */
-	def registerBinding[E <: Element](element: E)(builder: BindingBuilder[E]): Unit = {
+	private def registerBinding[E <: Element](element: E)(builder: BindingBuilder[E]): Unit = {
 		val bindingId = Option(element.getAttribute("xuen-bindings")).getOrElse({
 			val id = Template.nextBindingId
 			element.setAttribute("xuen-bindings", id)
@@ -50,8 +42,22 @@ case class Template(element: Element) {
 		bindingDefinitions(bindingId)._2.add(builder.asInstanceOf[BindingBuilder[Node]])
 	}
 
+	/** Registers a binding on an Element node */
+	private def registerBindingExpr[E <: Element](element: E, expr: Expression)(behavior: (E, Any) => Unit): Unit = {
+		registerBinding(element) { case (elem, context) =>
+			val rx = Rx { Interpreter.safeEvaluate(expr, context) }
+			val obs = Obs { behavior(elem, rx.!) }
+			Some((rx, obs))
+		}
+	}
+
+	/** Alias for registerBindingExpr with an expression source code */
+	private def registerBindingExpr[E <: Element](element: E, exprSource: String)(behavior: (E, Any) => Unit): Unit = {
+		registerBindingExpr(element, Parser.parseExpression(exprSource))(behavior)
+	}
+
 	/** Reverts the <xuen-interpolation> placeholder to a text node */
-	def textBindingsAdapter(element: Element): Node = {
+	private def textBindingsAdapter(element: Element): Node = {
 		val text = element.ownerDocument.createTextNode("")
 		element.parentNode.replaceChild(text, element)
 		text
@@ -61,7 +67,7 @@ case class Template(element: Element) {
 	  * Registers a binding on a Text node.
 	  * Unlike for elements, only a single binding can be defined on a text node.
 	  */
-	def registerBinding(text: Text)(builder: BindingBuilder[Text]): Unit = {
+	private def registerBinding(text: Text)(builder: BindingBuilder[Text]): Unit = {
 		val id = Template.nextBindingId
 		val synthElement = text.ownerDocument.createElement("xuen-interpolation")
 		synthElement.setAttribute("xuen-bindings", id)
@@ -69,117 +75,170 @@ case class Template(element: Element) {
 		bindingDefinitions.put(id, (textBindingsAdapter, mutable.Set(builder.asInstanceOf[BindingBuilder[Node]])))
 	}
 
+	/** Transforms an hyphenated string to a camel-cased one */
+	private def toCamelCase(orig: String): String = {
+		"""([a-z])\-([a-z])""".r.replaceAllIn(orig, m => m.group(1) + m.group(2).toUpperCase)
+	}
+
 	/** Compiles a sub-tree of the template */
 	//noinspection UnitMethodIsParameterless
-	def compile(node: Node): Unit = {
-		// Common operations aliases
-		@inline def recurse = node.childNodes.foreach(compile)
+	private final def compile(node: Node): Unit = node match {
+		case element: Element => compileElement(element)
+		case text: Text => compileTextNode(text)
+		case fragment: DocumentFragment => node.childNodes.foreach(compile)
+		case comment: Comment => // Ignore
+		case unknown => throw XuenException(s"Encountered unknown node type '$unknown' while compiling template")
+	}
 
-		node match {
-			case element: Element =>
-				if (element.hasAttributes) {
-					val attrs = for (attr <- element.attributes) yield attr.asInstanceOf[Attr]
-					for {
-						attr <- attrs
-						name = attr.name
-						if !Template.attrBlacklist.contains(name)
-					} {
-						val last = name.last
-						name.head match {
-							case '#' =>
-								element.removeAttribute(name)
-								element.setAttribute("id", name.substring(1))
+	/** Compiles an Element node */
+	private def compileElement(element: Element): Unit = {
+		if (element.hasAttributes) {
+			for {
+				attribute <- for (attr <- element.attributes) yield attr.asInstanceOf[Attr]
+				if !Template.attrBlacklist.contains(attribute.name)
+			} compileAttribute(element, attribute)
+		}
+      element.childNodes.foreach(compile)
+	}
 
-							case '.' =>
-								element.removeAttribute(name)
-								element.classList.add(name.substring(1))
+	/** Compiles an element's attribute */
+	private def compileAttribute(element: Element, attribute: Attr): Unit = {
+		val name = attribute.name
+		val value = attribute.value
 
-							case '[' if last == ']' =>
-								val target = name.substring(1, name.length - 1)
-								val expr = Parser.parseExpression(attr.value)
-								element.removeAttribute(name)
-								if (target.head == '@') {
-									// Attribute binding
-									val attribute = target.substring(1)
-									registerBinding(element) { case (elem, context) =>
-										val rx = Rx { Interpreter.safeEvaluate(expr, context) }
-										val obs = Obs {
-											val value = rx.!
-											Serializer.forValue(value).write(value) match {
-												case None => elem.removeAttribute(attribute)
-												case Some(string) => elem.setAttribute(attribute, string)
-											}
-										}
-										Some((rx, obs))
-									}
-								} else {
-									// Property binding
-									registerBinding(element) { case (elem, context) =>
-										val rx = Rx { Interpreter.safeEvaluate(expr, context) }
-										val obs = Obs { elem.dyn.updateDynamic(target)(rx.!.asInstanceOf[js.Any]) }
-										Some((rx, obs))
-									}
-								}
+		val last = name.last
+		name.head match {
+			case '#' => compileIdSugarAttribute(element, name)
+			case '.' => compileShortClassBindingAttribute(element, name, value)
+			case '[' if last == ']' => compileDataBindingAttribute(element, name, value)
+			case '(' if last == ')' => compileEventListenerAttribute(element, name, value)
+			case _ => compileGenericAttribute(element, name, value)
+		}
+	}
 
-							case '(' if last == ')' =>
-								val target = name.substring(1, name.length - 1)
-								val expr = Parser.parseExpression(attr.value)
-								element.removeAttribute(name)
-								registerBinding(element) { case (elem, context) =>
-									val dispatchContext = context.child()
-									elem.addEventListener(target, (event: Event) => {
-										dispatchContext.set("$event", event)
-										Interpreter.safeEvaluate(expr, dispatchContext)
-									})
-									None
-								}
+	/** Compiles an ID sugar attribute */
+	private def compileIdSugarAttribute(element: Element, name: String): Unit = {
+		element.removeAttribute(name)
+		element.setAttribute("id", name.substring(1))
+	}
 
-							case _ =>
-								for (expr <- Parser.parseInterpolation(attr.value)) {
-									element.removeAttribute(name)
-									registerBinding(element) { case (elem, context) =>
-										val rx = Rx { Interpreter.safeEvaluate(expr, context) }
-										val obs = Obs {
-											val value = rx.!
-											Serializer.forValue(value).write(value) match {
-												case None => elem.removeAttribute(name)
-												case Some(string) => elem.setAttribute(name, string)
-											}
-										}
-										Some((rx, obs))
-									}
-								}
-						}
-					}
-				}
-				recurse
+	/** Compiles a short class binding attribute */
+	private def compileShortClassBindingAttribute(element: Element, name: String, value: String): Unit = {
+		element.removeAttribute(name)
+		val className = name.substring(1)
 
-			case text: Text =>
-				for (expr <- Parser.parseInterpolation(text.data)) {
-					registerBinding(text) { case (elem, context) =>
-						val rx = Rx { Interpreter.safeEvaluate(expr, context) }
-						val obs = Obs { elem.data = rx.!.toString }
-						Some((rx, obs))
-					}
+		// Check if we have a condition associated with this class
+		Option(value).filter(v => v.trim.length > 0) match {
+			case Some(cond) =>
+				registerBindingExpr(element, cond) { (elem, value) =>
+					if (value.dyn) elem.classList.add(className)
+					else elem.classList.remove(className)
 				}
 
-			case fragment: DocumentFragment => recurse
-			case comment: Comment => // Ignore
-			case unknown => throw XuenException(s"Encountered unknown node type '$unknown' while compiling template")
+			case None =>
+				element.classList.add(className)
+		}
+	}
+
+	/** Compiles a data binding attribute */
+	private def compileDataBindingAttribute(element: Element, name: String, value: String): Unit = {
+		element.removeAttribute(name)
+		val target = name.substring(1, name.length - 1)
+		target.head match {
+			case '@' => compileAttributeBindingAttribute(element, target, value)
+			case '$' => compileStyleBindingAttribute(element, target, value)
+			case '€' => compileClassBindingAttribute(element, target, value)
+			case _ => compilePropertyBindingAttribute(element, target, value)
+		}
+	}
+
+	/** Compiles an attribute binding attribute */
+	private def compileAttributeBindingAttribute(element: Element, target: String, value: String): Unit = {
+		val attribute = target.substring(1)
+		registerBindingExpr(element, value) { (elem, value) =>
+			Serializer.forValue(value).write(value) match {
+				case None => elem.removeAttribute(attribute)
+				case Some(string) => elem.setAttribute(attribute, string)
+			}
+		}
+	}
+
+	/** Compiles a style binding attribute */
+	private def compileStyleBindingAttribute(element: Element, target: String, value: String): Unit = {
+		val style = toCamelCase(target.substring(1))
+		registerBindingExpr(element, value) { (elem, value) =>
+			elem.dyn.style.updateDynamic(style)(value.toString)
+		}
+	}
+
+	/** Compiles a class binding attribute */
+	private def compileClassBindingAttribute(element: Element, target: String, value: String): Unit = {
+		val className = toCamelCase(target.substring(1))
+		registerBindingExpr(element, value) { (elem, value) =>
+			if (value.dyn) elem.classList.add(className)
+			else elem.classList.remove(className)
+		}
+	}
+
+	/** Compiles a property binding attribute */
+	private def compilePropertyBindingAttribute(element: Element, target: String, value: String): Unit = {
+		registerBindingExpr(element, value) { (elem, value) =>
+			elem.dyn.selectDynamic(target) match {
+				case rx: Var[Any] => rx := value
+				case _ => elem.dyn.updateDynamic(target)(value.asInstanceOf[js.Any])
+			}
+		}
+	}
+
+	/** Compiles an event listener attribute */
+	private def compileEventListenerAttribute(element: Element, name: String, value: String): Unit = {
+		element.removeAttribute(name)
+		val target = name.substring(1, name.length - 1)
+		val expr = Parser.parseExpression(value)
+		registerBinding(element) { case (elem, context) =>
+			val dispatchContext = context.child()
+			elem.addEventListener(target, (event: Event) => {
+				dispatchContext.set("$event", event)
+				Interpreter.safeEvaluate(expr, dispatchContext)
+			})
+			None
+		}
+	}
+
+	/** Compiles a generic attribute interpolation */
+	private def compileGenericAttribute(element: Element, name: String, value: String): Unit = {
+		for (expr <- Parser.parseInterpolation(value)) {
+			element.removeAttribute(name)
+			registerBindingExpr(element, expr) { (elem, value) =>
+				Serializer.forValue(value).write(value) match {
+					case None => elem.removeAttribute(name)
+					case Some(string) => elem.setAttribute(name, string)
+				}
+			}
+		}
+	}
+
+	/** Compiles a Text node */
+	private def compileTextNode(text: Text): Unit = {
+		Parser.parseInterpolation(text.data).foreach {
+			case LiteralPrimitive(value) =>
+				text.data = value.toString
+
+			case expr =>
+				registerBinding(text) { case (elem, context) =>
+					val rx = Rx { Interpreter.safeEvaluate(expr, context) }
+					val obs = Obs { elem.data = rx.!.toString }
+					Some((rx, obs))
+				}
 		}
 	}
 
 	/**
 	  * An instance of the template.
-	  *
-	  * @param component the corresponding component handler
 	  */
-	case class Instance(component: ComponentInstance) {
+	class Instance private[Template] (val context: Context) {
 		/** The root node of this template */
 		val root = template.content.cloneNode(true).as[DocumentFragment]
-
-		/** The root context */
-		implicit val context = Context.ref(component)
 
 		/** The list of data-bindings defined for this template */
 		private[this] val bindings = mutable.Set.empty[(Rx[_], Obs)]
@@ -187,21 +246,16 @@ case class Template(element: Element) {
 		/** The current state of the template bindings */
 		private[this] var enabled = false
 
-		init()
-		component.createShadowRoot().appendChild(root)
-
 		/** Initialize the template instance */
-		private def init(): Unit = {
-			for {
-				target <- root.querySelectorAll("[xuen-bindings]").as[NodeListOf[Element]]
-				id = target.getAttribute("xuen-bindings")
-				(adapater, builders) = bindingDefinitions(id)
-			} {
-				val node = adapater.apply(target)
-				for (builder <- builders) {
-					for (binding <- builder.apply(node, context)) {
-						bindings.add(binding)
-					}
+		for {
+			target <- root.querySelectorAll("[xuen-bindings]").as[NodeListOf[Element]]
+			id = target.getAttribute("xuen-bindings")
+			(adapater, builders) = bindingDefinitions(id)
+		} {
+			val node = adapater.apply(target)
+			for (builder <- builders) {
+				for (binding <- builder.apply(node, context)) {
+					bindings.add(binding)
 				}
 			}
 		}
@@ -229,8 +283,15 @@ case class Template(element: Element) {
 		}
 	}
 
+	/** Instanciate this template and binds it to the given context */
+	def bind(context: Context): Instance = new Instance(context)
+
 	/** Stamps this template on the given handler element */
-	def stamp(component: ComponentInstance): Instance = Instance(component)
+	def stamp(component: ComponentInstance): Instance = {
+		val instance = bind(Context.ref(component))
+		component.createShadowRoot().appendChild(instance.root)
+		instance
+	}
 }
 
 object Template {
@@ -239,8 +300,8 @@ object Template {
 
 	private[Template] def nextBindingId: String = {
 		lastBindingId += 1
-		lastBindingId.toString
+		Integer.toHexString(lastBindingId)
 	}
 
-	val attrBlacklist = Set("class")
+	val attrBlacklist = Set("class", "style")
 }

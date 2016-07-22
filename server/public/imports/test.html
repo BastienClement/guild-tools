@@ -1,5 +1,13 @@
 <xuen-component id="gt-test">
+	<style type="text/less">
+		.basic { font-size: 24px; }
+		.longer { text-decoration: underline; }
+	</style>
 	<template>
-		Hello, <span style="color: {{color}}" [@long]="isLong">{{name}}</span>
+		<div [$color]="color">Hello, {{name | uppercase}}!</div>
+		<div style="background: red; width: 100px; height: 100px; margin: 20px;" [$background-color]="color" (click)="toggle()"></div>
+		<div *if="details">
+			Showing details
+		</div>
 	</template>
 </xuen-component>

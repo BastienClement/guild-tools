@@ -19,10 +19,12 @@ object Expression {
 	case class KeyedWrite(obj: Expression, key: Expression, value: Expression) extends Expression
 
 	case class FunctionCall(target: Expression, args: Seq[Expression]) extends Expression
-	case class Pipe(exp: Expression, name: String, args: Seq[Expression]) extends Expression
+	case class Pipe(expr: Expression, name: String, args: Seq[Expression]) extends Expression
 
 	case class Binary(op: String, lhs: Expression, rhs: Expression) extends Expression
 	case class Unary(op: String, operand: Expression) extends Expression
+
+	case class SelectorQuery(selector: String) extends Expression
 
 	case class LiteralPrimitive(value: Any) extends Expression
 	case class LiteralArray(values: Seq[Expression]) extends Expression

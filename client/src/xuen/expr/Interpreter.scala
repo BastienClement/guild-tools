@@ -8,7 +8,7 @@ import scala.util.{Failure, Try}
 import util.Implicits._
 import xuen.Context
 import xuen.expr.Expression._
-import xuen.rx.Rx
+import xuen.rx.{Rx, Var}
 import xuen.rx.syntax.ExplicitExtractor
 
 object Interpreter {
@@ -28,9 +28,16 @@ object Interpreter {
 		}
 
 		@inline def write(name: String, value: Any): Any = {
-			receiver match {
-				case ctx: Context => ctx.set(name, value)
-				case other => receiver.dyn.updateDynamic(name)(value.asInstanceOf[js.Any])
+			(receiver match {
+				case ctx: Context => ctx.get(name)
+				case other => receiver.dyn.selectDynamic(name)
+			}) match {
+				case rx: Var[_] => rx.asInstanceOf[Var[Any]] := value
+				case _ =>
+					receiver match {
+						case ctx: Context => ctx.set(name, value)
+						case other => receiver.dyn.updateDynamic(name)(value.asInstanceOf[js.Any])
+					}
 			}
 			value
 		}
@@ -41,6 +48,12 @@ object Interpreter {
 				val r = receiver.dyn
 				r.selectDynamic(name).as[js.Function].call(r, args.asInstanceOf[Seq[js.Any]]: _*)
 		}
+	}
+
+	private def evaluatePipe(expression: Expression, name: String, args: Seq[Expression])(implicit context: Context): Any = {
+		val effectiveValue = expression.evaluate.norm
+		val effectiveArgs = args.map { a => a.evaluate.norm }
+		PipesRegistry.invoke(name, effectiveValue, effectiveArgs)
 	}
 
 	private def evaluateChain(expressions: Seq[Expression])(implicit context: Context): Any = {
@@ -113,6 +126,10 @@ object Interpreter {
 		}).norm
 	}
 
+	private def evaluateSelectorQuery(selector: String)(implicit context: Context): Any = {
+		context.selectElement(selector)
+	}
+
 	private def evaluateLiteralArray(values: Seq[Expression])(implicit context: Context): Any = {
 		values.map { value => value.evaluate.norm.asInstanceOf[js.Any] }.toJSArray
 	}
@@ -132,6 +149,7 @@ object Interpreter {
 		case Empty => js.undefined
 		case ImplicitReceiver => context
 
+		case Pipe(expression, name, args) => evaluatePipe(expression, name, args)
 		case Chain(expressions) => evaluateChain(expressions)
 		case Conditional(cond, yes, no) => evaluateConditional(cond, yes, no)
 		case PropertyRead(receiver, name) => evaluatePropertyRead(receiver, name, true)
@@ -143,6 +161,7 @@ object Interpreter {
 		case KeyedWrite(obj, key, value) => evaluateKeyedWrite(obj, key, value)
 		case Binary(op, lhs, rhs) => evaluateBinary(op, lhs, rhs)
 		case Unary(op, operand) => evaluateUnary(op, operand)
+		case SelectorQuery(id) => evaluateSelectorQuery(id)
 		case LiteralPrimitive(value) => value
 		case LiteralArray(values) => evaluateLiteralArray(values)
 		case LiteralMap(keys, values) => evaluateLiteralMap(keys, values)

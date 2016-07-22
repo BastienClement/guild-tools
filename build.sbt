@@ -53,7 +53,8 @@ lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
 	                  libraryDependencies ++= Seq(
 		                  "org.scodec" %% "scodec-core" % "1.10.1",
 		                  "org.scodec" %% "scodec-bits" % "1.1.0",
-		                  "com.lihaoyi" %% "upickle" % "0.4.1"
+		                  "com.lihaoyi" %% "upickle" % "0.4.1",
+		                  "org.scala-js" %% "scalajs-stubs" % scalaJSVersion % "provided"
 	                  )
                   )
                   .jsSettings(

@@ -184,6 +184,10 @@ class Parser(val input: String, private[this] val tokens: Array[Token]) {
 			val exp = pipe
 			expectCharacter(')')
 			exp
+		} else if (optionalOperator("@")) {
+			SelectorQuery(expectIdentifierOrKeywordOrString)
+		} else if (optionalOperator("#")) {
+			SelectorQuery("#" + expectIdentifierOrKeywordOrString)
 		} else {
 			next match {
 				case Token.Keyword("null" | "undefined") => advance(); LiteralPrimitive(null)
@@ -270,30 +274,25 @@ class Parser(val input: String, private[this] val tokens: Array[Token]) {
 
 object Parser {
 	def parseExpression(input: String, from: Int = 0): Expression = {
-		val parser = new Parser(input, Lexer.tokenize(input, from))
-		parser.chain
+		Optimizer.optimize(new Parser(input, Lexer.tokenize(input, from)).chain)
 	}
 
 	def parseInterpolation(input: String): Option[Expression] = {
 		if (input.indexOf("{{") < 0) None
 		else {
-			val fragments = js.Array[InterpolationFragment]()
-
-			var hasStringFragments = false
-			var hasExpressionFragments = false
-
-			@tailrec
-			def parse(from: Int): Unit = {
+			type Fragments = js.Array[InterpolationFragment]
+			@tailrec def parse(from: Int, hasExpr: Boolean = false, fragments: Fragments = js.Array()): (Boolean, Fragments) = {
 				val begin = input.indexOf("{{", from)
 				if (begin < 0) {
 					if (from < input.length) {
 						fragments.push(StringFragment(input.substring(from)))
-						hasStringFragments = true
+						(true, fragments)
+					} else {
+						(hasExpr, fragments)
 					}
 				} else {
 					if (begin != from) {
 						fragments.push(StringFragment(input.substring(from, begin)))
-						hasStringFragments = true
 					}
 
 					val end = input.indexOf("}}", from)
@@ -302,19 +301,13 @@ object Parser {
 					}
 
 					fragments.push(ExpressionFragment(parseExpression(input, begin + 2)))
-					hasExpressionFragments = true
-
-					parse(end + 2)
+					parse(end + 2, true, fragments)
 				}
 			}
 
-			parse(0)
-
-			fragments.length match {
-				case 0 => None
-				case 1 if hasStringFragments => None
-				case 1 if hasExpressionFragments => Some(fragments(0).asInstanceOf[ExpressionFragment].expression)
-				case _ => Some(Interpolation(fragments))
+			parse(0) match {
+				case (true, fragments) => Some(Optimizer.optimize(Interpolation(fragments)))
+				case _ => None
 			}
 		}
 	}

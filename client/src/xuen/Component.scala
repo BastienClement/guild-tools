@@ -1,5 +1,6 @@
 package xuen
 
+import facade.HTMLTemplateElement
 import gt.Loader
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -39,7 +40,10 @@ abstract class Component[H <: ComponentInstance : ConstructorTag](val selector: 
 		Option(templateUrl).map { url =>
 			Loader.loadDocument(url).map(doc => doc.querySelector(s"xuen-component[id='$selector']")).collect {
 				case null => throw XuenException(s"No <xuen-component> found for '$selector' in '$url'")
-				case element => Some(Template(element))
+				case element => element.querySelector(s"xuen-component[id='$selector'] > template")
+			}.collect {
+				case null => throw XuenException(s"No <template> found for component '$selector' in '$url'")
+				case tmpl => Some(Template(tmpl.asInstanceOf[HTMLTemplateElement]))
 			}
 		}.getOrElse {
 			Future.successful(None)

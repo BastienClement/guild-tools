@@ -8,22 +8,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Future, Promise}
 import scala.scalajs.js
-import scala.scalajs.js.annotation.ScalaJSDefined
 import scala.util.{Failure, Success}
 import util.Global._
 import util.Implicits._
 import util.{Delay, Settings}
-
-@ScalaJSDefined
-class Bar extends js.Object {
-	def foo = "Foo"
-	def hello() = println("Hello", foo)
-}
-
-@ScalaJSDefined
-class Foo extends Bar {
-
-}
+import xuen.expr.PipesRegistry
 
 /** The main GuildTools application object */
 object Application extends js.JSApp {
@@ -43,6 +32,9 @@ object Application extends js.JSApp {
 
 		document.addEventListener("contextmenu", preventRightClick _)
 		dynamic.GuildTools = this.asInstanceOf[js.Any]
+
+		// Load pipes definitions
+		PipesRegistry.load(pipes.Common)
 
 		val coreLoaded = Future.sequence(Seq(
 			Loader.loadLess("/assets/less/guildtools.less") andThen {

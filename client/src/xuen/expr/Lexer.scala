@@ -47,7 +47,7 @@ class Lexer(val input: String, val from: Int = 0) {
 				case '\'' | '"' =>
 					scanString()
 
-				case '#' | '+' | '-' | '*' | '/' | '%' | '^' =>
+				case '#' | '@' | '+' | '-' | '*' | '/' | '%' | '^' =>
 					scanOperator(peek)
 
 				case '?' =>
@@ -76,7 +76,7 @@ class Lexer(val input: String, val from: Int = 0) {
 		peek.isLetter || peek == '_' || peek == '$'
 	}
 
-	@inline private def isIdentifierPart(peek: Char): Boolean = isIdentifierStart(peek) || peek.isDigit
+	@inline private def isIdentifierPart(peek: Char): Boolean = isIdentifierStart(peek) || peek.isDigit || peek == '-'
 	@inline private def isExponentStart(peek: Char): Boolean = peek == 'e' || peek == 'E'
 	@inline private def isExponentSign(peek: Char): Boolean = peek == '+' || peek == '-'
 

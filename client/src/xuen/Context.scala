@@ -5,8 +5,6 @@ import scala.language.dynamics
 import scala.scalajs.js
 import scala.scalajs.js.UndefOr
 import util.Implicits._
-import xuen.rx.syntax.ExplicitExtractor
-import xuen.rx.{Rx, Var}
 
 /**
   * A Context used during expression evaluation.
@@ -22,6 +20,8 @@ sealed trait Context extends Any with Dynamic {
 	def invoke(name: String, args: Seq[Any]): Any
 	def invokeTarget: js.Dynamic
 
+	def selectElement(selector: String): Any
+
 	def selectDynamic(name: String): Any
 	def updateDynamic(name: String)(value: Any): Unit
 	def applyDynamic(name: String)(args: Any*): Any
@@ -30,11 +30,6 @@ sealed trait Context extends Any with Dynamic {
 }
 
 object Context {
-	private[Context] def evaluate(value: Any): Any = value match {
-		case rx: Rx[_] => rx.!
-		case any => any
-	}
-
 	private[Context] def performInvoke(target: js.Dynamic, function: Any, args: Seq[Any]): Any = function match {
 		case fun: js.Function => fun.call(target, args.asInstanceOf[Seq[js.Any]]: _*)
 		case _ => throw XuenException("Invoke target is not a function")
@@ -42,15 +37,16 @@ object Context {
 
 	class Reference(val ref: js.Dynamic) extends AnyVal with Context {
 		def has(name: String): Boolean = get(name).asInstanceOf[UndefOr[Any]].isDefined
-		def get(name: String): Any = evaluate(ref.dyn.selectDynamic(name))
+		def get(name: String): Any = ref.dyn.selectDynamic(name)
 		def set(name: String, value: Any): Unit = ref.selectDynamic(name) match {
-			case rx: Var[Any] => rx := value
 			case any if any.asInstanceOf[UndefOr[Any]].isDefined => ref.updateDynamic(name)(value.asInstanceOf[js.Any])
 			case _ => throw XuenException("Setting an undefined property on the reference object is not allowed")
 		}
 
 		def invokeTarget: js.Dynamic = ref
 		def invoke(name: String, args: Seq[Any]): Any = performInvoke(invokeTarget, get(name), args)
+
+		def selectElement(selector: String): Any = ref.$xuen$selectElement(selector)
 
 		def selectDynamic(name: String): Any = get(name)
 		def updateDynamic(name: String)(value: Any): Unit = set(name, value)
@@ -68,6 +64,8 @@ object Context {
 
 		def invokeTarget: js.Dynamic = parent.invokeTarget
 		def invoke(name: String, args: Seq[Any]): Any = performInvoke(invokeTarget, get(name), args)
+
+		def selectElement(selector: String): Any = parent.selectElement(selector)
 
 		def selectDynamic(name: String): Any = get(name)
 		def updateDynamic(name: String)(value: Any): Unit = set(name, value)

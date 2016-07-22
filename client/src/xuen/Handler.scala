@@ -1,5 +1,6 @@
 package xuen
 
+import org.scalajs.dom.raw.HTMLElement
 import scala.collection.mutable
 import scala.scalajs.js
 import scala.scalajs.js.annotation.ScalaJSDefined
@@ -97,6 +98,9 @@ abstract class Handler extends ComponentInstance {
 		proxy
 	}
 
+	/** Declares a property binding */
+	protected[xuen] final def property[T: Zero]: Var[T] = Var(implicitly[Zero[T]].zero)
+
 	/** Handles the component creation */
 	protected[xuen] final def createdCallback(): Unit = {
 		Handler.construct(this, component.constructorTag.constructor)
@@ -132,6 +136,11 @@ abstract class Handler extends ComponentInstance {
 	protected[xuen] final def attributeChangedCallback(attr: String, old: String, value: String): Unit = {
 		for (updater <- attributeBindings.get(attr)) updater(value)
 		attributeChanged(attr, old, value)
+	}
+
+	/** Select a child element in this component Shadow DOM with the requested ID */
+	protected[xuen] final def $xuen$selectElement(selector: String): HTMLElement = {
+		shadow.querySelector(selector).asInstanceOf[HTMLElement]
 	}
 }
 
