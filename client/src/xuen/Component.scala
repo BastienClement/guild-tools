@@ -8,7 +8,7 @@ import scala.language.higherKinds
 import scala.scalajs.js
 import scala.scalajs.js.ConstructorTag
 import util.Global._
-import util.Implicits._
+import util.implicits._
 
 abstract class Component[H <: ComponentInstance : ConstructorTag](val selector: String,
                                                                   val templateUrl: String = null,

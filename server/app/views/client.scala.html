@@ -5,7 +5,7 @@
 <title>Guild Tools</title>
 <link rel="shortcut icon" href='@routes.Assets.versioned("images/favicon.ico")'>
 
-<!-- Background and nothing else -->
+@* Background and nothing else *@
 <style>
 	body {
 		overflow: hidden;
@@ -36,7 +36,7 @@
 	}
 </style>
 
-<!-- Loading cover spinner -->
+@* Loading cover spinner *@
 <div id="loader" class="cloak">
 	<div class="spinner"><b></b><b></b><b></b><b></b><b></b><b></b></div>
 </div>
@@ -44,12 +44,12 @@
 	<i onclick="window.close();">close</i>
 </div>
 
-<!-- Application utility divs -->
+@*  Application utility divs *@
 <div id="borders"></div>
 <div id="background"></div>
 <div id="app-loader" class="cloak"><img src="/assets/images/spinner.svg"></div>
 
-<!-- Load the loading stylesheet -->
+@* Load the loading stylesheet *@
 <script>
 @if(session.isDefined) {
 	localStorage.setItem("auth.session", '@session.get');
@@ -76,44 +76,45 @@
 				document.location.href = sso_url();
 			})();
 		} else {
-			(function() {
-				var xhr = new XMLHttpRequest();
-				xhr.open("GET", '@routes.Assets.versioned("less/loading.css")', true);
-				xhr.responseType = "text";
-				xhr.onload = function() {
-					var style = document.createElement("style");
-					style.type = "text/css";
-					style.appendChild(document.createTextNode(this.response));
-					document.head.appendChild(style);
-					res();
-				};
-				xhr.send();
-			})();
+			var xhr = new XMLHttpRequest();
+			xhr.open("GET", '@routes.Assets.versioned("less/loading.css")', true);
+			xhr.responseType = "text";
+			xhr.onload = function() {
+				var style = document.createElement("style");
+				style.type = "text/css";
+				style.appendChild(document.createTextNode(this.response));
+				document.head.appendChild(style);
+				res();
+			};
+			xhr.send();
 		}
 	});
 </script>
 
-<!-- Check browser compatibility -->
+@* Check browser compatibility *@
 <script src='@routes.Assets.versioned("javascripts/bowser.js")'></script>
 <script>
 	(function() {
 		var bowser = this.bowser || module.exports;
-
 		var valid = (function() {
 			var version = parseInt(bowser.version.split(".")[0]);
-			if (bowser.chrome) return version >= 49;
+			if (bowser.chrome) return version >= 51;
 			//else if (bowser.firefox) return version >= 41;
 			else return false;
 		})();
-
-		var same = localStorage.getItem("unsupported.ignored") == navigator.userAgent;
-
-		if (!valid && !same) {
+		if (!valid && localStorage.getItem("unsupported.ignored") != navigator.userAgent) {
 			document.location.href = "/unsupported";
 		}
 	})();
 </script>
 
-<!-- Base framework -->
+@* Base framework *@
 <script src='@routes.Assets.versioned("javascripts/prefixfree.js")'></script>
-@playscalajs.html.scripts("client")
+@playscalajs.html.selectScript("client", environment.mode == play.api.Mode.Prod, filename => s"/assets/$filename")
+
+@* Launcher *@
+<script>
+	var scripts = document.querySelectorAll("body > script");
+	for (var i = 0; i < scripts.length; i++) scripts[i].parentNode.removeChild(scripts[i]);
+	gt.Application().main();
+</script>

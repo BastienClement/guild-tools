@@ -10,7 +10,7 @@ import scala.concurrent.{Future, Promise}
 import scala.scalajs.js
 import scala.util.{Failure, Success}
 import util.Global._
-import util.Implicits._
+import util.implicits._
 import util.{Delay, Settings}
 import xuen.expr.PipesRegistry
 

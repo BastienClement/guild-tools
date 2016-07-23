@@ -1,10 +1,9 @@
 package xuen
 
-import scala.collection.mutable
 import scala.language.dynamics
 import scala.scalajs.js
 import scala.scalajs.js.UndefOr
-import util.Implicits._
+import util.implicits._
 
 /**
   * A Context used during expression evaluation.
@@ -12,7 +11,7 @@ import util.Implicits._
   * The context is responsible for providing value for specific keys that can
   * be used in a Xuen expression.
   */
-sealed trait Context extends Any with Dynamic {
+sealed trait Context extends Dynamic {
 	def has(name: String): Boolean
 	def get(name: String): Any
 	def set(name: String, value: Any): Unit
@@ -35,10 +34,11 @@ object Context {
 		case _ => throw XuenException("Invoke target is not a function")
 	}
 
-	class Reference(val ref: js.Dynamic) extends AnyVal with Context {
+	class Reference(val ref: js.Dynamic) extends Context {
 		def has(name: String): Boolean = get(name).asInstanceOf[UndefOr[Any]].isDefined
 		def get(name: String): Any = ref.dyn.selectDynamic(name)
 		def set(name: String, value: Any): Unit = ref.selectDynamic(name) match {
+			case fn: js.Function => throw XuenException("Overriding a function property on the reference object is not allowed")
 			case any if any.asInstanceOf[UndefOr[Any]].isDefined => ref.updateDynamic(name)(value.asInstanceOf[js.Any])
 			case _ => throw XuenException("Setting an undefined property on the reference object is not allowed")
 		}
@@ -56,7 +56,7 @@ object Context {
 	}
 
 	class Child(val parent: Context) extends Context {
-		private[this] val locals = mutable.Map[String, Any]()
+		private[this] val locals = js.Object.create(null).as[js.Dictionary[Any]]
 
 		def has(name: String): Boolean = locals.contains(name) || parent.has(name)
 		def get(name: String): Any = locals.getOrElse(name, parent.get(name))
@@ -72,6 +72,10 @@ object Context {
 		def applyDynamic(name: String)(args: Any*): Any = invoke(name, args)
 
 		def child(properties: (String, Any)*): Child = Context.child(this, properties: _*)
+
+		override def toString: String = {
+			super.toString + "(" + locals.map { case (k, v) => s"$k=$v" }.mkString(", ") + ")"
+		}
 	}
 
 	def ref(r: Any): Reference = new Reference(r.asInstanceOf[js.Dynamic])

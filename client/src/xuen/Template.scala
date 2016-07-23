@@ -6,8 +6,9 @@ import org.scalajs.dom._
 import scala.collection.mutable
 import scala.scalajs.js
 import scala.scalajs.js.DynamicImplicits._
-import util.Implicits._
 import util.Serializer
+import util.implicits._
+import xuen.Template._
 import xuen.expr.Expression.LiteralPrimitive
 import xuen.expr.{Expression, Interpreter, Parser}
 import xuen.rx.syntax.ExplicitExtractor
@@ -17,63 +18,13 @@ import xuen.rx.{Obs, Rx, Var}
   * A component template, defined by a <template> tag.
   */
 case class Template(template: HTMLTemplateElement) {
-	private type BindingBuilder[N <: Node] = (N, Context) => Option[(Rx[_], Obs)]
-	private type BindingAdapter = (Element) => Node
-
-	private[this] val bindingDefinitions = mutable.Map.empty[String, (BindingAdapter, mutable.Set[BindingBuilder[Node]])]
+	// Ensure that the template as at least one child
+	if (template.content.childNodes.length < 1) {
+		template.content.appendChild(document.createComment(" empty template "))
+	}
 
 	template.content.normalize()
 	compile(template.content)
-
-	/** Removes the xuen-bindings attribute tag */
-	private def elementBindingsAdapter(element: Element): Node = {
-		element.removeAttribute("xuen-bindings")
-		element
-	}
-
-	/** Registers a binding on an Element node */
-	private def registerBinding[E <: Element](element: E)(builder: BindingBuilder[E]): Unit = {
-		val bindingId = Option(element.getAttribute("xuen-bindings")).getOrElse({
-			val id = Template.nextBindingId
-			element.setAttribute("xuen-bindings", id)
-			bindingDefinitions.put(id, (elementBindingsAdapter, mutable.Set.empty))
-			id
-		})
-		bindingDefinitions(bindingId)._2.add(builder.asInstanceOf[BindingBuilder[Node]])
-	}
-
-	/** Registers a binding on an Element node */
-	private def registerBindingExpr[E <: Element](element: E, expr: Expression)(behavior: (E, Any) => Unit): Unit = {
-		registerBinding(element) { case (elem, context) =>
-			val rx = Rx { Interpreter.safeEvaluate(expr, context) }
-			val obs = Obs { behavior(elem, rx.!) }
-			Some((rx, obs))
-		}
-	}
-
-	/** Alias for registerBindingExpr with an expression source code */
-	private def registerBindingExpr[E <: Element](element: E, exprSource: String)(behavior: (E, Any) => Unit): Unit = {
-		registerBindingExpr(element, Parser.parseExpression(exprSource))(behavior)
-	}
-
-	/** Reverts the <xuen-interpolation> placeholder to a text node */
-	private def textBindingsAdapter(element: Element): Node = {
-		val text = element.ownerDocument.createTextNode("")
-		element.parentNode.replaceChild(text, element)
-		text
-	}
-
-	/**
-	  * Registers a binding on a Text node.
-	  * Unlike for elements, only a single binding can be defined on a text node.
-	  */
-	private def registerBinding(text: Text)(builder: BindingBuilder[Text]): Unit = {
-		val id = Template.nextBindingId
-		val synthElement = text.ownerDocument.createElement("xuen-interpolation")
-		synthElement.setAttribute("xuen-bindings", id)
-		text.parentNode.replaceChild(synthElement, text)
-		bindingDefinitions.put(id, (textBindingsAdapter, mutable.Set(builder.asInstanceOf[BindingBuilder[Node]])))
-	}
 
 	/** Transforms an hyphenated string to a camel-cased one */
 	private def toCamelCase(orig: String): String = {
@@ -86,19 +37,187 @@ case class Template(template: HTMLTemplateElement) {
 		case element: Element => compileElement(element)
 		case text: Text => compileTextNode(text)
 		case fragment: DocumentFragment => node.childNodes.foreach(compile)
-		case comment: Comment => // Ignore
+		case comment: Comment => compileComment(comment)
 		case unknown => throw XuenException(s"Encountered unknown node type '$unknown' while compiling template")
 	}
 
 	/** Compiles an Element node */
 	private def compileElement(element: Element): Unit = {
-		if (element.hasAttributes) {
-			for {
-				attribute <- for (attr <- element.attributes) yield attr.asInstanceOf[Attr]
-				if !Template.attrBlacklist.contains(attribute.name)
-			} compileAttribute(element, attribute)
+		if (element.hasAttribute("*if")) compileIfTransformation(element)
+		else if (element.hasAttribute("*for")) compileForTransformation(element)
+		else if (element.hasAttribute("*switch")) compileSwitchTransformation(element)
+		else if (element.hasAttribute("*scope")) compileScopeTransformation(element)
+		else {
+			if (element.hasAttributes) {
+				for {
+					attribute <- for (attr <- element.attributes) yield attr.asInstanceOf[Attr]
+					if !Template.attrBlacklist.contains(attribute.name)
+				} compileAttribute(element, attribute)
+			}
+			element.childNodes.foreach(compile)
 		}
-      element.childNodes.foreach(compile)
+	}
+
+	/** Compiles a *if transformation */
+	private def compileIfTransformation(element: Element): Unit = {
+		val sourceExpr = element.getAttribute("*if")
+		val expr = Parser.parseExpression(sourceExpr)
+		element.removeAttribute("*if")
+
+		templateWrap(element, s"*if $sourceExpr") { (placeholder, context, template, parent) =>
+			var instance: Template#Instance = null
+			val rx = Rx { Interpreter.safeEvaluate(expr, context) }
+			val obs = Obs {
+				if (instance == null && rx.!.dyn) {
+					instance = template.bind(context)
+					parent.attach(instance)
+					placeholder.parentNode.insertBefore(instance.root, placeholder.nextSibling)
+				} else if (instance != null && !rx.!.dyn) {
+					parent.detach(instance)
+					instance.children.foreach { child => child.parentNode.removeChild(child) }
+					instance = null
+				}
+			}
+			Some((rx, obs))
+		}
+	}
+
+	private def compileForTransformation(element: Element): Unit = {
+		val sourceExpr = element.getAttribute("*for")
+		val enumerator = Parser.parseEnumerator(sourceExpr)
+		element.removeAttribute("*for")
+
+		templateWrap(element, s"*for $sourceExpr") { (placeholder, context, template, parent) =>
+			val rx = Rx {
+				val items: Iterable[Any] = Interpreter.safeEvaluate(enumerator.iterable, context) match {
+					case it: Iterable[_] => it
+					case array: js.Array[_] => array
+					case unsupported => throw XuenException(s"Unsupported iterable in for-loop: ${ unsupported.getClass.getName }")
+				}
+
+				val source: Iterable[(Any, Any)] = items match {
+					case map: Map[_, _] => map
+					case it: Iterable[_] => Stream.from(0).zip(it)
+				}
+
+				for {
+					(index, value) <- source
+					lazyCtx = {
+						lazy val lzy = context.child(
+							enumerator.key -> Var(value),
+							enumerator.indexKey -> Var(index)
+						)
+						() => lzy
+					}
+					if enumerator.filter.map(Interpreter.evaluate(_, lazyCtx())).getOrElse(true).dyn
+				} yield (index, value, lazyCtx)
+			}
+
+			case class ItemNode(ctx: Context) {
+				var flag = false
+				var fresh = true
+				var prevRawIndex = ctx.get("$index")
+
+				val tmpl = template.bind(ctx)
+				val node = tmpl.root.firstChild
+
+				parent.attach(tmpl)
+
+				def dispose() = {
+					parent.detach(tmpl)
+					node.parentNode.removeChild(node)
+				}
+			}
+
+			val nodes = mutable.Map.empty[Any, ItemNode]
+
+			val obs = Obs {
+				for ((_, in) <- nodes) in.flag = true
+
+				var lastNode = placeholder
+
+				val items = rx.!
+				val lastIndex = items.size - 1
+				var rawIndex = 0
+
+				for ((index, value, lazyCtx) <- rx.!)  {
+					// Instantiate the lazy context
+					lazy val ctx = {
+						val c = lazyCtx()
+						c.set("$index", Var(rawIndex))
+						c.set("$first", Var(rawIndex == 0))
+						c.set("$even", Var(rawIndex % 2 == 0))
+						c.set("$odd", Var(rawIndex % 2 == 1))
+						c.set("$last", Var(rawIndex == lastIndex))
+						c
+					}
+
+					// Fetch the discriminant key
+					val key = enumerator.by.map { by => Interpreter.evaluate(by, ctx) }.filter(_ != js.undefined).getOrElse(value)
+
+					// Fetch or create the item node
+					val item = nodes.getOrElseUpdate(key, {
+						enumerator.locals.foreach { locals => Interpreter.evaluate(locals, ctx) }
+						ItemNode(ctx)
+					})
+
+					// Clear the dispose flag
+					item.flag = false
+
+					// Update old context if node was not recreated
+					if (!item.fresh) {
+						val old = item.ctx
+
+						old.get(enumerator.key).asInstanceOf[Var[Any]] := value
+						old.get(enumerator.indexKey).asInstanceOf[Var[Any]] := index
+
+						if (item.prevRawIndex != rawIndex) {
+							old.get("$index").asInstanceOf[Var[Int]] := rawIndex
+							old.get("$first").asInstanceOf[Var[Boolean]] := (rawIndex == 0)
+							old.get("$even").asInstanceOf[Var[Boolean]] := (rawIndex % 2 == 0)
+							old.get("$odd").asInstanceOf[Var[Boolean]] := (rawIndex % 2 == 1)
+							old.get("$last").asInstanceOf[Var[Boolean]] := (rawIndex == lastIndex)
+						}
+					} else {
+						item.fresh = false
+					}
+
+					// Update the DOM
+					if (lastNode.nextSibling ne item.node) {
+						lastNode.parentNode.insertBefore(item.node, lastNode.nextSibling)
+					}
+
+					lastNode = item.node
+					rawIndex += 1
+				}
+
+				for ((key, in) <- nodes if in.flag) {
+					in.dispose()
+					nodes.remove(key)
+				}
+			}
+
+			Some((rx, obs))
+		}
+	}
+
+	private def compileSwitchTransformation(element: Element): Unit = {
+		???
+	}
+
+	private def compileScopeTransformation(element: Element): Unit = {
+		val locals = element.getAttribute("*scope")
+		val expr = Parser.parseExpression(locals)
+		element.removeAttribute("*scope")
+
+		templateWrap(element, s"*scope = $locals") { (placeholder, context, template, parent) =>
+			val ctx = context.child()
+			Interpreter.evaluate(expr, ctx)
+			val child = template.bind(ctx)
+			parent.attach(child)
+			placeholder.parentNode.replaceChild(child.root, placeholder)
+			None
+		}
 	}
 
 	/** Compiles an element's attribute */
@@ -130,7 +249,7 @@ case class Template(template: HTMLTemplateElement) {
 		// Check if we have a condition associated with this class
 		Option(value).filter(v => v.trim.length > 0) match {
 			case Some(cond) =>
-				registerBindingExpr(element, cond) { (elem, value) =>
+				registerBindingExpr(element, cond) { (elem, value, instance) =>
 					if (value.dyn) elem.classList.add(className)
 					else elem.classList.remove(className)
 				}
@@ -155,7 +274,7 @@ case class Template(template: HTMLTemplateElement) {
 	/** Compiles an attribute binding attribute */
 	private def compileAttributeBindingAttribute(element: Element, target: String, value: String): Unit = {
 		val attribute = target.substring(1)
-		registerBindingExpr(element, value) { (elem, value) =>
+		registerBindingExpr(element, value) { (elem, value, instance) =>
 			Serializer.forValue(value).write(value) match {
 				case None => elem.removeAttribute(attribute)
 				case Some(string) => elem.setAttribute(attribute, string)
@@ -166,7 +285,7 @@ case class Template(template: HTMLTemplateElement) {
 	/** Compiles a style binding attribute */
 	private def compileStyleBindingAttribute(element: Element, target: String, value: String): Unit = {
 		val style = toCamelCase(target.substring(1))
-		registerBindingExpr(element, value) { (elem, value) =>
+		registerBindingExpr(element, value) { (elem, value, instance) =>
 			elem.dyn.style.updateDynamic(style)(value.toString)
 		}
 	}
@@ -174,7 +293,7 @@ case class Template(template: HTMLTemplateElement) {
 	/** Compiles a class binding attribute */
 	private def compileClassBindingAttribute(element: Element, target: String, value: String): Unit = {
 		val className = toCamelCase(target.substring(1))
-		registerBindingExpr(element, value) { (elem, value) =>
+		registerBindingExpr(element, value) { (elem, value, instance) =>
 			if (value.dyn) elem.classList.add(className)
 			else elem.classList.remove(className)
 		}
@@ -182,9 +301,9 @@ case class Template(template: HTMLTemplateElement) {
 
 	/** Compiles a property binding attribute */
 	private def compilePropertyBindingAttribute(element: Element, target: String, value: String): Unit = {
-		registerBindingExpr(element, value) { (elem, value) =>
+		registerBindingExpr(element, value) { (elem, value, instance) =>
 			elem.dyn.selectDynamic(target) match {
-				case rx: Var[Any] => rx := value
+				case rx: Var[_] => rx.as[Var[Any]] := value
 				case _ => elem.dyn.updateDynamic(target)(value.asInstanceOf[js.Any])
 			}
 		}
@@ -195,7 +314,7 @@ case class Template(template: HTMLTemplateElement) {
 		element.removeAttribute(name)
 		val target = name.substring(1, name.length - 1)
 		val expr = Parser.parseExpression(value)
-		registerBinding(element) { case (elem, context) =>
+		registerBinding(element) { case (elem, context, instance) =>
 			val dispatchContext = context.child()
 			elem.addEventListener(target, (event: Event) => {
 				dispatchContext.set("$event", event)
@@ -209,7 +328,7 @@ case class Template(template: HTMLTemplateElement) {
 	private def compileGenericAttribute(element: Element, name: String, value: String): Unit = {
 		for (expr <- Parser.parseInterpolation(value)) {
 			element.removeAttribute(name)
-			registerBindingExpr(element, expr) { (elem, value) =>
+			registerBindingExpr(element, expr) { (elem, value, instance) =>
 				Serializer.forValue(value).write(value) match {
 					case None => elem.removeAttribute(name)
 					case Some(string) => elem.setAttribute(name, string)
@@ -225,12 +344,37 @@ case class Template(template: HTMLTemplateElement) {
 				text.data = value.toString
 
 			case expr =>
-				registerBinding(text) { case (elem, context) =>
+				registerBinding(text) { case (node, context, instance) =>
 					val rx = Rx { Interpreter.safeEvaluate(expr, context) }
-					val obs = Obs { elem.data = rx.!.toString }
+					val obs = Obs { node.data = rx.!.toString }
 					Some((rx, obs))
 				}
 		}
+	}
+
+	/** Compiles a Comment node */
+	private def compileComment(comment: Comment): Unit = {
+		Parser.parseInterpolation(comment.data).foreach {
+			case LiteralPrimitive(value) =>
+				comment.data = value.toString
+
+			case expr =>
+				registerBinding(comment) { case (node, context, instance) =>
+					val rx = Rx { Interpreter.safeEvaluate(expr, context) }
+					val obs = Obs { node.data = rx.!.toString }
+					Some((rx, obs))
+				}
+		}
+	}
+
+	/** Instanciate this template and binds it to the given context */
+	def bind(context: Context): Instance = new Instance(context)
+
+	/** Stamps this template on the given handler element */
+	def stamp(component: ComponentInstance): Instance = {
+		val instance = bind(Context.ref(component))
+		component.createShadowRoot().appendChild(instance.root)
+		instance
 	}
 
 	/**
@@ -238,7 +382,13 @@ case class Template(template: HTMLTemplateElement) {
 	  */
 	class Instance private[Template] (val context: Context) {
 		/** The root node of this template */
-		val root = template.content.cloneNode(true).as[DocumentFragment]
+		val root = document.importNode(template.content, true).as[DocumentFragment]
+
+		/** Child nodes of this template */
+		val children = for (child <- root.childNodes) yield child
+
+		/** Attached template instances */
+		private[this] val attached = mutable.Set.empty[Template#Instance]
 
 		/** The list of data-bindings defined for this template */
 		private[this] val bindings = mutable.Set.empty[(Rx[_], Obs)]
@@ -254,7 +404,7 @@ case class Template(template: HTMLTemplateElement) {
 		} {
 			val node = adapater.apply(target)
 			for (builder <- builders) {
-				for (binding <- builder.apply(node, context)) {
+				for (binding <- builder.apply(node, context, this)) {
 					bindings.add(binding)
 				}
 			}
@@ -268,8 +418,9 @@ case class Template(template: HTMLTemplateElement) {
 		def enable(): Unit = if (!enabled) {
 			Rx.atomically {
 				for ((v, o) <- bindings) v ~>> o
+				for (a <- attached) a.enable()
 			}
-			enabled = false
+			enabled = true
 		}
 
 		/**
@@ -279,29 +430,138 @@ case class Template(template: HTMLTemplateElement) {
 		  */
 		def disable(): Unit = if (enabled) {
 			for ((v, o) <- bindings) v ~!> o
+			for (a <- attached) a.disable()
 			enabled = false
 		}
-	}
 
-	/** Instanciate this template and binds it to the given context */
-	def bind(context: Context): Instance = new Instance(context)
+		/** Attaches another template instance to this one and enables it if this instance is enabled */
+		def attach(instance: Template#Instance): Unit = {
+			attached.add(instance)
+			if (enabled) instance.enable() else instance.disable()
+		}
 
-	/** Stamps this template on the given handler element */
-	def stamp(component: ComponentInstance): Instance = {
-		val instance = bind(Context.ref(component))
-		component.createShadowRoot().appendChild(instance.root)
-		instance
+		/** Detaches another template instance from this one and disables it, unless keepEnabled is true */
+		def detach(instance: Template#Instance, keepEnabled: Boolean = false): Unit = {
+			attached.remove(instance)
+			if (!keepEnabled) instance.disable()
+		}
 	}
 }
 
 object Template {
+	/** The set of attribute that cannot be data-bound */
+	val attrBlacklist = Set("class", "style")
+
 	/** Id of the last Xuen binding registered */
 	private[this] var lastBindingId = 0
 
-	private[Template] def nextBindingId: String = {
+	/** Returns the next binding unique ID */
+	private def nextBindingId: String = {
 		lastBindingId += 1
 		Integer.toHexString(lastBindingId)
 	}
 
-	val attrBlacklist = Set("class", "style")
+	/** The type of a binding adapter */
+	private type BindingAdapter = (Element) => Node
+
+	/** The type of a binding builder for a node of type N */
+	private type BindingBuilder[N <: Node] = (N, Context, Template#Instance) => Option[(Rx[_], Obs)]
+
+	/** The set of defined bindings */
+	private val bindingDefinitions = mutable.Map.empty[String, (BindingAdapter, mutable.Set[BindingBuilder[Node]])]
+
+	/** Removes the xuen-bindings attribute tag */
+	private def elementBindingsAdapter(element: Element): Node = {
+		element.removeAttribute("xuen-bindings")
+		element
+	}
+
+	/** Registers a binding on an Element node */
+	private def registerBinding[E <: Element](element: E)(builder: BindingBuilder[E]): Unit = {
+		val bindingId = Option(element.getAttribute("xuen-bindings")).getOrElse({
+			val id = nextBindingId
+			element.setAttribute("xuen-bindings", id)
+			bindingDefinitions.put(id, (elementBindingsAdapter, mutable.Set.empty))
+			id
+		})
+		bindingDefinitions(bindingId)._2.add(builder.asInstanceOf[BindingBuilder[Node]])
+	}
+
+	/** Registers a binding on an Element node */
+	private def registerBindingExpr[E <: Element](element: E, expr: Expression)(behavior: (E, Any, Template#Instance) => Unit): Unit = {
+		registerBinding(element) { case (elem, context, instance) =>
+			val rx = Rx { Interpreter.safeEvaluate(expr, context) }
+			val obs = Obs { behavior(elem, rx.!, instance) }
+			Some((rx, obs))
+		}
+	}
+
+	/** Alias for registerBindingExpr with an expression source code */
+	private def registerBindingExpr[E <: Element](element: E, exprSource: String)(behavior: (E, Any, Template#Instance) => Unit): Unit = {
+		registerBindingExpr(element, Parser.parseExpression(exprSource))(behavior)
+	}
+
+	/**
+	  * Registers a binding on a Text node.
+	  * Unlike for elements, only a single binding can be defined on a text node.
+	  */
+	private def registerBinding(text: Text)(builder: BindingBuilder[Text]): Unit = {
+		val id = nextBindingId
+		val synthElement = text.ownerDocument.createElement("xuen-interpolation")
+		synthElement.setAttribute("xuen-bindings", id)
+		text.parentNode.replaceChild(synthElement, text)
+
+		def adapter(element: Element): Node = {
+			val text = element.ownerDocument.createTextNode("")
+			element.parentNode.replaceChild(text, element)
+			text
+		}
+
+		bindingDefinitions.put(id, (adapter, mutable.Set(builder.asInstanceOf[BindingBuilder[Node]])))
+	}
+
+	/**
+	  * Registers a binding on a Comment node.
+	  * Unlike for elements, only a single binding can be defined on a comment node.
+	  */
+	private def registerBinding(comment: Comment)(builder: BindingBuilder[Comment]): Unit = {
+		val id = Template.nextBindingId
+		val synthElement = comment.ownerDocument.createElement("xuen-interpolation")
+		synthElement.setAttribute("xuen-bindings", id)
+		comment.parentNode.replaceChild(synthElement, comment)
+
+		def adapter(element: Element): Node = {
+			val comment = element.ownerDocument.createComment("")
+			element.parentNode.replaceChild(comment, element)
+			comment
+		}
+
+		bindingDefinitions.put(id, (adapter, mutable.Set(builder.asInstanceOf[BindingBuilder[Node]])))
+	}
+
+	/**
+	  * Wraps the given element in a <template> tag and setup appropriate bindings.
+	  */
+	private def templateWrap(element: Element, text: String)(builderImpl: (Node, Context, Template, Template#Instance) => Option[(Rx[_], Obs)]): Unit = {
+		val id = nextBindingId
+		val template = document.createElement("template").as[HTMLTemplateElement]
+		template.setAttribute("xuen-bindings", id)
+
+		element.parentNode.replaceChild(template, element)
+		template.content.appendChild(element)
+
+		val child = Template(template)
+
+		def adapter(template: Element): Node = {
+			val placeholder = document.createComment(" " + text + " ")
+			template.parentNode.replaceChild(placeholder, template)
+			placeholder
+		}
+
+		def builder(placeholder: Node, context: Context, instance: Template#Instance): Option[(Rx[_], Obs)] = {
+			builderImpl(placeholder, context, child, instance)
+		}
+
+		bindingDefinitions.put(id, (adapter, mutable.Set(builder)))
+	}
 }

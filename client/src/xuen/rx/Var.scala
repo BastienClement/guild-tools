@@ -32,6 +32,10 @@ class Var[T] protected (initial: T) extends Rx[T] {
 		this
 	}
 
+	def ~= (fn: T => T): this.type = {
+		this := fn(current)
+	}
+
 	/** Binds this variable to the given reactive value */
 	def <~ (rx: Rx[T]): this.type = {
 		rx ~>> { ref => this := ref }
@@ -40,6 +44,8 @@ class Var[T] protected (initial: T) extends Rx[T] {
 
 	/** Binds this variable to the given reactive expression */
 	final def <~ (expr: => T): this.type = this <~ Rx(expr)
+
+	override def toString = s"Var@${ Integer.toHexString(hashCode) }[$current]"
 }
 
 object Var {

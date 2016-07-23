@@ -2,7 +2,7 @@ package xuen.expr
 
 import scala.scalajs.js
 import scala.scalajs.js.DynamicImplicits._
-import util.Implicits._
+import util.implicits._
 import xuen.expr.Expression._
 
 object Optimizer {
@@ -90,7 +90,9 @@ object Optimizer {
 		     MethodCall(_, _, _) | SafeMethodCall(_, _, _) |
 		     PropertyWrite(_, _, _) |
 		     KeyedRead(_, _) | KeyedWrite(_, _, _) |
-		     FunctionCall(_, _) | Pipe(_, _, _) => false
+		     FunctionCall(_, _) | Pipe(_, _, _) | Reactive(_) => false
+
+		case _ => ???
 	}
 
 	/** Executes a binary operation at compile time */
@@ -198,6 +200,11 @@ object Optimizer {
 				case ExpressionFragment(expr) :: Nil => expr
 				case frags => Interpolation(frags)
 			}
+
+		case Enumerator(index, key, iterable, by, filter, locals) =>
+			Enumerator(index, key, optimize(iterable), by.map(optimize), filter.map(optimize), locals.map(optimize))
+
+		case Reactive(expr) => Reactive(optimize(expr))
 
 		case _ => expression
 	}

@@ -3,7 +3,7 @@ package xuen
 import facade.ShadowDOM._
 import org.scalajs.dom.raw.HTMLElement
 import scala.scalajs.js.annotation.ScalaJSDefined
-import util.Implicits._
+import util.implicits._
 
 /**
   * An instance of a component

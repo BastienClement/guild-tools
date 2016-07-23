@@ -3,16 +3,15 @@ package xuen
 import org.scalajs.dom.raw.HTMLElement
 import scala.collection.mutable
 import scala.scalajs.js
-import scala.scalajs.js.annotation.ScalaJSDefined
-import util.Implicits._
+import util.implicits._
+import util.jsannotation.js
 import util.{Serializer, Zero}
 import xuen.rx.{Obs, Rx, Var}
 
 /**
   * The handler object associated with a custom element.
   */
-@ScalaJSDefined
-abstract class Handler extends ComponentInstance {
+@js abstract class Handler extends ComponentInstance {
 	/**
 	  * Called when the element is considered ready.
 	  *

@@ -5,7 +5,7 @@ import org.scalajs.dom._
 import scala.concurrent.{Future, Promise}
 import scala.scalajs.js
 
-object Implicits {
+object implicits {
 	implicit class ElementLoadFuture[E <: scalajs.dom.Element](val element: E) extends AnyVal {
 		@inline def onLoadFuture: Future[E] = {
 			val promise = Promise[E]()

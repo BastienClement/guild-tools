@@ -7,7 +7,7 @@ import xuen.XuenException
 class Lexer(val input: String, val from: Int = 0) {
 	private[this] val chars = input.toCharArray
 	private[this] val length = chars.length
-	private[this] var peek: Char = '\0'
+	private[this] var peek: Char = '\u0000'
 	private[this] var index: Int = from - 1
 
 	advance()
@@ -15,10 +15,10 @@ class Lexer(val input: String, val from: Int = 0) {
 	@inline @tailrec private final def advance(count: Int = 1): Unit = {
 		index += 1
 		if (count > 1) advance(count - 1)
-		else peek = if (index >= length) '\0' else chars(index)
+		else peek = if (index >= length) '\u0000' else chars(index)
 	}
 
-	@inline @tailrec private final def skipWhitespaces(): Unit = if (peek < ' ' && peek != '\0') {
+	@inline @tailrec private final def skipWhitespaces(): Unit = if (peek < ' ' && peek != '\u0000') {
 		advance()
 		skipWhitespaces()
 	}
@@ -41,14 +41,20 @@ class Lexer(val input: String, val from: Int = 0) {
 					advance()
 					if (peek.isDigit) scanNumber() else Token.Character('.')
 
-				case '(' | ')' | '{' | '}' | '[' | ']' | ',' | ':' | ';' =>
+				case '(' | ')' | '{' | '}' | '[' | ']' | ',' | ';' =>
 					scanCharacter(peek)
 
 				case '\'' | '"' =>
 					scanString()
 
-				case '#' | '@' | '+' | '-' | '*' | '/' | '%' | '^' =>
+				case '#' | '@' | '+' | '*' | '/' | '%' | '^' =>
 					scanOperator(peek)
+
+				case ':' =>
+					scanComplexOperator(':', '=')
+
+				case '-' =>
+					scanComplexOperator('-', '>')
 
 				case '?' =>
 					scanComplexOperator('?', '.')
@@ -85,7 +91,7 @@ class Lexer(val input: String, val from: Int = 0) {
 		while (isIdentifierPart(peek)) advance()
 
 		String.valueOf(chars, start, index - start) match {
-			case kw @ ("var" | "let" | "null" | "undefined" | "true" | "false" | "if" | "else") =>
+			case kw @ ("val" | "null" | "undefined" | "true" | "false" | "if" | "then" | "else" | "of" | "by") =>
 				Token.Keyword(kw)
 
 			case id =>
@@ -162,7 +168,7 @@ class Lexer(val input: String, val from: Int = 0) {
 				buffer.append(unescaped)
 				marker = index
 
-			case '\0' =>
+			case '\u0000' =>
 				error("Unterminated string")
 
 			case _ =>
@@ -185,7 +191,7 @@ class Lexer(val input: String, val from: Int = 0) {
 		Token.Operator(peek.toString)
 	}
 
-	private def scanComplexOperator(one: Char, two: Char, three: Char = '\0')(implicit start: Int = index): Token = {
+	private def scanComplexOperator(one: Char, two: Char, three: Char = '\u0000')(implicit start: Int = index): Token = {
 		advance()
 		var str = one.toString
 
@@ -194,7 +200,7 @@ class Lexer(val input: String, val from: Int = 0) {
 			str += two.toString
 		}
 
-		if (three != '\0' && peek == three) {
+		if (three != '\u0000' && peek == three) {
 			advance()
 			str += three.toString
 		}

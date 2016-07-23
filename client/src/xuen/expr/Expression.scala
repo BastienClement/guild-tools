@@ -35,4 +35,11 @@ object Expression {
 	sealed trait InterpolationFragment
 	case class StringFragment(value: String) extends InterpolationFragment
 	case class ExpressionFragment(expression: Expression) extends InterpolationFragment
+
+	case class Enumerator(index: Option[String], key: String, iterable: Expression, by: Option[Expression],
+	                      filter: Option[Expression], locals: Option[Expression]) extends Expression {
+		val indexKey = index.getOrElse("$key")
+	}
+
+	case class Reactive(expression: Expression) extends Expression
 }

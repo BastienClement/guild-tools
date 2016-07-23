@@ -1,8 +1,10 @@
 package gt.component
 
+import java.util.Random
 import scala.language.postfixOps
-import scala.scalajs.js.annotation._
-import xuen.rx.Rx
+import scala.scalajs.js
+import util.jsannotation.js
+import xuen.rx.{Rx, Var}
 import xuen.{Component, Handler}
 
 /** Main application component */
@@ -11,13 +13,16 @@ object GtTest extends Component[GtTest](
 	templateUrl = "/assets/imports/test.html"
 )
 
-@ScalaJSDefined
-class GtTest extends Handler {
+@js class GtTest extends Handler {
 	val name = attribute[String] := "Unknown"
 	val color = attribute[String] := "#64b4ff"
 	val isLong = Rx { name.length > 8 }
 
 	var details = property[Boolean] := false
+
+	val itemsMap: Var[Map[String, Int]] = Map("a" -> 1, "b" -> 2, "c" -> 3)
+	val itemsArr: Var[js.Array[String]] = scalajs.js.Array("a", "b", "c")
+	var items: Var[Seq[String]] = Seq("a", "b", "c")
 
 	private var isAttached = false
 
@@ -41,5 +46,6 @@ class GtTest extends Handler {
 
 	def toggle() = {
 		details := !details
+		itemsArr ~= (_ :+ Integer.toHexString(new Random().nextInt))
 	}
 }

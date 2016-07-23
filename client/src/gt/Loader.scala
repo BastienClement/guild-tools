@@ -10,7 +10,7 @@ import scala.scalajs.js.JSStringOps.enableJSStringOps
 import scala.scalajs.js.RegExp
 import util.Global._
 import util.GtWorker
-import util.Implicits._
+import util.implicits._
 
 object Loader {
 	private val fetchCache = mutable.Map.empty[String, Future[String]]

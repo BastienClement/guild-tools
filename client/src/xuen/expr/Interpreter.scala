@@ -5,7 +5,7 @@ import scala.scalajs.js
 import scala.scalajs.js.DynamicImplicits._
 import scala.scalajs.js.JSConverters._
 import scala.util.{Failure, Try}
-import util.Implicits._
+import util.implicits._
 import xuen.Context
 import xuen.expr.Expression._
 import xuen.rx.{Rx, Var}
@@ -81,7 +81,7 @@ object Interpreter {
 	}
 
 	private def evaluatePropertyWrite(receiver: Expression, name: String, value: Expression)(implicit context: Context): Any = {
-		val effectiveValue = value.evaluate.norm.asInstanceOf[js.Any]
+		val effectiveValue = value.evaluate.asInstanceOf[js.Any]
 		receiver.evaluate.norm.write(name, effectiveValue)
 	}
 
@@ -90,7 +90,7 @@ object Interpreter {
 	}
 
 	private def evaluateKeyedWrite(obj: Expression, key: Expression, value: Expression)(implicit context: Context): Any = {
-		val effectiveValue = value.evaluate.norm.asInstanceOf[js.Any]
+		val effectiveValue = value.evaluate.asInstanceOf[js.Any]
 		obj.evaluate.norm.dyn.updateDynamic(key.evaluate.norm.toString)(effectiveValue)
 		effectiveValue
 	}
@@ -145,6 +145,10 @@ object Interpreter {
 		}.mkString
 	}
 
+	private def evaluateReactive(expression: Expression)(implicit context: Context): Any = {
+		Rx { expression.evaluate }
+	}
+
 	def evaluate(implicit expr: Expression, context: Context): Any = expr match {
 		case Empty => js.undefined
 		case ImplicitReceiver => context
@@ -166,6 +170,7 @@ object Interpreter {
 		case LiteralArray(values) => evaluateLiteralArray(values)
 		case LiteralMap(keys, values) => evaluateLiteralMap(keys, values)
 		case Interpolation(fragments) => evaluateInterpolation(fragments)
+		case Reactive(expression) => evaluateReactive(expression)
 
 		case other =>
 			val e = s"Evaluating unsupported expression: $expr"

@@ -38,6 +38,15 @@ class Parser(val input: String, private[this] val tokens: Array[Token]) {
 		if (!optionalOperator(operator)) error(s"Missing expected operator '$operator'")
 	}
 
+	private def optionalKeyword(keyword: String): Boolean = next match {
+		case Token.Keyword(kw) if kw == keyword => advance(); true
+		case _ => false
+	}
+
+	private def expectKeyword(keyword: String): Unit = {
+		if (!optionalKeyword(keyword)) error(s"Missing expected keyword '$keyword'")
+	}
+
 	private def expectIdentifierOrKeyword: String = next match {
 		case Token.Identifier(id) => advance(); id
 		case Token.Keyword(kw) => advance(); kw
@@ -49,11 +58,6 @@ class Parser(val input: String, private[this] val tokens: Array[Token]) {
 		case Token.Keyword(kw) => advance(); kw
 		case Token.String(str) => advance(); str
 		case tok => error(s"Unexpected token $tok, expected identifier or keyword or string")
-	}
-
-	private def peekKeywordLet: Boolean = next match {
-		case Token.Keyword("let") => true
-		case _ => false
 	}
 
 	@inline private def list = listOf[Expression]
@@ -80,7 +84,7 @@ class Parser(val input: String, private[this] val tokens: Array[Token]) {
 			do {
 				val name = expectIdentifierOrKeyword
 				val args = list
-				while (optionalCharacter(':')) args.push(expression)
+				while (optionalOperator(":")) args.push(expression)
 				res = Pipe(res, name, args)
 			} while (optionalOperator("|"))
 		}
@@ -93,7 +97,7 @@ class Parser(val input: String, private[this] val tokens: Array[Token]) {
 		val res = logicalOr
 		if (optionalOperator("?")) {
 			val yes = pipe
-			expectCharacter(':')
+			expectOperator(":")
 			val no = pipe
 			Conditional(res, yes, no)
 		} else {
@@ -166,6 +170,8 @@ class Parser(val input: String, private[this] val tokens: Array[Token]) {
 				expectCharacter(']')
 				if (optionalOperator("=")) {
 					res = KeyedWrite(res, key, expression)
+				} else if (optionalOperator(":=")) {
+					res = KeyedWrite(res, key, Reactive(expression))
 				} else {
 					res = KeyedRead(res, key)
 				}
@@ -223,7 +229,7 @@ class Parser(val input: String, private[this] val tokens: Array[Token]) {
 		if (!optionalCharacter('}')) {
 			do {
 				keys.push(expectIdentifierOrKeywordOrString)
-				expectCharacter(':')
+				expectOperator(":")
 				values.push(pipe)
 			} while (optionalCharacter(','))
 			expectCharacter('}')
@@ -240,7 +246,7 @@ class Parser(val input: String, private[this] val tokens: Array[Token]) {
 			else MethodCall(receiver, id, args)
 		} else {
 			if (safe) {
-				if (optionalOperator("=")) {
+				if (optionalOperator("=") || optionalOperator(":=")) {
 					error("The '?.' operator cannot be used in the assignment")
 				} else {
 					SafePropertyRead(receiver, id)
@@ -248,6 +254,8 @@ class Parser(val input: String, private[this] val tokens: Array[Token]) {
 			} else {
 				if (optionalOperator("=")) {
 					PropertyWrite(receiver, id, expression)
+				} else if (optionalOperator(":=")) {
+					PropertyWrite(receiver, id, Reactive(expression))
 				} else {
 					PropertyRead(receiver, id)
 				}
@@ -267,6 +275,26 @@ class Parser(val input: String, private[this] val tokens: Array[Token]) {
 		}
 	}
 
+	def expectBindingKeys: (Option[String], String) = {
+		val first = expectIdentifierOrKeyword
+		if (optionalOperator("->")) {
+			(Some(first), expectIdentifierOrKeyword)
+		} else {
+			(None, first)
+		}
+	}
+
+	def enumerator: Enumerator = {
+		val (index, key) = expectBindingKeys
+		expectKeyword("of")
+		val iterable = expression
+		val by = if (optionalKeyword("by")) Some(expression) else None
+		val filter = if (optionalKeyword("if")) Some(expression) else None
+		val locals = if (optionalCharacter(';')) Some(chain) else None
+		if (next != Token.EOF) error(s"Unexpected token $next")
+		Enumerator(index, key, iterable, by, filter, locals)
+	}
+
 	private def error(message: String): Nothing = {
 		throw XuenException(s"Parse Error: $message in '$input'")
 	}
@@ -275,6 +303,10 @@ class Parser(val input: String, private[this] val tokens: Array[Token]) {
 object Parser {
 	def parseExpression(input: String, from: Int = 0): Expression = {
 		Optimizer.optimize(new Parser(input, Lexer.tokenize(input, from)).chain)
+	}
+
+	def parseEnumerator(input: String, from: Int = 0): Enumerator = {
+		Optimizer.optimize(new Parser(input, Lexer.tokenize(input, from)).enumerator).asInstanceOf[Enumerator]
 	}
 
 	def parseInterpolation(input: String): Option[Expression] = {

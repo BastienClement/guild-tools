@@ -6,8 +6,9 @@
 	<template>
 		<div [$color]="color">Hello, {{name | uppercase}}!</div>
 		<div style="background: red; width: 100px; height: 100px; margin: 20px;" [$background-color]="color" (click)="toggle()"></div>
-		<div *if="details">
-			Showing details
+		<!-- Details: {{ details }} -->
+		<div *for="id -> item of itemsArr if id % 2 < 1" class="details box">
+			[{{ $index }}] {{ id + " -> " + item }} { {{$first}}, {{$even}}, {{$odd}}, {{$last}} }
 		</div>
 	</template>
 </xuen-component>
