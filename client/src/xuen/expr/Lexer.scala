@@ -12,13 +12,15 @@ class Lexer(val input: String, val from: Int = 0) {
 
 	advance()
 
-	@inline @tailrec private final def advance(count: Int = 1): Unit = {
+	@inline
+	@tailrec private final def advance(count: Int = 1): Unit = {
 		index += 1
 		if (count > 1) advance(count - 1)
 		else peek = if (index >= length) '\u0000' else chars(index)
 	}
 
-	@inline @tailrec private final def skipWhitespaces(): Unit = if (peek < ' ' && peek != '\u0000') {
+	@inline
+	@tailrec private final def skipWhitespaces(): Unit = if (peek < ' ' && peek != '\u0000') {
 		advance()
 		skipWhitespaces()
 	}

@@ -122,7 +122,8 @@ class Parser(val input: String, private[this] val tokens: Array[Token]) {
 	}
 
 	def equality: Expression = {
-		@inline @tailrec def parse(lhs: Expression): Expression = next match {
+		@inline
+		@tailrec def parse(lhs: Expression): Expression = next match {
 			case Token.Operator(op @ ("==" | "===" | "!=" | "!==")) => advance(); parse(Binary(op, lhs, relational))
 			case _ => lhs
 		}
@@ -130,7 +131,8 @@ class Parser(val input: String, private[this] val tokens: Array[Token]) {
 	}
 
 	def relational: Expression = {
-		@inline @tailrec def parse(lhs: Expression): Expression = next match {
+		@inline
+		@tailrec def parse(lhs: Expression): Expression = next match {
 			case Token.Operator(op @ ("<" | ">" | "<=" | ">=")) => advance(); parse(Binary(op, lhs, additive))
 			case _ => lhs
 		}
@@ -138,7 +140,8 @@ class Parser(val input: String, private[this] val tokens: Array[Token]) {
 	}
 
 	def additive: Expression = {
-		@inline @tailrec def parse(lhs: Expression): Expression = next match {
+		@inline
+		@tailrec def parse(lhs: Expression): Expression = next match {
 			case Token.Operator(op @ ("+" | "-")) => advance(); parse(Binary(op, lhs, multiplicative))
 			case _ => lhs
 		}
@@ -146,7 +149,8 @@ class Parser(val input: String, private[this] val tokens: Array[Token]) {
 	}
 
 	def multiplicative: Expression = {
-		@inline @tailrec def parse(lhs: Expression): Expression = next match {
+		@inline
+		@tailrec def parse(lhs: Expression): Expression = next match {
 			case Token.Operator(op @ ("*" | "%" | "/")) => advance(); parse(Binary(op, lhs, prefix))
 			case _ => lhs
 		}
@@ -329,7 +333,7 @@ object Parser {
 
 					val end = input.indexOf("}}", from)
 					if (end < 0) {
-						throw XuenException(s"Unterminated interpolation expression in '${input.substring(begin)}'")
+						throw XuenException(s"Unterminated interpolation expression in '${ input.substring(begin) }'")
 					}
 
 					fragments.push(ExpressionFragment(parseExpression(input, begin + 2)))

@@ -8,8 +8,8 @@ import scala.util.{Failure, Try}
 import util.implicits._
 import xuen.Context
 import xuen.expr.Expression._
-import xuen.rx.{Rx, Var}
 import xuen.rx.syntax.ExplicitExtractor
+import xuen.rx.{Rx, Var}
 
 object Interpreter {
 	implicit class ImplicitEvaluator(private val expr: Expression) extends AnyVal {
@@ -106,7 +106,7 @@ object Interpreter {
 			case "/" => effectiveLhs / effectiveRhs
 			case "<" => effectiveLhs < effectiveRhs
 			case "<=" => effectiveLhs <= effectiveRhs
-			case ">" =>	effectiveLhs > effectiveRhs
+			case ">" => effectiveLhs > effectiveRhs
 			case ">=" => effectiveLhs >= effectiveRhs
 			case "==" => effectiveLhs == effectiveRhs
 			case "!=" => effectiveLhs != effectiveRhs

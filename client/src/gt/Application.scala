@@ -12,6 +12,7 @@ import scala.util.{Failure, Success}
 import util.Global._
 import util.implicits._
 import util.{Delay, Settings}
+import xuen.Loader
 import xuen.expr.PipesRegistry
 
 /** The main GuildTools application object */

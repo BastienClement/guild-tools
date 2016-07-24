@@ -144,7 +144,7 @@ case class Template(template: HTMLTemplateElement) {
 				val lastIndex = items.size - 1
 				var rawIndex = 0
 
-				for ((index, value, lazyCtx) <- rx.!)  {
+				for ((index, value, lazyCtx) <- rx.!) {
 					// Instantiate the lazy context
 					lazy val ctx = {
 						val c = lazyCtx()

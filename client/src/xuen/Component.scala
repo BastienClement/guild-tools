@@ -1,7 +1,6 @@
 package xuen
 
 import facade.HTMLTemplateElement
-import gt.Loader
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.higherKinds

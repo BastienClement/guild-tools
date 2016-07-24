@@ -72,12 +72,12 @@ package object rx {
 			trait LowPrioForEachBehavior {
 				implicit val Observer = new ForEachBehavior {
 					type Result[T] = Obs
-					def foreach[T](rx: Rx[T], f: T => Unit): Obs =  Obs { f(rx) } <~ rx
+					def foreach[T](rx: Rx[T], f: T => Unit): Obs = Obs { f(rx) } <~ rx
 				}
 
 				implicit val ObserverEager = new ForEachBehavior {
 					type Result[T] = Obs
-					def foreach[T](rx: Rx[T], f: T => Unit): Obs =  Obs { f(rx) } <<~ rx
+					def foreach[T](rx: Rx[T], f: T => Unit): Obs = Obs { f(rx) } <<~ rx
 				}
 			}
 

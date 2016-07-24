@@ -1,4 +1,4 @@
-package gt
+package xuen
 
 import org.scalajs.dom.raw.HTMLLinkElement
 import org.scalajs.dom.{console => _, document => _, _}
