@@ -45,7 +45,6 @@ case class Template(template: HTMLTemplateElement) {
 	private def compileElement(element: Element): Unit = {
 		if (element.hasAttribute("*if")) compileIfTransformation(element)
 		else if (element.hasAttribute("*for")) compileForTransformation(element)
-		else if (element.hasAttribute("*switch")) compileSwitchTransformation(element)
 		else if (element.hasAttribute("*scope")) compileScopeTransformation(element)
 		else {
 			if (element.hasAttributes) {
@@ -54,7 +53,8 @@ case class Template(template: HTMLTemplateElement) {
 					if !Template.attrBlacklist.contains(attribute.name)
 				} compileAttribute(element, attribute)
 			}
-			element.childNodes.foreach(compile)
+			if (element.hasAttribute("*match")) compileMatchTransform(element)
+			else element.childNodes.foreach(compile)
 		}
 	}
 
@@ -66,16 +66,20 @@ case class Template(template: HTMLTemplateElement) {
 
 		templateWrap(element, s"*if $sourceExpr") { (placeholder, context, template, parent) =>
 			var instance: Template#Instance = null
+			var inserted: Node = null
+
 			val rx = Rx { Interpreter.safeEvaluate(expr, context) }
 			val obs = Obs {
 				if (instance == null && rx.!.dyn) {
 					instance = template.bind(context)
+					inserted = instance.root.firstChild
 					parent.attach(instance)
 					placeholder.parentNode.insertBefore(instance.root, placeholder.nextSibling)
 				} else if (instance != null && !rx.!.dyn) {
 					parent.detach(instance)
-					instance.children.foreach { child => child.parentNode.removeChild(child) }
+					inserted.parentNode.removeChild(inserted)
 					instance = null
+					inserted = null
 				}
 			}
 			Some((rx, obs))
@@ -201,8 +205,94 @@ case class Template(template: HTMLTemplateElement) {
 		}
 	}
 
-	private def compileSwitchTransformation(element: Element): Unit = {
-		???
+	private def compileMatchTransform(element: Element): Unit = {
+		val selector = element.getAttribute("*match")
+		val expr = Parser.parseExpression(selector)
+		element.removeAttribute("*match")
+
+		type Case = (Option[Expression], Template)
+		val cases = js.Array[Case]()
+
+		@inline def wrapCase(element: Element, expr: Option[String]): Unit = {
+			val template = document.createElement("template").as[HTMLTemplateElement]
+			element.parentNode.replaceChild(template, element)
+			template.content.appendChild(element)
+			cases.push((expr.map(Parser.parseExpression(_)), Template(template)))
+		}
+
+		@inline def caseMatch(casee: Case, value: Any, context: Context): Boolean = casee._1 match {
+			case None => true
+			case Some(ref) => Interpreter.safeEvaluate(ref, context) match {
+				case bool: Boolean => bool
+				case res => res == value
+			}
+			case _ => false
+		}
+
+		var children = js.Array[Node]()
+		for (child <- element.childNodes) children.push(child)
+
+		children.foreach {
+			case el: Element if el.hasAttribute("*case") =>
+				val expr = Some(el.getAttribute("*case"))
+				el.removeAttribute("*case")
+				wrapCase(el, expr)
+
+			case el: Element if el.hasAttribute("*default") =>
+				el.removeAttribute("*default")
+				wrapCase(el, None)
+
+			case el: Element =>
+				console.warn("*match: removing untagged element:", el)
+				el.parentNode.removeChild(el)
+
+			case node =>
+				element.removeChild(node)
+		}
+
+		children = null
+		val comment = document.createComment(s" *match $selector ")
+		element.parentNode.insertBefore(comment, element)
+
+		registerBinding(element) { case (node, context, instance) =>
+			node.innerHTML = ""
+
+			var current: Option[(Case, Template#Instance)] = None
+			val rx = Rx { cases.find(caseMatch(_, Interpreter.safeEvaluate(expr, context), context)) }
+
+			@inline def setCurrentCase(casee: Case): Unit = {
+				val newChild = casee._2.bind(context)
+				node.appendChild(newChild.root)
+				instance.attach(newChild)
+				current = Some((casee, newChild))
+			}
+
+			@inline def detachCurrent(): Unit = {
+				for ((_, child) <- current) {
+					instance.detach(child)
+					node.removeChild(node.firstChild)
+					current = None
+				}
+			}
+
+			val obs = Obs {
+				(rx.!, current) match {
+					case (None, Some(_)) =>
+						detachCurrent()
+
+					case (Some(casee), None) =>
+						setCurrentCase(casee)
+
+					case (Some(newCase), Some((oldCase, _))) if newCase ne oldCase =>
+						detachCurrent()
+						setCurrentCase(newCase)
+
+					case _ => // ok !
+				}
+			}
+
+			Some((rx, obs))
+		}
 	}
 
 	private def compileScopeTransformation(element: Element): Unit = {
@@ -210,7 +300,7 @@ case class Template(template: HTMLTemplateElement) {
 		val expr = Parser.parseExpression(locals)
 		element.removeAttribute("*scope")
 
-		templateWrap(element, s"*scope = $locals") { (placeholder, context, template, parent) =>
+		templateWrap(element, s"*scope $locals") { (placeholder, context, template, parent) =>
 			val ctx = context.child()
 			Interpreter.evaluate(expr, ctx)
 			val child = template.bind(ctx)
@@ -384,9 +474,6 @@ case class Template(template: HTMLTemplateElement) {
 		/** The root node of this template */
 		val root = document.importNode(template.content, true).as[DocumentFragment]
 
-		/** Child nodes of this template */
-		val children = for (child <- root.childNodes) yield child
-
 		/** Attached template instances */
 		private[this] val attached = mutable.Set.empty[Template#Instance]
 
@@ -450,7 +537,7 @@ case class Template(template: HTMLTemplateElement) {
 
 object Template {
 	/** The set of attribute that cannot be data-bound */
-	val attrBlacklist = Set("class", "style")
+	val attrBlacklist = Set("class", "style", "*match")
 
 	/** Id of the last Xuen binding registered */
 	private[this] var lastBindingId = 0

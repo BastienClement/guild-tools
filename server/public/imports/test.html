@@ -5,10 +5,14 @@
 	</style>
 	<template>
 		<div [$color]="color">Hello, {{name | uppercase}}!</div>
-		<div style="background: red; width: 100px; height: 100px; margin: 20px;" [$background-color]="color" (click)="toggle()"></div>
-		<!-- Details: {{ details }} -->
-		<div *for="id -> item of itemsArr if id % 2 < 1" class="details box">
-			[{{ $index }}] {{ id + " -> " + item }} { {{$first}}, {{$even}}, {{$odd}}, {{$last}} }
+		<div style="background: red; width: 100px; height: 100px; margin: 20px;" [$background-color]="color" (click)="counter = (counter + 1) % 6"></div>
+		<div>
+			Counter: {{ counter }}
+		</div>
+		<div *match="counter" class="details box">
+			<div *case="counter < 2">Less than 2</div>
+			<div *case="3">Three</div>
+			<div *default>Default</div>
 		</div>
 	</template>
 </xuen-component>

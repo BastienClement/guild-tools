@@ -8,7 +8,7 @@
       <parameter value="utf8" />
     </parameters>
     <option name="incrementalityType" value="SBT" />
-    <profile name="SBT 1" modules="root,server">
+    <profile name="SBT 1" modules="root">
       <option name="deprecationWarnings" value="true" />
       <option name="uncheckedWarnings" value="true" />
       <option name="featureWarnings" value="true" />
@@ -23,6 +23,7 @@
       <option name="featureWarnings" value="true" />
       <parameters>
         <parameter value="-P:scalajs:mapSourceURI:file:/D:/workspace/scala/guild-tools/shared/src/main/scala/-&gt;27d77756843ce85c770b/" />
+        <parameter value="-Xfatal-warnings" />
       </parameters>
       <plugins>
         <plugin path="C:\Users\galed\.ivy2\cache\org.scala-js\scalajs-compiler_2.11.8\jars\scalajs-compiler_2.11.8-0.6.10.jar" />
@@ -33,6 +34,7 @@
       <option name="featureWarnings" value="true" />
       <parameters>
         <parameter value="-P:scalajs:mapSourceURI:file:/D:/workspace/scala/guild-tools/client/src/-&gt;f0fba772cc3577156c78/" />
+        <parameter value="-Xfatal-warnings" />
       </parameters>
       <plugins>
         <plugin path="C:\Users\galed\.ivy2\cache\org.scala-js\scalajs-compiler_2.11.8\jars\scalajs-compiler_2.11.8-0.6.10.jar" />
@@ -41,6 +43,19 @@
     <profile name="SBT 5" modules="sharedJVM">
       <option name="deprecationWarnings" value="true" />
       <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-Xfatal-warnings" />
+      </parameters>
+    </profile>
+    <profile name="SBT 6" modules="server">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="utf8" />
+        <parameter value="-Xfatal-warnings" />
+      </parameters>
     </profile>
   </component>
 </project>

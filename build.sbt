@@ -5,6 +5,7 @@ version := "7.0"
 
 lazy val clients = Seq(client)
 lazy val scalaV = "2.11.8"
+lazy val scalaOpts = Seq("-feature", "-deprecation", "-Xfatal-warnings")
 
 lazy val server = (project in file("server"))
                   .settings(
@@ -21,7 +22,7 @@ lazy val server = (project in file("server"))
 		                  "com.vmunier" %% "play-scalajs-scripts" % "0.5.0",
 		                  "com.lihaoyi" %% "upickle" % "0.4.1"
 	                  ),
-	                  scalacOptions ++= Seq("-feature", "-deprecation"),
+	                  scalacOptions ++= scalaOpts,
 	                  pipelineStages := Seq(scalaJSProd, digest, gzip)
                   )
                   .enablePlugins(PlayScala, SbtWeb)
@@ -39,7 +40,7 @@ lazy val client = (project in file("client"))
 		                  "com.lihaoyi" %%% "upickle" % "0.4.1",
 		                  "com.lihaoyi" %%% "fastparse" % "0.3.7"
 	                  ),
-	                  scalacOptions ++= Seq("-feature", "-deprecation")
+	                  scalacOptions ++= scalaOpts
                   )
                   .enablePlugins(ScalaJSPlugin, ScalaJSPlay)
                   .dependsOn(sharedJs)
@@ -47,7 +48,7 @@ lazy val client = (project in file("client"))
 lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
                   .settings(
 	                  scalaVersion := scalaV,
-	                  scalacOptions ++= Seq("-feature", "-deprecation")
+	                  scalacOptions ++= scalaOpts
                   )
                   .jvmSettings(
 	                  libraryDependencies ++= Seq(

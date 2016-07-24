@@ -24,6 +24,8 @@ object GtTest extends Component[GtTest](
 	val itemsArr: Var[js.Array[String]] = scalajs.js.Array("a", "b", "c")
 	var items: Var[Seq[String]] = Seq("a", "b", "c")
 
+	var counter: Var[Int] = 0
+
 	private var isAttached = false
 
 	println("constructed")
