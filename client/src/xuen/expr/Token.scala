@@ -5,6 +5,7 @@ trait Token {
 }
 
 object Token {
+
 	import scala.Predef.{String => ScalaString}
 
 	case class Character(char: Char)(implicit val position: Int) extends Token

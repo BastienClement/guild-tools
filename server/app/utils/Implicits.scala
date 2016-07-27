@@ -1,8 +1,8 @@
 package utils
 
+import reactive.ExecutionContext
 import scala.concurrent.Future
 import scala.language.implicitConversions
-import reactive.ExecutionContext
 
 /**
   * Useful generic implicits

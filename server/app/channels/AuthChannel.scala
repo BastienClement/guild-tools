@@ -1,15 +1,13 @@
 package channels
 
-import java.util.concurrent.atomic.AtomicInteger
-
 import actors._
 import akka.actor.{ActorRef, Props}
+import boopickle.Default._
 import gtp3.Socket.{Opener, SetUser}
 import gtp3._
-import models._
-import play.api.libs.json.{JsNull, Json}
+import java.util.concurrent.atomic.AtomicInteger
+import model.User
 import reactive._
-
 import scala.collection.mutable
 import scala.concurrent.Future
 
@@ -43,18 +41,20 @@ class AuthChannel(val socket: ActorRef, val opener: Opener) extends ChannelHandl
 		case _ => count.decrementAndGet()
 	}
 
-	def authorized(user: User) = AuthService.allowed_groups.contains(user.group)
+	def authorized(user: User) = user.fs
 
-	request("auth") { payload =>
-		val session = payload.string
+	request2("auth") { session: String =>
 		AuthService.auth(session, opener.ip, opener.ua).map { user =>
-			socket ! SetUser(user, session)
-			(Json.toJson(user), Some(user))
+			Some(user)
 		}.recover {
-			case e => (JsNull, None)
+			case e => None
 		}.map {
-			case (json, Some(user)) if !authorized(user) => throw new Exception("Not authorized")
-			case (json, _) => json
+			case Some(user) if authorized(user) =>
+				socket ! SetUser(user, session)
+				user
+
+			case Some(_) => throw new Exception("Unauthorized")
+			case None => null
 		}
 	}
 }

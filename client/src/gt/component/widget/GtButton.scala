@@ -1,14 +1,14 @@
 package gt.component.widget
 
-import scala.scalajs.js.annotation.ScalaJSDefined
-import xuen.{Component, Handler}
+import gt.component.GtHandler
+import util.jsannotation.js
+import xuen.Component
 
 object GtButton extends Component[GtButton](
 	selector = "gt-button",
 	templateUrl = "/assets/imports/widgets.html"
 )
 
-@ScalaJSDefined
-class GtButton extends Handler {
+@js class GtButton extends GtHandler {
 
 }

@@ -4,7 +4,7 @@ import actors.ChatService
 import actors.ChatService.{UserAway, UserConnected, UserDisconnected}
 import akka.actor.Props
 import gtp3._
-import models.User
+import model.User
 import play.api.libs.json.Json
 import reactive.ExecutionContext
 

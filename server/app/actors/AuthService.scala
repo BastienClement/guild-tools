@@ -1,6 +1,7 @@
 package actors
 
 import akka.actor.ActorRef
+import model.User
 import models._
 import models.authentication.{Session, Sessions, Users}
 import models.mysql._
@@ -17,31 +18,6 @@ private[actors] class AuthServiceImpl extends AuthService
 object AuthService extends StaticActor[AuthService, AuthServiceImpl]("AuthService") with PubSub[String] {
 	/** Message sent to subscribers when a session is closed */
 	case object SessionClosed
-
-	/** The set of every user having developer rights */
-	val developer_users = Set(1647)
-
-	/** The set of every groups considered officer */
-	val officier_groups = Set(11)
-
-	/** The set of every groups considered guild members */
-	val member_groups = Set(9, 11)
-
-	/** The set of every groups forming the guild roster */
-	val roster_groups = Set(8, 9, 11)
-
-	/** The set of every groups considered part of the guild */
-	val fromscratch_groups = Set(
-		8, // Apply
-		12, // Casual
-		9, // Member
-		11, // Officer
-		10, // Guest
-		13 // Veteran
-	)
-
-	/** The set of every groups allowed to login */
-	val allowed_groups = fromscratch_groups
 
 	/**
 	  * Cache of users corresponding to session tokens.

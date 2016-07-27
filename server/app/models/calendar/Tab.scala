@@ -1,7 +1,7 @@
 package models.calendar
 
-import models.mysql._
 import models._
+import models.mysql._
 
 case class Tab(id: Int, event: Int, title: String, note: Option[String], order: Int, locked: Boolean, undeletable: Boolean) {
 	lazy val expandEvent = Events.filter(_.id === event).head

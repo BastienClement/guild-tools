@@ -2,11 +2,12 @@ package channels
 
 import akka.actor.Props
 import gtp3._
+import model.User
 import models._
-import models.mysql._
+import models.application.ApplicationEvents._
 import models.application._
+import models.mysql._
 import reactive.ExecutionContext
-import ApplicationEvents._
 
 object ApplyChannel extends ChannelValidator {
 	def open(request: ChannelRequest) = {

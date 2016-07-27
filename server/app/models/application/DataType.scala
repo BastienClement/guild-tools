@@ -1,7 +1,7 @@
 package models.application
 
 import models.mysql._
-import play.api.libs.json.{Json, JsValue, Format}
+import play.api.libs.json.{Format, JsValue, Json}
 
 /**
   * Defines the encoding of the application data in the database.

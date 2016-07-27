@@ -2,6 +2,8 @@ package controllers.webtools
 
 import actors.{AuthService, RosterService}
 import controllers.webtools.WtController._
+import data.UserGroups
+import model.User
 import models._
 import models.mysql._
 import play.api.mvc._
@@ -64,7 +66,7 @@ object WtController {
 			user <- DB.run {
 				for {
 					session <- PhpBBSessions.filter(_.token === token).result.head
-					user <- PhpBBUsers.filter(u => u.id === session.user && u.group.inSet(AuthService.allowed_groups)).result.head
+					user <- PhpBBUsers.filter(u => u.id === session.user && u.group.inSet(UserGroups.fromscratch)).result.head
 				} yield user
 			}
 			ip = Some(request.remoteAddress)

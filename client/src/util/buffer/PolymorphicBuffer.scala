@@ -18,4 +18,4 @@ sealed trait PolymorphicBuffer {
 }
 
 private[buffer] class PolymorphicBufferImpl[B](val buffer: B)(implicit val ops: BufferConv[B])
-		extends PolymorphicBuffer { type Buf = B }
+		extends PolymorphicBuffer {type Buf = B }

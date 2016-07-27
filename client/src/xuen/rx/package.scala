@@ -1,4 +1,5 @@
 package xuen
+
 import scala.language.higherKinds
 import xuen.rx.syntax.MonadicOps.ForEachBehavior
 

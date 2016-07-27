@@ -33,6 +33,7 @@ class Payload(val byteVector: ByteVector, val flags: Int) {
 	final val compressed = (flags & 0x01) != 0
 	final val utf8_data = (flags & 0x02) != 0
 	final val json_data = (flags & 0x04) != 0
+	final val pickeld_data = (flags & 0x10) != 0
 	final val ignore = (flags & 0x80) != 0
 
 	// Direct access to raw byte data

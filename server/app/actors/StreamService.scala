@@ -1,9 +1,11 @@
 package actors
 
 import actors.StreamService._
+import data.UserGroups
+import model.User
+import models._
 import models.live.Streams
 import models.mysql._
-import models.{User, _}
 import reactive._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
@@ -238,7 +240,7 @@ trait StreamService {
 	  */
 	private def streams_list = {
 		val query = for {
-			user <- PhpBBUsers if user.group inSet AuthService.roster_groups
+			user <- PhpBBUsers if user.group inSet UserGroups.roster
 			stream <- Streams if stream.user === user.id
 		} yield stream
 

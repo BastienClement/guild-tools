@@ -1,5 +1,6 @@
 package models
 
+import model.User
 import models.mysql._
 import utils.DateTime
 

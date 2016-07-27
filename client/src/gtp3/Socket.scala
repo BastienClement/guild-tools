@@ -99,7 +99,7 @@ class Socket(private val url: String) {
 	/** Generate the correct handshake frame given the current state */
 	private def handshake(): Unit = {
 		val frame = state match {
-			case SocketState.Uninitialized => HelloFrame(Protocol.GTP3, s"GuildTools Client [${ window.navigator.userAgent }]")
+			case SocketState.Uninitialized => HelloFrame(Protocol.GTP3, s"GuildTools Client 7.0 [${ window.navigator.userAgent }]")
 			case SocketState.Reconnecting => ResumeFrame(id, inSeq)
 			case _ => throw GTP3Error(s"Cannot generate handshake from state '$state'")
 		}
@@ -176,7 +176,9 @@ class Socket(private val url: String) {
 
 		// Timeout for server to send OPEN_SUCCESS or OPEN_FAILURE
 		setTimeout(Protocol.OpenTimeout) {
-			promise.failure(GTP3Error("Timeout"))
+			if (!promise.isCompleted) {
+				promise.failure(GTP3Error("Timeout"))
+			}
 		}
 
 		// Send the open message to the server
@@ -328,7 +330,7 @@ class Socket(private val url: String) {
 	/** Channel open request */
 	private def receiveOpenFrame(remoteid: Int, channelType: String, token: String, parent: Int): Unit = {
 		// Server can't open a channel for now
-		???
+		throw new UnsupportedOperationException()
 	}
 
 	/** Channel successfully open */

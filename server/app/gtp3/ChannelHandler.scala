@@ -1,8 +1,11 @@
 package gtp3
 
 import akka.actor._
+import boopickle.DefaultBasic._
+import boopickle.Pickler
 import gtp3.Channel._
 import gtp3.ChannelHandler._
+import java.nio.ByteBuffer
 import models.DB
 import org.apache.commons.lang3.exception.ExceptionUtils
 import reactive._
@@ -141,6 +144,8 @@ trait ChannelHandler extends Actor with Stash with PayloadBuilder.ProductWrites 
 	  */
 	final def message(name: String)(fn: Payload => Unit): Unit = request(name)(fn)
 
+	final def message2[T: Pickler](name: String)(fn: T => Unit): Unit = request2(name)(fn)
+
 	/**
 	  * Register a request handler.
 	  * The request handler can return any type convertible to Payload by a PayloadBuilder
@@ -148,6 +153,17 @@ trait ChannelHandler extends Actor with Stash with PayloadBuilder.ProductWrites 
 	  */
 	final def request[T](name: String)(fn: Payload => T)(implicit fpb: FuturePayloadBuilder[T]): Unit = {
 		handlers += name -> (fn andThen fpb.build)
+	}
+	/**
+	  * Register a request handler.
+	  * The request handler can return any type that is Pickleable
+	  * Alternatively a Future of such a type, or a DBIOAction with a compatible result type
+	  */
+	final def request2[T: Pickler, R](name: String)(fn: T => R)(implicit p: Pickleable[R]): Unit = {
+		handlers += name -> ((payload: Payload) => {
+			val value = Unpickle[T].fromBytes(ByteBuffer.wrap(payload.buffer))
+			p.pickelPayload(fn(value))
+		})
 	}
 
 	// Akka message handler

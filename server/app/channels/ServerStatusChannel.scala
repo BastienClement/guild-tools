@@ -2,15 +2,9 @@ package channels
 
 import actors.SocketManager
 import akka.actor.Props
-import akka.pattern._
-import akka.util.Timeout
 import gt.GuildTools
-import gtp3.Socket.{RequestInfos, SocketInfos}
 import gtp3._
-import play.api.libs.json.{JsNull, Json}
-import reactive._
-import scala.compat.Platform
-import scala.concurrent.Future
+import play.api.libs.json.Json
 import scala.concurrent.duration._
 import scala.sys.process._
 import scala.util.Try
@@ -63,7 +57,7 @@ class ServerStatusChannel extends ChannelHandler {
 	}
 
 	// Open socket infos
-	request("sockets-infos") { _ =>
+	/*request("sockets-infos") { _ =>
 		implicit val timeout = Timeout(3.seconds)
 		SocketManager.socketsMap flatMap { sockets =>
 			Future.sequence {
@@ -85,7 +79,7 @@ class ServerStatusChannel extends ChannelHandler {
 				}
 			}
 		}
-	}
+	}*/
 
 	// Kill socket
 	message("kill-socket") { p =>

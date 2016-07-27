@@ -2,6 +2,7 @@ package channels
 
 import akka.actor.Props
 import gtp3._
+import model.User
 import models._
 import models.calendar.{Answers, Events, Slacks}
 import models.mysql._

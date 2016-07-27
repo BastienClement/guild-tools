@@ -12,7 +12,7 @@ object Settings {
 	}
 
 	/** A local storage setting */
-	case class Setting[T : Serializer](key: String, default: T) {
+	case class Setting[T: Serializer](key: String, default: T) {
 		private val serializer = implicitly[Serializer[T]]
 
 		/** Returns this setting current value */

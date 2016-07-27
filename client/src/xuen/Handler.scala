@@ -138,18 +138,21 @@ import xuen.rx.{Obs, Rx, Var}
 		attributeChanged(attr, old, value)
 	}
 
-	/** Select a child element in this component Shadow DOM with the requested ID */
-	protected[xuen] final def $xuen$selectElement(selector: String): HTMLElement = {
-		shadow.querySelector(selector).asInstanceOf[HTMLElement]
-	}
-
+	/** Queries a single child element matching the given selector */
 	protected final def child[T <: HTMLElement](selector: String): T = {
 		shadow.querySelector(selector).asInstanceOf[T]
 	}
 
+	/** Queries every children matching the given selector */
 	protected final def query[T <: HTMLElement](selector: String): NodeListOf[T] = {
 		shadow.querySelectorAll(selector).asInstanceOf[NodeListOf[T]]
 	}
+
+	/**
+	  * Selects a child element in this component Shadow DOM matching the given selector.
+	  * This method should not be called by user code and is only used by the Xuen expression context.
+	  */
+	protected[xuen] final def $xuen$selectElement(selector: String): HTMLElement = child[HTMLElement](selector)
 }
 
 object Handler {
@@ -176,8 +179,8 @@ object Handler {
 	  * the HTMLElement constructor, which throws an IllegalConstructor
 	  * exception.
 	  *
-	  * The true HTMLConstructor is temporarily replaced by a dummy one
-	  * that does nothing. The original one is restored once the handler
+	  * The true HTMLElement constructor is temporarily replaced by a dummy
+	  * one that does nothing. The original one is restored once the handler
 	  * constructor returns.
 	  *
 	  * @param instance    the handler object to constructs (this)

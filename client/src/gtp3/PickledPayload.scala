@@ -1,13 +1,12 @@
 package gtp3
 
-import boopickle.Default.Unpickle
-import boopickle.Pickler
-import java.nio.ByteBuffer
+import boopickle.DefaultBasic._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import util.buffer.PolymorphicBuffer
 
-class PickledPayload(val buffer: ByteBuffer) extends AnyVal {
-	@inline def as[T: Pickler]: T = Unpickle[T].fromBytes(buffer)
+class PickledPayload(val buffer: PolymorphicBuffer) extends AnyVal {
+	@inline def as[T: Pickler]: T = Unpickle[T].fromBytes(buffer.toByteBuffer)
 }
 
 object PickledPayload {

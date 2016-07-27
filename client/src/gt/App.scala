@@ -1,10 +1,10 @@
 package gt
 
-import boopickle.Default._
+import boopickle.DefaultBasic._
 import gt.component.app.GtApp
 import model.User
 import org.scalajs.dom.raw.HTMLSpanElement
-import org.scalajs.dom.{Event, MouseEvent, NodeListOf}
+import org.scalajs.dom.{Event, MouseEvent, NodeListOf, window}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Future, Promise}
@@ -20,8 +20,12 @@ import xuen.expr.PipesRegistry
 /** The main GuildTools application object */
 @data object App extends js.JSApp {
 	/** The logged in application user */
-	def user: User = _user
-	private[gt] var _user: User = _
+	var user: User = null
+
+	// Flags
+	val standalone: Boolean = window.dyn.APP.as[Boolean]
+	val dev: Boolean = window.dyn.DEV.as[Boolean]
+	val prod: Boolean = !dev
 
 	/** Elements to load when application is booting */
 	private val coreElements = Seq(GtApp)
@@ -55,9 +59,19 @@ import xuen.expr.PipesRegistry
 			authenticated <- {
 				console.log("[BOOT] Authenticating...")
 				Server.openChannel("auth").flatMap { channel =>
-					channel.request("auth", Settings.`auth.session`: String).as[User]
-				}.map { user =>
-					println(user)
+					channel.request("auth", Settings.`auth.session`: String).as[User].map(u => (u, channel))
+				}.recover {
+					case e: Throwable =>
+						window.location.href = "/unauthorized"
+						throw new Exception("Unauthorized")
+				}.map {
+					case (null, _) =>
+						window.location.href = window.dyn.sso_url().as[String]
+						throw new Exception("Unauthenticated")
+
+					case (u, channel) =>
+						user = u
+						channel.close()
 				}
 			}
 			core <- coreLoaded
@@ -68,18 +82,21 @@ import xuen.expr.PipesRegistry
 			loader <- {
 				document.body.classList.add("no-loader")
 				document.body.classList.add("with-background")
-				if (Settings.`loading.fast` is true) Future.successful(())
+				if (Settings.`loading.fast`) Future.successful(())
 				else Delay(1100.millis)
 			}
 			init = {
 				document.body.classList.add("app-loader")
+
 				for (_ <- Delay(2.second)) {
 					for (loader <- document.querySelectorAll("#loader")) {
 						loader.parentNode.removeChild(loader)
 					}
 				}
+
 				val titlebar = document.getElementById("loader-titlebar")
 				titlebar.parentNode.removeChild(titlebar)
+
 				val app = document.createElement("gt-app")
 				document.body.appendChild(app)
 			}

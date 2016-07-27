@@ -33,7 +33,7 @@ object BufferConv {
 		@inline def toByteArray(buffer: ByteVector): Array[Byte] = buffer.toArray
 		@inline def toBitVector(buffer: ByteVector): BitVector = buffer.toBitVector
 		@inline def toByteVector(buffer: ByteVector): ByteVector = buffer
-		@inline def toByteBuffer(buffer: ByteVector): ByteBuffer = buffer.toByteBuffer
+		@inline def toByteBuffer(buffer: ByteVector): ByteBuffer = ByteBuffer.wrap(buffer.toArray)
 		@inline def toArrayBuffer(buffer: ByteVector): ArrayBuffer = buffer.toArray.toTypedArray.buffer
 	}
 

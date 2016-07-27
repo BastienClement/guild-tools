@@ -1,6 +1,6 @@
 package gtp3
 
-import boopickle.Pickler
+import boopickle.DefaultBasic._
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
@@ -16,7 +16,7 @@ class Channel private[gtp3] (val socket: Socket, val tpe: String, val id: Int, v
 	private[this] val requestIdPool = new NumberPool(Protocol.InflightRequests)
 
 	// Pending requests
-	private[this] val requests = mutable.Map.empty[Int, Promise[_]]
+	private[this] val requests = mutable.Map.empty[Int, Promise[PickledPayload]]
 
 	// Event
 	val onMessage = new EventSource[(String, PickledPayload)]
@@ -63,7 +63,7 @@ class Channel private[gtp3] (val socket: Socket, val tpe: String, val id: Int, v
 	}
 
 	/** Close the channel and attempt to flush output buffer */
-	def close(code: Int, reason: String): Unit = {
+	def close(code: Int = 0, reason: String = "Closed"): Unit = {
 		// Ensure we don't close the channel multiple times
 		if (state == ChannelState.Closed) return
 		state = ChannelState.Closed
@@ -106,7 +106,7 @@ class Channel private[gtp3] (val socket: Socket, val tpe: String, val id: Int, v
 	}
 
 	/** Fetches the promise assocated with the given request ID */
-	private def getRequestPromise(rid: Int): Option[Promise[_]] = {
+	private def getRequestPromise(rid: Int): Option[Promise[PickledPayload]] = {
 		val promise = requests.get(rid)
 		if (promise.isDefined) {
 			requests.remove(rid)
@@ -118,7 +118,7 @@ class Channel private[gtp3] (val socket: Socket, val tpe: String, val id: Int, v
 	/** Received a Success frame */
 	private def receiveSuccessFrame(request: Int, flags: Int, payload: ByteVector): Unit = {
 		for (promise <- getRequestPromise(request)) {
-			promise.asInstanceOf[Promise[Any]].success(new PickledPayload(payload.toByteBuffer))
+			promise.success(new PickledPayload(payload))
 		}
 	}
 

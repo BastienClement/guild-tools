@@ -1,4 +1,5 @@
 package xuen.expr
+
 import scala.annotation.tailrec
 import scala.scalajs.js
 import xuen.XuenException
@@ -186,7 +187,7 @@ class Parser(val input: String, private[this] val tokens: Array[Token]) {
 				return res
 			}
 		}
-		???
+		throw new IllegalStateException()
 	}
 
 	def primary: Expression = {

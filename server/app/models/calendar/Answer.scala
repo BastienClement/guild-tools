@@ -1,5 +1,6 @@
 package models.calendar
 
+import model.User
 import models._
 import models.mysql._
 import utils.DateTime

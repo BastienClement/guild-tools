@@ -2,14 +2,16 @@ package actors
 
 import actors.BattleNet.BnetFailure
 import actors.RosterService.{CharDeleted, CharUpdated}
+import data.UserGroups
+import model.User
 import models._
 import models.mysql._
 import reactive.ExecutionContext
 import scala.compat.Platform
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import utils._
 import utils.Implicits._
+import utils._
 
 private[actors] class RosterServiceImpl extends RosterService
 
@@ -22,7 +24,7 @@ trait RosterService extends PubSub[User] {
 	// Cache of in-roster users
 	private val users = CacheCell.async[Map[Int, User]](1.minute) {
 		val query = for {
-			user <- PhpBBUsers if user.group inSet AuthService.fromscratch_groups
+			user <- PhpBBUsers if user.group inSet UserGroups.fromscratch
 		} yield user.id -> user
 		query.run.map(s => s.toMap)
 	}
@@ -34,7 +36,7 @@ trait RosterService extends PubSub[User] {
 
 	// List of chars for a roster member
 	val roster_chars = CacheCell.async[Map[Int, Seq[Char]]](1.minutes) {
-		val users = for (user <- PhpBBUsers if user.group inSet AuthService.fromscratch_groups) yield user.id
+		val users = for (user <- PhpBBUsers if user.group inSet UserGroups.fromscratch) yield user.id
 		val chars = for (char <- Chars.sortBy(c => (c.main.desc, c.active.desc, c.level.desc, c.ilvl.desc)) if char.owner.in(users)) yield char
 		chars.run.map(_.groupBy(_.owner))
 	}

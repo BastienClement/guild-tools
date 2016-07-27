@@ -1,17 +1,17 @@
 package gt.component.app
 
-import gt.App
+import gt.component.GtHandler
 import scala.scalajs.js
 import util.annotation.data
 import util.jsannotation.js
-import xuen.{Component, Handler}
+import xuen.Component
 
 object GtSidebar extends Component[GtSidebar](
 	selector = "gt-sidebar",
 	templateUrl = "/assets/imports/app.html"
 )
 
-@js class GtSidebar extends Handler {
+@js class GtSidebar extends GtHandler {
 	@data case class Icon(icon: String, key: String, link: String)
 
 	val icons = js.Array(
@@ -20,7 +20,7 @@ object GtSidebar extends Component[GtSidebar](
 		Icon("mail", "messages", "/messages"),
 		Icon("today", "calendar", "/calendar"),
 		Icon("supervisor_account", "roster", "/roster"),
-		Icon("assignment_ind", "apply", if (true || App.user.roster) "/apply" else "/apply-guest"),
+		Icon("assignment_ind", "apply", if (app.user.roster) "/apply" else "/apply-guest"),
 		Icon("airplay", "streams", "/streams")
 	)
 }

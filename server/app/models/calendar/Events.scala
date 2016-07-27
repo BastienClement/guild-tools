@@ -1,5 +1,6 @@
 package models.calendar
 
+import model.User
 import models._
 import models.mysql._
 import reactive.ExecutionContext
@@ -47,7 +48,7 @@ case class Event(id: Int, title: String, desc: String, owner: Int, date: DateTim
 		}
 
 		// Rebuild slots for visible tabs
-		val slots = expanded.slots.filter { case (id, slots) => visibles_tabs.contains(id) }
+		val slots = expanded.slots.filter { case (name, _) => visibles_tabs.contains(name) }
 
 		EventFull(this, tabs, slots)
 	}

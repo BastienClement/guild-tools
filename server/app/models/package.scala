@@ -34,21 +34,6 @@ package object models {
 		@inline def await(limit: Duration): A = Await.result(f, limit)
 	}
 
-	implicit val userJsonWriter = new Writes[User] {
-		def writes(user: User): JsValue = {
-			Json.obj(
-				"id" -> user.id,
-				"name" -> user.name,
-				"group" -> user.group,
-				"officer" -> user.officer,
-				"promoted" -> user.promoted,
-				"developer" -> user.developer,
-				"member" -> user.member,
-				"roster" -> user.roster,
-				"fs" -> user.fs)
-		}
-	}
-
 	implicit val applyJsonFormat = Json.format[Application]
 	implicit val applyFeedMessageJsonFormat = Json.format[ApplicationMessage]
 	implicit val charJsonFormat = Json.format[Char]

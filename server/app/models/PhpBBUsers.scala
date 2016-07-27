@@ -1,20 +1,7 @@
 package models
 
-import actors.AuthService
+import model.User
 import models.mysql._
-import reactive.ExecutionContext
-import scala.concurrent.Future
-
-case class User(id: Int, name: String, group: Int) {
-	lazy val developer = AuthService.developer_users.contains(id)
-	lazy val officer = AuthService.officier_groups.contains(group)
-	lazy val promoted = developer || officer
-	lazy val member = promoted || AuthService.member_groups.contains(group)
-	lazy val roster = promoted || AuthService.roster_groups.contains(group)
-	lazy val fs = AuthService.fromscratch_groups.contains(group)
-
-	def ready: Future[Boolean] = Chars.filter(_.owner === id).headOption.map(_.isDefined)
-}
 
 class PhpBBUsers(tag: Tag) extends Table[User](tag, "phpbb_users") {
 	def id = column[Int]("user_id", O.PrimaryKey)

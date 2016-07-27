@@ -4,8 +4,8 @@ import actors.RosterService
 import actors.RosterService.{CharDeleted, CharUpdated}
 import akka.actor.Props
 import gtp3._
+import model.User
 import models._
-import reactive.ExecutionContext
 
 object RosterChannel extends ChannelValidator {
 	def open(request: ChannelRequest) = request.accept(Props(new RosterChannel(request.user)))
@@ -21,22 +21,22 @@ class RosterChannel(val user: User) extends ChannelHandler {
 		case CharDeleted(char) => send("char-deleted", char)
 	}
 
-	request("preload-roster") { p =>
+	/*request("preload-roster") { p =>
 		for {
 			users <- RosterService.roster_users
 			chars <- RosterService.roster_chars.value
 		} yield {
 			for (user <- users) yield (user, chars.getOrElse(user.id, Seq.empty))
 		}
-	}
+	}*/
 
-	message("request-user") { p =>
+	/*message("request-user") { p =>
 		val id = p.as[Int]
 		for {
 			user <- RosterService.user(id)
 			chars <- RosterService.chars(id)
 		} send("user-data", (user, chars))
-	}
+	}*/
 
 	// Allow promoted user to bypass own-character restrictions
 	val update_user = if (user.promoted) None else Some(user)

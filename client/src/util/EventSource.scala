@@ -1,4 +1,5 @@
 package util
+
 import scala.collection.mutable
 
 class EventSource[T] {

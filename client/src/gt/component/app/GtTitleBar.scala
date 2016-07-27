@@ -1,8 +1,9 @@
 package gt.component.app
 
+import gt.component.GtHandler
 import gt.component.widget.GtButton
 import util.jsannotation.js
-import xuen.{Component, Handler}
+import xuen.Component
 
 object GtTitleBar extends Component[GtTitleBar](
 	selector = "gt-title-bar",
@@ -10,5 +11,5 @@ object GtTitleBar extends Component[GtTitleBar](
 	dependencies = Seq(GtButton)
 )
 
-@js class GtTitleBar extends Handler {
+@js class GtTitleBar extends GtHandler {
 }
