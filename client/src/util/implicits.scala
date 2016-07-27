@@ -3,6 +3,7 @@ package util
 import org.scalajs
 import org.scalajs.dom._
 import scala.concurrent.{Future, Promise}
+import scala.language.implicitConversions
 import scala.scalajs.js
 
 object implicits {
@@ -57,7 +58,13 @@ object implicits {
 	}
 
 	implicit class EqEqEq[T <: AnyRef](private val lhs: T) extends AnyVal {
-		@inline def ===(rhs: T): Boolean = lhs eq rhs
-		@inline def !==(rhs: T): Boolean = lhs ne rhs
+		@inline def === (rhs: T): Boolean = lhs eq rhs
+		@inline def !== (rhs: T): Boolean = lhs ne rhs
+	}
+
+	implicit class ExponentOperator(private val lhs: Double) extends AnyVal {
+		@inline def ** (rhs: Double): Double = {
+			Math.pow(lhs, rhs)
+		}
 	}
 }

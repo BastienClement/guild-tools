@@ -1,5 +1,6 @@
 package xuen
 
+import org.scalajs.dom.NodeListOf
 import org.scalajs.dom.raw.HTMLElement
 import scala.collection.mutable
 import scala.scalajs.js
@@ -140,6 +141,14 @@ import xuen.rx.{Obs, Rx, Var}
 	/** Select a child element in this component Shadow DOM with the requested ID */
 	protected[xuen] final def $xuen$selectElement(selector: String): HTMLElement = {
 		shadow.querySelector(selector).asInstanceOf[HTMLElement]
+	}
+
+	protected final def child[T <: HTMLElement](selector: String): T = {
+		shadow.querySelector(selector).asInstanceOf[T]
+	}
+
+	protected final def query[T <: HTMLElement](selector: String): NodeListOf[T] = {
+		shadow.querySelectorAll(selector).asInstanceOf[NodeListOf[T]]
 	}
 }
 

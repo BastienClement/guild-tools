@@ -1,7 +1,7 @@
 package gt.component.app
 
 import gt.component.widget.GtButton
-import scala.scalajs.js.annotation.ScalaJSDefined
+import util.jsannotation.js
 import xuen.{Component, Handler}
 
 object GtTitleBar extends Component[GtTitleBar](
@@ -10,6 +10,5 @@ object GtTitleBar extends Component[GtTitleBar](
 	dependencies = Seq(GtButton)
 )
 
-@ScalaJSDefined
-class GtTitleBar extends Handler {
+@js class GtTitleBar extends Handler {
 }

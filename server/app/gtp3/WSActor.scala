@@ -68,12 +68,12 @@ class WSActor(val out: ActorRef, val request: RequestHeader) extends Actor {
 	 * Handshake reception
 	 */
 	def receive = {
-		case buffer: Array[Byte] => {
+		case buffer: Array[Byte] =>
 			// Parse the handshake frame
 			val status = Frame.decode(buffer) match {
 				// Create a new socket for this client
 				case HelloFrame(magic, version) =>
-					if (magic == GTP3Magic) SocketManager.allocate(self, opener)
+					if (magic == GTP3Magic)	SocketManager.allocate(self, opener)
 					else BindingFailed
 
 				// Rebind an existing socket
@@ -93,7 +93,6 @@ class WSActor(val out: ActorRef, val request: RequestHeader) extends Actor {
 				case Failure(_) =>
 					timeout.trigger()
 			}
-		}
 	}
 
 	/**

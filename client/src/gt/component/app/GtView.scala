@@ -1,6 +1,6 @@
 package gt.component.app
 
-import scala.scalajs.js.annotation.ScalaJSDefined
+import util.jsannotation.js
 import xuen.{Component, Handler}
 
 object GtView extends Component[GtView](
@@ -8,6 +8,5 @@ object GtView extends Component[GtView](
 	templateUrl = "/assets/imports/app.html"
 )
 
-@ScalaJSDefined
-class GtView extends Handler {
+@js class GtView extends Handler {
 }

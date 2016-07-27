@@ -12,12 +12,15 @@ import scala.compat.Platform
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.sys.process._
+import scala.util.Try
 import utils.CacheCell
 
 object GuildTools {
 	// Server stats
 	val serverName = "GuildTools-6.0"
-	val serverVersion = CacheCell(15.minutes) { "git rev-parse HEAD".!!.trim }
+	val serverVersion = CacheCell(15.minutes) {
+		Try { "git rev-parse HEAD".!!.trim } getOrElse "{unavailable}"
+	}
 	val serverStart = Platform.currentTime
 	def serverUptime = Platform.currentTime - serverStart
 

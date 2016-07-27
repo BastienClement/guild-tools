@@ -116,6 +116,10 @@ body {
 	opacity: 0;
 }
 
+.app #loader-titlebar {
+	opacity: 1;
+}
+
 #loader-titlebar i {
 	-webkit-app-region: no-drag;
 	transition: text-shadow .2s ease-out;

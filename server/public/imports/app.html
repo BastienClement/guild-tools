@@ -1,46 +1,48 @@
 <xuen-component id="gt-app">
 	<link rel="stylesheet/less" href="/assets/less/application.less" ns="gt-app">
 	<template>
-		<gt-title-bar #title {is_app}></gt-title-bar>
-		<gt-sidebar #side {is_app}></gt-sidebar>
-		<gt-view #view (scroll)="ViewScroll" {is_app}></gt-view>
+		<gt-title-bar #title></gt-title-bar>
+		<gt-sidebar #side></gt-sidebar>
+		<gt-view #view></gt-view>
 		<gt-dialog #disconnected sticky>
-			<div #cover {dead}>
+			<div #cover [@dead]>
 				<div #reconnecting *if="!dead">
 					<div .spinner><div></div><div></div><div></div></div>
 					<span>Reconnecting...</span>
 				</div>
 				<div #dead *if="dead">
 					<h3>:(</h3>
-					<div *if="cause == 0">
-						<p>An unknown error occured.</p>
-					</div>
-					<div *if="cause == 1">
-						<p>You have been disconnected from the server.</p>
-						<p>
-							The connection could not be restored. There may be a problem with your
-							internet access or the server may be temporarily down or unavailable.
-						</p>
-					</div>
-					<div *if="cause == 2">
-						<p>
-							Unfortunately, your connection could not be restored because the GuildTools
-							server is now running a different version of the application.
-						</p>
-						<p>
-							Reloading the application will fix the issue.
-						</p>
-					</div>
-					<div *if="cause == 3">
-						<p>You have been disconnected from the server.</p>
-						<p>
-							The connection with the server has been successfully reestablished but
-							it was impossible to resume your previous session.
-						</p>
-					</div>
-					<div *if="cause == 4">
-						<p>The server closed the connection for the following reason:</p>
-						<p .details>{{details}}</p>
+					<div *match="cause">
+						<div *case="0">
+							<p>An unknown error occured.</p>
+						</div>
+						<div *case="1">
+							<p>You have been disconnected from the server.</p>
+							<p>
+								The connection could not be restored. There may be a problem with your
+								internet access or the server may be temporarily down or unavailable.
+							</p>
+						</div>
+						<div *case="2">
+							<p>
+								Unfortunately, your connection could not be restored because the GuildTools
+								server is now running a different version of the application.
+							</p>
+							<p>
+								Reloading the application will fix the issue.
+							</p>
+						</div>
+						<div *case="3">
+							<p>You have been disconnected from the server.</p>
+							<p>
+								The connection with the server has been successfully reestablished but
+								it was impossible to resume your previous session.
+							</p>
+						</div>
+						<div *case="4">
+							<p>The server closed the connection for the following reason:</p>
+							<p .details>{{details}}</p>
+						</div>
 					</div>
 					<p>
 						If the problem persits, you should notify a GuildTools developer.
@@ -60,7 +62,7 @@
 <xuen-component id="gt-title-bar">
 	<link rel="stylesheet/less" href="/assets/less/application.less" ns="gt-title-bar">
 	<template>
-		<div #logo {loading}>
+		<div #logo [@loading]>
 			<img src="/assets/images/logo_small2.png">
 			<svg width="32px" height="32px" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
 				<circle fill="none" stroke-width="6" cx="33" cy="33" r="30"></circle>
@@ -69,12 +71,12 @@
 				<h1>GuildTools</h1>
 				<gt-button goto="/about"><i>info_outline</i> About</gt-button>
 				<gt-button goto="/settings"><i>settings</i> Settings</gt-button>
-				<gt-button (click)="Reload"><i>refresh</i> Reload</gt-button>
-				<gt-button (click)="DownloadClient" *if="!app.standalone"><i>file_download</i> Download client</gt-button>
-				<gt-button (click)="DevTools" *if="app.user.developer"><i>build</i> Developer Tools</gt-button>
+				<gt-button (click)="reload()"><i>refresh</i> Reload</gt-button>
+				<gt-button (click)="downloadClient()" *if="!app.standalone"><i>file_download</i> Download client</gt-button>
+				<gt-button (click)="devTools()" *if="app.user.developer"><i>build</i> Developer Tools</gt-button>
 				<gt-button goto="/server-status" *if="app.user.promoted"><i>swap_horiz</i> Server status</gt-button>
-				<gt-button (click)="Logout"><i>exit_to_app</i> Logout</gt-button>
-				<gt-button (click)="Quit" *if="app.standalone"><i>close</i> Quit</gt-button>
+				<gt-button (click)="logout()"><i>exit_to_app</i> Logout</gt-button>
+				<gt-button (click)="quit()" *if="app.standalone"><i>close</i> Quit</gt-button>
 				<div #credits>
 					From Scratch GuildTools<br>
 					<em>Awesomeness Reloaded&trade;</em>
@@ -82,7 +84,7 @@
 			</div>
 		</div>
 		<div #tabs>
-			<gt-button *for="tabs" collapse-left {active}="item.active" [goto]="item.link">{{item.title}}</gt-button>
+			<gt-button *for="item of tabs" collapse-left [@active]="item.active" [goto]="item.link">{{item.title}}</gt-button>
 		</div>
 		<div #chat>
 			<!--<div #status>
@@ -106,7 +108,7 @@
 <xuen-component id="gt-sidebar">
 	<link rel="stylesheet/less" href="/assets/less/application.less" ns="gt-sidebar">
 	<template>
-		<div .icon *for="icons" (click)="IconClicked" {active}="item.key == module"><i>{{item.icon}}</i></div>
+		<div .icon *for="item of icons" (click)="iconClicked()" [@active]="item.key == module"><i>{{item.icon}}</i></div>
 	</template>
 </xuen-component>
 

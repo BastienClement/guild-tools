@@ -1,6 +1,8 @@
 package xuen
 
 import facade.HTMLTemplateElement
+import org.scalajs.dom._
+import org.scalajs.dom.raw.{HTMLLinkElement, HTMLStyleElement}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.higherKinds
@@ -8,6 +10,7 @@ import scala.scalajs.js
 import scala.scalajs.js.ConstructorTag
 import util.Global._
 import util.implicits._
+import xuen.Loader.LessLoader
 
 abstract class Component[H <: ComponentInstance : ConstructorTag](val selector: String,
                                                                   val templateUrl: String = null,
@@ -37,12 +40,49 @@ abstract class Component[H <: ComponentInstance : ConstructorTag](val selector: 
 	/** Load the component template */
 	private[this] def loadTemplate(): Future[Option[Template]] = {
 		Option(templateUrl).map { url =>
-			Loader.loadDocument(url).map(doc => doc.querySelector(s"xuen-component[id='$selector']")).collect {
+			Loader.loadDocument(url).map(doc => doc.querySelector(s"xuen-component[id='$selector']")).flatMap {
 				case null => throw XuenException(s"No <xuen-component> found for '$selector' in '$url'")
-				case element => element.querySelector(s"xuen-component[id='$selector'] > template")
+				case element =>
+					@inline def importExternalLess: Future[_] = {
+						val externals = element.querySelectorAll(s"xuen-component[id='$selector'] > link[rel='stylesheet/less']").as[NodeListOf[HTMLLinkElement]]
+						val jobs = externals.map { link =>
+							Loader.fetch(link.href).flatMap(LessLoader.compile(_, link.getAttribute("ns"))).map { css =>
+								// Create the style element
+								val style = element.ownerDocument.createElement("style").as[HTMLLinkElement]
+								style.`type` = "text/css"
+								style.innerHTML = css
+
+								// Replace the <link> tag by an inline <style>
+								link.parentNode.replaceChild(style, link)
+							}
+						}
+						Future.sequence(jobs)
+					}
+
+					@inline def compileLess: Future[_] = {
+						val styles = element.querySelectorAll(s"xuen-component[id='$selector'] > style[type='text/less']").as[NodeListOf[HTMLStyleElement]]
+						val jobs = styles.map { style =>
+							LessLoader.compile(style.innerHTML).map { css =>
+								val new_style = element.ownerDocument.createElement("style").as[HTMLStyleElement]
+								new_style.innerHTML = css
+
+								style.parentNode.insertBefore(new_style, style)
+								style.parentNode.removeChild(style)
+							}
+						}
+						Future.sequence(jobs)
+					}
+
+					Future.sequence(Seq(importExternalLess, compileLess)).map { _ =>
+						val tmpl = element.querySelector(s"xuen-component[id='$selector'] > template").asInstanceOf[HTMLTemplateElement]
+						val styles = element.querySelectorAll(s"xuen-component[id='$selector'] > style").as[NodeListOf[HTMLStyleElement]]
+						(tmpl, styles)
+					}
 			}.collect {
 				case null => throw XuenException(s"No <template> found for component '$selector' in '$url'")
-				case tmpl => Some(Template(tmpl.asInstanceOf[HTMLTemplateElement]))
+				case (tmpl, styles) =>
+					for (style <- styles) tmpl.content.appendChild(style)
+					Some(Template(tmpl))
 			}
 		}.getOrElse {
 			Future.successful(None)

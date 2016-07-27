@@ -29,4 +29,10 @@ class NumberPool(val limit: Int = 0xFFFF) {
 			this.released.enqueue(n)
 		}
 	}
+
+	def clear() = {
+		max = 0
+		allocated.clear()
+		released.clear()
+	}
 }

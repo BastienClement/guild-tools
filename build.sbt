@@ -20,7 +20,7 @@ lazy val server = (project in file("server"))
 		                  "org.scalatest" %% "scalatest" % "2.2.6" % "test",
 		                  "org.scalatestplus" %% "play" % "1.4.0" % "test",
 		                  "com.vmunier" %% "play-scalajs-scripts" % "0.5.0",
-		                  "com.lihaoyi" %% "upickle" % "0.4.1"
+		                  "me.chrons" %% "boopickle" % "1.2.4"
 	                  ),
 	                  scalacOptions ++= scalaOpts,
 	                  pipelineStages := Seq(scalaJSProd, digest, gzip)
@@ -37,8 +37,7 @@ lazy val client = (project in file("client"))
 	                  persistLauncher in Test := false,
 	                  libraryDependencies ++= Seq(
 		                  "org.scala-js" %%% "scalajs-dom" % "0.9.1",
-		                  "com.lihaoyi" %%% "upickle" % "0.4.1",
-		                  "com.lihaoyi" %%% "fastparse" % "0.3.7"
+		                  "me.chrons" %%% "boopickle" % "1.2.4"
 	                  ),
 	                  scalacOptions ++= scalaOpts
                   )
@@ -54,7 +53,7 @@ lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
 	                  libraryDependencies ++= Seq(
 		                  "org.scodec" %% "scodec-core" % "1.10.1",
 		                  "org.scodec" %% "scodec-bits" % "1.1.0",
-		                  "com.lihaoyi" %% "upickle" % "0.4.1",
+		                  "me.chrons" %% "boopickle" % "1.2.4",
 		                  "org.scala-js" %% "scalajs-stubs" % scalaJSVersion % "provided"
 	                  )
                   )
@@ -62,7 +61,7 @@ lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
 	                  libraryDependencies ++= Seq(
 		                  "org.scodec" %%% "scodec-core" % "1.10.1",
 		                  "org.scodec" %%% "scodec-bits" % "1.1.0",
-		                  "com.lihaoyi" %%% "upickle" % "0.4.1"
+		                  "me.chrons" %%% "boopickle" % "1.2.4"
 	                  )
                   )
                   .jsConfigure(_ enablePlugins ScalaJSPlay)

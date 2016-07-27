@@ -96,7 +96,10 @@ case class Template(template: HTMLTemplateElement) {
 				val items: Iterable[Any] = Interpreter.safeEvaluate(enumerator.iterable, context) match {
 					case it: Iterable[_] => it
 					case array: js.Array[_] => array
-					case unsupported => throw XuenException(s"Unsupported iterable in for-loop: ${ unsupported.getClass.getName }")
+					case unsupported =>
+						val ex = s"Unsupported iterable in for-loop: ${ unsupported.getClass.getName }"
+						console.error(ex)
+						throw XuenException(ex)
 				}
 
 				val source: Iterable[(Any, Any)] = items match {

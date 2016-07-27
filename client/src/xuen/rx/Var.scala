@@ -1,4 +1,5 @@
 package xuen.rx
+
 import scala.language.implicitConversions
 import scala.scalajs.js.annotation.JSExport
 
@@ -44,7 +45,6 @@ class Var[T] protected (initial: T) extends Rx[T] {
 
 	/** Binds this variable to the given reactive expression */
 	final def <~ (expr: => T): this.type = this <~ Rx(expr)
-
 	override def toString = s"Var@${ Integer.toHexString(hashCode) }[$current]"
 }
 

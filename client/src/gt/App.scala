@@ -1,7 +1,8 @@
 package gt
 
-import gt.component.GtTest
-import gt.service.roster.User
+import boopickle.Default._
+import gt.component.app.GtApp
+import model.User
 import org.scalajs.dom.raw.HTMLSpanElement
 import org.scalajs.dom.{Event, MouseEvent, NodeListOf}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -10,28 +11,27 @@ import scala.concurrent.{Future, Promise}
 import scala.scalajs.js
 import scala.util.{Failure, Success}
 import util.Global._
+import util.annotation.data
 import util.implicits._
 import util.{Delay, Settings}
 import xuen.Loader
 import xuen.expr.PipesRegistry
 
 /** The main GuildTools application object */
-object Application extends js.JSApp {
+@data object App extends js.JSApp {
 	/** The logged in application user */
 	def user: User = _user
 	private[gt] var _user: User = _
 
 	/** Elements to load when application is booting */
-	private val coreElements = Seq(
-		GtTest//, GtApp
-	)
+	private val coreElements = Seq(GtApp)
 
 	/** Application entry point */
 	def main(): Unit = {
 		console.log("GuildTools Client 7.0")
 		console.log("[BOOT] Loading application...")
 
-		document.addEventListener("contextmenu", preventRightClick _)
+		document.addEventListener("contextmenu", (e: MouseEvent) => { if (!e.shiftKey) e.preventDefault() })
 		dynamic.GuildTools = this.asInstanceOf[js.Any]
 
 		// Load pipes definitions
@@ -47,14 +47,18 @@ object Application extends js.JSApp {
 		))
 
 		(for {
-			url <- Loader.fetch("/api/socket_url")
+			url <- Loader.fetch("/api/socket_url").map(normalizeWebsocketUrl)
 			connected <- {
 				console.log(s"[BOOT] GTP3 server is: $url")
 				Server.connect(url)
 			}
 			authenticated <- {
 				console.log("[BOOT] Authenticating...")
-				Future {}
+				Server.openChannel("auth").flatMap { channel =>
+					channel.request("auth", Settings.`auth.session`: String).as[User]
+				}.map { user =>
+					println(user)
+				}
 			}
 			core <- coreLoaded
 			ready <- {
@@ -74,8 +78,9 @@ object Application extends js.JSApp {
 						loader.parentNode.removeChild(loader)
 					}
 				}
-				val app = document.createElement("gt-test")
-				app.setAttribute("name", "Blash")
+				val titlebar = document.getElementById("loader-titlebar")
+				titlebar.parentNode.removeChild(titlebar)
+				val app = document.createElement("gt-app")
 				document.body.appendChild(app)
 			}
 		} yield {}).andThen {
@@ -84,7 +89,7 @@ object Application extends js.JSApp {
 		}
 	}
 
-	def stopSpinner(): Future[_] = {
+	private def stopSpinner(): Future[_] = {
 		if (Settings.`loading.fast` is true) {
 			Future.successful(())
 		} else {
@@ -107,6 +112,16 @@ object Application extends js.JSApp {
 		}
 	}
 
+	/** Normalizes the WebSocket url */
+	private def normalizeWebsocketUrl(start: String): String = {
+		var url = start
+		if (document.location.protocol == "https:")
+			url = url.replaceFirst("^ws:", "wss:")
+		for (key <- Seq("hostname", "port", "host"))
+			url = url.replace("$" + key, dynamic.location.selectDynamic(key).asInstanceOf[String])
+		url
+	}
+
 	/** Formats an exception stack trace */
 	def formatException(e: Throwable): String = {
 		val (message, trace, cause) = e match {
@@ -122,8 +137,8 @@ object Application extends js.JSApp {
 		s"$message$trace_txt$cause_txt"
 	}
 
-	/** Prevent right click if shift key is not pressed */
-	def preventRightClick(e: MouseEvent) = {
-		if (!e.shiftKey) e.preventDefault()
+	/** The server version changed */
+	def serverVersionChanged(): Unit = {
+		???
 	}
 }

@@ -36,4 +36,10 @@ object Settings {
 
 	/** Skip loading animation synchronization */
 	val `loading.fast` = Setting("loading.fast", false)
+
+	/** Sets the verbose flag on the server socket */
+	val `socket.verbose` = Setting("socket.verbose", false)
+
+	/** The session key */
+	val `auth.session` = Setting("auth.session", null: String)
 }

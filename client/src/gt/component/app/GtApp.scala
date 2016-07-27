@@ -1,7 +1,7 @@
 package gt.component.app
 
 import gt.component.widget.{GtButton, GtDialog}
-import scala.scalajs.js.annotation.ScalaJSDefined
+import util.jsannotation.js
 import xuen.{Component, Handler}
 
 /** Main application component */
@@ -11,13 +11,9 @@ object GtApp extends Component[GtApp](
 	dependencies = Seq(GtTitleBar, GtSidebar, GtView, GtDialog, GtButton)
 )
 
-@ScalaJSDefined
-class GtApp extends Handler {
+@js class GtApp extends Handler {
 	override def attached() = {
 		println("attached")
-
-		//console.log(scalajs.js.Object.getPrototypeOf(this).dyn.hello.toString())
-		//hello()
 	}
 }
 
