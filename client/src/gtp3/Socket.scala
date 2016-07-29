@@ -5,7 +5,6 @@ import org.scalajs.dom.{MessageEvent, WebSocket, console, window}
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
-import scala.scalajs.js
 import scala.scalajs.js.DynamicImplicits._
 import scala.scalajs.js.timers._
 import scala.scalajs.js.typedarray.ArrayBuffer
@@ -429,16 +428,13 @@ class Socket(private val url: String) {
 	/** Print the socket activity */
 	private def trace(direction: String, frame: Frame): Unit = {
 		val frameName = frame.getClass.getName.split("\\.").last
-		val padding = " " * (15 - frameName.length)
-
-		// Copy values to a raw object with cleaner names
-		val obj = js.Object.create(null).asInstanceOf[js.Dictionary[Any]]
-		for ((key, value) <- frame.dyn.asInstanceOf[js.Dictionary[js.Any]]) {
-			obj.update(key.split("\\$").head, value)
-		}
+		val padding = " " * (17 - frameName.length)
+		val str = frame.toString
+		val formatted = str.substring(str.indexOf("("))
+		                .replaceAll("ByteVector\\((.*?), 0x[0-9a-f]+\\)", "ByteVector($1)")
 
 		// Output frame data
-		console.dyn.debug(direction, frameName + padding, obj)
+		console.dyn.debug(direction, frameName + padding, formatted)
 	}
 
 	/** Handle force closing the socket due to protocol error */

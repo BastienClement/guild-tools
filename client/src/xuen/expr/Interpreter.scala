@@ -141,7 +141,10 @@ object Interpreter {
 	private def evaluateInterpolation(fragments: Seq[InterpolationFragment])(implicit context: Context): Any = {
 		fragments.collect {
 			case StringFragment(str) => str
-			case ExpressionFragment(e) => e.evaluate.toString
+			case ExpressionFragment(e) =>
+				val value = e.evaluate
+				if (value == null) "null"
+				else value.toString
 		}.mkString
 	}
 

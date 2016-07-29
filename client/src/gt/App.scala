@@ -19,6 +19,9 @@ import xuen.expr.PipesRegistry
 
 /** The main GuildTools application object */
 @data object App extends js.JSApp {
+	/** The root GtApp instance */
+	var root: Option[GtApp] = None
+
 	/** The logged in application user */
 	var user: User = null
 
@@ -99,6 +102,9 @@ import xuen.expr.PipesRegistry
 
 				val app = document.createElement("gt-app")
 				document.body.appendChild(app)
+				root = Some(app.asInstanceOf[GtApp])
+
+				Router.start()
 			}
 		} yield {}).andThen {
 			case Success(_) => console.log("[BOOT] Loading successful")

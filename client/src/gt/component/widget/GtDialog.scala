@@ -11,4 +11,11 @@ object GtDialog extends Component[GtDialog](
 
 @js class GtDialog extends GtHandler {
 
+	def shown: Boolean = ???
+
+	def show(bool: Boolean): Unit = {
+
+	}
+
+	def hide() = ???
 }

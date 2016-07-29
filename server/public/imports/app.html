@@ -5,7 +5,7 @@
 		<gt-sidebar #side></gt-sidebar>
 		<gt-view #view></gt-view>
 		<gt-dialog #disconnected sticky>
-			<div #cover [@dead]>
+			<div #cover [@dead]="dead">
 				<div #reconnecting *if="!dead">
 					<div .spinner><div></div><div></div><div></div></div>
 					<span>Reconnecting...</span>
@@ -62,12 +62,12 @@
 <xuen-component id="gt-title-bar">
 	<link rel="stylesheet/less" href="/assets/less/application.less" ns="gt-title-bar">
 	<template>
-		<div #logo [@loading]>
+		<div #logo [@loading]="loading" (click)="openPanel()">
 			<img src="/assets/images/logo_small2.png">
 			<svg width="32px" height="32px" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
 				<circle fill="none" stroke-width="6" cx="33" cy="33" r="30"></circle>
 			</svg>
-			<div #panel>
+			<div #panel (click)="panelClicked($event)" (mouseleave)="closePanel()">
 				<h1>GuildTools</h1>
 				<gt-button goto="/about"><i>info_outline</i> About</gt-button>
 				<gt-button goto="/settings"><i>settings</i> Settings</gt-button>
@@ -84,7 +84,8 @@
 			</div>
 		</div>
 		<div #tabs>
-			<gt-button *for="item of tabs" collapse-left [@active]="item.active" [goto]="item.link">{{item.title}}</gt-button>
+			<gt-button *for="tab of tabs" collapse-left [@active]="tab.active" [goto]="tab.link">{{tab.title}}
+			</gt-button>
 		</div>
 		<div #chat>
 			<!--<div #status>
@@ -93,7 +94,7 @@
 			</div>-->
 			<div #online>
 				<i>person_outline</i>
-				<b>{{online_users}}</b>
+				<b>{{onlines}}</b>
 			</div>
 		</div>
 		<div #window-controls>
@@ -108,7 +109,9 @@
 <xuen-component id="gt-sidebar">
 	<link rel="stylesheet/less" href="/assets/less/application.less" ns="gt-sidebar">
 	<template>
-		<div .icon *for="item of icons" (click)="iconClicked()" [@active]="item.key == module"><i>{{item.icon}}</i></div>
+		<div .icon *for="item of icons" (click)="navigate(item.link)" [@active]="item.key == module">
+			<i>{{item.icon}}</i>
+		</div>
 	</template>
 </xuen-component>
 

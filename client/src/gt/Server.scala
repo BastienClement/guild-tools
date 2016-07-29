@@ -47,10 +47,12 @@ object Server {
 
 	/** EVENT: The socket is connected to the server */
 	private def `on-connect`(serverVersion: String): Unit = {
+		for (app <- App.root) app.connected()
+
 		// Check if server was updated
 		val oldVersion = version.!
 		if (oldVersion != null && oldVersion != serverVersion) {
-			App.serverVersionChanged()
+			for (app <- App.root) app.versionChanged()
 			socket.close()
 		} else {
 			version := serverVersion
@@ -60,11 +62,13 @@ object Server {
 	}
 
 	private def `on-reconnect`(): Unit = {
+		for (app <- App.root) app.reconnecting()
 		console.warn("NYI: on-reconnect called")
 	}
 
 	/** EVENT: The socket is definitively closed */
 	private def `on-disconnect`(): Unit = {
+		for (app <- App.root) app.disconnected()
 		if (promise != null) {
 			promise.failure(GTP3Error("Socket was closed"))
 			promise = null
@@ -73,6 +77,7 @@ object Server {
 
 	/** EVENT: Connection with the server was re-established but the session was lost */
 	private def `on-reset`(): Unit = {
+		for (app <- App.root) app.reset()
 		// There is no way to do that properly on GT6, we'll need to reload the whole app
 		// Modular architecture is too complex and stateful design cannot be restored properly
 		socket.close()

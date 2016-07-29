@@ -6,7 +6,7 @@ import scala.collection.mutable
 import scala.scalajs.js
 import util.implicits._
 import util.jsannotation.js
-import util.{Serializer, Zero}
+import util.{Microtask, Serializer, Zero}
 import xuen.rx.{Obs, Rx, Var}
 
 /**
@@ -33,6 +33,7 @@ import xuen.rx.{Obs, Rx, Var}
 
 	/**
 	  * Called when an attribute of the element has changed.
+	  * This will not happen before the ready() event triggers.
 	  *
 	  * @param attr  the attribute name
 	  * @param old   the old attribute value
@@ -57,7 +58,7 @@ import xuen.rx.{Obs, Rx, Var}
 	}
 
 	/** This element template instance */
-	private[this] var template: Template#Instance = _
+	private[this] var template: Template#Instance = null
 
 	/** Performs attribute binding construction */
 	private[this] def bindAttribute[T](name: String, proxy: Var[T])(implicit serializer: Serializer[T]) = {
@@ -101,6 +102,15 @@ import xuen.rx.{Obs, Rx, Var}
 	/** Declares a property binding */
 	protected[xuen] final def property[T: Zero]: Var[T] = Var(implicitly[Zero[T]].zero)
 
+	/** Indicates if the ready hook was already called once */
+	private[this] var readyCalled = false
+
+	/** Call the ready hook and set the corresponding flag */
+	private[this] def readyCallback(): Unit = if (!readyCalled) {
+		readyCalled = true
+		ready()
+	}
+
 	/** Handles the component creation */
 	protected[xuen] final def createdCallback(): Unit = {
 		Handler.construct(this, component.constructorTag.constructor)
@@ -117,11 +127,13 @@ import xuen.rx.{Obs, Rx, Var}
 			attributeProxies.clear()
 		}
 
-		ready()
+		// Call ready callback on next tick
+		Microtask.schedule { readyCallback() }
 	}
 
 	/** Handles the component attachement */
 	protected[xuen] final def attachedCallback(): Unit = {
+		if (!readyCalled) readyCallback()
 		if (template != null) template.enable()
 		attached()
 	}
@@ -133,7 +145,7 @@ import xuen.rx.{Obs, Rx, Var}
 	}
 
 	/** Handles the change of component attribute */
-	protected[xuen] final def attributeChangedCallback(attr: String, old: String, value: String): Unit = {
+	protected[xuen] final def attributeChangedCallback(attr: String, old: String, value: String): Unit = if (readyCalled) {
 		for (updater <- attributeBindings.get(attr)) updater(value)
 		attributeChanged(attr, old, value)
 	}
