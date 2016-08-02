@@ -3,9 +3,9 @@ package channels
 import actors.ChatService
 import actors.ChatService.{UserAway, UserConnected, UserDisconnected}
 import akka.actor.Props
+import boopickle.DefaultBasic._
 import gtp3._
 import model.User
-import play.api.libs.json.Json
 import reactive.ExecutionContext
 
 object ChatChannel extends ChannelValidator {
@@ -17,9 +17,7 @@ class ChatChannel(val user: User) extends ChannelHandler {
 
 	init {
 		ChatService.subscribe(user)
-		ChatService.onlines() map { list =>
-			for ((user, away) <- list) yield Json.arr(user, away)
-		} foreach { onlines =>
+		ChatService.onlines().foreach { onlines =>
 			send("onlines", onlines)
 		}
 	}
@@ -30,20 +28,16 @@ class ChatChannel(val user: User) extends ChannelHandler {
 		case UserDisconnected(u) => send("disconnected", u.id)
 	}
 
-	message("set-away") { payload =>
-		ChatService.setAway(self, payload.value.as[Boolean])
+	message("set-away") { away: Boolean =>
+		ChatService.setAway(self, away)
 	}
 
-	message("set-interest") { payload =>
-		val room = payload("room").as[Int]
-		if (payload("interested").as[Boolean]) interests += room
+	message("set-interest") { (room: Int, interested: Boolean) =>
+		if (interested) interests += room
 		else interests -= room
 	}
 
-	request("room-backlog") { payload =>
-		val room = payload("room").as[Int]
-		val count = payload("count").asOpt[Int]
-		val limit = payload("limit").asOpt[Int]
-		ChatService.roomBacklog(room, user, count, limit)
+	request("room-backlog") { (room: Int, count: Option[Int], limit: Option[Int]) =>
+		ChatService.roomBacklog(room, Some(user), count, limit)
 	}
 }

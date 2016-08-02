@@ -1,6 +1,7 @@
 package channels
 
 import akka.actor.Props
+import boopickle.DefaultBasic._
 import gtp3._
 import model.User
 import models._
@@ -33,10 +34,9 @@ class CalendarChannel(user: User) extends ChannelHandler {
 	  * The month is given as the "month-key" in client-side application.
 	  * (Actually identical to the first part of an ISO date string.
 	  */
-	message("request-events") { p =>
-		val month_key = p.string
+	message("request-events") { month_key: String =>
 		"^(201[0-9])\\-(0[1-9]|1[0-2])$".r.findFirstMatchIn(month_key) match {
-			case None => throw new IllegalArgumentException(s"Bad date requested: ${p.string}")
+			case None => throw new IllegalArgumentException(s"Bad date requested: $month_key")
 			case Some(matched) =>
 				val year = matched.group(1).toInt
 				val month = matched.group(2).toInt
@@ -57,8 +57,7 @@ class CalendarChannel(user: User) extends ChannelHandler {
 	/**
 	  * Requests answers to a specific event.
 	  */
-	request("event-answers") { p =>
-		val event = p.as[Int]
+	request("event-answers") { event: Int =>
 		Events.ifAccessible(user, event) {
 			Answers.findForEvent(event).run.await
 		}
@@ -67,20 +66,15 @@ class CalendarChannel(user: User) extends ChannelHandler {
 	/**
 	  * Changes an event state.
 	  */
-	message("change-event-state") { p =>
-		val event = p("event").as[Int]
+	message("change-event-state") { (event: Int, state: Int) =>
 		Events.ifEditable(user, event) {
-			Events.changeState(event, p("state").as[Int])
+			Events.changeState(event, state)
 		}
 	}
 
 	/**
 	  * Changes the user's answer to an event.
 	  */
-	message("change-event-answer") { p =>
-		val event = p("event").as[Int]
-		val answer = p("answer").as[Int]
-		val char = p("char").asOpt[Int]
-		val note = p("note").as[String]
+	message("change-event-answer") { (event: Int, answer: Int, toon: Option[Int], note: String) =>
 	}
 }

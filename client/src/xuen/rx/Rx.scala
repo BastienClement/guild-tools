@@ -15,13 +15,10 @@ trait Rx[+T] {
 	private[this] var haveChildren = false
 	private[this] var haveObservers = false
 
-	/** Current invalidation key */
-	private[this] var currentInvalidateKey = 0
-
 	/** Children of this reactive value */
 	private[this] lazy val children = {
 		haveChildren = true
-		mutable.Map[Rx[_], Int]()
+		mutable.Map[Expr[_], Int]()
 	}
 
 	/** Observers bound to this reactive value */
@@ -32,9 +29,6 @@ trait Rx[+T] {
 
 	/** Must be overriden to return the current value of this reactive value */
 	private[rx] def value: T
-
-	/** Returns the current invalidation key */
-	private[rx] final def invalidateKey: Int = currentInvalidateKey
 
 	/** Extracts the current value and register child expression */
 	@JSExport("get")
@@ -56,10 +50,6 @@ trait Rx[+T] {
 			children.clear()
 		}
 
-		// Increment invalidation key, preventing this reactive value to
-		// be invalidated by another reactive value it no longer depends on
-		currentInvalidateKey += 1
-
 		// Enqueue observers, if any
 		if (haveObservers) {
 			for (observer <- observers if Rx.observersSet.add(observer)) {
@@ -69,7 +59,7 @@ trait Rx[+T] {
 	}
 
 	/** Combines this reactive value with another one */
-	def ~[U >: T] (rhs: Rx[U]): Rx[U] = {
+	def ~+[U >: T] (rhs: Rx[U]): Rx[U] = {
 		var a: T = this
 		var b: U = rhs
 		Rx {
@@ -87,6 +77,9 @@ trait Rx[+T] {
 			res
 		}
 	}
+
+	/** Combines this reactive value with a mapper function */
+	def ~[U] (mapper: T => U): Rx[U] = Rx { mapper(this) }
 
 	/** Attaches this reactive value to an observer */
 	def ~> (observer: Obs): this.type = {
@@ -111,6 +104,10 @@ trait Rx[+T] {
 	final def ~> (handler: T => Unit): this.type = this ~> Obs(handler(this))
 	final def ~>> (handler: T => Unit): this.type = this ~>> Obs(handler(this))
 
+
+	/** Extracts the current value of the reactive value */
+	final def ! : T = get()
+
 	override def toString: String = s"Rx@${ Integer.toHexString(hashCode) }[$value]"
 }
 
@@ -125,7 +122,7 @@ object Rx {
 	implicit def wrapper[T](value: => T): Rx[T] = new Expr(() => value)
 
 	/** Stack of enclosing reactive value used to automatically bind children */
-	private[rx] val enclosing = new DynamicVariable[Rx[_]](null)
+	private[rx] val enclosing = new DynamicVariable[Expr[_]](null)
 
 	/** Whether the current atomically block is the top-level one */
 	private[rx] var topLevel = true

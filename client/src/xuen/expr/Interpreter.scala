@@ -8,7 +8,6 @@ import scala.util.{Failure, Try}
 import util.implicits._
 import xuen.Context
 import xuen.expr.Expression._
-import xuen.rx.syntax.ExplicitExtractor
 import xuen.rx.{Rx, Var}
 
 object Interpreter {

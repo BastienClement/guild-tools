@@ -17,7 +17,7 @@
 					<img src="http://eu.battle.net/static-render/eu/@char.thumbnail" @if(!char.active) { style="opacity: 0.3" }>
 				</div>
 				<div class="top">
-					<span class="name c@char.clazz">@char.name</span>
+					<span class="name c@char.clss">@char.name</span>
 					@if(char.main) {
 						<i class="material-icons">star</i>
 					} else {
@@ -28,7 +28,7 @@
 				<div class="middle">
 					<strong>@char.level</strong>
 					@req.names.r(char.race)
-					@req.names.c(char.clazz)
+					@req.names.c(char.clss)
 						&ndash;
 					@char.ilvl ilvl
 				</div>

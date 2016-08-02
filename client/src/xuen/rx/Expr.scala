@@ -18,6 +18,12 @@ class Expr[T] protected[rx] (generate: () => T) extends Rx[T] {
 	/** The current value of this expression */
 	private[this] var current: Option[T] = None
 
+	/** Current invalidation key */
+	private[this] var currentInvalidateKey = 0
+
+	/** Returns the current invalidation key */
+	private[rx] final def invalidateKey: Int = currentInvalidateKey
+
 	/** Compute this expression value */
 	private[rx] def value = current match {
 		case Some(v) => v
@@ -32,6 +38,11 @@ class Expr[T] protected[rx] (generate: () => T) extends Rx[T] {
 	override def invalidate(): Unit = {
 		if (current.isDefined) {
 			current = None
+
+			// Increment invalidation key, preventing this reactive value to
+			// be invalidated by another reactive value it no longer depends on
+			currentInvalidateKey += 1
+
 			super.invalidate()
 		}
 	}

@@ -12,23 +12,6 @@ package object rx {
 	  */
 	object syntax {
 		/**
-		  * Allow usage of the ! operator that extract the current value of
-		  * the reactive value.
-		  *
-		  * Usually, the same action can be achieved using the implicit
-		  * conversion from Rx[T] to T automatically available from the
-		  * Rx object. Usage of this operator sould be limited in situations
-		  * where implicit usage is impractical.
-		  *
-		  * @param rx the reactive value
-		  * @tparam T the type of the reactive value
-		  */
-		implicit class ExplicitExtractor[T](private val rx: Rx[T]) extends AnyVal {
-			/** Extracts the current value of the reactive value */
-			@inline def ! : T = rx.get()
-		}
-
-		/**
 		  * Allow usage of the common monadic operations and for-comprehension.
 		  *
 		  * Theses operations are not available by default since they can

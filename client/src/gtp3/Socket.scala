@@ -218,7 +218,6 @@ class Socket(private val url: String) {
 	private def receive(data: Array[Byte]) = {
 		val frame = Frame.decode(data)
 		if (verbose) trace("<<", frame)
-
 		frame.ifSequenced { seq => sendAck(seq.seq) }
 
 		frame match {

@@ -6,13 +6,11 @@ import boopickle.Pickler
 import gtp3.Channel._
 import gtp3.ChannelHandler._
 import java.nio.ByteBuffer
-import models.DB
 import org.apache.commons.lang3.exception.ExceptionUtils
 import reactive._
 import scala.concurrent.Future
 import scala.language.implicitConversions
 import scala.util.{Failure => TFailure, Success => TSuccess}
-import slick.dbio.{DBIOAction, NoStream}
 
 /**
   * A ChannelValidator is responsible to resolve ChannelRequest by either
@@ -27,70 +25,10 @@ trait ChannelValidator {
   */
 object ChannelHandler {
 	/**
-	  * A generic Future[Payload] resolved to the empty Payload.
-	  * It is used by the Unit encoder to skip the overhead of creating
-	  * a new Future multiple times for the exact same value.
-	  */
-	private val futureEmptyPayload = Future.successful[Payload](Payload.empty)
-
-	/**
 	  * Message sent to the the channel actor to request the construction
 	  * and sending of a GTP3 message to the user.
 	  */
 	case class SendMessage(message: String, payload: Payload)
-
-	/**
-	  * Type-class constructing the required Future[Payload] from anything
-	  * acceptable as a return type for a request handler.
-	  */
-	trait FuturePayloadBuilder[-T] {
-		def build(o: T): Future[Payload]
-	}
-
-	/**
-	  * Convert any T for which there is a PayloadBuilder[T] to a Future[Payload]
-	  * by wrapping the converted value inside a resolved Future.
-	  */
-	implicit def FuturePayloadWrapper[T: PayloadBuilder] = new FuturePayloadBuilder[T] {
-		def build(o: T): Future[Payload] = Future.successful(Payload(o))
-	}
-
-	/**
-	  * Convert any Future[T] for which there is a PayloadBuilder[T] to a Future[Payload]
-	  */
-	implicit def FuturePayloadConverter[T: PayloadBuilder] = new FuturePayloadBuilder[Future[T]] {
-		def build(f: Future[T]): Future[Payload] = f map { q => Payload(q) }
-	}
-
-	/**
-	  * Convert any DBIOAction[T, _, _] for which there is a PayloadBuilder[T] to a Future[Payload]
-	  * by first running the action on the database then converting the resulting Future[T]
-	  */
-	implicit def FuturePayloadDBIOAction[T: PayloadBuilder] = new FuturePayloadBuilder[DBIOAction[T, NoStream, Nothing]] {
-		def build(a: DBIOAction[T, NoStream, Nothing]): Future[Payload] = DB.run(a) map { q => Payload(q) }
-	}
-
-	/**
-	  * Convert Future[Payload] to Future[Payload].
-	  * Allow the request handler to return the expected type.
-	  */
-	implicit val FuturePayloadIdentity = new FuturePayloadBuilder[Future[Payload]] {
-		def build(f: Future[Payload]): Future[Payload] = f
-	}
-
-	/**
-	  * Convert any Throwable to a failed Future[Payload] with the Throwable as failure.
-	  */
-	implicit val FuturePayloadThrowable = new FuturePayloadBuilder[Throwable] {
-		def build(e: Throwable): Future[Payload] = Future.failed(e)
-	}
-
-	/**
-	  * Convert Unit to an already resolved Future[Payload] containing the empty Payload
-	  */
-	implicit val FuturePayloadUnit = new FuturePayloadBuilder[Unit] {
-		def build(u: Unit): Future[Payload] = futureEmptyPayload
-	}
 }
 
 /**
@@ -99,12 +37,6 @@ object ChannelHandler {
   * management of the messages/requests protocol.
   */
 trait ChannelHandler extends Actor with Stash with PayloadBuilder.ProductWrites {
-	/**
-	  * Implicitly convert T to Option[T] in the context of ChannelHandler.
-	  * TODO: Why do we need that ?
-	  */
-	implicit def OptionBoxing[T](v: T): Option[T] = Option(v)
-
 	/**
 	  * Reference to the channel actor for sending outgoing messages.
 	  */
@@ -142,27 +74,38 @@ trait ChannelHandler extends Actor with Stash with PayloadBuilder.ProductWrites 
 	  * by using either the message or the request semantic. If there is no need for the return type
 	  * to be ignored, it is better to declare every handlers as request().
 	  */
-	final def message(name: String)(fn: Payload => Unit): Unit = request(name)(fn)
+	final def message(name: String): MessageBinder = MessageBinder(name)
 
-	final def message2[T: Pickler](name: String)(fn: T => Unit): Unit = request2(name)(fn)
+	case class MessageBinder(name: String) {
+		def apply(fn: => Unit): Unit = defineHandler(name, (_: Unit) => fn)
+		def apply[T1: Pickler](fn: T1 => Unit): Unit = defineHandler(name, fn)
+		def apply[T1: Pickler, T2: Pickler](fn: (T1, T2) => Unit): Unit = defineHandler(name, fn.tupled)
+		def apply[T1: Pickler, T2: Pickler, T3: Pickler](fn: (T1, T2, T3) => Unit): Unit = defineHandler(name, fn.tupled)
+		def apply[T1: Pickler, T2: Pickler, T3: Pickler, T4: Pickler](fn: (T1, T2, T3, T4) => Unit): Unit = defineHandler(name, fn.tupled)
+		def apply[T1: Pickler, T2: Pickler, T3: Pickler, T4: Pickler, T5: Pickler](fn: (T1, T2, T3, T4, T5) => Unit): Unit = defineHandler(name, fn.tupled)
+	}
 
 	/**
 	  * Register a request handler.
 	  * The request handler can return any type convertible to Payload by a PayloadBuilder
 	  * Alternatively a Future of such a type, or a DBIOAction with a compatible result type
 	  */
-	final def request[T](name: String)(fn: Payload => T)(implicit fpb: FuturePayloadBuilder[T]): Unit = {
-		handlers += name -> (fn andThen fpb.build)
+	final def request(name: String): RequestBinder = RequestBinder(name)
+
+	case class RequestBinder(name: String) {
+		def apply[R: Pickleable](fn: => R): Unit = defineHandler(name, (_: Unit) => fn)
+		def apply[T1: Pickler, R: Pickleable](fn: T1 => R): Unit = defineHandler(name, fn)
+		def apply[T1: Pickler, T2: Pickler, R: Pickleable](fn: (T1, T2) => R): Unit = defineHandler(name, fn.tupled)
+		def apply[T1: Pickler, T2: Pickler, T3: Pickler, R: Pickleable](fn: (T1, T2, T3) => R): Unit = defineHandler(name, fn.tupled)
+		def apply[T1: Pickler, T2: Pickler, T3: Pickler, T4: Pickler, R: Pickleable](fn: (T1, T2, T3, T4) => R): Unit = defineHandler(name, fn.tupled)
+		def apply[T1: Pickler, T2: Pickler, T3: Pickler, T4: Pickler, T5: Pickler, R: Pickleable](fn: (T1, T2, T3, T4, T5) => R): Unit = defineHandler(name, fn.tupled)
 	}
-	/**
-	  * Register a request handler.
-	  * The request handler can return any type that is Pickleable
-	  * Alternatively a Future of such a type, or a DBIOAction with a compatible result type
-	  */
-	final def request2[T: Pickler, R](name: String)(fn: T => R)(implicit p: Pickleable[R]): Unit = {
+
+	/** Registers a message handler */
+	private def defineHandler[T: Pickler, R: Pickleable](name: String, fn: T => R): Unit = {
 		handlers += name -> ((payload: Payload) => {
 			val value = Unpickle[T].fromBytes(ByteBuffer.wrap(payload.buffer))
-			p.pickelPayload(fn(value))
+			implicitly[Pickleable[R]].picklePayload(fn(value))
 		})
 	}
 
@@ -181,8 +124,11 @@ trait ChannelHandler extends Actor with Stash with PayloadBuilder.ProductWrites 
 	  * Send a message to the client.
 	  * The data can be any T for which there exists a PayloadBuilder[T].
 	  */
-	def send[T: PayloadBuilder](msg: String, data: T): Unit = channel ! SendMessage(msg, Payload(data))
-	final def send[T: PayloadBuilder](msg: String): Unit = send(msg, Payload.empty)
+	final def send[T: Pickleable](msg: String, data: T): Unit = {
+		for (payload <- implicitly[Pickleable[T]].picklePayload(data)) channel ! SendMessage(msg, payload)
+	}
+
+	@inline final def send[T: Pickleable](msg: String): Unit = send(msg, ())
 
 	/**
 	  * Initial message receiver.

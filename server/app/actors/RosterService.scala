@@ -1,9 +1,9 @@
 package actors
 
 import actors.BattleNet.BnetFailure
-import actors.RosterService.{CharDeleted, CharUpdated}
+import actors.RosterService.{ToonDeleted, ToonUpdated}
 import data.UserGroups
-import model.User
+import model.{Toon, User}
 import models._
 import models.mysql._
 import reactive.ExecutionContext
@@ -16,8 +16,8 @@ import utils._
 private[actors] class RosterServiceImpl extends RosterService
 
 object RosterService extends StaticActor[RosterService, RosterServiceImpl]("RosterService") {
-	case class CharUpdated(char: Char)
-	case class CharDeleted(char: Char)
+	case class ToonUpdated(toon: Toon)
+	case class ToonDeleted(toon: Toon)
 }
 
 trait RosterService extends PubSub[User] {
@@ -35,21 +35,21 @@ trait RosterService extends PubSub[User] {
 	}
 
 	// List of chars for a roster member
-	val roster_chars = CacheCell.async[Map[Int, Seq[Char]]](1.minutes) {
+	val roster_toons = CacheCell.async[Map[Int, Seq[Toon]]](1.minutes) {
 		val users = for (user <- PhpBBUsers if user.group inSet UserGroups.fromscratch) yield user.id
-		val chars = for (char <- Chars.sortBy(c => (c.main.desc, c.active.desc, c.level.desc, c.ilvl.desc)) if char.owner.in(users)) yield char
+		val chars = for (char <- Toons.sortBy(c => (c.main.desc, c.active.desc, c.level.desc, c.ilvl.desc)) if char.owner.in(users)) yield char
 		chars.run.map(_.groupBy(_.owner))
 	}
 
 	// List of chars for a specific user
-	private val user_chars = Cache.async[Int, Seq[Char]](1.minutes) { owner =>
-		Chars.filter(_.owner === owner).sortBy(c => (c.main.desc, c.active.desc, c.level.desc, c.ilvl.desc)).run
+	private val user_chars = Cache.async[Int, Seq[Toon]](1.minutes) { owner =>
+		Toons.filter(_.owner === owner).sortBy(c => (c.main.desc, c.active.desc, c.level.desc, c.ilvl.desc)).run
 	}
 
 	// List of pending Battle.net update
 	// Two b.net update on the same char at the same time will produce the same shared future
 	// resolved at a later time with the same char
-	private var inflightUpdates = Map[Int, Future[Char]]()
+	private var inflightUpdates = Map[Int, Future[Toon]]()
 
 	// Request a list of user from the roster
 	def roster_users: Future[Iterable[User]] = for (u <- users.value) yield u.values
@@ -59,27 +59,27 @@ trait RosterService extends PubSub[User] {
 	def user(id: Int): Future[User] = users.value.map(m => m(id)) recoverWith { case _ => outroster_users(id) }
 
 	// Request a list of chars for a specific owner
-	def chars(owner: Int): Future[Seq[Char]] = roster_chars.value.map(c => c(owner)) recoverWith { case _ => user_chars(owner) }
+	def toons(owner: Int): Future[Seq[Toon]] = roster_toons.value.map(c => c(owner)) recoverWith { case _ => user_chars(owner) }
 
 	// Construct a request for a char with a given id.
 	// If user is defined, also ensure that the char is owned by the user
 	private def getOwnChar(id: Int, user: Option[User]) = {
-		val query = for (c <- Chars if c.id === id) yield c
+		val query = for (c <- Toons if c.id === id) yield c
 		user.map(u => query.filter(_.owner === u.id)).getOrElse(query)
 	}
 
 	// Notify subscriber that a char has been updated
 	// Also clear the local cache for the owner of that char
-	private def notifyUpdate(char: Char): Char = {
-		user_chars.clear(char.owner)
-		roster_chars.clear()
-		this !# CharUpdated(char)
-		char
+	private def notifyUpdate(toon: Toon): Toon = {
+		user_chars.clear(toon.owner)
+		roster_toons.clear()
+		this !# ToonUpdated(toon)
+		toon
 	}
 
 	// Fetch a character from Battle.net and update its cached value in DB
 	// TODO: refactor
-	def refreshChar(id: Int, user: Option[User] = None): Future[Char] = {
+	def refreshChar(id: Int, user: Option[User] = None): Future[Toon] = {
 		// Ensure we dont start two update at the same time
 		if (inflightUpdates.contains(id)) inflightUpdates(id)
 		else {
@@ -111,7 +111,7 @@ trait RosterService extends PubSub[User] {
 							char.map {
 								c => (c.klass, c.race, c.gender, c.level, c.achievements, c.thumbnail, c.ilvl, c.failures, c.invalid, c.last_update)
 							}.update {
-								(nc.clazz, nc.race, nc.gender, nc.level, nc.achievements, nc.thumbnail, math.max(nc.ilvl, oc.ilvl), 0, false, DateTime.now.timestamp)
+								(nc.clss, nc.race, nc.gender, nc.level, nc.achievements, nc.thumbnail, math.max(nc.ilvl, oc.ilvl), 0, false, DateTime.now.timestamp)
 							}
 						}.flatMap {
 							query => query.run
@@ -134,15 +134,15 @@ trait RosterService extends PubSub[User] {
 	}
 
 	// Promote a new char as the main for the user
-	def promoteChar(id: Int, user: Option[User] = None): Future[(Char, Char)] = DB.run {
+	def promoteChar(id: Int, user: Option[User] = None): Future[(Toon, Toon)] = DB.run {
 		// Construct the update for a specific char
 		def update_char(id: Int, main: Boolean) =
-			Chars.filter(char => char.id === id && char.main === !main).map(_.main).update(main)
+		Toons.filter(char => char.id === id && char.main === !main).map(_.main).update(main)
 
 		val query = for {
 		// Fetch new and old main chars
 			new_main <- getOwnChar(id, user).result.head
-			old_main <- Chars.filter(char => char.main === true && char.owner === new_main.owner).result.head
+			old_main <- Toons.filter(char => char.main === true && char.owner === new_main.owner).result.head
 
 			// Update them
 			new_updated <- update_char(new_main.id, true)
@@ -158,7 +158,7 @@ trait RosterService extends PubSub[User] {
 	}
 
 	// Common database query for enableChar() and disableChar()
-	private def changeEnabledState(id: Int, user: Option[User], state: Boolean): Future[Char] = DB.run {
+	private def changeEnabledState(id: Int, user: Option[User], state: Boolean): Future[Toon] = DB.run {
 		val char_query = getOwnChar(id, user).filter(_.main === false)
 		for {
 			_ <- char_query.map(_.active).update(state)
@@ -169,11 +169,11 @@ trait RosterService extends PubSub[User] {
 	}
 
 	// Update the enabled state of a character
-	def enableChar(id: Int, user: Option[User] = None): Future[Char] = changeEnabledState(id, user, true)
-	def disableChar(id: Int, user: Option[User] = None): Future[Char] = changeEnabledState(id, user, false)
+	def enableChar(id: Int, user: Option[User] = None): Future[Toon] = changeEnabledState(id, user, true)
+	def disableChar(id: Int, user: Option[User] = None): Future[Toon] = changeEnabledState(id, user, false)
 
-	def changeRole(id: Int, role: String, user: Option[User] = None): Future[Char] = DB.run {
-		if (!Chars.validateRole(role)) throw new Exception("Invalid role")
+	def changeRole(id: Int, role: String, user: Option[User] = None): Future[Toon] = DB.run {
+		if (!Toons.validateRole(role)) throw new Exception("Invalid role")
 		val char_query = getOwnChar(id, user)
 		for {
 			_ <- char_query.filter(_.role =!= role).map(_.role).update(role)
@@ -184,21 +184,21 @@ trait RosterService extends PubSub[User] {
 	}
 
 	// Remove an existing character from the database
-	def removeChar(id: Int, user: Option[User] = None): Future[Char] = DB.run {
+	def removeChar(id: Int, user: Option[User] = None): Future[Toon] = DB.run {
 		for {
 			char <- getOwnChar(id, user).filter(c => c.main === false && c.active === false).result.head
-			count <- Chars.filter(c => c.id === char.id).delete
+			count <- Toons.filter(c => c.id === char.id).delete
 			_ = if (count < 1) throw StacklessException("Failed to delete this character")
 		} yield {
 			user_chars.clear(char.owner)
-			roster_chars.clear()
-			this !# CharDeleted(char)
+			roster_toons.clear()
+			this !# ToonDeleted(char)
 			char
 		}
 	}
 
 	// Add a new character for a specific user
-	def registerChar(server: String, name: String, owner: Int, role: Option[String]): Future[Char] = {
+	def registerChar(server: String, name: String, owner: Int, role: Option[String]): Future[Toon] = {
 		for {
 			char <- BattleNet.fetchChar(server, name)
 			res <- registerChar(char, owner, role)
@@ -207,15 +207,15 @@ trait RosterService extends PubSub[User] {
 		}
 	}
 
-	def registerChar(char: Char, owner: Int, role: Option[String]): Future[Char] = DB.run {
-		val count_main = Chars.filter(c => c.owner === owner && c.main === true).size.result
+	def registerChar(char: Toon, owner: Int, role: Option[String]): Future[Toon] = DB.run {
+		val count_main = Toons.filter(c => c.owner === owner && c.main === true).size.result
 		val query = for {
 		// Count the number of main for this user
 			pre_count <- count_main
 			// Construct the char for insertion with correct role, owner and main flag
 			insert_char = char.copy(role = role.getOrElse(char.role), owner = owner, main = pre_count < 1)
 			// Insert this char
-			insert_id <- (Chars returning Chars.map(_.id)) += insert_char
+			insert_id <- (Toons returning Toons.map(_.id)) += insert_char
 			// Ensure we have exactly one main for this user now
 			post_count <- count_main
 		} yield {

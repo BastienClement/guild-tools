@@ -1,6 +1,7 @@
 package gtp3
 
 import boopickle.DefaultBasic._
+import org.scalajs.dom.console
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
@@ -96,7 +97,11 @@ class Channel private[gtp3] (val socket: Socket, val tpe: String, val id: Int, v
 	/** Received a message frame */
 	private def receiveMessageFrame(message: String, flags: Int, payload: ByteVector): Unit = {
 		for (buffer <- Payload.inflate(payload, flags)) {
-			onMessage.emit((message, new PickledPayload(buffer.toByteBuffer)))
+			if (message == "$error") {
+				console.error(new String(buffer.toByteArray))
+			} else {
+				onMessage.emit((message, new PickledPayload(buffer.toByteBuffer)))
+			}
 		}
 	}
 

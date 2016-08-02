@@ -1,6 +1,7 @@
 package channels
 
 import akka.actor.{ActorRef, Props}
+import boopickle.DefaultBasic._
 import gtp3._
 import models._
 import models.mysql._

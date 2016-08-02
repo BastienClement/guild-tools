@@ -1,19 +1,19 @@
-<dom-module id="gt-box">
+<xuen-component id="gt-box">
 	<link rel="stylesheet/less" href="/assets/less/box.less" ns="gt-box">
 	<template>
 		<h2 *if="heading">{{heading}}</h2>
-		<div #wrapper {scrollable} {heading}>
+		<div #wrapper [@scrollable]="scrollable" [@heading]="hasHeading">
 			<content></content>
 		</div>
 	</template>
-</dom-module>
+</xuen-component>
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
-<dom-module id="gt-alert">
+<xuen-component id="gt-alert">
 	<link rel="stylesheet/less" href="/assets/less/box.less" ns="gt-alert">
 	<template>
-		<gt-box {dark}>
+		<gt-box [@dark]="dark">
 			<div .layout>
 				<i>{{icon}}</i>
 				<div>
@@ -22,4 +22,4 @@
 			</div>
 		</gt-box>
 	</template>
-</dom-module>
+</xuen-component>

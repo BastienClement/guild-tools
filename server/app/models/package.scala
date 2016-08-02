@@ -1,8 +1,8 @@
+import boopickle.DefaultBasic._
 import com.google.inject.Inject
 import models.application.{Application, ApplicationMessage}
 import models.calendar._
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.libs.json._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.language.implicitConversions
@@ -34,21 +34,20 @@ package object models {
 		@inline def await(limit: Duration): A = Await.result(f, limit)
 	}
 
-	implicit val applyJsonFormat = Json.format[Application]
-	implicit val applyFeedMessageJsonFormat = Json.format[ApplicationMessage]
-	implicit val charJsonFormat = Json.format[Char]
-	implicit val eventJsonFormat = Json.format[Event]
-	implicit val answerJsonFormat = Json.format[Answer]
-	implicit val tabJsonFormat = Json.format[Tab]
-	implicit val slotJsonFormat = Json.format[Slot]
-	implicit val eventFullJsonFormat = Json.format[EventFull]
-	implicit val feedJsonFormat = Json.format[Feed]
-	implicit val absenceJsonFormat = Json.format[Slack]
-	implicit val chatMessageFormat = Json.format[ChatMessage]
-	implicit val chatWhisperFormat = Json.format[ChatWhisper]
-	implicit val composerLockoutFormat = Json.format[ComposerLockout]
-	implicit val composerGroupFormat = Json.format[ComposerGroup]
-	implicit val composerSlotFormat = Json.format[ComposerSlot]
-	implicit val streamJsonFormat = Json.format[live.Stream]
-	implicit val profileJsonFormat = Json.format[Profile]
+	implicit val applyJsonFormat = PicklerGenerator.generatePickler[Application]
+	implicit val applyFeedMessageJsonFormat = PicklerGenerator.generatePickler[ApplicationMessage]
+	implicit val eventJsonFormat = PicklerGenerator.generatePickler[Event]
+	implicit val answerJsonFormat = PicklerGenerator.generatePickler[Answer]
+	implicit val tabJsonFormat = PicklerGenerator.generatePickler[Tab]
+	implicit val slotJsonFormat = PicklerGenerator.generatePickler[Slot]
+	implicit val eventFullJsonFormat = PicklerGenerator.generatePickler[EventFull]
+	implicit val feedJsonFormat = PicklerGenerator.generatePickler[Feed]
+	implicit val absenceJsonFormat = PicklerGenerator.generatePickler[Slack]
+	implicit val chatMessageFormat = PicklerGenerator.generatePickler[ChatMessage]
+	implicit val chatWhisperFormat = PicklerGenerator.generatePickler[ChatWhisper]
+	implicit val composerLockoutFormat = PicklerGenerator.generatePickler[ComposerLockout]
+	implicit val composerGroupFormat = PicklerGenerator.generatePickler[ComposerGroup]
+	implicit val composerSlotFormat = PicklerGenerator.generatePickler[ComposerSlot]
+	implicit val streamJsonFormat = PicklerGenerator.generatePickler[live.Stream]
+	implicit val profileJsonFormat = PicklerGenerator.generatePickler[Profile]
 }

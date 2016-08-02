@@ -1,5 +1,6 @@
 @import controllers.webtools.WtController.UserRequest
-@(main: Char, alts: Seq[Char])(implicit req: UserRequest[AnyContent])
+@import model.Toon
+@(main: Toon, alts: Seq[Toon])(implicit req: UserRequest[AnyContent])
 @wt.application.layout(2) {
 	<h2>Etape 2: Candidature</h2>
 
@@ -10,13 +11,13 @@
 				<img src="http://eu.battle.net/static-render/eu/@main.thumbnail">
 			</div>
 			<div class="top">
-				<span class="name c@main.clazz">@main.name</span>
+				<span class="name c@main.clss">@main.name</span>
 				<span class="realm">@req.names.s(main.server)</span>
 			</div>
 			<div class="details">
 				<strong>@main.level</strong>
 				@req.names.r(main.race)
-				@req.names.c(main.clazz)
+				@req.names.c(main.clss)
 					&ndash;
 				@main.ilvl ilvl
 			</div>
@@ -48,13 +49,13 @@
 					<img src="http://eu.battle.net/static-render/eu/@char.thumbnail">
 				</div>
 				<div class="top">
-					<span class="name c@char.clazz">@char.name</span>
+					<span class="name c@char.clss">@char.name</span>
 					<span class="realm">@req.names.s(char.server)</span>
 				</div>
 				<div class="details">
 					<strong>@char.level</strong>
 					@req.names.r(char.race)
-					@req.names.c(char.clazz)
+					@req.names.c(char.clss)
 						&ndash;
 					@char.ilvl ilvl
 				</div>

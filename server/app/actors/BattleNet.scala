@@ -2,7 +2,7 @@ package actors
 
 import actors.BattleNet._
 import gt.GuildTools
-import models._
+import model.Toon
 import play.api.libs.json.JsValue
 import play.api.libs.ws.WSResponse
 import reactive.ExecutionContext
@@ -54,7 +54,7 @@ trait BattleNet {
 	  * @param name   the character name
 	  * @return a Char corresponding to the fetched character
 	  */
-	def fetchChar(server: String, name: String): Future[Char] = {
+	def fetchChar(server: String, name: String): Future[Toon] = {
 		query(s"/character/$server/$name", "fields" -> "items,talents").map { char =>
 			// Extract talents
 			val talents = char \ "talents"
@@ -66,14 +66,14 @@ trait BattleNet {
 					.flatMap { tree => (tree \ "spec" \ "role").asOpt[String] }
 					.getOrElse("DPS")
 
-			Char(
+			Toon(
 				id = 0,
 				name = (char \ "name").as[String],
 				server = server,
 				owner = 0,
 				main = false,
 				active = true,
-				`class` = (char \ "class").as[Int],
+				clss = (char \ "class").as[Int],
 				race = (char \ "race").as[Int],
 				gender = (char \ "gender").as[Int],
 				level = (char \ "level").as[Int],

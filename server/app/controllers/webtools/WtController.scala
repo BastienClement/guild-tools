@@ -3,7 +3,7 @@ package controllers.webtools
 import actors.{AuthService, RosterService}
 import controllers.webtools.WtController._
 import data.UserGroups
-import model.User
+import model.{Toon, User}
 import models._
 import models.mysql._
 import play.api.mvc._
@@ -23,7 +23,7 @@ object WtController {
 	  * The wrapper request with user informations and session token.
 	  * Also includes the list of user's characters and the common names mappings.
 	  */
-	class UserRequest[A](val user: User, val chars: Seq[Char], val names: NamesCollection,
+	class UserRequest[A](val user: User, val chars: Seq[Toon], val names: NamesCollection,
 			val token: String, val set_cookie: Boolean, val request: Request[A]) extends WrappedRequest[A](request)
 
 	/**
@@ -92,7 +92,7 @@ trait WtController {
 		def transform[A](implicit request: Request[A]) = {
 			for {
 				(user, token, set_token) <- cookieUser recoverWith { case _ => ssoUser }
-				chars <- RosterService.chars(user.id)
+				chars <- RosterService.toons(user.id)
 				names_col <- names.value
 			} yield new UserRequest(user, chars, names_col, token, set_token, request)
 		}

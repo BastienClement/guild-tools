@@ -1,6 +1,6 @@
-import boopickle.Default.generatePickler
 import boopickle.DefaultBasic._
 
 package object model {
-	implicit val UserPickler: Pickler[User] = generatePickler
+	implicit val ToonPickler: Pickler[Toon] = PicklerGenerator.generatePickler[Toon]
+	implicit val UserPickler: Pickler[User] = PicklerGenerator.generatePickler[User]
 }

@@ -2,6 +2,7 @@ package gt
 
 import boopickle.DefaultBasic._
 import gt.component.app.GtApp
+import gt.service.Roster
 import model.User
 import org.scalajs.dom.raw.HTMLSpanElement
 import org.scalajs.dom.{Event, MouseEvent, NodeListOf, window}
@@ -42,7 +43,7 @@ import xuen.expr.PipesRegistry
 		dynamic.GuildTools = this.asInstanceOf[js.Any]
 
 		// Load pipes definitions
-		PipesRegistry.load(pipes.Common)
+		PipesRegistry.load(Pipes)
 
 		val coreLoaded = Future.sequence(Seq(
 			Loader.loadLess("/assets/less/guildtools.less") andThen {
@@ -80,6 +81,7 @@ import xuen.expr.PipesRegistry
 			core <- coreLoaded
 			ready <- {
 				console.log("[BOOT] Application ready")
+				Roster.acquire()
 				stopSpinner()
 			}
 			loader <- {

@@ -1,16 +1,16 @@
 package channels
 
-import actors.{BattleNet, RosterService}
+import actors.BattleNet
 import akka.actor.Props
+import boopickle.DefaultBasic._
 import gtp3._
-import model.User
+import model.{Toon, User}
 import models._
 import models.mysql._
 import reactive._
 import scala.compat.Platform
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.util.Success
 import utils.CacheCell
 
 object ProfileChannel extends ChannelValidator {
@@ -30,7 +30,7 @@ class ProfileChannel(val user: User) extends ChannelHandler {
 	private var last = Platform.currentTime
 
 	// Last fetched char
-	private var last_char: Option[Char] = None
+	private var last_char: Option[Toon] = None
 
 	// Construct rate limited function to prevent battle.net API flooding
 	private def rateLimited[T, U](fn: (T) => Future[U]): (T) => Future[U] = p => {
@@ -45,22 +45,19 @@ class ProfileChannel(val user: User) extends ChannelHandler {
 	}
 
 	// Fetch a char from Battle.net
-	private val fetchChar = rateLimited[(String, String), Char]{ case (s, n) => BattleNet.fetchChar(s, n) }
+	private val fetchChar = rateLimited[(String, String), Toon]{ case (s, n) => BattleNet.fetchChar(s, n) }
 
 	// Fetch a char from Battle.net
-	request("fetch-char")(rateLimited { p =>
+	/*request("fetch-char")(rateLimited { p =>
 		val server = p("server").as[String]
 		val name = p("name").as[String]
 		fetchChar(server, name) andThen {
 			case Success(char) => last_char = char
 		}
-	})
+	})*/
 
 	// Check if a specific character is registered in the database
-	request("is-char-available") { p =>
-		val server = p("server").as[String]
-		val name = p("name").as[String]
-
+	request("is-char-available") { (server: String, name: String) =>
 		for {
 			// Check that server is valid
 			realms <- ProfileChannel.realms_cache.value
@@ -68,19 +65,19 @@ class ProfileChannel(val user: User) extends ChannelHandler {
 			_ = if (exists) () else throw new Exception("Invalid server name")
 
 			// Query local database
-			query = Chars.filter(c => c.server === server && c.name === name).size === 0
+			query = Toons.filter(c => c.server === server && c.name === name).size === 0
 			free <- query.result.run
 		} yield free
 	}
 
 	// Fetch the realms list from the database
-	request("realms-list") { _ => ProfileChannel.realms_cache.value }
+	request("realms-list") { ProfileChannel.realms_cache.value }
 
 	// Register a new char to a user
-	request("register-char") { p =>
+	/*request("register-char") { p =>
 		val server = p("server").as[String]
 		val name = p("name").as[String]
-		val role = p("role").asOpt[String].filter(Chars.validateRole)
+		val role = p("role").asOpt[String].filter(Toons.validateRole)
 		val owner = if (user.promoted) p("owner").asOpt[Int].getOrElse(user.id) else user.id
 
 		last_char match {
@@ -89,10 +86,9 @@ class ProfileChannel(val user: User) extends ChannelHandler {
 			case _ =>
 				RosterService.registerChar(server, name, owner, role)
 		}
-	}
+	}*/
 
-	request("user-profile") { p =>
-		val id = p("id").as[Int]
+	request("user-profile") { id: Int =>
 		Profiles.filter(_.user === id).head.map { data =>
 			data.concealFor(user)
 		}.recover { case _ =>

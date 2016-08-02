@@ -1,7 +1,7 @@
 package models.application
 
+import boopickle.DefaultBasic._
 import models.mysql._
-import play.api.libs.json.{Format, JsValue, Json}
 
 /**
   * Defines the encoding of the application data in the database.
@@ -29,9 +29,6 @@ object DataType {
 	/** ColumnType definition for Slick */
 	implicit val DataTypeColumnType = MappedColumnType.base[DataType, Int](toInt, fromInt)
 
-	/** Automatic JSON serialization for DataType instances */
-	implicit val DataTypeJsonFormat = new Format[DataType] {
-		def reads(json: JsValue) = json.validate[Int].map(fromInt)
-		def writes(data_type: DataType) = Json.toJson(toInt(data_type))
-	}
+	/** Automatic Pickling serialization for DataType instances */
+	implicit val DataTypePickler = transformPickler[DataType, Int](fromInt)(toInt)
 }

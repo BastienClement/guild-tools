@@ -2,9 +2,10 @@ package channels
 
 import actors.SocketManager
 import akka.actor.Props
+import api.Status
+import boopickle.DefaultBasic._
 import gt.GuildTools
 import gtp3._
-import play.api.libs.json.Json
 import scala.concurrent.duration._
 import scala.sys.process._
 import scala.util.Try
@@ -23,36 +24,38 @@ class ServerStatusChannel extends ChannelHandler {
 
 	// Cache of host information
 	val hostInfos = CacheCell(15.seconds) {
-		Json.obj(
-			"name" -> run("hostname"),
-			"version" -> run("uname -a"),
-			"start" -> 0,
-			"uptime" -> run("uptime")
+		Status.HostInfo(
+			name = run("hostname"),
+			version = run("uname -a"),
+			start = 0,
+			uptime = run("uptime")
 		)
 	}
 
 	// Server software infos
-	request("server-infos") { _ =>
-		Json.obj(
-			"name" -> GuildTools.serverName,
-			"version" -> GuildTools.serverVersion.value,
-			"start" -> GuildTools.serverStart,
-			"uptime" -> GuildTools.serverUptime
+	request("server-infos") {
+		Status.ServerInfo(
+			name = GuildTools.serverName,
+			version = GuildTools.serverVersion.value,
+			start = GuildTools.serverStart,
+			uptime = GuildTools.serverUptime
 		)
 	}
 
 	// Host machine infos
-	request("host-infos") { _ => hostInfos.value }
+	request("host-infos") {
+		hostInfos.value
+	}
 
 	// JVM runtime infos
-	request("runtime-infos") { _ =>
+	request("runtime-infos") {
 		val runtime = Runtime.getRuntime
-		Json.obj(
-			"cores" -> runtime.availableProcessors,
-			"memory_used" -> (runtime.totalMemory - runtime.freeMemory),
-			"memory_free" -> runtime.freeMemory,
-			"memory_total" -> runtime.totalMemory,
-			"memory_max" -> runtime.maxMemory
+		Status.RuntimeInfo(
+			cores = runtime.availableProcessors,
+			memoryUsed = runtime.totalMemory - runtime.freeMemory,
+			memoryFree = runtime.freeMemory,
+			memoryTotal = runtime.totalMemory,
+			memoryMax = runtime.maxMemory
 		)
 	}
 
@@ -82,10 +85,8 @@ class ServerStatusChannel extends ChannelHandler {
 	}*/
 
 	// Kill socket
-	message("kill-socket") { p =>
-		SocketManager.killSocket(p.string.toLong)
-	}
+	message("kill-socket") { sockid: Long => SocketManager.killSocket(sockid) }
 
 	// Run the garbage collector
-	request("run-gc") { _ => System.gc() }
+	request("run-gc") { System.gc() }
 }

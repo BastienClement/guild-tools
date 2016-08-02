@@ -4,16 +4,18 @@ import boopickle.Default._
 import boopickle.Pickler
 import java.nio.ByteBuffer
 import java.util.zip.Deflater
+import models.DB
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scodec.bits.ByteVector
+import slick.dbio.{DBIOAction, NoStream}
 
-private[gtp3] trait Pickleable[T] {
+trait Pickleable[-T] {
 	def pickle(data: T): Future[ByteBuffer]
-	@inline final def pickelPayload(data: T): Future[Payload] = pickle(data).map(Pickleable.maybeDeflate)
+	@inline final def picklePayload(data: T): Future[Payload] = pickle(data).map(Pickleable.maybeDeflate)
 }
 
-private[gtp3] object Pickleable {
+object Pickleable {
 	private def deflate(buf: ByteBuffer): Payload = pool.withBuffer { output =>
 		val data = new Array[Byte](buf.remaining())
 		buf.get(data)
@@ -39,5 +41,10 @@ private[gtp3] object Pickleable {
 
 	implicit def FutureIsPickleable[T: Pickleable]: Pickleable[Future[T]] = new Pickleable[Future[T]] {
 		def pickle(data: Future[T]): Future[ByteBuffer] = data.flatMap(implicitly[Pickleable[T]].pickle)
+	}
+
+	type DBIOA[T] = DBIOAction[T, NoStream, Nothing]
+	implicit def DBIOActionIsPickleable[T: Pickleable]: Pickleable[DBIOA[T]] = new Pickleable[DBIOA[T]] {
+		def pickle(action: DBIOA[T]): Future[ByteBuffer] = DB.run(action).flatMap(implicitly[Pickleable[T]].pickle)
 	}
 }

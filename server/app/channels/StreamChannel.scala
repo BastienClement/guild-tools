@@ -3,6 +3,7 @@ package channels
 import actors.StreamService
 import actors.StreamService.Events
 import akka.actor.Props
+import boopickle.DefaultBasic._
 import gtp3._
 import model.User
 import models._
@@ -40,35 +41,33 @@ class StreamChannel(val user: User) extends ChannelHandler {
 	/**
 	  * Requests the list of currently available streams.
 	  */
-	request("streams-list") { p =>
-		StreamService.listActiveStreams().map(_ map formatStream)
-	}
+	request("streams-list") { StreamService.listActiveStreams().map(_ map formatStream) }
 
 	/**
 	  * Request a stream ticket.
 	  */
-	request("request-ticket") { p =>
-		for (ticket <- StreamService.createTicket(p.as[Int], user)) yield (ticket.id, ticket.stream)
+	request("request-ticket") { stream: Int =>
+		for (ticket <- StreamService.createTicket(stream, user)) yield (ticket.id, ticket.stream)
 	}
 
 	/**
 	  * Request own stream token and visibility setting.
 	  */
-	request("own-token-visibility") { p =>
+	request("own-token-visibility") {
 		Streams.filter(_.user === user.id).map(s => (s.token, s.secret, s.progress)).headOption
 	}
 
 	/**
 	  * Change own stream visibility.
 	  */
-	request("change-own-visibility") { p =>
-		StreamService.changeVisibility(user.id, p.as[Boolean])
+	request("change-own-visibility") { limited: Boolean =>
+		StreamService.changeVisibility(user.id, limited)
 	}
 
 	/**
 	  * Create a new token for the current user.
 	  */
-	request("create-token") { p =>
+	request("create-token") {
 		val token = utils.randomToken()
 		val key = utils.randomToken().take(10)
 		(for {
@@ -81,5 +80,5 @@ class StreamChannel(val user: User) extends ChannelHandler {
 	/**
 	  * Whitelist
 	  */
-	request("whitelist") { p => () }
+	request("whitelist") { () }
 }

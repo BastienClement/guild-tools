@@ -139,7 +139,7 @@ class ApplicationController extends Controller with WtController {
 
 		case (req, application) =>
 			val query = for {
-				(message, main) <- ApplicationFeed join Chars on { case (m, c) => m.user === c.owner && c.main }
+				(message, main) <- ApplicationFeed join Toons on { case (m, c) => m.user === c.owner && c.main }
 				if message.apply === application.id && message.secret === false
 			} yield (message, main)
 

@@ -1,7 +1,7 @@
 @import controllers.webtools.WtController.UserRequest
+@import model.Toon
 @import models.application.ApplicationMessage
-@import models.Char
-@(messages: Seq[(ApplicationMessage, Char)])(implicit req: UserRequest[AnyContent])
+@(messages: Seq[(ApplicationMessage, Toon)])(implicit req: UserRequest[AnyContent])
 @wt.application.layout(4) {
 	<h2>Etape 4: Délibérations</h2>
 	<p class="desc">
@@ -19,7 +19,7 @@
 		<div class="message">
 			<div class="layout" @if(message.system) { system="system" }>
 				<div class="poster">
-					<div class="name c@main.clazz">@main.name</div>
+					<div class="name c@main.clss">@main.name</div>
 					<div class="time">@message.date</div>
 				</div>
 				<div class="body">

@@ -1,9 +1,9 @@
 package channels
 
 import akka.actor.Props
+import boopickle.DefaultBasic._
 import gtp3._
 import model.User
-import models._
 import models.application.ApplicationEvents._
 import models.application._
 import models.mysql._
@@ -30,7 +30,9 @@ class ApplyChannel(user: User) extends ChannelHandler {
 	/**
 	  * List of open applys that the user can access
 	  */
-	request("open-list") { p => Applications.listOpenForUser(user).result }
+	request("open-list") {
+		Applications.listOpenForUser(user).result
+	}
 
 	// Load a specific application data
 	/*request("apply-data") { p =>
@@ -41,8 +43,7 @@ class ApplyChannel(user: User) extends ChannelHandler {
 	/**
 	  * Request the message feed and body
 	  */
-	request("apply-feed-body") { p =>
-		val id = p.value.as[Int]
+	request("apply-feed-body") { id: Int =>
 		for {
 			body_opt <- Applications.dataChecked(id, user.id, user.member, user.promoted).result.headOption
 			body = body_opt.getOrElse(throw new Exception("Access to this application is denied"))
@@ -53,29 +54,20 @@ class ApplyChannel(user: User) extends ChannelHandler {
 	/**
 	  * Update the unread status for an application
 	  */
-	request("set-seen") { p => ApplicationReadStates.markAsRead(p.value.as[Int], user) }
+	request("set-seen") { id: Int => ApplicationReadStates.markAsRead(id, user) }
 
 	/**
 	  * Post a new message in an application
 	  */
-	request("post-message") { p =>
-		val apply = p("apply").as[Int]
-		val body = p("message").as[String]
-		val secret = p("secret").as[Boolean]
+	request("post-message") { (apply: Int, body: String, secret: Boolean) =>
 		for (_ <- ApplicationFeed.postMessage(user, apply, body, secret)) yield true
 	}
 
 	/**
 	  * Change an application stage
 	  */
-	request("change-application-stage") { p =>
-		if (!user.promoted) {
-			throw new Exception("Changing application stage requires Promoted status.")
-		}
-
-		val apply = p("apply").as[Int]
-		val stage = Stage.fromId(p("stage").as[Int])
-
-		Applications.changeStage(apply, user, stage)
+	request("change-application-stage") { (apply: Int, stageid: Int) =>
+		if (!user.promoted) throw new Exception("Changing application stage requires Promoted status.")
+		Applications.changeStage(apply, user, Stage.fromId(stageid))
 	}
 }

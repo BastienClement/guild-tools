@@ -199,8 +199,8 @@ class Socket(val id: Long, val opener: Opener) extends Actor {
 		// Store the sequence number as the last received one
 		in_seq = seq
 
-		// Only send an actual ACK if multiple of 4
-		if (seq % 4 == 0) self ! AckFrame(seq)
+		// Only send an actual ACK if multiple of 8
+		if (seq % Protocol.AckInterval == 0) self ! AckFrame(seq)
 	}
 
 	/**

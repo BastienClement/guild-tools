@@ -2,7 +2,7 @@ package channels
 
 import actors._
 import akka.actor.{ActorRef, Props}
-import boopickle.Default._
+import boopickle.DefaultBasic._
 import gtp3.Socket.{Opener, SetUser}
 import gtp3._
 import java.util.concurrent.atomic.AtomicInteger
@@ -43,8 +43,9 @@ class AuthChannel(val socket: ActorRef, val opener: Opener) extends ChannelHandl
 
 	def authorized(user: User) = user.fs
 
-	request2("auth") { session: String =>
-		AuthService.auth(session, opener.ip, opener.ua).map { user =>
+	request("auth") { session: String =>
+		println(session)
+		AuthService.auth(session, Some(opener.ip), opener.ua).map { user =>
 			Some(user)
 		}.recover {
 			case e => None

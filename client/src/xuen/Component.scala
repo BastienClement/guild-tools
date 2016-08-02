@@ -1,8 +1,8 @@
 package xuen
 
 import facade.HTMLTemplateElement
-import org.scalajs.dom._
 import org.scalajs.dom.raw.{HTMLLinkElement, HTMLStyleElement}
+import org.scalajs.dom.{console, _}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.higherKinds
@@ -15,6 +15,8 @@ import xuen.Loader.LessLoader
 abstract class Component[H <: ComponentInstance : ConstructorTag](val selector: String,
                                                                   val templateUrl: String = null,
                                                                   val dependencies: Seq[_ <: Component[_]] = Seq()) {
+	require(selector.toLowerCase == selector)
+
 	/** Component template */
 	private[xuen] var template: Option[Template] = None
 
@@ -82,7 +84,11 @@ abstract class Component[H <: ComponentInstance : ConstructorTag](val selector: 
 				case null => throw XuenException(s"No <template> found for component '$selector' in '$url'")
 				case (tmpl, styles) =>
 					for (style <- styles) tmpl.content.appendChild(style)
-					Some(Template(tmpl))
+					val template = new Template(tmpl, this)
+					for (dep <- dependencies if !template.componentChilds.contains(dep.selector)) {
+						console.warn(s"Ununsed dependency declaration: <$selector> => <${ dep.selector }>")
+					}
+					Some(template)
 			}
 		}.getOrElse {
 			Future.successful(None)

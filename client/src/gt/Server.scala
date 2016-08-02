@@ -6,7 +6,6 @@ import scala.concurrent.{Future, Promise}
 import scala.scalajs.js.timers.setTimeout
 import util.Settings
 import xuen.rx.Var
-import xuen.rx.syntax.ExplicitExtractor
 
 /** Manages connection to the server */
 object Server {

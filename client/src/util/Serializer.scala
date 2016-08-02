@@ -36,7 +36,7 @@ object Serializer {
 
 	val dummy = new Serializer[Any] {
 		lazy val default: Any = throw new UnsupportedOperationException
-		def write(value: Any): Option[String] = Some(value.toString)
+		def write(value: Any): Option[String] = Option(value).map(_.toString)
 		def read(value: Option[String]): Option[Any] = throw new UnsupportedOperationException
 	}
 
@@ -48,8 +48,6 @@ object Serializer {
 		case _: Long => long
 		case _: Float => float
 		case _: Double => double
-		case _ =>
-			//console.error("Unknown type for Serializer: ", value.getClass.getName)
-			dummy
+		case _ => dummy
 	}).asInstanceOf[Serializer[T]]
 }

@@ -2,8 +2,7 @@ package gt
 
 import akka.actor.ActorSystem
 import com.google.inject.{Inject, Singleton}
-import java.io.File
-import java.nio.file.{FileSystems, StandardWatchEventKinds => SWEK}
+import java.nio.file.{StandardWatchEventKinds => SWEK}
 import play.api._
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.inject.ApplicationLifecycle
@@ -55,72 +54,6 @@ class GuildTools @Inject() (val lifecycle: ApplicationLifecycle,
 	}
 
 	def stopHook(fn: => Unit): Unit = lifecycle.addStopHook(() => Future.successful(fn))
-
-	def setupTypescriptCompiler(): Unit = {
-		val path = conf.getString("dev.path").get
-		val pwd = conf.getString("dev.dir").get
-		val tsc = conf.getString("dev.tsc").get
-		val node = conf.getString("dev.node").getOrElse("node")
-		val watch = conf.getBoolean("dev.tsc.watch").getOrElse(true)
-
-		if (watch) {
-			val logger = ProcessLogger { line =>
-				Logger.info("[TSC]: " + line)
-			}
-
-			Logger.info("[TSC]: Starting Typescript compiler")
-			val process = Process(Seq(node, tsc, "-w"), new File(s"$pwd/public/tools"), "PATH" -> path).run(logger)
-
-			stopHook {
-				Logger.info("[TSC]: Stopping Typescript compiler")
-				process.destroy()
-			}
-		} else {
-			val ws = FileSystems.getDefault.newWatchService()
-			val watch_dir = FileSystems.getDefault.getPath(pwd, "public", "tools")
-			watch_dir.register(ws, SWEK.ENTRY_CREATE, SWEK.ENTRY_DELETE, SWEK.ENTRY_MODIFY)
-
-			val thread = new Thread {
-				def compile() = {
-					println("TSC   - Compiling Typescript files")
-					val logger = ProcessLogger { line => println("TSC   - " + line) }
-					val process = Process(Seq(node, tsc), new File(s"$pwd/public/tools"), "PATH" -> path).run(logger)
-					process.exitValue()
-					println("TSC   - Done")
-				}
-
-				override def run() = {
-					compile()
-					var running = true
-					while (running) {
-						try {
-							val wk = ws.take()
-
-							wk.pollEvents()
-							compile()
-							wk.pollEvents()
-
-							if (!wk.reset()) {
-								running = false
-								println("TSC   - Key has been unregistered")
-							}
-						} catch {
-							case _: InterruptedException => running = false
-						}
-					}
-				}
-			}
-
-			println("TSC   - Starting Typescript compiler")
-			thread.start()
-
-			stopHook {
-				println("TSC   - Stopping Typescript compiler")
-				thread.interrupt()
-				thread.join()
-			}
-		}
-	}
 
 	def setupCharacterRefresher(): Unit = {
 		// Char update job

@@ -11,13 +11,12 @@ import util.implicits._
 import xuen.Template._
 import xuen.expr.Expression.LiteralPrimitive
 import xuen.expr.{Expression, Interpreter, Parser}
-import xuen.rx.syntax.ExplicitExtractor
 import xuen.rx.{Obs, Rx, Var}
 
 /**
   * A component template, defined by a <template> tag.
   */
-case class Template(template: HTMLTemplateElement) {
+class Template(val template: HTMLTemplateElement, val component: Component[_], val componentChilds: mutable.Set[String] = mutable.Set.empty) {
 	// Ensure that the template as at least one child
 	if (template.content.childNodes.length < 1) {
 		template.content.appendChild(document.createComment(" empty template "))
@@ -34,11 +33,29 @@ case class Template(template: HTMLTemplateElement) {
 	/** Compiles a sub-tree of the template */
 	//noinspection UnitMethodIsParameterless
 	private final def compile(node: Node): Unit = node match {
-		case element: Element => compileElement(element)
-		case text: Text => compileTextNode(text)
-		case fragment: DocumentFragment => node.childNodes.foreach(compile)
-		case comment: Comment => compileComment(comment)
-		case unknown => throw XuenException(s"Encountered unknown node type '$unknown' while compiling template")
+		case element: Element =>
+			if (element.tagName.contains("-")) {
+				val childSelector = element.tagName.toLowerCase
+				if (!componentChilds.contains(childSelector)) {
+					componentChilds += childSelector
+					if (!component.dependencies.exists(_.selector == childSelector)) {
+						console.warn(s"Missing dependency declaration: <${component.selector}> => <$childSelector>")
+					}
+				}
+			}
+			compileElement(element)
+
+		case text: Text =>
+			compileTextNode(text)
+
+		case fragment: DocumentFragment =>
+			node.childNodes.foreach(compile)
+
+		case comment: Comment =>
+			compileComment(comment)
+
+		case unknown =>
+			throw XuenException(s"Encountered unknown node type '$unknown' while compiling template for <$component.selector>")
 	}
 
 	/** Compiles an Element node */
@@ -64,7 +81,7 @@ case class Template(template: HTMLTemplateElement) {
 		val expr = Parser.parseExpression(sourceExpr)
 		element.removeAttribute("*if")
 
-		templateWrap(element, s"*if $sourceExpr") { (placeholder, context, template, parent) =>
+		templateWrap(element, s"*if $sourceExpr", this) { (placeholder, context, template, parent) =>
 			var instance: Template#Instance = null
 			var inserted: Node = null
 
@@ -91,7 +108,7 @@ case class Template(template: HTMLTemplateElement) {
 		val enumerator = Parser.parseEnumerator(sourceExpr)
 		element.removeAttribute("*for")
 
-		templateWrap(element, s"*for $sourceExpr") { (placeholder, context, template, parent) =>
+		templateWrap(element, s"*for $sourceExpr", this) { (placeholder, context, template, parent) =>
 			val rx = Rx {
 				val items: Iterable[Any] = Interpreter.safeEvaluate(enumerator.iterable, context) match {
 					case it: Iterable[_] => it
@@ -220,7 +237,7 @@ case class Template(template: HTMLTemplateElement) {
 			val template = document.createElement("template").as[HTMLTemplateElement]
 			element.parentNode.replaceChild(template, element)
 			template.content.appendChild(element)
-			cases.push((expr.map(Parser.parseExpression(_)), Template(template)))
+			cases.push((expr.map(Parser.parseExpression(_)), new Template(template, component, componentChilds)))
 		}
 
 		@inline def caseMatch(casee: Case, value: Any, context: Context): Boolean = casee._1 match {
@@ -303,7 +320,7 @@ case class Template(template: HTMLTemplateElement) {
 		val expr = Parser.parseExpression(locals)
 		element.removeAttribute("*scope")
 
-		templateWrap(element, s"*scope $locals") { (placeholder, context, template, parent) =>
+		templateWrap(element, s"*scope $locals", this) { (placeholder, context, template, parent) =>
 			val ctx = context.child()
 			Interpreter.evaluate(expr, ctx)
 			val child = template.bind(ctx)
@@ -446,8 +463,8 @@ case class Template(template: HTMLTemplateElement) {
 	}
 
 	/** Compiles a Comment node */
-	private def compileComment(comment: Comment): Unit = {
-		Parser.parseInterpolation(comment.data).foreach {
+	private def compileComment(comment: Comment): Unit = if(comment.data.head == '-') {
+		Parser.parseInterpolation(comment.data.tail).foreach {
 			case LiteralPrimitive(value) =>
 				comment.data = value.toString
 
@@ -632,7 +649,8 @@ object Template {
 	/**
 	  * Wraps the given element in a <template> tag and setup appropriate bindings.
 	  */
-	private def templateWrap(element: Element, text: String)(builderImpl: (Node, Context, Template, Template#Instance) => Option[(Rx[_], Obs)]): Unit = {
+	private def templateWrap(element: Element, text: String, parent: Template)
+	                        (builderImpl: (Node, Context, Template, Template#Instance) => Option[(Rx[_], Obs)]): Unit = {
 		val id = nextBindingId
 		val template = document.createElement("template").as[HTMLTemplateElement]
 		template.setAttribute("xuen-bindings", id)
@@ -640,7 +658,7 @@ object Template {
 		element.parentNode.replaceChild(template, element)
 		template.content.appendChild(element)
 
-		val child = Template(template)
+		val child = new Template(template, parent.component, parent.componentChilds)
 
 		def adapter(template: Element): Node = {
 			val placeholder = document.createComment(" " + text + " ")

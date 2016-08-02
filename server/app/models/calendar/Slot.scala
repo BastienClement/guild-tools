@@ -1,10 +1,10 @@
 package models.calendar
 
-import models.Chars
+import models.Toons
 import models.mysql._
 
 case class Slot(tab: Int, slot: Int, owner: Int, name: String, `class`: Int, role: String) {
-	if (!Chars.validateRole(role)) {
+	if (!Toons.validateRole(role)) {
 		throw new Exception("Invalid role value")
 	}
 
