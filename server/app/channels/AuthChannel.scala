@@ -44,7 +44,6 @@ class AuthChannel(val socket: ActorRef, val opener: Opener) extends ChannelHandl
 	def authorized(user: User) = user.fs
 
 	request("auth") { session: String =>
-		println(session)
 		AuthService.auth(session, Some(opener.ip), opener.ua).map { user =>
 			Some(user)
 		}.recover {

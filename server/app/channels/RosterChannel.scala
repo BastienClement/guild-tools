@@ -3,6 +3,7 @@ package channels
 import actors.RosterService
 import actors.RosterService.{ToonDeleted, ToonUpdated}
 import akka.actor.Props
+import api.Roster.UserData
 import boopickle.DefaultBasic._
 import gtp3._
 import model.User
@@ -22,12 +23,15 @@ class RosterChannel(val user: User) extends ChannelHandler {
 		case ToonDeleted(toon) => send("toon-deleted", toon)
 	}
 
-	request("load-roster") { _: Unit =>
+	request("load-roster") {
 		for {
 			users <- RosterService.roster_users
-			toons <- RosterService.roster_toons.value
+			rosterToons <- RosterService.roster_toons.value
 		} yield {
-			for (user <- users) yield (user, toons.getOrElse(user.id, Seq.empty).map(_.id))
+			for (user <- users) yield {
+				val toons = rosterToons.getOrElse(user.id, Seq.empty)
+				UserData(user, toons.find(_.main).map(_.id), toons)
+			}
 		}
 	}
 

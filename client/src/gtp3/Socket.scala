@@ -430,7 +430,7 @@ class Socket(private val url: String) {
 		val padding = " " * (17 - frameName.length)
 		val str = frame.toString
 		val formatted = str.substring(str.indexOf("("))
-		                .replaceAll("ByteVector\\((.*?), 0x[0-9a-f]+\\)", "ByteVector($1)")
+		                .replaceAll("ByteVector\\((.*?), (0x[0-9a-f]+|#\\-?[0-9]+)\\)", "ByteVector($1)")
 
 		// Output frame data
 		console.dyn.debug(direction, frameName + padding, formatted)

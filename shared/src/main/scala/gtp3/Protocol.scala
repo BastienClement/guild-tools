@@ -11,6 +11,6 @@ object Protocol {
 	final val OpenTimeout = 10000
 	final val ChannelsLimit = 65535
 	final val InflightRequests = 250
-	final val CompressLimit = 1200
+	final val CompressLimit = 4096
 	final val ReconnectAttempts = 5
 }

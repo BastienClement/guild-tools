@@ -122,8 +122,11 @@ class Channel private[gtp3] (val socket: Socket, val tpe: String, val id: Int, v
 
 	/** Received a Success frame */
 	private def receiveSuccessFrame(request: Int, flags: Int, payload: ByteVector): Unit = {
-		for (promise <- getRequestPromise(request)) {
-			promise.success(new PickledPayload(payload))
+		for {
+			promise <- getRequestPromise(request)
+			buffer <- Payload.inflate(payload, flags)
+		} {
+			promise.success(new PickledPayload(buffer))
 		}
 	}
 

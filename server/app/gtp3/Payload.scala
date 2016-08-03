@@ -3,6 +3,7 @@ package gtp3
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.zip.Inflater
 import play.api.libs.json._
+import scala.concurrent.Future
 import scala.language.{higherKinds, implicitConversions}
 import scodec.bits.ByteVector
 
@@ -10,8 +11,8 @@ object Payload {
 	// Construct a Payload from a received buffer and flags (incoming payloads)
 	def apply(buf: ByteVector, flags: Int) = new Payload(buf, flags)
 
-	// Construct a Payload from anything that have a corresponding PayloadBuilder (outgoing payloads)
-	def apply[T](value: T)(implicit builder: PayloadBuilder[T]): Payload = builder.build(value)
+	// Construct a Payload from anything that have a corresponding Pickleable (outgoing payloads)
+	def of[T: Pickleable](value: T): Future[Payload] = implicitly[Pickleable[T]].picklePayload(value)
 
 	// Empty dummy payload
 	val empty = Payload(ByteVector.empty, 0x80)

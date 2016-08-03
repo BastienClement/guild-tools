@@ -29,6 +29,10 @@ object ChannelHandler {
 	  * and sending of a GTP3 message to the user.
 	  */
 	case class SendMessage(message: String, payload: Payload)
+
+	@inline private[ChannelHandler] val wrapPayload = (p: Payload) => ByteBuffer.wrap(p.buffer)
+	@inline private[ChannelHandler] def unpickle[T: Pickler] = Unpickle[T].fromBytes _
+	@inline private[ChannelHandler] def pickle[T](implicit pickleable: Pickleable[T]) = pickleable.picklePayload _
 }
 
 /**
@@ -36,7 +40,7 @@ object ChannelHandler {
   * Implements everything about input decoding, output encoding,
   * management of the messages/requests protocol.
   */
-trait ChannelHandler extends Actor with Stash with PayloadBuilder.ProductWrites {
+trait ChannelHandler extends Actor with Stash {
 	/**
 	  * Reference to the channel actor for sending outgoing messages.
 	  */
@@ -103,10 +107,7 @@ trait ChannelHandler extends Actor with Stash with PayloadBuilder.ProductWrites 
 
 	/** Registers a message handler */
 	private def defineHandler[T: Pickler, R: Pickleable](name: String, fn: T => R): Unit = {
-		handlers += name -> ((payload: Payload) => {
-			val value = Unpickle[T].fromBytes(ByteBuffer.wrap(payload.buffer))
-			implicitly[Pickleable[R]].picklePayload(fn(value))
-		})
+		handlers += name -> (wrapPayload andThen unpickle[T] andThen fn andThen pickle[R])
 	}
 
 	// Akka message handler
@@ -155,7 +156,7 @@ trait ChannelHandler extends Actor with Stash with PayloadBuilder.ProductWrites 
 			handle_request(msg, payload) onFailure { case e =>
 				// Catch Exception on message processing. Since there is no way to reply to a message, we
 				// send a special $error message back.
-				channel ! SendMessage("$error", Payload(ExceptionUtils.getStackTrace(e)))
+				for (payload <- Payload.of(ExceptionUtils.getStackTrace(e))) channel ! SendMessage("$error", payload)
 			}
 
 		// Incoming request
