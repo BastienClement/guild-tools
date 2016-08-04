@@ -5,7 +5,14 @@ version := "7.0"
 
 lazy val clients = Seq(client)
 lazy val scalaV = "2.11.8"
-lazy val scalaOpts = Seq("-feature", "-deprecation", "-Xfatal-warnings")
+lazy val scalaOpts = Seq(
+	"-feature",
+	"-deprecation",
+	"-Xfatal-warnings",
+	"-unchecked",
+	"-language:reflectiveCalls",
+	"-language:higherKinds"
+)
 
 lazy val server = (project in file("server"))
                   .settings(

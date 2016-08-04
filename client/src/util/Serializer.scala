@@ -1,5 +1,6 @@
 package util
 
+import scala.scalajs.js
 import scala.util.Try
 
 trait Serializer[T] {
@@ -36,7 +37,7 @@ object Serializer {
 
 	val dummy = new Serializer[Any] {
 		lazy val default: Any = throw new UnsupportedOperationException
-		def write(value: Any): Option[String] = Option(value).map(_.toString)
+		def write(value: Any): Option[String] = Option(value).filter(_ != js.undefined).map(_.toString)
 		def read(value: Option[String]): Option[Any] = throw new UnsupportedOperationException
 	}
 

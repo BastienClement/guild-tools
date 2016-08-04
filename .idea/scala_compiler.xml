@@ -19,7 +19,10 @@
     </profile>
     <profile name="SBT 2" modules="guild-tools" />
     <profile name="SBT 3" modules="sharedJS">
+      <option name="reflectiveCalls" value="true" />
+      <option name="higherKinds" value="true" />
       <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
       <option name="featureWarnings" value="true" />
       <parameters>
         <parameter value="-P:scalajs:mapSourceURI:file:/D:/workspace/scala/guild-tools/shared/src/main/scala/-&gt;27d77756843ce85c770b/" />
@@ -30,7 +33,10 @@
       </plugins>
     </profile>
     <profile name="SBT 4" modules="client">
+      <option name="reflectiveCalls" value="true" />
+      <option name="higherKinds" value="true" />
       <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
       <option name="featureWarnings" value="true" />
       <parameters>
         <parameter value="-P:scalajs:mapSourceURI:file:/D:/workspace/scala/guild-tools/client/src/-&gt;f0fba772cc3577156c78/" />
@@ -41,13 +47,18 @@
       </plugins>
     </profile>
     <profile name="SBT 5" modules="sharedJVM">
+      <option name="reflectiveCalls" value="true" />
+      <option name="higherKinds" value="true" />
       <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
       <option name="featureWarnings" value="true" />
       <parameters>
         <parameter value="-Xfatal-warnings" />
       </parameters>
     </profile>
     <profile name="SBT 6" modules="server">
+      <option name="reflectiveCalls" value="true" />
+      <option name="higherKinds" value="true" />
       <option name="deprecationWarnings" value="true" />
       <option name="uncheckedWarnings" value="true" />
       <option name="featureWarnings" value="true" />

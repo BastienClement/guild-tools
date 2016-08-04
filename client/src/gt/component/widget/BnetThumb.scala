@@ -15,7 +15,7 @@ object BnetThumb extends Component[BnetThumb](
 	val src = toon ~ { toon =>
 		Option(toon) match {
 			case Some(t) =>
-				val alt = s"wow/static/images/2d/avatar/${toon.race}-${toon.gender}.jpg"
+				val alt = s"/forums/static/images/avatars/wow/${toon.race}-${toon.gender}.jpg"
 				if (t.thumbnail != null && t.thumbnail.endsWith(".jpg")) {
 					s"https://render-api-eu.worldofwarcraft.com/static-render/eu/${toon.thumbnail}?alt=$alt"
 				} else {
@@ -23,7 +23,7 @@ object BnetThumb extends Component[BnetThumb](
 				}
 
 			case None =>
-				"https://eu.battle.net/wow/static/images/2d/avatar/0-0.jpg"
+				"https://eu.battle.net/forums/static/images/avatars/wow/0-0.jpg"
 		}
 	}
 }

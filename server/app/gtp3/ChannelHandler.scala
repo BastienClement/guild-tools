@@ -78,9 +78,7 @@ trait ChannelHandler extends Actor with Stash {
 	  * by using either the message or the request semantic. If there is no need for the return type
 	  * to be ignored, it is better to declare every handlers as request().
 	  */
-	final def message(name: String): MessageBinder = MessageBinder(name)
-
-	case class MessageBinder(name: String) {
+	final def message(name: String) = new {
 		def apply(fn: => Unit): Unit = defineHandler(name, (_: Unit) => fn)
 		def apply[T1: Pickler](fn: T1 => Unit): Unit = defineHandler(name, fn)
 		def apply[T1: Pickler, T2: Pickler](fn: (T1, T2) => Unit): Unit = defineHandler(name, fn.tupled)
@@ -94,9 +92,7 @@ trait ChannelHandler extends Actor with Stash {
 	  * The request handler can return any type convertible to Payload by a PayloadBuilder
 	  * Alternatively a Future of such a type, or a DBIOAction with a compatible result type
 	  */
-	final def request(name: String): RequestBinder = RequestBinder(name)
-
-	case class RequestBinder(name: String) {
+	final def request(name: String) = new {
 		def apply[R: Pickleable](fn: => R): Unit = defineHandler(name, (_: Unit) => fn)
 		def apply[T1: Pickler, R: Pickleable](fn: T1 => R): Unit = defineHandler(name, fn)
 		def apply[T1: Pickler, T2: Pickler, R: Pickleable](fn: (T1, T2) => R): Unit = defineHandler(name, fn.tupled)

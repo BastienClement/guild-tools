@@ -1,7 +1,8 @@
 package xuen
 
-import org.scalajs.dom.NodeListOf
-import org.scalajs.dom.raw.HTMLElement
+import facade.ShadowDOM._
+import org.scalajs.dom._
+import org.scalajs.dom.raw.{CustomEvent, HTMLElement}
 import scala.collection.mutable
 import scala.scalajs.js
 import util.implicits._
@@ -86,21 +87,31 @@ import xuen.rx.{Obs, Rx, Var}
 	}
 
 	/** Declares an automatic attribute binding */
-	protected[xuen] final def attribute[T: Zero : Serializer]: Var[T] = {
+	protected final def attribute[T: Zero : Serializer]: Var[T] = {
 		val proxy = Var(implicitly[Zero[T]].zero)
 		attributeProxies.put(proxy, attr => bindAttribute(attr, proxy))
 		proxy
 	}
 
 	/** Declares a named attribute binding */
-	protected[xuen] final def attributeNamed[T: Zero : Serializer](name: String): Var[T] = {
+	protected final def attributeNamed[T: Zero : Serializer](name: String): Var[T] = {
 		val proxy = Var(implicitly[Zero[T]].zero)
 		attributeProxies.put(proxy, attr => bindAttribute(name, proxy))
 		proxy
 	}
 
 	/** Declares a property binding */
-	protected[xuen] final def property[T: Zero]: Var[T] = Var(implicitly[Zero[T]].zero)
+	protected final def property[T: Zero]: Var[T] = Var(implicitly[Zero[T]].zero)
+
+	/** Declares an model property binding */
+	protected final def model[T: Zero]: Var[T] = {
+		val proxy = Var(implicitly[Zero[T]].zero)
+		attributeProxies.put(proxy, attr => {
+			val eventName = s"${attr}change".toLowerCase
+			proxy ~> { v => fire(eventName) }
+		})
+		proxy
+	}
 
 	/** Indicates if the ready hook was already called once */
 	private[this] var readyCalled = false
@@ -113,6 +124,10 @@ import xuen.rx.{Obs, Rx, Var}
 
 	/** Handles the component creation */
 	protected[xuen] final def createdCallback(): Unit = {
+		// Create this element shadow root
+		this.createShadowRoot()
+
+		// Invoke the component constructor
 		Handler.construct(this, component.constructorTag.constructor)
 
 		// Stamp the template on this element
@@ -158,6 +173,29 @@ import xuen.rx.{Obs, Rx, Var}
 	/** Queries every children matching the given selector */
 	protected final def query[T <: HTMLElement](selector: String): NodeListOf[T] = {
 		shadow.querySelectorAll(selector).asInstanceOf[NodeListOf[T]]
+	}
+
+	/** Declares a new event listener on this element */
+	protected final def listen[E <: Event](event: String, target: EventTarget = this, capture: Boolean = false)
+	                                      (handler: E => Unit): Unit = {
+		target.addEventListener(event, handler, capture)
+	}
+
+	/** Declares a new event listener on this element */
+	protected final def listenCustom[T](event: String, target: EventTarget = this, capture: Boolean = false)
+	                                   (handler: T => Unit): Unit = {
+		target.addEventListener(event, { e: CustomEvent => handler(e.detail.asInstanceOf[T]) }, capture)
+	}
+
+	/** Dispatches a custom event from this element */
+	protected final def fire(event: String, detail: Any = null,
+	                         bubbles: Boolean = true, cancelable: Boolean = true, scoped: Boolean = false): Boolean = {
+		dispatchEvent(js.Dynamic.newInstance(js.Dynamic.global.CustomEvent)(event, js.Dynamic.literal(
+			detail = detail.dyn,
+			bubbles = bubbles,
+			cancelable = cancelable,
+			scoped = scoped
+		)).asInstanceOf[CustomEvent])
 	}
 
 	/**

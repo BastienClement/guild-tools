@@ -1,7 +1,6 @@
 package xuen
 
 import facade.HTMLTemplateElement
-import facade.ShadowDOM._
 import org.scalajs.dom._
 import scala.collection.mutable
 import scala.scalajs.js
@@ -39,7 +38,7 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 				if (!componentChilds.contains(childSelector)) {
 					componentChilds += childSelector
 					if (!component.dependencies.exists(_.selector == childSelector)) {
-						console.warn(s"Missing dependency declaration: <${component.selector}> => <$childSelector>")
+						console.warn(s"Missing dependency declaration: <${ component.selector }> => <$childSelector>")
 					}
 				}
 			}
@@ -374,11 +373,22 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 		element.removeAttribute(name)
 		val target = name.substring(1, name.length - 1)
 		target.head match {
+			case '(' if target.last == ')' => compileTwoWayBindingAttribute(element, target, value)
 			case '@' => compileAttributeBindingAttribute(element, target, value)
 			case '$' => compileStyleBindingAttribute(element, target, value)
-			case '€' => compileClassBindingAttribute(element, target, value)
 			case _ => compilePropertyBindingAttribute(element, target, value)
 		}
+	}
+
+	/** Compiles an attribute binding attribute */
+	private def compileTwoWayBindingAttribute(element: Element, target: String, value: String): Unit = {
+		val binding = target.substring(1, target.length - 1)
+		val (prop, event) = binding.indexOf("-") match {
+			case -1 => (binding, s"${binding}change")
+			case n => (binding.substring(0, n), binding.substring(n + 1))
+		}
+		compilePropertyBindingAttribute(element, prop, value)
+		compileEventListenerAttribute(element, event, s"$value = $$self.$prop", false)
 	}
 
 	/** Compiles an attribute binding attribute */
@@ -400,15 +410,6 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 		}
 	}
 
-	/** Compiles a class binding attribute */
-	private def compileClassBindingAttribute(element: Element, target: String, value: String): Unit = {
-		val className = toCamelCase(target.substring(1))
-		registerBindingExpr(element, value) { (elem, value, instance) =>
-			if (value.dyn) elem.classList.add(className)
-			else elem.classList.remove(className)
-		}
-	}
-
 	/** Compiles a property binding attribute */
 	private def compilePropertyBindingAttribute(element: Element, target: String, value: String): Unit = {
 		registerBindingExpr(element, value) { (elem, value, instance) =>
@@ -420,14 +421,19 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 	}
 
 	/** Compiles an event listener attribute */
-	private def compileEventListenerAttribute(element: Element, name: String, value: String): Unit = {
-		element.removeAttribute(name)
-		val target = name.substring(1, name.length - 1)
+	private def compileEventListenerAttribute(element: Element, name: String, value: String, remove: Boolean = true): Unit = {
+		val target = remove match {
+			case true =>
+				element.removeAttribute(name)
+				name.substring(1, name.length - 1)
+			case false => name
+		}
 		val expr = Parser.parseExpression(value)
 		registerBinding(element) { case (elem, context, instance) =>
 			val dispatchContext = context.child()
 			elem.addEventListener(target, (event: Event) => {
 				dispatchContext.set("$event", event)
+				dispatchContext.set("$self", elem)
 				Interpreter.safeEvaluate(expr, dispatchContext)
 			})
 			None
@@ -463,7 +469,7 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 	}
 
 	/** Compiles a Comment node */
-	private def compileComment(comment: Comment): Unit = if(comment.data.head == '-') {
+	private def compileComment(comment: Comment): Unit = if (comment.data.head == '-') {
 		Parser.parseInterpolation(comment.data.tail).foreach {
 			case LiteralPrimitive(value) =>
 				comment.data = value.toString
@@ -483,7 +489,7 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 	/** Stamps this template on the given handler element */
 	def stamp(component: ComponentInstance): Instance = {
 		val instance = bind(Context.ref(component))
-		component.createShadowRoot().appendChild(instance.root)
+		component.shadow.appendChild(instance.root)
 		instance
 	}
 
