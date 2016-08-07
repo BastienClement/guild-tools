@@ -23,7 +23,7 @@ lazy val server = (project in file("server"))
 		                  cache,
 		                  ws,
 		                  "mysql" % "mysql-connector-java" % "5.1.39",
-		                  "com.typesafe.play" %% "play-slick" % "2.0.2",
+		                  "com.typesafe.play" %% "play-slick" % "2.0.0",
 		                  "org.scalatest" %% "scalatest" % "2.2.6" % "test",
 		                  "org.scalatestplus" %% "play" % "1.4.0" % "test",
 		                  "com.vmunier" %% "play-scalajs-scripts" % "0.5.0",
@@ -61,7 +61,7 @@ lazy val shared = (crossProject.crossType(CrossType.Full) in file("shared"))
 		                  "org.scodec" %% "scodec-core" % "1.10.1",
 		                  "org.scodec" %% "scodec-bits" % "1.1.0",
 		                  "me.chrons" %% "boopickle" % "1.2.4",
-		                  "com.typesafe.play" %% "play-slick" % "2.0.2",
+		                  "com.typesafe.play" %% "play-slick" % "2.0.0",
 		                  "org.scala-js" %% "scalajs-stubs" % scalaJSVersion % "provided"
 	                  )
                   )
@@ -69,7 +69,8 @@ lazy val shared = (crossProject.crossType(CrossType.Full) in file("shared"))
 	                  libraryDependencies ++= Seq(
 		                  "org.scodec" %%% "scodec-core" % "1.10.1",
 		                  "org.scodec" %%% "scodec-bits" % "1.1.0",
-		                  "me.chrons" %%% "boopickle" % "1.2.4"
+		                  "me.chrons" %%% "boopickle" % "1.2.4",
+		                  "org.scala-js" %%% "scalajs-java-time" % "0.2.0"
 	                  )
                   )
                   .jsConfigure(_ enablePlugins ScalaJSPlay)

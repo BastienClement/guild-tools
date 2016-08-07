@@ -10,10 +10,11 @@ import java.util.{Calendar, GregorianCalendar}
 import scala.concurrent.duration.FiniteDuration
 import scala.language.implicitConversions
 
-object DateTime extends DateTimeImplicits {
+object DateTime {
 	private val clock = Clock.systemUTC()
 	private val isoFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX")
 	private val utc = ZoneOffset.UTC
+	private val compat = implicitly[DateTimeCompat]
 
 	/** Converts a Instant to a DateTime */
 	implicit def fromInstant(instant: Instant): DateTime = new DateTime(instant.truncatedTo(ChronoUnit.MILLIS))
@@ -55,6 +56,9 @@ object DateTime extends DateTimeImplicits {
 	// Pickler
 	implicit val DateTimePickler = transformPickler[DateTime, String](parse)(_.toISOString)
 
+	// Slick bindings
+	implicit val DateTimeMapping = DateTimeCompat.slickMapping
+
 	// Duration helpers
 	implicit class Units(val amount: Int) extends AnyVal {
 		@inline def millis = Duration.of(amount, ChronoUnit.MILLIS)
@@ -83,7 +87,7 @@ object DateTime extends DateTimeImplicits {
   * An UTC DateTime with milliseconds precision without all the timezone bullshit.
   */
 class DateTime private (val instant: Instant) {
-	val date = instant.atOffset(DateTime.utc)
+	val date = DateTime.compat.instantAtOffset(instant, DateTime.utc)
 	def timestamp = instant.toEpochMilli
 
 	def year = date.getYear
