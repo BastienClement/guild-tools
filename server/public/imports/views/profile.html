@@ -60,52 +60,52 @@
 			<div #username>
 				<i>person</i>
 				<span>Username</span>
-				<b>{{infos?.name || "&mdash;"}}</b>
+				<b>{{info?.name }}</b>
 			</div>
 			<div #rank>
 				<i>grade</i>
 				<span>Rank</span>
-				<b>{{infos?.group || 0 | rank}}</b>
+				<b>{{info?.group | rank}}</b>
 			</div>
 			<div #access>
 				<i>security</i>
 				<span>Access tags</span>
-				<b *if="infos?.developer">D</b>
-				<b *if="infos?.officer">O</b>
-				<b *if="infos?.member">M</b>
-				<b *if="infos?.roster">R</b>
-				<b *if="infos?.fs">G</b>
-				<span *if="!infos?.fs">&mdash;</span>
+				<b *if="info?.developer">D</b>
+				<b *if="info?.officer">O</b>
+				<b *if="info?.member">M</b>
+				<b *if="info?.roster">R</b>
+				<b *if="info?.fs">G</b>
+				<span *if="!info?.fs">&mdash;</span>
 			</div>
 			<div #rlname>
 				<i>face</i>
 				<span>Real-life name</span>
-				<b>{{infos?.realname || "&mdash;"}}</b>
+				<b>{{data?.realname}}</b>
 			</div>
 			<div #bday>
 				<i>cake</i>
 				<span>Age</span>
-				<b>{{infos?.age || "&mdash;"}}</b>
+				<b>{{age}}</b>
 			</div>
 			<div #location>
 				<i>public</i>
 				<span>Location</span>
-				<b>{{infos?.location || "&mdash;"}}</b>
+				<b>{{data?.location}}</b>
 			</div>
 			<div #btag>
 				<i>gamepad</i>
 				<span>BattleTag</span>
-				<b>{{infos?.btag || "&mdash;"}}</b>
+				<b>{{data?.btag}}</b>
 			</div>
 			<div #mail *if="app.user.promoted">
 				<i>local_post_office</i>
 				<span>E-mail</span>
-				<b>{{infos?.mail || "&mdash;"}}</b>
+				<b>{{data?.mail}}</b>
 			</div>
 			<div #phone *if="app.user.promoted">
 				<i>local_phone</i>
 				<span>Phone</span>
-				<b>{{infos?.phone || "&mdash;" | phone}}</b>
+				<b>{{data?.phone| phone}}</b>
 			</div>
 		</gt-box>
 	</template>

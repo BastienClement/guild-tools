@@ -2,10 +2,10 @@ package gt.service
 
 import boopickle.DefaultBasic._
 import gt.service.base.Service
-import model.Toon
+import model.{Profile, Toon}
 import scala.concurrent.Future
 
-object Profile extends Service {
+object ProfileService extends Service {
 	val channel = registerChannel("profile")
 
 	def isToonAvailable(server: String, name: String): Future[Boolean] = {
@@ -20,7 +20,7 @@ object Profile extends Service {
 		channel.request("register-toon", (server, name, role, owner)).as[Unit]
 	}
 
-	def userProfile(user: Int) = {
-
+	def userProfile(user: Int): Future[Profile] = {
+		channel.request("user-profile", user).as[Profile]
 	}
 }

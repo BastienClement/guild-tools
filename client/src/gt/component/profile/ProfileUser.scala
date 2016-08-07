@@ -2,7 +2,7 @@ package gt.component.profile
 
 import gt.component.GtHandler
 import gt.component.widget.{BnetThumb, GtBox}
-import gt.service.Roster
+import gt.service.RosterService
 import util.jsannotation.js
 import xuen.Component
 
@@ -14,7 +14,7 @@ object ProfileUser extends Component[ProfileUser](
 
 @js class ProfileUser extends GtHandler {
 	val user = property[Int]
-	val roster = service(Roster)
+	val roster = service(RosterService)
 
 	val rank = user ~! roster.user ~ (_.group)
 	val main = user ~! roster.main

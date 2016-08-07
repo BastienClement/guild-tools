@@ -2,7 +2,7 @@ package gt.component.dashboard
 
 import gt.component.GtHandler
 import gt.component.widget.{GtAlert, GtBox}
-import gt.service.NewsFeed
+import gt.service.NewsFeedService
 import util.annotation.data
 import util.jsannotation.js
 import xuen.Component
@@ -16,7 +16,7 @@ object DashboardNews extends Component[DashboardNews](
 )
 
 @js class DashboardNews extends GtHandler {
-	val newsfeed = service(NewsFeed)
+	val newsfeed = service(NewsFeedService)
 	val available = newsfeed.channel.open
 
 	val news = Var[Seq[Unit]](Nil)

@@ -3,7 +3,7 @@ package gt.component.profile
 import gt.component.GtHandler
 import gt.component.widget._
 import gt.component.widget.form.{GtButton, GtForm, GtInput}
-import gt.service.Profile
+import gt.service.ProfileService
 import model.Toon
 import org.scalajs.dom.raw.HTMLImageElement
 import org.scalajs.dom.{Event, document}
@@ -22,7 +22,7 @@ object ProfileAddChar extends Component[ProfileAddChar](
 )
 
 @js class ProfileAddChar extends GtHandler {
-	val profile = service(Profile)
+	val profile = service(ProfileService)
 	val owner = attribute[Int]
 
 	val server = Var("")

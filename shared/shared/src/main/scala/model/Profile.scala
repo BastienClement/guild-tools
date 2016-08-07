@@ -6,8 +6,8 @@ import util.annotation.data
 /**
   * Profile data without Option
   */
-@data case class ProfileData(user: Int, realname: String, btag: String, phone: String, birthday: String,
-                             mail: String, location: String)
+@data case class ProfileData(user: Int = -1, realname: String = "–", btag: String = "–", phone: String = "–",
+                             birthday: String = "–", mail: String = "–", location: String = "–")
 
 /**
   * Profile row

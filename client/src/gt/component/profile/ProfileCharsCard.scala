@@ -3,7 +3,7 @@ package gt.component.profile
 import gt.component.GtHandler
 import gt.component.widget.form.GtButton
 import gt.component.widget.{BnetThumb, GtBox}
-import gt.service.Roster
+import gt.service.RosterService
 import model.Toon
 import scala.concurrent.ExecutionContext.Implicits.global
 import util.jsannotation.js
@@ -19,7 +19,7 @@ object ProfileCharsCard extends Component[ProfileCharsCard](
 
 @js class ProfileCharsCard extends GtHandler {
 	val char = property[Toon]
-	val roster = service(Roster)
+	val roster = service(RosterService)
 
 	val tid = char ~ (_.id)
 	val updatePending = Var(false)

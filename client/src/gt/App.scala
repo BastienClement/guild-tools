@@ -2,7 +2,7 @@ package gt
 
 import boopickle.DefaultBasic._
 import gt.component.app.GtApp
-import gt.service.Roster
+import gt.service.RosterService
 import model.User
 import org.scalajs.dom.raw.HTMLSpanElement
 import org.scalajs.dom.{Event, MouseEvent, NodeListOf, window}
@@ -79,13 +79,13 @@ import xuen.expr.PipesRegistry
 				}
 			}
 			roster_task = {
-				Roster.acquire()
-				Roster.loadRoster()
+				RosterService.acquire()
+				RosterService.loadRoster()
 			}
 			core <- coreLoaded
 			ready <- {
 				console.log("[BOOT] Application ready")
-				Roster.acquire()
+				RosterService.acquire()
 				stopSpinner()
 			}
 			loader <- {

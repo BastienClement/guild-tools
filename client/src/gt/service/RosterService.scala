@@ -8,7 +8,7 @@ import scala.collection.mutable
 import scala.concurrent.Future
 import xuen.rx.{Rx, Var}
 
-object Roster extends Service with Delegate {
+object RosterService extends Service with Delegate {
 	/** The roster channel */
 	private[this] val channel = registerChannel("roster", lzy = false)
 
@@ -52,13 +52,13 @@ object Roster extends Service with Delegate {
 		  * the load-user is received (init done by the client requesting an
 		  * unknown user).
 		  */
-		private[Roster] def loadData(data: UserData): Unit = Rx.atomically {
+		private[RosterService] def loadData(data: UserData): Unit = Rx.atomically {
 			mainToonID := data.main.getOrElse(-1)
 			userData := data.user
 			data.toons.foreach(updateToon)
 		}
 
-		private[Roster] def updateToon(toon: Toon): Unit = Rx.atomically {
+		private[RosterService] def updateToon(toon: Toon): Unit = Rx.atomically {
 			if (toon.main) mainToonID := toon.id
 			toonsIds ~= (_ + toon.id)
 			dataForToon.get(toon.id) match {
@@ -67,7 +67,7 @@ object Roster extends Service with Delegate {
 			}
 		}
 
-		private[Roster] def removeToon(toon: Toon): Unit = {
+		private[RosterService] def removeToon(toon: Toon): Unit = {
 			toonsIds ~= (_ - toon.id)
 			dataForToon.remove(toon.id).foreach(_.invalidate())
 		}
