@@ -6,7 +6,8 @@ import models.mysql._
 import reactive.ExecutionContext
 import scala.concurrent.Future
 import slick.lifted.Case
-import utils.{DateTime, PubSub}
+import util.DateTime
+import utils.PubSub
 
 case class Event(id: Int, title: String, desc: String, owner: Int, date: DateTime, time: Int, `type`: Int, state: Int) {
 	val visibility = `type`

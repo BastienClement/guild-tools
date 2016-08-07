@@ -1,7 +1,7 @@
 package utils.time
 
 import org.scalatestplus.play.PlaySpec
-import utils.DateTime
+import util.DateTime
 
 class DateTimeSpec extends PlaySpec {
 

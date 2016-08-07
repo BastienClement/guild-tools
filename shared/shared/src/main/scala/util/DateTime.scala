@@ -1,4 +1,4 @@
-package utils
+package util
 
 import boopickle.DefaultBasic._
 import java.sql.Timestamp
@@ -7,11 +7,10 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.{ChronoUnit, TemporalAmount}
 import java.util.concurrent.TimeUnit
 import java.util.{Calendar, GregorianCalendar}
-import models.mysql._
 import scala.concurrent.duration.FiniteDuration
 import scala.language.implicitConversions
 
-object DateTime {
+object DateTime extends DateTimeImplicits {
 	private val clock = Clock.systemUTC()
 	private val isoFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX")
 	private val utc = ZoneOffset.UTC
@@ -55,9 +54,6 @@ object DateTime {
 
 	// Pickler
 	implicit val DateTimePickler = transformPickler[DateTime, String](parse)(_.toISOString)
-
-	// Slick definitions
-	implicit val DateTimeColumnType = MappedColumnType.base[DateTime, Timestamp](_.toTimestamp, fromTimestamp)
 
 	// Duration helpers
 	implicit class Units(val amount: Int) extends AnyVal {
@@ -127,7 +123,7 @@ class DateTime private (val instant: Instant) {
 	def toISOString = date.format(DateTime.isoFormat)
 
 	// SQL Timestamp
-	private lazy val toTimestamp = {
+	lazy val toTimestamp = {
 		val cal = new GregorianCalendar
 		cal.set(year, month - 1, day, hour, minute, second)
 		cal.set(Calendar.MILLISECOND, 0)

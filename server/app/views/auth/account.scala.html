@@ -1,3 +1,4 @@
+@import model.ProfileData
 @(profile: ProfileData)(implicit req: AuthController#AuthRequest[AnyContent])
 @auth.layout("Mon compte", "account") {
 	<link rel="stylesheet" href='@routes.Assets.versioned("auth/account.css")'>

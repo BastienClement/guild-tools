@@ -4,7 +4,7 @@ import model.User
 import models.application.ApplicationEvents.{ApplyUpdated, MessagePosted, UnreadUpdated}
 import models.mysql._
 import reactive.ExecutionContext
-import utils.DateTime
+import util.DateTime
 
 case class ApplicationMessage(id: Int, apply: Int, user: Int, date: DateTime, text: String, secret: Boolean, system: Boolean)
 

@@ -1,7 +1,7 @@
 package models
 
 import models.mysql._
-import utils.DateTime
+import util.DateTime
 
 case class BugReport(key: String, user: Int, date: DateTime, rev: String, error: String, stack: String, navigator: String)
 

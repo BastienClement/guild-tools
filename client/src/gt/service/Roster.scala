@@ -131,7 +131,7 @@ object Roster extends Service with Delegate {
 		}
 	}
 
-	message("toon-removeds") { toon: Toon =>
+	message("toon-deleted") { toon: Toon =>
 		dataForUser.get(toon.owner) match {
 			case Some(owner) => owner.removeToon(toon)
 			case None => /* ignore */

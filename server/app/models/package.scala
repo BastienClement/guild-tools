@@ -1,5 +1,6 @@
 import boopickle.DefaultBasic._
 import com.google.inject.Inject
+import model.Profile
 import models.application.{Application, ApplicationMessage}
 import models.calendar._
 import play.api.db.slick.DatabaseConfigProvider

@@ -13,11 +13,11 @@
             <option value="$PROJECT_DIR$/project" />
             <option value="$PROJECT_DIR$/server" />
             <option value="$PROJECT_DIR$/server/project" />
-            <option value="$PROJECT_DIR$/shared" />
-            <option value="$PROJECT_DIR$/shared/.js" />
-            <option value="$PROJECT_DIR$/shared/.js/project" />
-            <option value="$PROJECT_DIR$/shared/.jvm" />
-            <option value="$PROJECT_DIR$/shared/.jvm/project" />
+            <option value="$PROJECT_DIR$/shared/js" />
+            <option value="$PROJECT_DIR$/shared/js/project" />
+            <option value="$PROJECT_DIR$/shared/jvm" />
+            <option value="$PROJECT_DIR$/shared/jvm/project" />
+            <option value="$PROJECT_DIR$/shared/shared" />
           </set>
         </option>
         <option name="sbtVersion" value="0.13.11" />

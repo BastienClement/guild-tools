@@ -4,7 +4,7 @@ import actors.{BattleNet, RosterService}
 import akka.actor.Props
 import boopickle.DefaultBasic._
 import gtp3.{Error, _}
-import model.{Toon, User}
+import model.{Profile, Toon, User}
 import models._
 import models.mysql._
 import reactive._
@@ -89,7 +89,7 @@ class ProfileChannel(val user: User) extends ChannelHandler {
 		Profiles.filter(_.user === id).head.map { data =>
 			data.concealFor(user)
 		}.recover { case _ =>
-			models.Profile(id, None, None, None, None, None, None)
+			Profile(id, None, None, None, None, None, None)
 		}
 	}
 }

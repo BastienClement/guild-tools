@@ -1,7 +1,7 @@
 package models
 
 import models.mysql._
-import utils.DateTime
+import util.DateTime
 
 case class Feed(guid: String, source: String, title: String, link: String, time: DateTime, tags: String)
 

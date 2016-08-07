@@ -51,7 +51,7 @@ lazy val client = (project in file("client"))
                   .enablePlugins(ScalaJSPlugin, ScalaJSPlay)
                   .dependsOn(sharedJs)
 
-lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
+lazy val shared = (crossProject.crossType(CrossType.Full) in file("shared"))
                   .settings(
 	                  scalaVersion := scalaV,
 	                  scalacOptions ++= scalaOpts
@@ -61,6 +61,7 @@ lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
 		                  "org.scodec" %% "scodec-core" % "1.10.1",
 		                  "org.scodec" %% "scodec-bits" % "1.1.0",
 		                  "me.chrons" %% "boopickle" % "1.2.4",
+		                  "com.typesafe.play" %% "play-slick" % "2.0.2",
 		                  "org.scala-js" %% "scalajs-stubs" % scalaJSVersion % "provided"
 	                  )
                   )

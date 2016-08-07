@@ -19,8 +19,6 @@ target/
 application.conf
 
 # Generated files
-/shared/.js
-/shared/.jvm
 /server/public/javascripts/compiler.jar
 /server/public/javascripts/compiler.sh
 /server/public/tools/tools.js

@@ -3,7 +3,7 @@ package models.calendar
 import model.User
 import models._
 import models.mysql._
-import utils.DateTime
+import util.DateTime
 
 case class Answer(user: Int, event: Int, date: DateTime, answer: Int, note: Option[String], char: Option[Int], promote: Boolean) {
 	if (answer < 0 || answer > 2) {

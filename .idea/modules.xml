@@ -6,9 +6,9 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/client-build.iml" filepath="$PROJECT_DIR$/.idea/modules/client-build.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/guild-tools.iml" filepath="$PROJECT_DIR$/.idea/modules/guild-tools.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/guild-tools-build.iml" filepath="$PROJECT_DIR$/.idea/modules/guild-tools-build.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/guild-tools-sources.iml" filepath="$PROJECT_DIR$/.idea/modules/guild-tools-sources.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/server.iml" filepath="$PROJECT_DIR$/.idea/modules/server.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/server-build.iml" filepath="$PROJECT_DIR$/.idea/modules/server-build.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/shared-sources.iml" filepath="$PROJECT_DIR$/.idea/modules/shared-sources.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/sharedJS.iml" filepath="$PROJECT_DIR$/.idea/modules/sharedJS.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/sharedJS-build.iml" filepath="$PROJECT_DIR$/.idea/modules/sharedJS-build.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/sharedJVM.iml" filepath="$PROJECT_DIR$/.idea/modules/sharedJVM.iml" />

@@ -4,7 +4,7 @@ import model.User
 import models.application.ApplicationEvents.UnreadUpdated
 import models.mysql._
 import reactive.ExecutionContext
-import utils.DateTime
+import util.DateTime
 
 case class ApplicationReadState(user: Int, apply: Int, date: DateTime)
 

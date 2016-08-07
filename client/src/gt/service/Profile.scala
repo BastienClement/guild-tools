@@ -19,4 +19,8 @@ object Profile extends Service {
 	def registerToon(server: String, name: String, role: String, owner: Int): Future[Unit] = {
 		channel.request("register-toon", (server, name, role, owner)).as[Unit]
 	}
+
+	def userProfile(user: Int) = {
+
+	}
 }

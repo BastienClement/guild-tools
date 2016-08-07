@@ -8,8 +8,8 @@ import models._
 import models.calendar.{Answers, Events, Slacks}
 import models.mysql._
 import reactive.ExecutionContext
-import utils.DateTime
-import utils.DateTime.Units
+import util.DateTime
+import util.DateTime.Units
 
 object CalendarChannel extends ChannelValidator {
 	def open(request: ChannelRequest) = {
