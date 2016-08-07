@@ -1,9 +1,8 @@
 package gt.component.app
 
-import gt.component.widget.GtButton
+import gt.component.widget.form.GtButton
 import gt.component.{GtHandler, Tab}
 import gt.{Router, Server}
-import org.scalajs.dom.raw.HTMLDivElement
 import org.scalajs.dom.{MouseEvent, document, window}
 import scala.scalajs.js.timers.setTimeout
 import util.jsannotation.js
@@ -20,7 +19,7 @@ object GtTitleBar extends Component[GtTitleBar](
 	override def ready(): Unit = {
 		// Remove the title bar if not launched as an app
 		if (!app.standalone) {
-			val ctrls = child[HTMLDivElement]("#window-controls")
+			val ctrls = child.`window-controls`
 			ctrls.parentNode.removeChild(ctrls)
 		}
 	}

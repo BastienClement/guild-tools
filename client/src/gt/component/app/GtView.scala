@@ -2,8 +2,8 @@ package gt.component.app
 
 import gt.component.{GtHandler, View}
 import gt.{App, Router}
+import org.scalajs.dom._
 import org.scalajs.dom.raw.HTMLElement
-import org.scalajs.dom.{Element, Event, document, window}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
@@ -78,7 +78,7 @@ object GtView extends Component[GtView](
 
 				// Construct the element
 				val node = document.createElement(view.selector).asInstanceOf[HTMLElement]
-				for ((name, value) <- args) node.setAttribute(name, value)
+				for ((name, value) <- args if value != null) node.setAttribute(name, value)
 
 				// Ensure the new element is over older ones no matter what
 				currentLayer += 1

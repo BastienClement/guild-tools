@@ -78,6 +78,10 @@ import xuen.expr.PipesRegistry
 						channel.close()
 				}
 			}
+			roster_task = {
+				Roster.acquire()
+				Roster.loadRoster()
+			}
 			core <- coreLoaded
 			ready <- {
 				console.log("[BOOT] Application ready")
@@ -90,6 +94,7 @@ import xuen.expr.PipesRegistry
 				if (Settings.`loading.fast`) Future.successful(())
 				else Delay(1100.millis)
 			}
+			roster_ready <- roster_task
 			init = {
 				document.body.classList.add("app-loader")
 

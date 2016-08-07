@@ -3,7 +3,7 @@
 	<link rel="stylesheet/less" href="/assets/less/box.less" ns="gt-dialog">
 	<template>
 		<div #slider>
-			<div #content>
+			<div #content (click)="$event.stopPropagation()">
 				<content></content>
 			</div>
 		</div>

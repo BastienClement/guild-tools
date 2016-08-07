@@ -1,7 +1,6 @@
-package facade
+package facade.dom4
 
 import org.scalajs.dom.DocumentFragment
-import org.scalajs.dom.raw.HTMLElement
 import scala.scalajs.js
 
 /**

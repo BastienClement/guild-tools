@@ -1,7 +1,7 @@
 package gt.component
 
 import gt.App
-import gt.service.Service
+import gt.service.base.Service
 import scala.collection.mutable
 import util.jsannotation.js
 import xuen.Handler

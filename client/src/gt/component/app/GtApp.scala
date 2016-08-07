@@ -1,7 +1,8 @@
 package gt.component.app
 
 import gt.component.GtHandler
-import gt.component.widget.{GtButton, GtDialog}
+import gt.component.widget.GtDialog
+import gt.component.widget.form.GtButton
 import scala.scalajs.js.timers.setTimeout
 import util.jsannotation.js
 import xuen.Component
@@ -16,7 +17,7 @@ object GtApp extends Component[GtApp](
 
 @js class GtApp extends GtHandler {
 	// Sticky dialog
-	def dialog = child[GtDialog]("#disconnected")
+	def dialog = child.as[GtDialog].disconnected
 
 	// Death status
 	val dead = Var(false)

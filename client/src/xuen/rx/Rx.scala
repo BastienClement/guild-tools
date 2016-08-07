@@ -1,9 +1,13 @@
 package xuen.rx
 
 import scala.collection.mutable
+import scala.concurrent.duration._
 import scala.language.implicitConversions
+import scala.scalajs.js.Date
 import scala.scalajs.js.annotation.JSExport
+import scala.scalajs.js.timers.setInterval
 import scala.util.DynamicVariable
+import xuen.rx.syntax.MonadicOps
 
 /**
   * A reactive value.
@@ -58,7 +62,7 @@ trait Rx[+T] {
 		}
 	}
 
-	/** Combines this reactive value with another one */
+	/** Combines this reactive value with another one (merge) */
 	def ~+[U >: T] (rhs: Rx[U]): Rx[U] = {
 		var a: T = this
 		var b: U = rhs
@@ -78,8 +82,11 @@ trait Rx[+T] {
 		}
 	}
 
-	/** Combines this reactive value with a mapper function */
-	def ~[U] (mapper: T => U): Rx[U] = Rx { mapper(this) }
+	/** Combines this reactive value with a mapper function (map) */
+	def ~[U] (mapper: T => U): Rx[U] = this.map(mapper)
+
+	/** Combines this reactive value with a mapper function (flatmap) */
+	def ~![U] (mapper: T => Rx[U]): Rx[U] = this.flatMap(mapper)
 
 	/** Attaches this reactive value to an observer */
 	def ~> (observer: Obs): this.type = {
@@ -96,14 +103,13 @@ trait Rx[+T] {
 	}
 
 	/** Detaches this reactive value from an observer */
-	def ~!> (observer: Obs): this.type = {
+	def ~/> (observer: Obs): this.type = {
 		observers.remove(observer)
 		this
 	}
 
 	final def ~> (handler: T => Unit): this.type = this ~> Obs(handler(this))
 	final def ~>> (handler: T => Unit): this.type = this ~>> Obs(handler(this))
-
 
 	/** Extracts the current value of the reactive value */
 	final def ! : T = get()
@@ -147,5 +153,12 @@ object Rx {
 			topLevel = true
 		}
 		res
+	}
+
+	/** A time source that updates every minutes <<<<*/
+	lazy val time: Rx[Double] = {
+		var clock = Var(Date.now())
+		setInterval(1.minute) { clock := Date.now() }
+		clock
 	}
 }

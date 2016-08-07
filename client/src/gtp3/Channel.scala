@@ -98,7 +98,7 @@ class Channel private[gtp3] (val socket: Socket, val tpe: String, val id: Int, v
 	private def receiveMessageFrame(message: String, flags: Int, payload: ByteVector): Unit = {
 		for (buffer <- Payload.inflate(payload, flags)) {
 			if (message == "$error") {
-				console.error(new String(buffer.toByteArray))
+				console.error(Unpickle[String].fromBytes(buffer.toByteBuffer))
 			} else {
 				onMessage.emit((message, new PickledPayload(buffer.toByteBuffer)))
 			}

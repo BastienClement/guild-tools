@@ -1,6 +1,6 @@
 package xuen
 
-import facade.HTMLTemplateElement
+import facade.dom4.HTMLTemplateElement
 import org.scalajs.dom.raw.{HTMLLinkElement, HTMLStyleElement}
 import org.scalajs.dom.{console, _}
 import scala.concurrent.ExecutionContext.Implicits.global

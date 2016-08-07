@@ -13,8 +13,9 @@ object ProfileUser extends Component[ProfileUser](
 )
 
 @js class ProfileUser extends GtHandler {
+	val user = property[Int]
 	val roster = service(Roster)
 
-	val rank = app.user.group
-	val main = roster.mainForUser(app.user.id)
+	val rank = user ~! roster.user ~ (_.group)
+	val main = user ~! roster.main
 }

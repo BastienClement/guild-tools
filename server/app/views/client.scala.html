@@ -110,6 +110,7 @@
 
 @* Base framework *@
 <script src='@routes.Assets.versioned("javascripts/prefixfree.js")'></script>
+<script src='@routes.Assets.versioned("javascripts/moment.js")'></script>
 @playscalajs.html.selectScript("client", environment.mode == play.api.Mode.Prod, filename => s"/assets/$filename")
 
 @* Launcher *@

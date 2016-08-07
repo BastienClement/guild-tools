@@ -16,10 +16,10 @@ class ProfileController extends Controller with WtController {
 			case Some(a) =>
 				val char = req.queryString.get("char").get.head.toInt
 				val action = a.head match {
-					case "enable" => RosterService.enableChar(char)
-					case "disable" => RosterService.disableChar(char)
-					case "set-main" => RosterService.promoteChar(char)
-					case "remove" => RosterService.removeChar(char)
+					case "enable" => RosterService.enableToon(char)
+					case "disable" => RosterService.disableToon(char)
+					case "set-main" => RosterService.promoteToon(char)
+					case "remove" => RosterService.removeToon(char)
 					case _ => ResolvedUnitFuture
 				}
 				for (_ <- action) yield Redirect("/wt/profile")

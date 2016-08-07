@@ -1,4 +1,4 @@
-package gt.service
+package gt.service.base
 
 import boopickle.DefaultBasic._
 import gt.{App, Server}
@@ -9,9 +9,7 @@ import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
 import xuen.rx.{Rx, Var}
 
-class ServiceChannel(tpe: String, lzy: Boolean)
-                    (delegate: ((String, PickledPayload)) => Unit) {
-
+class ServiceChannel(tpe: String, lzy: Boolean, delegate: Delegate) {
 	private[this] var channel: Channel = null
 	private[this] val openStatus: Var[Boolean] = false
 
@@ -33,7 +31,7 @@ class ServiceChannel(tpe: String, lzy: Boolean)
 				channel = chan
 				openStatus := true
 
-				chan.onMessage ~> delegate
+				chan.onMessage ~> (delegate.receiveMessage _).tupled
 				chan.onClose ~> { case (code, reason) =>
 					channel = null
 					openStatus := false

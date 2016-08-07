@@ -1,9 +1,9 @@
 package xuen
 
-import facade.ShadowDOM._
 import org.scalajs.dom._
 import org.scalajs.dom.raw.{CustomEvent, HTMLElement}
 import scala.collection.mutable
+import scala.language.{dynamics, existentials}
 import scala.scalajs.js
 import util.implicits._
 import util.jsannotation.js
@@ -58,13 +58,16 @@ import xuen.rx.{Obs, Rx, Var}
 		mutable.Map[String, (String) => Unit]()
 	}
 
+	/** Pending bindings to execute when ready */
+	private[this] var onReadyCallbacks = js.Array[() => Unit]()
+
 	/** This element template instance */
 	private[this] var template: Template#Instance = null
 
 	/** Performs attribute binding construction */
 	private[this] def bindAttribute[T](name: String, proxy: Var[T])(implicit serializer: Serializer[T]) = {
 		// Read default value
-		val defaultValue: T = proxy
+		val defaultValue = proxy.!
 
 		// Read initial value
 		val initialValue = Option(getAttribute(name))
@@ -107,7 +110,7 @@ import xuen.rx.{Obs, Rx, Var}
 	protected final def model[T: Zero]: Var[T] = {
 		val proxy = Var(implicitly[Zero[T]].zero)
 		attributeProxies.put(proxy, attr => {
-			val eventName = s"${attr}change".toLowerCase
+			val eventName = s"${ attr }change".toLowerCase
 			proxy ~> { v => fire(eventName) }
 		})
 		proxy
@@ -116,16 +119,10 @@ import xuen.rx.{Obs, Rx, Var}
 	/** Indicates if the ready hook was already called once */
 	private[this] var readyCalled = false
 
-	/** Call the ready hook and set the corresponding flag */
-	private[this] def readyCallback(): Unit = if (!readyCalled) {
-		readyCalled = true
-		ready()
-	}
-
 	/** Handles the component creation */
 	protected[xuen] final def createdCallback(): Unit = {
 		// Create this element shadow root
-		this.createShadowRoot()
+		if (component.template.isDefined) this.createShadowRoot()
 
 		// Invoke the component constructor
 		Handler.construct(this, component.constructorTag.constructor)
@@ -146,6 +143,14 @@ import xuen.rx.{Obs, Rx, Var}
 		Microtask.schedule { readyCallback() }
 	}
 
+	/** Call the ready hook and set the corresponding flag */
+	private[this] def readyCallback(): Unit = if (!readyCalled) {
+		readyCalled = true
+		onReadyCallbacks.foreach(l => l())
+		onReadyCallbacks = null
+		ready()
+	}
+
 	/** Handles the component attachement */
 	protected[xuen] final def attachedCallback(): Unit = {
 		if (!readyCalled) readyCallback()
@@ -160,31 +165,60 @@ import xuen.rx.{Obs, Rx, Var}
 	}
 
 	/** Handles the change of component attribute */
-	protected[xuen] final def attributeChangedCallback(attr: String, old: String, value: String): Unit = if (readyCalled) {
+	protected[xuen] final def attributeChangedCallback(attr: String, old: String, value: String): Unit = {
 		for (updater <- attributeBindings.get(attr)) updater(value)
 		attributeChanged(attr, old, value)
 	}
 
 	/** Queries a single child element matching the given selector */
-	protected final def child[T <: HTMLElement](selector: String): T = {
-		shadow.querySelector(selector).asInstanceOf[T]
-	}
+	protected final def child = new Dynamic {
+		@inline private def exec[T <: HTMLElement](selector: String): T = shadow.querySelector(selector).asInstanceOf[T]
 
-	/** Queries every children matching the given selector */
-	protected final def query[T <: HTMLElement](selector: String): NodeListOf[T] = {
-		shadow.querySelectorAll(selector).asInstanceOf[NodeListOf[T]]
+		def selectDynamic(id: String): HTMLElement = exec[HTMLElement](s"#$id")
+		def apply(selector: String): HTMLElement = exec[HTMLElement](selector)
+
+		def as[T <: HTMLElement] = new Dynamic {
+			def selectDynamic(id: String): T = exec[T](s"#$id")
+			def apply(selector: String): T = exec[T](selector)
+		}
 	}
 
 	/** Declares a new event listener on this element */
-	protected final def listen[E <: Event](event: String, target: EventTarget = this, capture: Boolean = false)
+	protected final def listen[E <: Event](event: String)
+	                                      (handler: E => Unit): Unit = listen(event, this, false)(handler)
+
+	/** Declares a new event listener on this element */
+	protected final def listen[E <: Event](event: String, capture: Boolean)
+	                                      (handler: E => Unit): Unit = listen(event, this, capture)(handler)
+
+	/** Declares a new event listener on this element */
+	protected final def listen[E <: Event](event: String, target: => EventTarget)
+	                                      (handler: E => Unit): Unit = listen(event, target, false)(handler)
+
+	/** Declares a new event listener on this element */
+	protected final def listen[E <: Event](event: String, target: => EventTarget, capture: Boolean)
 	                                      (handler: E => Unit): Unit = {
-		target.addEventListener(event, handler, capture)
+		if (readyCalled) target.addEventListener(event, handler, capture)
+		else onReadyCallbacks.push(() => listen(event, target, capture)(handler))
 	}
 
 	/** Declares a new event listener on this element */
-	protected final def listenCustom[T](event: String, target: EventTarget = this, capture: Boolean = false)
+	protected final def listenCustom[T](event: String)
+	                                   (handler: T => Unit): Unit = listenCustom(event, this, false)(handler)
+
+	/** Declares a new event listener on this element */
+	protected final def listenCustom[T](event: String, capture: Boolean)
+	                                   (handler: T => Unit): Unit = listenCustom(event, this, capture)(handler)
+
+	/** Declares a new event listener on this element */
+	protected final def listenCustom[T](event: String, target: => EventTarget)
+	                                   (handler: T => Unit): Unit = listenCustom(event, target, false)(handler)
+
+	/** Declares a new event listener on this element */
+	protected final def listenCustom[T](event: String, target: => EventTarget, capture: Boolean)
 	                                   (handler: T => Unit): Unit = {
-		target.addEventListener(event, { e: CustomEvent => handler(e.detail.asInstanceOf[T]) }, capture)
+		if (readyCalled) target.addEventListener(event, { e: CustomEvent => handler(e.detail.asInstanceOf[T]) }, capture)
+		else onReadyCallbacks.push(() => listenCustom(event, target, capture)(handler))
 	}
 
 	/** Dispatches a custom event from this element */
@@ -202,7 +236,7 @@ import xuen.rx.{Obs, Rx, Var}
 	  * Selects a child element in this component Shadow DOM matching the given selector.
 	  * This method should not be called by user code and is only used by the Xuen expression context.
 	  */
-	protected[xuen] final def $xuen$selectElement(selector: String): HTMLElement = child[HTMLElement](selector)
+	protected[xuen] final def $xuen$selectElement(selector: String): HTMLElement = child(selector)
 }
 
 object Handler {
@@ -220,7 +254,7 @@ object Handler {
 	private[this] val originalHTMLElement = js.Dynamic.global.HTMLElement
 
 	/** A fake constructor to use in place of HTMLElement during handler construction */
-	private[this] val dummyConstructor: js.Function = () => {}
+	private[this] val dummyConstructor: js.Function = () =>  {}
 
 	/**
 	  * Constructs an handler by calling its constructor.

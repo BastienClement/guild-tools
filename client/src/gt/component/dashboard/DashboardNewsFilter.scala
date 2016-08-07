@@ -1,7 +1,7 @@
 package gt.component.dashboard
 
 import gt.component.GtHandler
-import gt.component.widget.GtButton
+import gt.component.widget.form.GtButton
 import util.jsannotation.js
 import xuen.Component
 

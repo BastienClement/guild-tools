@@ -1,9 +1,9 @@
 package channels
 
-import actors.BattleNet
+import actors.{BattleNet, RosterService}
 import akka.actor.Props
 import boopickle.DefaultBasic._
-import gtp3._
+import gtp3.{Error, _}
 import model.{Toon, User}
 import models._
 import models.mysql._
@@ -11,6 +11,7 @@ import reactive._
 import scala.compat.Platform
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.util.Success
 import utils.CacheCell
 
 object ProfileChannel extends ChannelValidator {
@@ -30,7 +31,7 @@ class ProfileChannel(val user: User) extends ChannelHandler {
 	private var last = Platform.currentTime
 
 	// Last fetched char
-	private var last_char: Option[Toon] = None
+	private var lastToon: Option[Toon] = None
 
 	// Construct rate limited function to prevent battle.net API flooding
 	private def rateLimited[T, U](fn: (T) => Future[U]): (T) => Future[U] = p => {
@@ -44,20 +45,18 @@ class ProfileChannel(val user: User) extends ChannelHandler {
 		}
 	}
 
-	// Fetch a char from Battle.net
-	private val fetchChar = rateLimited[(String, String), Toon]{ case (s, n) => BattleNet.fetchChar(s, n) }
+	// Fetch a toon from Battle.net
+	private val fetchToon = rateLimited[(String, String), Toon]{ case (s, n) => BattleNet.fetchToon(s, n) }
 
-	// Fetch a char from Battle.net
-	/*request("fetch-char")(rateLimited { p =>
-		val server = p("server").as[String]
-		val name = p("name").as[String]
-		fetchChar(server, name) andThen {
-			case Success(char) => last_char = char
+	// Fetch a toon from Battle.net
+	request("fetch-toon") { (server: String, name: String) =>
+		fetchToon(server, name) andThen {
+			case Success(char) => lastToon = Some(char)
 		}
-	})*/
+	}
 
 	// Check if a specific character is registered in the database
-	request("is-char-available") { (server: String, name: String) =>
+	request("toon-available") { (server: String, name: String) =>
 		for {
 			// Check that server is valid
 			realms <- ProfileChannel.realms_cache.value
@@ -74,19 +73,17 @@ class ProfileChannel(val user: User) extends ChannelHandler {
 	request("realms-list") { ProfileChannel.realms_cache.value }
 
 	// Register a new char to a user
-	/*request("register-char") { p =>
-		val server = p("server").as[String]
-		val name = p("name").as[String]
-		val role = p("role").asOpt[String].filter(Toons.validateRole)
-		val owner = if (user.promoted) p("owner").asOpt[Int].getOrElse(user.id) else user.id
+	request("register-toon") { (server: String, name: String, role: String, owner: Int) =>
+		require(Toons.validateRole(role))
+		val effectiveOwner = if (user.promoted) owner else user.id
 
-		last_char match {
-			case Some(char) if char.server == server && char.name == name =>
-				RosterService.registerChar(char, owner, role)
+		lastToon match {
+			case Some(toon) if toon.server == server && toon.name == name =>
+				RosterService.registerChar(toon, effectiveOwner, Some(role))
 			case _ =>
-				RosterService.registerChar(server, name, owner, role)
+				RosterService.registerChar(server, name, effectiveOwner, Some(role))
 		}
-	}*/
+	}
 
 	request("user-profile") { id: Int =>
 		Profiles.filter(_.user === id).head.map { data =>

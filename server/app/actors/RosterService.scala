@@ -61,6 +61,8 @@ trait RosterService extends PubSub[User] {
 	// Request a list of chars for a specific owner
 	def toons(owner: Int): Future[Seq[Toon]] = roster_toons.value.map(c => c(owner)) recoverWith { case _ => user_chars(owner) }
 
+	def toonOwner(toon: Int): Future[Int] = Toons.filter(_.id === toon).map(_.owner).head
+
 	// Construct a request for a char with a given id.
 	// If user is defined, also ensure that the char is owned by the user
 	private def getOwnChar(id: Int, user: Option[User]) = {
@@ -79,7 +81,7 @@ trait RosterService extends PubSub[User] {
 
 	// Fetch a character from Battle.net and update its cached value in DB
 	// TODO: refactor
-	def refreshChar(id: Int, user: Option[User] = None): Future[Toon] = {
+	def refreshToon(id: Int, user: Option[User] = None): Future[Toon] = {
 		// Ensure we dont start two update at the same time
 		if (inflightUpdates.contains(id)) inflightUpdates(id)
 		else {
@@ -89,7 +91,7 @@ trait RosterService extends PubSub[User] {
 				char.filter(c => c.last_update < Platform.currentTime - (1000 * 60 * 15)).head
 					.otherwise("Cannot refresh character at this time")
 					.flatMap { oc =>
-						BattleNet.fetchChar(oc.server, oc.name).recoverWith {
+						BattleNet.fetchToon(oc.server, oc.name).recoverWith {
 							case BnetFailure(response) if response.status == 404 =>
 								char.map(_.failures).head.map { f =>
 									val failures = f + 1
@@ -134,7 +136,7 @@ trait RosterService extends PubSub[User] {
 	}
 
 	// Promote a new char as the main for the user
-	def promoteChar(id: Int, user: Option[User] = None): Future[(Toon, Toon)] = DB.run {
+	def promoteToon(id: Int, user: Option[User] = None): Future[(Toon, Toon)] = DB.run {
 		// Construct the update for a specific char
 		def update_char(id: Int, main: Boolean) =
 		Toons.filter(char => char.id === id && char.main === !main).map(_.main).update(main)
@@ -169,8 +171,8 @@ trait RosterService extends PubSub[User] {
 	}
 
 	// Update the enabled state of a character
-	def enableChar(id: Int, user: Option[User] = None): Future[Toon] = changeEnabledState(id, user, true)
-	def disableChar(id: Int, user: Option[User] = None): Future[Toon] = changeEnabledState(id, user, false)
+	def enableToon(id: Int, user: Option[User] = None): Future[Toon] = changeEnabledState(id, user, true)
+	def disableToon(id: Int, user: Option[User] = None): Future[Toon] = changeEnabledState(id, user, false)
 
 	def changeRole(id: Int, role: String, user: Option[User] = None): Future[Toon] = DB.run {
 		if (!Toons.validateRole(role)) throw new Exception("Invalid role")
@@ -184,7 +186,7 @@ trait RosterService extends PubSub[User] {
 	}
 
 	// Remove an existing character from the database
-	def removeChar(id: Int, user: Option[User] = None): Future[Toon] = DB.run {
+	def removeToon(id: Int, user: Option[User] = None): Future[Toon] = DB.run {
 		for {
 			char <- getOwnChar(id, user).filter(c => c.main === false && c.active === false).result.head
 			count <- Toons.filter(c => c.id === char.id).delete
@@ -200,7 +202,7 @@ trait RosterService extends PubSub[User] {
 	// Add a new character for a specific user
 	def registerChar(server: String, name: String, owner: Int, role: Option[String]): Future[Toon] = {
 		for {
-			char <- BattleNet.fetchChar(server, name)
+			char <- BattleNet.fetchToon(server, name)
 			res <- registerChar(char, owner, role)
 		} yield {
 			res

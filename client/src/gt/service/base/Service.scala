@@ -1,7 +1,5 @@
-package gt.service
+package gt.service.base
 
-import gtp3.PickledPayload
-import org.scalajs.dom.console
 import scala.concurrent.duration._
 import scala.scalajs.js
 import scala.scalajs.js.timers._
@@ -43,15 +41,8 @@ trait Service {
 	protected def enable(): Unit = {}
 	protected def disable(): Unit = {}
 
-	protected type Delegate = ((String, PickledPayload)) => Unit
-
-	private def defaultDelegate: Delegate = {
-		case (message, _) => console.warn(s"Ignored received message of type $message")
-	}
-
-	protected final def registerChannel(tpe: String, lzy: Boolean = true,
-	                                    delegate: Delegate = defaultDelegate): ServiceChannel = {
-		val channel = new ServiceChannel(tpe, lzy)(delegate)
+	protected final def registerChannel(tpe: String, lzy: Boolean = true)(implicit delegate: Delegate): ServiceChannel = {
+		val channel = new ServiceChannel(tpe, lzy, delegate)
 		channels.push(channel)
 		channel
 	}

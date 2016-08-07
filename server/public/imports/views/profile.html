@@ -2,8 +2,8 @@
 	<link rel="stylesheet/less" href="/assets/less/profile.less" ns="gt-profile">
 	<template>
 		<div #left>
-			<profile-user [user] #profile></profile-user>
-			<profile-info #infos [user]></profile-info>
+			<profile-user #profile [user]></profile-user>
+			<profile-info #infos [user] [editable]></profile-info>
 			<gt-box #stats heading="Statistics" scrollable>
 				<div style="display: flex; align-items: center; justify-content: center; height: 100%; width: 100%; position: absolute; top: 0; left: 0;">
 					<i style="color: #64B4FF; opacity: 0.5; font-size: 60px;">build</i>
@@ -11,7 +11,7 @@
 			</gt-box>
 		</div>
 		<div #middle>
-			<profile-chars [user]="user" #chars></profile-chars>
+			<profile-chars #chars [user] [editable]></profile-chars>
 		</div>
 		<div #right>
 			<gt-box heading="Actions" #actions scrollable>
@@ -55,60 +55,57 @@
 <xuen-component id="profile-info">
 	<link rel="stylesheet/less" href="/assets/less/profile.less" ns="profile-infos">
 	<template>
-		<meta is="roster-user" [id]="user" [user]="infos">
-		<meta is="roster-rank" [id]="infos.group" [name]="rank_name">
 		<gt-box heading="Profile" scrollable>
-			<gt-button *if="editable" (click)="EditProfile"><i>edit</i> Edit</gt-button>
+			<gt-button *if="editable" (click)="edit()"><i>edit</i> Edit</gt-button>
 			<div #username>
 				<i>person</i>
 				<span>Username</span>
-				<b>{{infos.name}}</b>
+				<b>{{infos?.name || "&mdash;"}}</b>
 			</div>
 			<div #rank>
 				<i>grade</i>
 				<span>Rank</span>
-				<b>{{rank_name}}</b>
+				<b>{{infos?.group || 0 | rank}}</b>
 			</div>
 			<div #access>
 				<i>security</i>
 				<span>Access tags</span>
-				<b *if="infos.developer">D</b>
-				<b *if="infos.officer">O</b>
-				<!--<b *if="infos.promoted">P</b>-->
-				<b *if="infos.member">M</b>
-				<b *if="infos.roster">R</b>
-				<b *if="infos.fs">G</b>
-				<span *if="!infos.fs">&mdash;</span>
+				<b *if="infos?.developer">D</b>
+				<b *if="infos?.officer">O</b>
+				<b *if="infos?.member">M</b>
+				<b *if="infos?.roster">R</b>
+				<b *if="infos?.fs">G</b>
+				<span *if="!infos?.fs">&mdash;</span>
 			</div>
 			<div #rlname>
 				<i>face</i>
 				<span>Real-life name</span>
-				<b>{{realname}}</b>
+				<b>{{infos?.realname || "&mdash;"}}</b>
 			</div>
 			<div #bday>
 				<i>cake</i>
 				<span>Age</span>
-				<b>{{age}}</b>
+				<b>{{infos?.age || "&mdash;"}}</b>
 			</div>
 			<div #location>
 				<i>public</i>
 				<span>Location</span>
-				<b>{{location}}</b>
+				<b>{{infos?.location || "&mdash;"}}</b>
 			</div>
 			<div #btag>
 				<i>gamepad</i>
 				<span>BattleTag</span>
-				<b>{{btag}}</b>
+				<b>{{infos?.btag || "&mdash;"}}</b>
 			</div>
 			<div #mail *if="app.user.promoted">
 				<i>local_post_office</i>
 				<span>E-mail</span>
-				<b>{{mail}}</b>
+				<b>{{infos?.mail || "&mdash;"}}</b>
 			</div>
 			<div #phone *if="app.user.promoted">
 				<i>local_phone</i>
 				<span>Phone</span>
-				<b>{{phone}}</b>
+				<b>{{infos?.phone || "&mdash;" | phone}}</b>
 			</div>
 		</gt-box>
 	</template>
@@ -120,9 +117,9 @@
 	<link rel="stylesheet/less" href="/assets/less/profile.less" ns="profile-chars">
 	<template>
 		<gt-box heading="Characters" scrollable>
-			<gt-button *if="editable" (click)="AddChar"><i>person_add</i> Add character</gt-button>
+			<gt-button *if="editable" (click)="#addchar.show()"><i>person_add</i> Add character</gt-button>
 			<div #layout>
-				<div #no-char *if="!chars.length">
+				<div #no-char *if="empty">
 					<i>error_outline</i>
 					<div *if="!me">
 						There is no registered character for this user<br>
@@ -133,7 +130,7 @@
 						<span .smaller>Click on the Add Character button to register your first character</span>
 					</div>
 				</div>
-				<profile-chars-card *for="chars" [id]="item" [editable]></profile-chars-card>
+				<profile-chars-card *for="char of chars by char.id" [char] [editable]></profile-chars-card>
 				<div .padding></div>
 				<div .padding></div>
 				<div .padding></div>
@@ -148,44 +145,41 @@
 <xuen-component id="profile-chars-card">
 	<link rel="stylesheet/less" href="/assets/less/profile.less" ns="profile-chars-card">
 	<template>
-		<meta is="roster-char" [id] [char]>
-		<meta is="roster-race" [id]="char.race" [name]="race_name">
-		<meta is="roster-class" [id]="char.class" [name]="class_name">
-		<gt-box {inactive}="!char.active" dark>
+		<gt-box [@inactive]="!char.active" dark>
 			<div #layout>
-				<bnet-thumb [char]></bnet-thumb>
+				<bnet-thumb [toon]="char"></bnet-thumb>
 				<div #infos>
-					<div #name {class-color}="char.class">{{char.name}}</div>
+					<div #name [@class-color]="char.clss">{{ char.name }}</div>
 					<div>
-						{{char.level}}
-						{{race_name}}
-						{{class_name}}
+						{{ char.level }}
+						{{ char.race | race }}
+						{{ char.clss | class }}
 					</div>
 					<div #meta>
-						<gt-timeago [date]="char.last_update"></gt-timeago>
+						{{ char.last_update | ago | capitalize }}
 						&ndash;
-						{{char.ilvl}} ilvl
+						{{ char.ilvl }} ilvl
 					</div>
 				</div>
-				<div #icon {main}="char.main" {active}="char.active">
+				<div #icon [@main]="char.main" [@active]="char.active">
 					<i #main>star</i>
 					<i #active>star_border</i>
 					<i #inactive>brightness_3</i>
 				</div>
 			</div>
-			<div #actions {hidden}="!editable">
-				<div #roles {disabled}="!char.active">
-					<img #role-tank src="/assets/images/roles/TANK.png" {active}="char.role == 'TANK'">
-					<img #role-healing src="/assets/images/roles/HEALING.png" {active}="char.role == 'HEALING'">
-					<img #role-dps src="/assets/images/roles/DPS.png" {active}="char.role == 'DPS'">
+			<div #actions [hidden]="!editable">
+				<div #roles [hidden]="!char.active">
+					<img src="/assets/images/roles/TANK.png" [@active]="char.role == 'TANK'" (click)="setRole('TANK')">
+					<img src="/assets/images/roles/HEALING.png" [@active]="char.role == 'HEALING'" (click)="setRole('HEALING')">
+					<img src="/assets/images/roles/DPS.png" [@active]="char.role == 'DPS'" (click)="setRole('DPS')">
 				</div>
-				<span {hidden}="!char.active">
-					<gt-button #btn-main {hidden}="char.main">Main</gt-button>
-					<gt-button #btn-disable {hidden}="char.main">Disable</gt-button>
-					<gt-button #btn-update {disabled}="!updatable">Update</gt-button>
+				<span [hidden]="!char.active">
+					<gt-button [hidden]="char.main" (click)="promote()">Main</gt-button>
+					<gt-button [hidden]="char.main" (click)="disable()">Disable</gt-button>
+					<gt-button [@disabled]="!updatable" (click)="update()">Update</gt-button>
 				</span>
-				<gt-button #btn-enable {hidden}="char.active">Enable</gt-button>
-				<gt-button #btn-remove {hidden}="char.active">Remove</gt-button>
+				<gt-button [hidden]="char.active" (click)="enable()">Enable</gt-button>
+				<gt-button [hidden]="char.active" (click)="delete()">Remove</gt-button>
 			</div>
 		</gt-box>
 	</template>
@@ -204,25 +198,25 @@
 				<div #middle></div>
 				<div #foreground>
 					<h3>Add character</h3>
-					<gt-form (submit)="load">
-						<gt-input #server type="text" label="Server name" [value]="server" [disabled]="char"></gt-input>
-						<gt-input #name type="text" label="Character name" [value]="name" [disabled]="char"></gt-input>
+					<gt-form #form (submit)="load()">
+						<gt-input #server type="text" label="Server name" [(value)]="server" [disabled]="hasToon" required></gt-input>
+						<gt-input #name type="text" label="Character name" [(value)]="name" [disabled]="hasToon" required></gt-input>
 					</gt-form>
 					<div #load>
-						<gt-button #load-btn [disabled]="!canLoad" (click)="load"><i>file_download</i> Load</gt-button>
+						<gt-button #load-btn [disabled]="!canLoad" (click)="load()"><i>file_download</i> Load</gt-button>
 					</div>
-					<div #bottom {disabled}="confirmDisabled">
+					<div #bottom [@disabled]="confirmDisabled">
 						<div #roles-label>
 							Character main role
 						</div>
 						<div #roles>
-							<img src="/assets/images/roles/TANK.png" role="TANK" (click)="roleClicked" {active}="role == 'TANK'">
-							<img src="/assets/images/roles/HEALING.png" role="HEALING" (click)="roleClicked" {active}="role == 'HEALING'">
-							<img src="/assets/images/roles/DPS.png" role="DPS" (click)="roleClicked" {active}="role == 'DPS'">
+							<img src="/assets/images/roles/TANK.png" [@active]="role == 'TANK'" (click)="role = 'TANK'">
+							<img src="/assets/images/roles/HEALING.png" [@active]="role == 'HEALING'" (click)="role = 'HEALING'">
+							<img src="/assets/images/roles/DPS.png" [@active]="role == 'DPS'" (click)="role = 'DPS'">
 						</div>
 						<div #actions>
-							<gt-button (click)="close">Cancel</gt-button>
-							<gt-button [disabled]="confirmDisabled" (click)="confirm">Confirm</gt-button>
+							<gt-button (click)="#dialog.hide()">Cancel</gt-button>
+							<gt-button [disabled]="confirmDisabled" (click)="confirm()">Confirm</gt-button>
 						</div>
 					</div>
 				</div>

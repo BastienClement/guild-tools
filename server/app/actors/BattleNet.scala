@@ -54,7 +54,7 @@ trait BattleNet {
 	  * @param name   the character name
 	  * @return a Char corresponding to the fetched character
 	  */
-	def fetchChar(server: String, name: String): Future[Toon] = {
+	def fetchToon(server: String, name: String): Future[Toon] = {
 		query(s"/character/$server/$name", "fields" -> "items,talents").map { char =>
 			// Extract talents
 			val talents = char \ "talents"

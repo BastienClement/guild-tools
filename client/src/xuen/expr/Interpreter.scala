@@ -1,10 +1,10 @@
 package xuen.expr
 
+import gt.App
 import org.scalajs.dom.console
 import scala.scalajs.js
 import scala.scalajs.js.DynamicImplicits._
 import scala.scalajs.js.JSConverters._
-import scala.util.{Failure, Try}
 import util.implicits._
 import xuen.Context
 import xuen.expr.Expression._
@@ -52,7 +52,7 @@ object Interpreter {
 	private def evaluatePipe(expression: Expression, name: String, args: Seq[Expression])(implicit context: Context): Any = {
 		val effectiveValue = expression.evaluate.norm
 		val effectiveArgs = args.map { a => a.evaluate.norm }
-		PipesRegistry.invoke(name, effectiveValue, effectiveArgs)
+		PipesRegistry.invoke(name, effectiveValue, effectiveArgs).norm
 	}
 
 	private def evaluateChain(expressions: Seq[Expression])(implicit context: Context): Any = {
@@ -180,11 +180,13 @@ object Interpreter {
 			e
 	}
 
-	def safeEvaluate(expr: Expression, context: Context): Any = Try {
-		evaluate(expr, context)
-	}.recover {
-		case fail: Throwable =>
-			console.error("Error while evaluating expression:\n\n" + expr.toString + "\n\n>> " + fail.toString)
-			Failure(fail)
-	}.getOrElse(js.undefined)
+	def safeEvaluate(expr: Expression, context: Context): Any = {
+		try {
+			evaluate(expr, context)
+		} catch {
+			case fail: Throwable =>
+				console.error(s"Error while evaluating expression: ${ Generator.gen(expr) }\n\n${ expr.toString }\n\n>> ${ App.formatException(fail) }")
+				js.undefined
+		}
+	}
 }

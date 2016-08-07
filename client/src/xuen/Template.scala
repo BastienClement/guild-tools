@@ -1,6 +1,7 @@
 package xuen
 
-import facade.HTMLTemplateElement
+import facade.dom4.HTMLTemplateElement
+import facade.dom4.implicits.UpgradeElement
 import org.scalajs.dom._
 import scala.collection.mutable
 import scala.scalajs.js
@@ -112,6 +113,7 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 				val items: Iterable[Any] = Interpreter.safeEvaluate(enumerator.iterable, context) match {
 					case it: Iterable[_] => it
 					case array: js.Array[_] => array
+					case unit: Unit => Nil
 					case unsupported =>
 						val ex = s"Unsupported iterable in for-loop: ${ unsupported.getClass.getName }"
 						console.error(ex)
@@ -263,7 +265,7 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 
 			case el: Element =>
 				console.warn("*match: removing untagged element:", el)
-				el.parentNode.removeChild(el)
+				el.remove()
 
 			case node =>
 				element.removeChild(node)
@@ -383,18 +385,19 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 	/** Compiles an attribute binding attribute */
 	private def compileTwoWayBindingAttribute(element: Element, target: String, value: String): Unit = {
 		val binding = target.substring(1, target.length - 1)
-		val (prop, event) = binding.indexOf("-") match {
+		val (prop, event) = binding.indexOf("|") match {
 			case -1 => (binding, s"${binding}change")
 			case n => (binding.substring(0, n), binding.substring(n + 1))
 		}
-		compilePropertyBindingAttribute(element, prop, value)
-		compileEventListenerAttribute(element, event, s"$value = $$self.$prop", false)
+		val effectiveValue = if (value.isEmpty) prop else value
+		compilePropertyBindingAttribute(element, prop, effectiveValue)
+		compileEventListenerAttribute(element, event, s"$effectiveValue = $$self.$prop", false)
 	}
 
 	/** Compiles an attribute binding attribute */
 	private def compileAttributeBindingAttribute(element: Element, target: String, value: String): Unit = {
 		val attribute = target.substring(1)
-		registerBindingExpr(element, value) { (elem, value, instance) =>
+		registerBindingExpr(element, if (value.isEmpty) attribute else value) { (elem, value, instance) =>
 			Serializer.forValue(value).write(value) match {
 				case None => elem.removeAttribute(attribute)
 				case Some(string) => elem.setAttribute(attribute, string)
@@ -405,14 +408,14 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 	/** Compiles a style binding attribute */
 	private def compileStyleBindingAttribute(element: Element, target: String, value: String): Unit = {
 		val style = toCamelCase(target.substring(1))
-		registerBindingExpr(element, value) { (elem, value, instance) =>
+		registerBindingExpr(element, if (value.isEmpty) style else value) { (elem, value, instance) =>
 			elem.dyn.style.updateDynamic(style)(value.toString)
 		}
 	}
 
 	/** Compiles a property binding attribute */
 	private def compilePropertyBindingAttribute(element: Element, target: String, value: String): Unit = {
-		registerBindingExpr(element, value) { (elem, value, instance) =>
+		registerBindingExpr(element, if (value.isEmpty) target else value) { (elem, value, instance) =>
 			elem.dyn.selectDynamic(target) match {
 				case rx: Var[_] => rx.as[Var[Any]] := value
 				case _ => elem.dyn.updateDynamic(target)(value.asInstanceOf[js.Any])
@@ -457,12 +460,12 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 	private def compileTextNode(text: Text): Unit = {
 		Parser.parseInterpolation(text.data).foreach {
 			case LiteralPrimitive(value) =>
-				text.data = value.toString
+				text.data = Option(value).map(_.toString).getOrElse("")
 
 			case expr =>
 				registerBinding(text) { case (node, context, instance) =>
 					val rx = Rx { Interpreter.safeEvaluate(expr, context) }
-					val obs = Obs { node.data = rx.!.toString }
+					val obs = Obs { node.data = Option(rx.!).map(_.toString).getOrElse("") }
 					Some((rx, obs))
 				}
 		}
@@ -500,11 +503,20 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 		/** The root node of this template */
 		val root = document.importNode(template.content, true).as[DocumentFragment]
 
+		private[this] var hasAttached = false
+		private[this] var hasBindings = false
+
 		/** Attached template instances */
-		private[this] val attached = mutable.Set.empty[Template#Instance]
+		private[this] lazy val attached = {
+			hasAttached = true
+			mutable.Set.empty[Template#Instance]
+		}
 
 		/** The list of data-bindings defined for this template */
-		private[this] val bindings = mutable.Set.empty[(Rx[_], Obs)]
+		private[this] lazy val bindings = {
+			hasBindings = true
+			mutable.Set.empty[(Rx[_], Obs)]
+		}
 
 		/** The current state of the template bindings */
 		private[this] var enabled = false
@@ -529,11 +541,11 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 		  * from source reactive variables.
 		  */
 		def enable(): Unit = if (!enabled) {
-			Rx.atomically {
-				for ((v, o) <- bindings) v ~>> o
-				for (a <- attached) a.enable()
-			}
 			enabled = true
+			if (hasBindings || hasAttached) Rx.atomically {
+				if (hasBindings) for ((v, o) <- bindings) v ~>> o
+				if (hasAttached) for (a <- attached) a.enable()
+			}
 		}
 
 		/**
@@ -542,8 +554,8 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 		  * unbound from the variable and the template will stop updating.
 		  */
 		def disable(): Unit = if (enabled) {
-			for ((v, o) <- bindings) v ~!> o
-			for (a <- attached) a.disable()
+			if (hasBindings) for ((v, o) <- bindings) v ~/> o
+			if (hasAttached) for (a <- attached) a.disable()
 			enabled = false
 		}
 

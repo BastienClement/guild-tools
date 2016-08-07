@@ -10,12 +10,12 @@
 <xuen-component id="gt-input">
 	<link rel="stylesheet/less" href="/assets/less/widgets.less" ns="gt-input">
 	<template>
-		<label #outer {data-valid}="!error">
-			<span #label *if>{{label}}</span>
+		<label #outer [@data-valid]="!hasError">
+			<span #label *if="label">{{label}}</span>
 			<span #wrapper>
-				<input #input [type] [value]="value::change" {disabled}>
+				<input #input [type] [value] [disabled]>
 			</span>
-			<div #error>{{error}}</div>
+			<div #error [hidden]="!hasError">{{error}}</div>
 		</label>
 	</template>
 </xuen-component>

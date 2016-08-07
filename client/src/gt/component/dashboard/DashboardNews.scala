@@ -1,7 +1,7 @@
 package gt.component.dashboard
 
 import gt.component.GtHandler
-import gt.component.widget.{GtAlert, GtBox, GtTimeago}
+import gt.component.widget.{GtAlert, GtBox}
 import gt.service.NewsFeed
 import util.annotation.data
 import util.jsannotation.js
@@ -12,7 +12,7 @@ import xuen.rx.{Rx, Var}
 object DashboardNews extends Component[DashboardNews](
 	selector = "dashboard-news",
 	templateUrl = "/assets/imports/views/dashboard.html",
-	dependencies = Seq(GtBox, GtAlert, GtTimeago, DashboardNewsFilter)
+	dependencies = Seq(GtBox, GtAlert, DashboardNewsFilter)
 )
 
 @js class DashboardNews extends GtHandler {

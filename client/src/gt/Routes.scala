@@ -2,6 +2,7 @@ package gt
 
 import gt.component.View
 import gt.component.dashboard.GtDashboard
+import gt.component.profile.GtProfile
 import scala.language.implicitConversions
 import scala.scalajs.js
 import scala.scalajs.js.JSStringOps._
@@ -9,7 +10,9 @@ import scala.scalajs.js.RegExp
 
 object Routes {
 	final val definitions = js.Array[RouteDefinition](
-		"/dashboard" -> GtDashboard
+		"/dashboard" -> GtDashboard,
+
+		"/profile(/:[0-9]+:user)?" -> GtProfile
 
 		/*
 	"/profile(/:[0-9]+:user)?" -> null,
@@ -37,7 +40,7 @@ object Routes {
 		lazy val (regexp, tags) = {
 			// Remove trailing slashes and make parens non-capturing
 			// to prevent breaking tags capture
-			val path = pattern.jsReplace(RegExp("/$"), "").jsReplace(RegExp("\\(/", "g"), "(?:")
+			val path = pattern.jsReplace(RegExp("/$"), "").jsReplace(RegExp("\\(", "g"), "(?:")
 
 			// Extract tag names
 			val tags = Option(path.`match`(RegExp("[^?]:(?:[^:]+:)?([a-z_0-9\\-]+)", "g"))).getOrElse(js.Array())
@@ -47,7 +50,7 @@ object Routes {
 				s"$prefix(${ Option(pattern).getOrElse("[^/]+") })"
 			})
 
-			(RegExp(res), tagsName)
+			(RegExp(s"^$res$$"), tagsName)
 		}
 
 		def matches(path: String): Option[Seq[(String, String)]] = {
@@ -56,7 +59,7 @@ object Routes {
 				val args = js.Array[(String, String)]()
 				var i = 0
 				while (i < tags.length) {
-					args.push((tags(i), matches(i + 1)))
+					args.push((tags(i), matches(i + 1).asInstanceOf[js.UndefOr[String]].orNull))
 					i += 1
 				}
 				Some(args)
