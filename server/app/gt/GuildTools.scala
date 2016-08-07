@@ -18,7 +18,7 @@ object GuildTools {
 	// Server stats
 	val serverName = "GuildTools-6.0"
 	val serverVersion = CacheCell(15.minutes) {
-		Try { "git rev-parse HEAD".!!.trim } getOrElse "{unavailable}"
+		Try { "git rev-parse HEAD".!!.trim } getOrElse "?"
 	}
 	val serverStart = Platform.currentTime
 	def serverUptime = Platform.currentTime - serverStart

@@ -2,6 +2,7 @@ package gt
 
 import gt.component.View
 import gt.component.dashboard.GtDashboard
+import gt.component.misc.GtAbout
 import gt.component.profile.GtProfile
 import scala.language.implicitConversions
 import scala.scalajs.js
@@ -12,7 +13,9 @@ object Routes {
 	final val definitions = js.Array[RouteDefinition](
 		"/dashboard" -> GtDashboard,
 
-		"/profile(/:[0-9]+:user)?" -> GtProfile
+		"/profile(/:[0-9]+:user)?" -> GtProfile,
+
+		"/about" -> GtAbout
 
 		/*
 	"/profile(/:[0-9]+:user)?" -> null,
