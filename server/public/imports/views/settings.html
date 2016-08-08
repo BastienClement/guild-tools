@@ -1,41 +1,38 @@
-<dom-module id="gt-settings">
+<xuen-component id="gt-settings">
 	<link rel="stylesheet/less" href="/assets/less/settings.less">
 	<template>
 		<gt-box heading="GuildTools Settings" scrollable>
 			<div #layout>
 				<div #left>
 					<ul #selector>
-						<li *for="tabs" {tab}="item.2" {active}="tab == item.2" (click)="SelectTab">
-							<i>{{item.1}}</i>
-							<b>{{item.0}}</b>
+						<li *for="item of tabs" [@active]="tab == item.id" (click)="tab = item.id">
+							<i>{{item.icon}}</i>
+							<b>{{item.title}}</b>
 						</li>
 					</ul>
 				</div>
-				<div #right>
-					<div *if="tab == 'general'">
+				<div #right *match="tab">
+					<div *case="'general'">
 						<h2>General settings</h2>
 					</div>
-					<div *if="tab == 'advanced'">
+					<div *case="'advanced'">
 						<h2>Streaming</h2>
 						<gt-label>
-							<gt-checkbox [checked]="streams_zerolatency" (tap)="ToggleLocalStorage" key="streams.zerolatency"></gt-checkbox> Disable playback buffering
+							<gt-checkbox></gt-checkbox> Disable playback buffering
 							<p>This may drastically reduce playback quality and cause freezes, rollbacks and artifacts.</p>
 						</gt-label>
 
 						<h2>Developer settings</h2>
 						<!--<p .help>These settings are specific to your current computer and will be cleared if you delete local browser data.</p>-->
 						<gt-label>
-							<gt-checkbox [checked]="faster_loading" (tap)="ToggleLocalStorage" key="loading.fast"></gt-checkbox> Enable faster loading
+							<gt-checkbox [(checked)]="loadingFast"></gt-checkbox> Disable loading animation synchronization
 						</gt-label>
 						<gt-label>
-							<gt-checkbox [checked]="verbose_gtp3" (tap)="ToggleLocalStorage" key="socket.verbose"></gt-checkbox> Enable GTP3 debug mode
-						</gt-label>
-						<gt-label>
-							<gt-checkbox [checked]="sourcemap_fix" (tap)="ToggleLocalStorage" key="traceur.sourcemap.fix"></gt-checkbox> Enable source-maps generation
+							<gt-checkbox [(checked)]="socketVerbose"></gt-checkbox> Enable GTP3 verbose mode
 						</gt-label>
 					</div>
 				</div>
 			</div>
 		</gt-box>
 	</template>
-</dom-module>
+</xuen-component>

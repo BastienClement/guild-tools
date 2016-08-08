@@ -25,9 +25,11 @@
 <xuen-component id="gt-checkbox">
 	<link rel="stylesheet/less" href="/assets/less/widgets.less" ns="gt-checkbox">
 	<template>
-		<div #box></div>
-		<i>check</i>
-		<div #dot></div>
+		<div #checkbox [@checked]="checked" [@radio]="!!radio">
+			<div #box></div>
+			<i>check</i>
+			<div #dot></div>
+		</div>
 	</template>
 </xuen-component>
 

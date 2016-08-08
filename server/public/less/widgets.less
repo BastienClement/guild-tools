@@ -188,7 +188,7 @@
 			border-color: fade(@fs-blue, 40%);
 		}
 
-		:host([value]) & {
+		#checkbox[radio] & {
 			border-radius: 50%;
 		}
 	}
@@ -208,7 +208,7 @@
 			color: fade(@fs-blue, 90%);
 		}
 
-		:host([checked]:not([value])) & {
+		#checkbox[checked]:not([radio]) & {
 			opacity: 1;
 		}
 	}
@@ -224,7 +224,7 @@
 			background: fade(@fs-blue, 90%);
 		}
 
-		:host([checked][value]) & {
+		#checkbox[checked][radio] & {
 			transform: scale(1);
 		}
 	}

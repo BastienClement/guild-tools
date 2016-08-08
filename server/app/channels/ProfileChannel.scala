@@ -41,7 +41,7 @@ class ProfileChannel(val user: User) extends ChannelHandler {
 			bucket -= 1.0
 			fn(p)
 		} else {
-			Future.failed(Error("Please wait a moment before requesting too many characters from Battle.net", 12))
+			Future.failed(Error("Please wait a moment", 12))
 		}
 	}
 

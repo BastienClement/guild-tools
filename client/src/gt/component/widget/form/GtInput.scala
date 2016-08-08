@@ -1,7 +1,7 @@
 package gt.component.widget.form
 
 import gt.component.GtHandler
-import org.scalajs.dom.Event
+import org.scalajs.dom._
 import org.scalajs.dom.raw.{HTMLInputElement, KeyboardEvent}
 import scala.concurrent.duration._
 import util.Debouncer
@@ -14,7 +14,7 @@ object GtInput extends Component[GtInput](
 	templateUrl = "/assets/imports/widgets.html"
 )
 
-@js class GtInput extends GtHandler with AbstractInput {
+@js class GtInput extends GtHandler with AbstractInput with Interactive {
 	/** Disables the input */
 	// TODO: make this sane again once Scala.js DOM is fixed
 	this.dyn.disabled = attribute[Boolean].dyn
@@ -64,6 +64,9 @@ object GtInput extends Component[GtInput](
 		}
 	}
 
+	def mouseenter(): Unit = setAttribute("hover", "")
+	def mouseleave(): Unit = removeAttribute("hover")
+
 	// Track input state and value
 	listen("focus", child.input) { e: Event => setAttribute("focused", "") }
 	listen("blur", child.input) { e: Event => removeAttribute("focused") }
@@ -81,5 +84,7 @@ object GtInput extends Component[GtInput](
 			}
 		}
 	}
+
+	listen("click", capture = true) { e: MouseEvent => e.stopPropagation() }
 }
 

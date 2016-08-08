@@ -13,7 +13,7 @@ object GtButton extends Component[GtButton](
 	templateUrl = "/assets/imports/widgets.html"
 )
 
-@js class GtButton extends GtHandler {
+@js class GtButton extends GtHandler with Interactive {
 	/** Disables the button */
 	// TODO: make this sane again once Scala.js DOM is fixed
 	this.dyn.disabled = attribute[Boolean].dyn
@@ -25,9 +25,12 @@ object GtButton extends Component[GtButton](
 	/** If set, clicking the button will trigger navigation */
 	val goto = attribute[String]
 
-	listen("click") { e: MouseEvent =>
+	def mouseenter(): Unit = setAttribute("hover", "")
+	def mouseleave(): Unit = removeAttribute("hover")
+
+	listen("click", capture = true) { e: MouseEvent =>
+		e.stopPropagation()
 		if (_disabled) {
-			e.stopImmediatePropagation()
 			e.preventDefault()
 		} else if (goto.! != null) {
 			Router.goto(goto.!)
