@@ -59,11 +59,11 @@ export class ProfileAddChar extends PolymerElement {
 			let background: HTMLDivElement = this.$.background;
 			img.src = "http://eu.battle.net/static-render/eu/" + char.thumbnail.replace("avatar", "profilemain");
 			Polymer.dom(background).appendChild(img);
-			img.onload = () => {
+			//img.onload = () => {
 				this.char = char;
 				this.role = char.role;
 				img.classList.add("loaded");
-			};
+			//};
 		} catch (e) {
 			input.error = e.message;
 			input.value = "";
