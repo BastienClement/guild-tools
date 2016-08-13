@@ -1,11 +1,8 @@
 package models.calendar
 
+import model.calendar.Tab
 import models._
 import models.mysql._
-
-case class Tab(id: Int, event: Int, title: String, note: Option[String], order: Int, locked: Boolean, undeletable: Boolean) {
-	lazy val expandEvent = Events.filter(_.id === event).head
-}
 
 class Tabs(tag: Tag) extends Table[Tab](tag, "gt_events_tabs") {
 	def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
@@ -19,4 +16,6 @@ class Tabs(tag: Tag) extends Table[Tab](tag, "gt_events_tabs") {
 	def * = (id, event, title, note, order, locked, undeletable) <> (Tab.tupled, Tab.unapply)
 }
 
-object Tabs extends TableQuery(new Tabs(_))
+object Tabs extends TableQuery(new Tabs(_)) {
+	def expandEvent(tab: Tab) = Events.filter(_.id === tab.event).head
+}

@@ -5,10 +5,11 @@ package xuen.rx
   *
   * Observers object encapsulates a callback that will be executed when
   * observed values are updated.
-  *
-  * @param callback the callback to execute when observed values are updated
   */
-class Obs protected (callback: () => Unit) {
+trait Obs {
+	/** The callback function */
+	protected def callback(): Unit
+
 	/** Trigger this observer callback */
 	def trigger(): Unit = callback()
 
@@ -27,5 +28,7 @@ class Obs protected (callback: () => Unit) {
 
 object Obs {
 	/** Constructs a new observer that will invoke the given callback */
-	def apply(callback: => Unit): Obs = new Obs(() => callback)
+	def apply(handler: => Unit): Obs = new Obs {
+		protected def callback(): Unit = handler
+	}
 }

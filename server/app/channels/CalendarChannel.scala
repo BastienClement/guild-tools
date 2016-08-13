@@ -13,7 +13,7 @@ import util.DateTime.Units
 
 object CalendarChannel extends ChannelValidator {
 	def open(request: ChannelRequest) = {
-		if (request.user.roster) request.accept(Props(new CalendarChannel(request.user)))
+		if (request.user.fs) request.accept(Props(new CalendarChannel(request.user)))
 		else request.reject(1, "Unauthorized")
 	}
 }
@@ -52,6 +52,20 @@ class CalendarChannel(user: User) extends ChannelHandler {
 					send("events", (ea, s, month_key))
 				}
 		}
+	}
+
+	request("load-month") { key: Int =>
+		val year = key / 12
+		val month = key % 12
+
+		val from = DateTime(year, month + 1, 1)
+		val to = DateTime(year, month + 1, 1) + 1.month - 1.day
+
+		val events = Events.findBetween(from, to).filter(Events.canAccess(user))
+		val events_answers = Answers.withOwnAnswer(events, user).run
+		val slacks = Slacks.findBetween(from, to).run.map(_.map(_.conceal))
+
+		events_answers.zip(slacks)
 	}
 
 	/**

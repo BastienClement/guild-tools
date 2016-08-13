@@ -26,7 +26,7 @@ object DateTime {
 	implicit def fromLocalDateTime(ldt: LocalDateTime): DateTime = fromOffsetDateTime(ldt.atOffset(utc))
 
 	/** Converts a LocalDate to a DateTime */
-	implicit def fromLocalDate(ld: LocalDate): DateTime = fromLocalDateTime(ld.atStartOfDay())
+	implicit def fromLocalDate(ld: LocalDate): DateTime = fromLocalDateTime(LocalDateTime.of(ld, LocalTime.ofSecondOfDay(0)))
 
 	/** Converts a Timestamp to a DateTime */
 	implicit def fromTimestamp(ts: Timestamp): DateTime = fromLocalDateTime(ts.toLocalDateTime)
@@ -86,7 +86,7 @@ object DateTime {
 /**
   * An UTC DateTime with milliseconds precision without all the timezone bullshit.
   */
-class DateTime private (val instant: Instant) {
+class DateTime private (val instant: Instant) extends Ordered[DateTime] {
 	val date = DateTime.compat.instantAtOffset(instant, DateTime.utc)
 	def timestamp = instant.toEpochMilli
 
@@ -99,12 +99,15 @@ class DateTime private (val instant: Instant) {
 	def nano = date.getNano
 
 	// Comparators
-	def == (that: DateTime): Boolean = instant.compareTo(that.instant) == 0
-	def != (that: DateTime): Boolean = instant.compareTo(that.instant) != 0
-	def > (that: DateTime): Boolean = instant.compareTo(that.instant) > 0
-	def < (that: DateTime): Boolean = instant.compareTo(that.instant) < 0
-	def >= (that: DateTime): Boolean = instant.compareTo(that.instant) >= 0
-	def <= (that: DateTime): Boolean = instant.compareTo(that.instant) <= 0
+	override def equals(obj: Any): Boolean = obj match {
+		case null => false
+		case dt: DateTime => timestamp == dt.timestamp
+		case _ => false
+	}
+
+	override def hashCode(): Int = timestamp.hashCode()
+
+	def compare(that: DateTime): Int = (timestamp - that.timestamp).toInt
 
 	def between(a: DateTime, b: DateTime) = this >= a && this <= b
 

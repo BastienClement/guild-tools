@@ -69,7 +69,7 @@ object RosterService extends Service with Delegate {
 
 		private[RosterService] def removeToon(toon: Toon): Unit = {
 			toonsIds ~= (_ - toon.id)
-			dataForToon.remove(toon.id).foreach(_.invalidate())
+			dataForToon.remove(toon.id).foreach(Rx.invalidate)
 		}
 
 		// Apply template is availble of request it

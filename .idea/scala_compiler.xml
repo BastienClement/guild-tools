@@ -30,7 +30,7 @@
         <parameter value="-Xfatal-warnings" />
       </parameters>
       <plugins>
-        <plugin path="C:\Users\galed\.ivy2\cache\org.scala-js\scalajs-compiler_2.11.8\jars\scalajs-compiler_2.11.8-0.6.10.jar" />
+        <plugin path="C:\Users\galed\.ivy2\cache\org.scala-js\scalajs-compiler_2.11.8\jars\scalajs-compiler_2.11.8-0.6.11.jar" />
       </plugins>
     </profile>
     <profile name="SBT 4" modules="client">
@@ -44,7 +44,7 @@
         <parameter value="-Xfatal-warnings" />
       </parameters>
       <plugins>
-        <plugin path="C:\Users\galed\.ivy2\cache\org.scala-js\scalajs-compiler_2.11.8\jars\scalajs-compiler_2.11.8-0.6.10.jar" />
+        <plugin path="C:\Users\galed\.ivy2\cache\org.scala-js\scalajs-compiler_2.11.8\jars\scalajs-compiler_2.11.8-0.6.11.jar" />
       </plugins>
     </profile>
     <profile name="SBT 5" modules="sharedJVM">

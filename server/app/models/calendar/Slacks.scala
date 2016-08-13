@@ -1,11 +1,8 @@
 package models.calendar
 
+import model.calendar.Slack
 import models.mysql._
 import util.DateTime
-
-case class Slack(id: Int, user: Int, from: DateTime, to: DateTime, reason: Option[String]) {
-	lazy val conceal = this.copy(reason = None)
-}
 
 class Slacks(tag: Tag) extends Table[Slack](tag, "gt_slacks") {
 	def id = column[Int]("id", O.PrimaryKey, O.AutoInc)

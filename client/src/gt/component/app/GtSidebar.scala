@@ -1,7 +1,7 @@
 package gt.component.app
 
-import gt.Router
 import gt.component.GtHandler
+import gt.{App, Router}
 import scala.scalajs.js
 import util.annotation.data
 import util.jsannotation.js
@@ -21,11 +21,11 @@ object GtSidebar extends Component[GtSidebar](
 	val icons = js.Array(
 		Icon("widgets", "dashboard", "/dashboard"),
 		Icon("account_circle", "profile", "/profile"),
-		Icon("mail", "messages", "/messages"),
-		Icon("today", "calendar", "/calendar"),
-		Icon("supervisor_account", "roster", "/roster"),
-		Icon("assignment_ind", "apply", if (app.user.roster) "/apply" else "/apply-guest"),
-		Icon("airplay", "streams", "/streams")
+		//Icon("mail", "messages", "/messages"),
+		Icon("today", "calendar", "/calendar", hidden = !App.user.fs),
+		//Icon("supervisor_account", "roster", "/roster", hidden = !App.user.fs),
+		//Icon("assignment_ind", "apply", if (app.user.roster) "/apply" else "/apply-guest"),
+		Icon("airplay", "streams", "/streams", hidden = !App.user.fs)
 	).filter(!_.hidden)
 
 	// Tracks the module ID of the current view

@@ -1,17 +1,10 @@
 package models.calendar
 
 import model.User
+import model.calendar.{Answer, Event}
 import models._
 import models.mysql._
 import util.DateTime
-
-case class Answer(user: Int, event: Int, date: DateTime, answer: Int, note: Option[String], char: Option[Int], promote: Boolean) {
-	if (answer < 0 || answer > 2) {
-		throw new Exception("Invalid answer value")
-	}
-
-	lazy val fullEvent = Events.filter(_.id === event).head
-}
 
 class Answers(tag: Tag) extends Table[Answer](tag, "gt_answers") {
 	def user = column[Int]("user", O.PrimaryKey)
@@ -41,4 +34,6 @@ object Answers extends TableQuery(new Answers(_)) {
 	def withOwnAnswer(events: Query[Events, Event, Seq], user: User) = {
 		events.joinLeft(Answers).on { case (e, a) => e.id === a.event && a.user === user.id}
 	}
+
+	def fullEvent(answer: Answer) = Events.filter(_.id === answer.event).head
 }

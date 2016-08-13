@@ -70,10 +70,8 @@
 			<div #panel (click)="panelClicked($event)" (mouseleave)="closePanel()">
 				<h1>GuildTools</h1>
 				<gt-button goto="/about"><i>info_outline</i> About</gt-button>
-				<gt-button goto="/settings"><i>settings</i> Settings</gt-button>
+				<gt-button goto="/settings" *if="app.user.fs"><i>settings</i> Settings</gt-button>
 				<gt-button (click)="reload()"><i>refresh</i> Reload</gt-button>
-				<gt-button (click)="downloadClient()" *if="!app.standalone"><i>file_download</i> Download client</gt-button>
-				<gt-button (click)="devTools()" *if="app.user.developer"><i>build</i> Developer Tools</gt-button>
 				<gt-button goto="/server-status" *if="app.user.promoted"><i>swap_horiz</i> Server status</gt-button>
 				<gt-button (click)="logout()"><i>exit_to_app</i> Logout</gt-button>
 				<gt-button (click)="quit()" *if="app.standalone"><i>close</i> Quit</gt-button>

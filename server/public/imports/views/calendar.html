@@ -1,4 +1,4 @@
-<dom-module id="gt-calendar">
+<xuen-component id="gt-calendar">
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="gt-calendar">
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="calendar-colors">
 	<template>
@@ -8,12 +8,12 @@
 				<gt-box #header>
 					<div #top>
 						<div #left>
-							<gt-button (click)="CurrentMonth"><i>last_page</i></gt-button>
+							<gt-button (click)="currentMonth()"><i>last_page</i></gt-button>
 						</div>
 						<div #center>
-							<gt-button (click)="PrevMonth"><i>chevron_left</i></gt-button>
-							<span>{{title}}</span>
-							<gt-button (click)="NextMonth"><i>chevron_right</i></gt-button>
+							<gt-button (click)="previousMonth()"><i>chevron_left</i></gt-button>
+							<span>{{current}}</span>
+							<gt-button (click)="nextMonth()"><i>chevron_right</i></gt-button>
 						</div>
 						<div #right>
 							<gt-button>New event</gt-button>
@@ -31,9 +31,9 @@
 				</gt-box>
 				<div #body-scroll>
 					<div #body>
-						<div .row *for="layout" *as="row">
-							<div .column *for="row">
-								<calendar-cell [date]="item"></calendar-cell>
+						<div .row *for="row of layout by $index">
+							<div .column *for="date of row by $index">
+								<calendar-cell [date]></calendar-cell>
 							</div>
 						</div>
 					</div>
@@ -54,42 +54,38 @@
 			</div>
 		</gt-box>
 	</template>
-</dom-module>
+</xuen-component>
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
-<dom-module id="calendar-cell">
+<xuen-component id="calendar-cell">
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="calendar-cell">
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="calendar-colors">
 	<template>
-		<meta is="calendar-events" [date]="date.date" [events]>
-		<meta is="calendar-slacks" [date]="date.date" [slacks]>
 		<div #day>
 			<b>{{day}}</b>
-			<span #slacks {hidden}="!slacks.length">
+			<span #slacks [hidden]="!hasSlacks">
 				<i>flash_on</i><b>{{slacks.length}}</b>
 				<gt-tooltip>
 					<div style="margin-bottom: 8px;">Slackers this day:</div>
-					<div *for="slacks">
-						<roster-main [user]="item.user"></roster-main>
+					<div *for="slack of slacks">
+						<roster-main [user]="slack.user"></roster-main>
 					</div>
 				</gt-tooltip>
 			</span>
 		</div>
 		<div #events>
-			<calendar-cell-event *for="events" [id]="item"></calendar-cell-event>
+			<calendar-cell-event *for="event of events by event.id" [event]></calendar-cell-event>
 		</div>
 	</template>
-</dom-module>
+</xuen-component>
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
-<dom-module id="calendar-cell-event">
+<xuen-component id="calendar-cell-event">
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="calendar-cell-event">
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="calendar-colors">
 	<template>
-		<meta is="calendar-event" [id] [event]>
-		<meta is="calendar-icon" [type]="event.type" [icon]>
 		<gt-tooltip>
 			<calendar-cell-event-tooltip #tooltip [event] [time]></calendar-cell-event-tooltip>
 		</gt-tooltip>
@@ -112,25 +108,25 @@
 				</template>
 			</ul>
 		</gt-context-menu>
-		<div #layout {type}="event.type" {state}="event.state" {answer}="event.answer.answer">
-			<i #icon {hidden}="!icon">{{icon}}</i>
+		<div #layout [@type]="event.type" [@state]="event.state" [@answer]="0">
+			<i #icon *if="icon">{{icon}}</i>
 			<b #title>{{event.title}}</b>
-			<i #note {hidden}="!event.desc">edit</i>
-			<b #time {hidden}="!showTime">{{time}}</b>
-			<span #actions {hidden}="event.state != 0">
+			<i #note *if="hasDesc">edit</i>
+			<b #time *if="showTime">{{time}}</b>
+			<span #actions *if="showActions && event.state == 0">
 				<i>check</i>
 				<i>clear</i>
 			</span>
-			<span #actions {hidden}="event.state == 0">
+			<span #actions *if="showActions && event.state != 0">
 				<i>lock_outline</i>
 			</span>
 		</div>
 	</template>
-</dom-module>
+</xuen-component>
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
-<dom-module id="calendar-cell-event-tooltip">
+<xuen-component id="calendar-cell-event-tooltip">
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="calendar-cell-event-tooltip">
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="calendar-colors">
 	<template>
@@ -151,11 +147,11 @@
 			</span>
 		</div>
 	</template>
-</dom-module>
+</xuen-component>
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
-<dom-module id="calendar-overview">
+<xuen-component id="calendar-overview">
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="calendar-overview">
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="calendar-colors">
 	<template>
@@ -170,4 +166,4 @@
 			<gt-alert dark icon="cloud_off">No data available</gt-alert>
 		</gt-box>
 	</template>
-</dom-module>
+</xuen-component>

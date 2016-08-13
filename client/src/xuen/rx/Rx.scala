@@ -4,7 +4,6 @@ import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.language.implicitConversions
 import scala.scalajs.js.Date
-import scala.scalajs.js.annotation.JSExport
 import scala.scalajs.js.timers.setInterval
 import scala.util.DynamicVariable
 import xuen.rx.syntax.MonadicOps
@@ -16,18 +15,19 @@ import xuen.rx.syntax.MonadicOps
   */
 trait Rx[+T] {
 	// Status flags
-	private[this] var haveChildren = false
-	private[this] var haveObservers = false
+	private[rx] var hasChildren = false
+	private[rx] var hasObservers = false
+	private[rx] var alive = true
 
 	/** Children of this reactive value */
-	private[this] lazy val children = {
-		haveChildren = true
+	private[rx] lazy val children = {
+		hasChildren = true
 		mutable.Map[Expr[_], Int]()
 	}
 
 	/** Observers bound to this reactive value */
-	private[this] lazy val observers = {
-		haveObservers = true
+	private[rx] lazy val observers = {
+		hasObservers = true
 		mutable.Set[Obs]()
 	}
 
@@ -35,19 +35,23 @@ trait Rx[+T] {
 	private[rx] def value: T
 
 	/** Extracts the current value and register child expression */
-	@JSExport("get")
 	protected[rx] final def get(): T = {
+		if (!alive) {
+			throw new IllegalStateException("Attempted to access a killed Rx value")
+		}
+
 		Rx.enclosing.value match {
 			case null => // No enclosing expression
 			case child => children.put(child, child.invalidateKey)
 		}
+
 		value
 	}
 
 	/** Invalidate this reactive values and all its children */
-	def invalidate(): Unit = Rx.atomically {
+	protected[rx] def invalidate(): Unit = Rx.atomically {
 		// Invalidate children, if any
-		if (haveChildren) {
+		if (hasChildren) {
 			for ((child, key) <- children if child.invalidateKey == key) {
 				child.invalidate()
 			}
@@ -55,7 +59,7 @@ trait Rx[+T] {
 		}
 
 		// Enqueue observers, if any
-		if (haveObservers) {
+		if (hasObservers && alive) {
 			for (observer <- observers if Rx.observersSet.add(observer)) {
 				Rx.observersStack.push(observer)
 			}
@@ -90,8 +94,11 @@ trait Rx[+T] {
 
 	/** Attaches this reactive value to an observer */
 	def ~> (observer: Obs): this.type = {
+		if (!alive) {
+			throw new IllegalStateException("Attempted to add an observer to a killed Rx value")
+		}
+
 		observers.add(observer)
-		value
 		this
 	}
 
@@ -108,8 +115,8 @@ trait Rx[+T] {
 		this
 	}
 
-	final def ~> (handler: T => Unit): this.type = this ~> Obs(handler(this))
-	final def ~>> (handler: T => Unit): this.type = this ~>> Obs(handler(this))
+	final def ~> (handler: T => Unit): this.type = this ~> Obs(handler(get()))
+	final def ~>> (handler: T => Unit): this.type = this ~>> Obs(handler(get()))
 
 	/** Extracts the current value of the reactive value */
 	final def ! : T = get()
@@ -125,7 +132,8 @@ object Rx {
 	implicit def extractor[T](rx: Rx[T]): T = rx.get()
 
 	/** Implicitly wraps a value in a reactive value */
-	implicit def wrapper[T](value: => T): Rx[T] = new Expr(() => value)
+	//implicit def wrapper[T](value: => T): Rx[T] = new Expr(() => value)
+	implicit def wrapper[T](value: => T): Rx[T] = new Const(value)
 
 	/** Stack of enclosing reactive value used to automatically bind children */
 	private[rx] val enclosing = new DynamicVariable[Expr[_]](null)
@@ -155,7 +163,24 @@ object Rx {
 		res
 	}
 
-	/** A time source that updates every minutes <<<<*/
+	def tupled[A, B](a: Rx[A], b: Rx[B]): Rx[(A, B)] = Rx { (a.!, b.!) }
+	def tupled[A, B, C](a: Rx[A], b: Rx[B], c: Rx[C]): Rx[(A, B, C)] = Rx { (a.!, b.!, c.!) }
+	def tupled[A, B, C, D](a: Rx[A], b: Rx[B], c: Rx[C], d: Rx[D]): Rx[(A, B, C, D)] = Rx { (a.!, b.!, c.!, d.!) }
+	def tupled[A, B, C, D, E](a: Rx[A], b: Rx[B], c: Rx[C], d: Rx[D], e: Rx[E]): Rx[(A, B, C, D, E)] = Rx { (a.!, b.!, c.!, d.!, e.!) }
+
+	def kill(value: Rx[_]): Unit = {
+		value.alive = false
+		if (value.hasObservers) {
+			for (obs <- value.observers) {
+				value ~/> obs
+			}
+		}
+		value.invalidate()
+	}
+
+	def invalidate(value: Rx[_]): Unit = value.invalidate()
+
+	/** A time source that updates every minutes <<<< */
 	lazy val time: Rx[Double] = {
 		var clock = Var(Date.now())
 		setInterval(1.minute) { clock := Date.now() }

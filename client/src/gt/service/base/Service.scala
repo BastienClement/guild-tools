@@ -29,7 +29,7 @@ trait Service {
 		counter -= 1
 		if (counter == 0) {
 			clearTimeout(delay)
-			delay = setTimeout(2.seconds) {
+			delay = setTimeout(5.seconds) {
 				if (counter == 0) {
 					channels.foreach(c => c.close())
 					disable()

@@ -1,17 +1,7 @@
 package models.calendar
 
-import models.Toons
+import model.calendar.Slot
 import models.mysql._
-
-case class Slot(tab: Int, slot: Int, owner: Int, name: String, `class`: Int, role: String) {
-	if (!Toons.validateRole(role)) {
-		throw new Exception("Invalid role value")
-	}
-
-	if (slot < 1 || slot > 30) {
-		throw new Exception("Invalid slot ID")
-	}
-}
 
 class Slots(tag: Tag) extends Table[Slot](tag, "gt_events_slots") {
 	def tab = column[Int]("tab", O.PrimaryKey)

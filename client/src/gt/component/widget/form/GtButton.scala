@@ -29,14 +29,16 @@ object GtButton extends Component[GtButton](
 	def mouseleave(): Unit = removeAttribute("hover")
 
 	listen("click", capture = true) { e: MouseEvent =>
-		e.stopPropagation()
 		if (_disabled) {
 			e.preventDefault()
+			e.stopPropagation()
 		} else if (goto.! != null) {
 			Router.goto(goto.!)
+			e.stopPropagation()
 		} else if (submit) {
 			for (form <- Option(closest("gt-form").asInstanceOf[GtForm])) {
 				form.submit()
+				e.stopPropagation()
 			}
 		}
 	}

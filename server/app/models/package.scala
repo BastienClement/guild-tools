@@ -1,8 +1,8 @@
 import boopickle.DefaultBasic._
 import com.google.inject.Inject
 import model.Profile
+import model.calendar._
 import models.application.{Application, ApplicationMessage}
-import models.calendar._
 import play.api.db.slick.DatabaseConfigProvider
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}

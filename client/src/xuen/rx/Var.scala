@@ -1,7 +1,6 @@
 package xuen.rx
 
 import scala.language.implicitConversions
-import scala.scalajs.js.annotation.JSExport
 
 /**
   * A reactive varibale, whose value can be modified.
@@ -24,7 +23,6 @@ class Var[T] protected (initial: T) extends Rx[T] {
 	  * @param value the new value of this reactive variable
 	  * @return the updated reactive variable
 	  */
-	@JSExport("set")
 	def := (value: T): this.type = {
 		if (current != value) {
 			current = value
@@ -33,6 +31,7 @@ class Var[T] protected (initial: T) extends Rx[T] {
 		this
 	}
 
+	/** Updates the content of this variable by applying the given function to its current value */
 	def ~= (fn: T => T): this.type = {
 		this := fn(current)
 	}
