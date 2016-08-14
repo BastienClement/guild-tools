@@ -7,13 +7,13 @@ import gt.service.ProfileService
 import model.Toon
 import org.scalajs.dom.raw.HTMLImageElement
 import org.scalajs.dom.{Event, document}
+import rx.{Rx, Var}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
 import util.implicits.NodeListSeq
 import util.jsannotation.js
 import xuen.Component
-import xuen.rx.{Rx, Var}
 
 object ProfileAddChar extends Component[ProfileAddChar](
 	selector = "profile-add-char",

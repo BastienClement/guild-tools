@@ -3,9 +3,9 @@ package gt.service
 import boopickle.DefaultBasic._
 import gt.service.base.{Cache, Delegate, Service}
 import model.calendar.{Answer, Event, Slack}
+import rx.Rx
 import scala.collection.immutable.BitSet
 import util.DateTime
-import xuen.rx.Rx
 
 object CalendarService extends Service with Delegate {
 	val channel = registerChannel("calendar")

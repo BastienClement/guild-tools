@@ -1,8 +1,8 @@
 package gt.service.base
 
+import rx.{Obs, Rx, Var}
 import scala.collection.immutable.TreeMap
 import util.intervaltree.IntervalTree
-import xuen.rx.{Obs, Rx, Var}
 
 abstract class Cache[K, V <: AnyRef](hash: V => K) {
 	/** Default value for newly allocated cells */

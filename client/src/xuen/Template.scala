@@ -3,6 +3,7 @@ package xuen
 import facade.dom4.HTMLTemplateElement
 import facade.dom4.implicits.UpgradeElement
 import org.scalajs.dom._
+import rx.{Obs, Rx, Var}
 import scala.collection.mutable
 import scala.scalajs.js
 import scala.scalajs.js.DynamicImplicits._
@@ -11,7 +12,6 @@ import util.implicits._
 import xuen.Template._
 import xuen.expr.Expression.LiteralPrimitive
 import xuen.expr.{Expression, Interpreter, Parser}
-import xuen.rx.{Obs, Rx, Var}
 
 /**
   * A component template, defined by a <template> tag.

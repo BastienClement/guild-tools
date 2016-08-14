@@ -3,11 +3,11 @@ package gt.component.dashboard
 import gt.component.GtHandler
 import gt.component.widget.{GtAlert, GtBox}
 import gt.service.NewsFeedService
+import rx.syntax.MonadicOps
+import rx.{Rx, Var}
 import util.annotation.data
 import util.jsannotation.js
 import xuen.Component
-import xuen.rx.syntax.MonadicOps
-import xuen.rx.{Rx, Var}
 
 object DashboardNews extends Component[DashboardNews](
 	selector = "dashboard-news",

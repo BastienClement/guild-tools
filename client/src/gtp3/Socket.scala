@@ -2,6 +2,7 @@ package gtp3
 
 import org.scalajs.dom.raw.Event
 import org.scalajs.dom.{MessageEvent, WebSocket, console, window}
+import rx.Var
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
@@ -11,7 +12,6 @@ import scala.scalajs.js.typedarray.ArrayBuffer
 import util.EventSource
 import util.buffer.BufferOps
 import util.implicits._
-import xuen.rx.Var
 
 class Socket(private val url: String) {
 	// The two parts of the 64 bits socket-id

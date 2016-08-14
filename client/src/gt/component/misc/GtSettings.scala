@@ -3,12 +3,12 @@ package gt.component.misc
 import gt.component.widget.GtBox
 import gt.component.widget.form.{GtButton, GtCheckbox, GtLabel}
 import gt.component.{GtHandler, Tab, View}
+import rx.Var
 import util.Settings
 import util.Settings.Setting
 import util.annotation.data
 import util.jsannotation.js
 import xuen.Component
-import xuen.rx.Var
 
 object GtSettings extends Component[GtSettings](
 	selector = "gt-settings",

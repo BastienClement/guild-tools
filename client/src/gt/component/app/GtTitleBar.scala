@@ -4,10 +4,10 @@ import gt.component.widget.form.GtButton
 import gt.component.{GtHandler, Tab}
 import gt.{Router, Server}
 import org.scalajs.dom.{MouseEvent, document, window}
+import rx.Var
 import scala.scalajs.js.timers.setTimeout
 import util.jsannotation.js
 import xuen.Component
-import xuen.rx.Var
 
 object GtTitleBar extends Component[GtTitleBar](
 	selector = "gt-title-bar",

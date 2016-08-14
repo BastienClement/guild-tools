@@ -2,10 +2,10 @@ package gt
 
 import gtp3.{Channel, GTP3Error, Socket}
 import org.scalajs.dom.console
+import rx.Var
 import scala.concurrent.{Future, Promise}
 import scala.scalajs.js.timers.setTimeout
 import util.Settings
-import xuen.rx.Var
 
 /** Manages connection to the server */
 object Server {

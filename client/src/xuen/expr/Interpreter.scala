@@ -2,13 +2,13 @@ package xuen.expr
 
 import gt.App
 import org.scalajs.dom.console
+import rx.{Rx, Var}
 import scala.scalajs.js
 import scala.scalajs.js.DynamicImplicits._
 import scala.scalajs.js.JSConverters._
 import util.implicits._
 import xuen.Context
 import xuen.expr.Expression._
-import xuen.rx.{Rx, Var}
 
 object Interpreter {
 	implicit class ImplicitEvaluator(private val expr: Expression) extends AnyVal {

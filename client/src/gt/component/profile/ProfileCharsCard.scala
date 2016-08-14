@@ -5,11 +5,11 @@ import gt.component.widget.form.GtButton
 import gt.component.widget.{BnetThumb, GtBox}
 import gt.service.RosterService
 import model.Toon
+import rx.syntax.MonadicOps
+import rx.{Rx, Var}
 import scala.concurrent.ExecutionContext.Implicits.global
 import util.jsannotation.js
 import xuen.Component
-import xuen.rx.syntax.MonadicOps
-import xuen.rx.{Rx, Var}
 
 object ProfileCharsCard extends Component[ProfileCharsCard](
 	selector = "profile-chars-card",

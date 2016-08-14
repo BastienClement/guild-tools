@@ -1,10 +1,10 @@
 package gt.component.widget.form
 
 import gt.component.GtHandler
+import rx.Rx
 import util.implicits._
 import util.jsannotation.js
 import xuen.Component
-import xuen.rx.Rx
 
 object GtForm extends Component[GtForm](
 	selector = "gt-form"

@@ -2,11 +2,11 @@ package gt.component.app
 
 import gt.component.GtHandler
 import gt.{App, Router}
+import rx.Var
 import scala.scalajs.js
 import util.annotation.data
 import util.jsannotation.js
 import xuen.Component
-import xuen.rx.Var
 
 object GtSidebar extends Component[GtSidebar](
 	selector = "gt-sidebar",

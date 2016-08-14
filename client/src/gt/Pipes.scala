@@ -1,12 +1,12 @@
 package gt
 
 import data.Strings
+import rx.{Rx, Var}
 import scala.concurrent.duration._
 import scala.scalajs.js
 import scala.scalajs.js.JSStringOps._
 import scala.scalajs.js.timers.setInterval
 import xuen.expr.PipesCollection
-import xuen.rx.{Rx, Var}
 
 object Pipes extends PipesCollection {
 	declare("uppercase", (_: Any) match {

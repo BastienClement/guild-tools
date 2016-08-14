@@ -7,12 +7,12 @@ import gt.component.widget.form.GtButton
 import gt.service.{ProfileService, RosterService}
 import model.{Profile, ProfileData}
 import org.scalajs.dom.{console, window}
+import rx.Var
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js
 import scala.util.{Failure, Success}
 import util.jsannotation.js
 import xuen.Component
-import xuen.rx.Var
 
 object ProfileInfo extends Component[ProfileInfo](
 	selector = "profile-info",

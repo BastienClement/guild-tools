@@ -3,10 +3,10 @@ package gt.component.app
 import gt.component.GtHandler
 import gt.component.widget.GtDialog
 import gt.component.widget.form.GtButton
+import rx.Var
 import scala.scalajs.js.timers.setTimeout
 import util.jsannotation.js
 import xuen.Component
-import xuen.rx.Var
 
 /** Main application component */
 object GtApp extends Component[GtApp](

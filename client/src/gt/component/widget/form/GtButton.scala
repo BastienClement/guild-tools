@@ -3,10 +3,10 @@ package gt.component.widget.form
 import gt.Router
 import gt.component.GtHandler
 import org.scalajs.dom.MouseEvent
+import rx.Var
 import util.implicits._
 import util.jsannotation.js
 import xuen.Component
-import xuen.rx.Var
 
 object GtButton extends Component[GtButton](
 	selector = "gt-button",

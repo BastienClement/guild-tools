@@ -1,4 +1,4 @@
-package xuen.rx
+package rx
 
 /**
   * A reactive expression.

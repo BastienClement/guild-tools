@@ -4,9 +4,9 @@ import api.Roster.UserData
 import boopickle.DefaultBasic._
 import gt.service.base.{Delegate, Service}
 import model.{Toon, User}
+import rx.{Rx, Var}
 import scala.collection.mutable
 import scala.concurrent.Future
-import xuen.rx.{Rx, Var}
 
 object RosterService extends Service with Delegate {
 	/** The roster channel */

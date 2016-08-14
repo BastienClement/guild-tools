@@ -2,10 +2,10 @@ package gt.component.widget.form
 
 import gt.component.GtHandler
 import org.scalajs.dom.MouseEvent
+import rx.{Obs, Var}
 import util.implicits._
 import util.jsannotation.js
 import xuen.Component
-import xuen.rx.{Obs, Var}
 
 object GtCheckbox extends Component[GtCheckbox](
 	selector = "gt-checkbox",

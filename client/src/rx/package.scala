@@ -1,7 +1,5 @@
-package xuen
-
+import rx.syntax.MonadicOps.ForEachBehavior
 import scala.language.higherKinds
-import xuen.rx.syntax.MonadicOps.ForEachBehavior
 
 /**
   * Rx utilities

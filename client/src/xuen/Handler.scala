@@ -2,13 +2,13 @@ package xuen
 
 import org.scalajs.dom._
 import org.scalajs.dom.raw.{CustomEvent, HTMLElement}
+import rx.{Obs, Rx, Var}
 import scala.collection.mutable
 import scala.language.{dynamics, existentials}
 import scala.scalajs.js
 import util.implicits._
 import util.jsannotation.js
 import util.{Microtask, Serializer, Zero}
-import xuen.rx.{Obs, Rx, Var}
 
 /**
   * The handler object associated with a custom element.

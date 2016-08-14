@@ -4,11 +4,11 @@ import gt.component.calendar.CalendarCell.CalendarCellDate
 import gt.component.widget.GtBox
 import gt.component.widget.form.GtButton
 import gt.component.{GtHandler, Tab, View}
+import rx.Var
 import scala.scalajs.js
 import util.implicits._
 import util.jsannotation.js
 import xuen.Component
-import xuen.rx.Var
 
 object GtCalendar extends Component[GtCalendar](
 	selector = "gt-calendar",

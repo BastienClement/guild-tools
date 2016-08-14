@@ -1,12 +1,12 @@
-package xuen.rx
+package rx
 
+import rx.syntax.MonadicOps
 import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.language.implicitConversions
 import scala.scalajs.js.Date
 import scala.scalajs.js.timers.setInterval
 import scala.util.DynamicVariable
-import xuen.rx.syntax.MonadicOps
 
 /**
   * A reactive value.

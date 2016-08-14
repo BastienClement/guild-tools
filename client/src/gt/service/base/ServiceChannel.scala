@@ -4,10 +4,10 @@ import boopickle.DefaultBasic._
 import gt.{App, Server}
 import gtp3.{Channel, PickledPayload}
 import org.scalajs.dom.console
+import rx.{Rx, Var}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
-import xuen.rx.{Rx, Var}
 
 class ServiceChannel(tpe: String, lzy: Boolean, delegate: Delegate) {
 	private[this] var channel: Channel = null
