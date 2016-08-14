@@ -2,7 +2,7 @@ package gt.component.calendar
 
 import gt.component.GtHandler
 import gt.component.calendar.CalendarCell.CalendarCellDate
-import gt.component.widget.RosterToon
+import gt.component.widget.{GtTooltip, RosterToon}
 import gt.service.CalendarService
 import scala.scalajs.js
 import util.annotation.data
@@ -12,7 +12,7 @@ import xuen.Component
 object CalendarCell extends Component[CalendarCell](
 	selector = "calendar-cell",
 	templateUrl = "/assets/imports/views/calendar.html",
-	dependencies = Seq(CalendarCellEvent, RosterToon)
+	dependencies = Seq(CalendarCellEvent, RosterToon, GtTooltip)
 ) {
 	@data case class CalendarCellDate(date: js.Date, inactive: Boolean, today: Boolean)
 }

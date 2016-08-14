@@ -1,6 +1,8 @@
 package gt.component.calendar
 
 import gt.component.GtHandler
+import gt.component.widget.{GtContextMenu, GtTooltip}
+import gt.service.CalendarService
 import model.calendar.{Event, EventVisibility}
 import util.jsannotation.js
 import xuen.Component
@@ -8,17 +10,21 @@ import xuen.Component
 object CalendarCellEvent extends Component[CalendarCellEvent](
 	selector = "calendar-cell-event",
 	templateUrl = "/assets/imports/views/calendar.html",
-	dependencies = Seq()
+	dependencies = Seq(GtTooltip, GtContextMenu)
 )
 
 @js class CalendarCellEvent extends GtHandler {
+	val calendar = service(CalendarService)
+
 	val event = property[Event]
 	val isAnnounce = event ~ { e => e != null && e.isAnnounce }
 
 	val announce = attribute[Boolean]
 	announce <~ isAnnounce
 
-	val hasDesc = event ~ (!_.desc.trim.isEmpty)
+	val answer = event ~! (e => calendar.answers.get(app.user.id, e.id).answer)
+
+	val hasDesc = event ~ (!_.desc.trim.isEmpty && !isAnnounce)
 	val showTime = isAnnounce ~ (!_)
 
 	val time = event ~ { e =>

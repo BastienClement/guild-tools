@@ -108,7 +108,7 @@
 				</template>
 			</ul>
 		</gt-context-menu>
-		<div #layout [@type]="event.type" [@state]="event.state" [@answer]="0">
+		<div #layout [@type]="event.type" [@state]="event.state" [@answer]="answer">
 			<i #icon *if="icon">{{icon}}</i>
 			<b #title>{{event.title}}</b>
 			<i #note *if="hasDesc">edit</i>

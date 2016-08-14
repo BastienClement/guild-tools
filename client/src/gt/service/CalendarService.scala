@@ -5,7 +5,6 @@ import gt.service.base.{Cache, Delegate, Service}
 import model.calendar.{Answer, Event, Slack}
 import rx.Rx
 import scala.collection.immutable.BitSet
-import util.DateTime
 
 object CalendarService extends Service with Delegate {
 	val channel = registerChannel("calendar")
@@ -53,7 +52,7 @@ object CalendarService extends Service with Delegate {
 	object answers extends Cache((a: Answer) => (a.user, a.event)) {
 		override def default(key: (Int, Int)): Answer = key match {
 			case (user, event) =>
-				Answer(user, event, DateTime.now, 0, None, None, false)
+				Answer(user, event, null, 0, None, None, false)
 		}
 	}
 

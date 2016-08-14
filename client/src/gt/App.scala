@@ -2,6 +2,7 @@ package gt
 
 import boopickle.DefaultBasic._
 import gt.component.app.GtApp
+import gt.component.widget.floating.GtFloatingPlaceholder
 import gt.service.RosterService
 import model.User
 import org.scalajs.dom.raw.HTMLSpanElement
@@ -32,7 +33,7 @@ import xuen.expr.PipesRegistry
 	val prod: Boolean = !dev
 
 	/** Elements to load when application is booting */
-	private val coreElements = Seq(GtApp)
+	private val coreElements = Seq(GtApp, GtFloatingPlaceholder)
 
 	/** Application entry point */
 	def main(): Unit = {
