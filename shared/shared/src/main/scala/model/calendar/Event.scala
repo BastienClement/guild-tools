@@ -10,9 +10,5 @@ import util.annotation.data
 	val isRestricted = visibility == EventVisibility.Restricted
 	val isAnnounce = visibility == EventVisibility.Announce
 
-	lazy val monthKey = date.year * 12 + date.month - 1
-	lazy val dayKey = date.day
-	lazy val fullKey = (monthKey, dayKey)
-
 	val sortingTime = if (time < 600) time + 2400 else time
 }

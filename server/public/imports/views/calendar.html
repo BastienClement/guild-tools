@@ -64,12 +64,12 @@
 	<template>
 		<div #day>
 			<b>{{day}}</b>
-			<span #slacks [hidden]="!hasSlacks">
-				<i>flash_on</i><b>{{slacks.length}}</b>
+			<span #slacks [hidden]="slacksCount < 1">
+				<i>flash_on</i><b>{{slacksCount}}</b>
 				<gt-tooltip>
 					<div style="margin-bottom: 8px;">Slackers this day:</div>
 					<div *for="slack of slacks">
-						<roster-main [user]="slack.user"></roster-main>
+						<roster-toon [user]="slack.user"></roster-toon>
 					</div>
 				</gt-tooltip>
 			</span>
@@ -113,11 +113,11 @@
 			<b #title>{{event.title}}</b>
 			<i #note *if="hasDesc">edit</i>
 			<b #time *if="showTime">{{time}}</b>
-			<span #actions *if="showActions && event.state == 0">
+			<span #actions *if="event.state == 0">
 				<i>check</i>
 				<i>clear</i>
 			</span>
-			<span #actions *if="showActions && event.state != 0">
+			<span #actions *if="event.state != 0">
 				<i>lock_outline</i>
 			</span>
 		</div>

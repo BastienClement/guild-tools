@@ -10,24 +10,19 @@ import xuen.rx.Rx
 object CalendarService extends Service with Delegate {
 	val channel = registerChannel("calendar")
 
-	type MonthKey = Int
-	type DayKey = Int
-	case class Key(month: MonthKey, day: DayKey)
-
 	/** The set of already requested month keys */
 	private var requested = BitSet()
 
 	/**
 	  * Ensures that the given month was loaded in the cache.
 	  *
-	  * The month key is adjusted by an offset of 24167 to ensure
+	  * The month key is adjusted by an offset of 168 to ensure
 	  * optimal performances with BitSet. This means that the system
 	  * does not support events before 01/2014.
-	  *
-	  * @param month the month to load
 	  */
-	@inline private final def load(month: MonthKey): Unit = {
-		val adjusted = month - 24167
+	@inline private final def load(key: Int): Unit = {
+		val month = key / 32
+		val adjusted = month - 168
 		if (adjusted > 0 && !requested(adjusted)) {
 			requested += adjusted
 			channel.request("load-month", month).apply(loadData _)
@@ -47,11 +42,11 @@ object CalendarService extends Service with Delegate {
 	}
 
 	object events extends Cache((e: Event) => e.id) {
-		val byDate = new Index(e => e.fullKey)
+		val byDate = new SimpleIndex(e => e.date.toCalendarKey)
 
-		def forKey(key: Key): Rx[Seq[Event]] = {
-			load(key.month)
-			byDate.get((key.month, key.day)) ~ (_.toSeq.sorted)
+		def forKey(key: Int): Rx[Seq[Event]] = {
+			load(key)
+			byDate.get(key) ~ (_.toSeq.sorted)
 		}
 	}
 
@@ -63,11 +58,13 @@ object CalendarService extends Service with Delegate {
 	}
 
 	object slacks extends Cache((a: Slack) => a.id) {
+		val ranges = new RangeIndex(s => (s.from.toCalendarKey, s.to.toCalendarKey))
 
+		def forKey(key: Int): Rx[Set[Slack]] = {
+			load(key)
+			ranges.containing(key, key)
+		}
 	}
-
-	def eventsForKey(key: Key): Rx[Seq[Event]] = Nil
-	def slacksForKey(key: Key): Rx[Seq[Slack]] = Nil
 
 	/** Clears every caches when the service is suspended */
 	override protected def disable(): Unit = {

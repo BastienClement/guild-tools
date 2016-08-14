@@ -55,8 +55,8 @@ class CalendarChannel(user: User) extends ChannelHandler {
 	}
 
 	request("load-month") { key: Int =>
-		val year = key / 12
 		val month = key % 12
+		val year = key / 12 + 2000
 
 		val from = DateTime(year, month + 1, 1)
 		val to = DateTime(year, month + 1, 1) + 1.month - 1.day

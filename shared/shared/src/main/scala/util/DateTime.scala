@@ -129,7 +129,10 @@ class DateTime private (val instant: Instant) extends Ordered[DateTime] {
 	override def toString = s"DateTime($toISOString)"
 	def toISOString = date.format(DateTime.isoFormat)
 
-	// SQL Timestamp
+	// Calendar key format
+	def toCalendarKey: Int = ((year - 2000) * 12 + (month - 1)) * 32 + day
+
+	// SQL Timestamp201
 	lazy val toTimestamp = {
 		val cal = new GregorianCalendar
 		cal.set(year, month - 1, day, hour, minute, second)

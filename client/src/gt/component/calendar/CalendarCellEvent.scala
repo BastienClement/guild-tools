@@ -13,11 +13,13 @@ object CalendarCellEvent extends Component[CalendarCellEvent](
 
 @js class CalendarCellEvent extends GtHandler {
 	val event = property[Event]
+	val isAnnounce = event ~ { e => e != null && e.isAnnounce }
+
+	val announce = attribute[Boolean]
+	announce <~ isAnnounce
 
 	val hasDesc = event ~ (!_.desc.trim.isEmpty)
-
-	val showTime = event ~ (!_.isAnnounce)
-	val showActions = showTime
+	val showTime = isAnnounce ~ (!_)
 
 	val time = event ~ { e =>
 		val base = (e.time + 10000).toString.drop(1)

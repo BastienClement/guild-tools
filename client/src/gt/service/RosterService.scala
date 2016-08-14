@@ -75,7 +75,7 @@ object RosterService extends Service with Delegate {
 		// Apply template is availble of request it
 		data match {
 			case Some(d) => loadData(d)
-			case None => channel.request("load-user", userid).apply(loadData _)
+			case None => if (userid > 0) channel.request("load-user", userid).apply(loadData _)
 		}
 	}
 
@@ -90,7 +90,7 @@ object RosterService extends Service with Delegate {
 	/** Cached data for each toon */
 	private[this] val dataForToon = mutable.Map[Int, Var[Toon]]().withDefault(createDefaultToon)
 	private def createDefaultToon(id: Int): Var[Toon] = {
-		channel.request("load-user-toon", id).apply(loadUserData _)
+		if (id > 0) channel.request("load-user-toon", id).apply(loadUserData _)
 		val toon = placeholderForToon(-1, id)
 		dataForToon.put(id, toon)
 		toon

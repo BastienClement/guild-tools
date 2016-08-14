@@ -1,6 +1,7 @@
 package xuen.rx
 
 import scala.language.implicitConversions
+import scala.scalajs.js
 
 /**
   * A reactive varibale, whose value can be modified.
@@ -24,6 +25,9 @@ class Var[T] protected (initial: T) extends Rx[T] {
 	  * @return the updated reactive variable
 	  */
 	def := (value: T): this.type = {
+		if (js.isUndefined(value)) {
+			throw new IllegalArgumentException("Attempted to set a Var to undefined")
+		}
 		if (current != value) {
 			current = value
 			invalidate()

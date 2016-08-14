@@ -1,6 +1,7 @@
 package xuen
 
 import facade.dom4.HTMLTemplateElement
+import gt.App
 import org.scalajs.dom.raw.{HTMLLinkElement, HTMLStyleElement}
 import org.scalajs.dom.{console, _}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -8,6 +9,7 @@ import scala.concurrent.Future
 import scala.language.higherKinds
 import scala.scalajs.js
 import scala.scalajs.js.ConstructorTag
+import scala.util.Failure
 import util.Global._
 import util.implicits._
 import xuen.Loader.LessLoader
@@ -29,7 +31,9 @@ abstract class Component[H <: ComponentInstance : ConstructorTag](val selector: 
 	private[this] lazy val loadOnce: Future[_] = {
 		for {
 			_ <- loadDependencies()
-			tmpl <- loadTemplate()
+			tmpl <- loadTemplate() andThen {
+				case Failure(e) => console.error("Failed to load template: " + App.formatException(e))
+			}
 		} yield {
 			template = tmpl
 			dynamic.document.registerElement(selector, literal(prototype = prototype))

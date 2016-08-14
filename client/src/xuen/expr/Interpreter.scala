@@ -182,7 +182,9 @@ object Interpreter {
 
 	def safeEvaluate(expr: Expression, context: Context): Any = {
 		try {
-			evaluate(expr, context)
+			val res = evaluate(expr, context)
+			if (js.isUndefined(res)) null
+			else res
 		} catch {
 			case fail: Throwable =>
 				console.error(s"Error while evaluating expression: ${ Generator.gen(expr) }\n\n${ expr.toString }\n\n>> ${ App.formatException(fail) }")

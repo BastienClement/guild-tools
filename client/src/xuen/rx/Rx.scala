@@ -68,11 +68,11 @@ trait Rx[+T] {
 
 	/** Combines this reactive value with another one (merge) */
 	def ~+[U >: T] (rhs: Rx[U]): Rx[U] = {
-		var a: T = this
-		var b: U = rhs
+		var a: T = this.!
+		var b: U = rhs.!
 		Rx {
-			val av: T = this
-			val bv: U = rhs
+			val av: T = this.!
+			val bv: U = rhs.!
 			var res = b
 			if (a != av) {
 				a = av

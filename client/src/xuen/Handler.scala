@@ -70,9 +70,8 @@ import xuen.rx.{Obs, Rx, Var}
 		val defaultValue = proxy.!
 
 		// Read initial value
-		val initialValue = Option(getAttribute(name))
-		if (initialValue.isDefined) {
-			for (value <- serializer.read(initialValue)) proxy := value
+		if (hasAttribute(name)) {
+			for (value <- serializer.read(Option(getAttribute(name)))) proxy := value
 		}
 
 		proxy ~>> { value =>
