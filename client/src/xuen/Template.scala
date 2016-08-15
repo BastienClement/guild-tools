@@ -113,7 +113,7 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 				val items: Iterable[Any] = Interpreter.safeEvaluate(enumerator.iterable, context) match {
 					case it: Iterable[_] => it
 					case array: js.Array[_] => array
-					case unit: Unit => Nil
+					case _: Unit | null => Nil
 					case unsupported =>
 						val ex = s"Unsupported iterable in for-loop: ${ unsupported.getClass.getName }"
 						console.error(ex)

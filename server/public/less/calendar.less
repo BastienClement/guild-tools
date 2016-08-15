@@ -223,8 +223,8 @@
 		display: flex;
 		align-items: center;
 
-		& > b:first-of-type { flex: 1; }
-		& > b:last-of-type:not(:first-of-type) { margin-left: 20px; }
+		& > *:first-child { flex: 1; }
+		& > *:last-child:not(:first-child) { margin-left: 20px; }
 	}
 
 	#type { color: @fs-gray; }

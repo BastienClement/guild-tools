@@ -87,7 +87,7 @@
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="calendar-colors">
 	<template>
 		<gt-tooltip>
-			<calendar-cell-event-tooltip #tooltip [event] [time]></calendar-cell-event-tooltip>
+			<calendar-cell-event-tooltip #tooltip [event] [answer] [time]="showTime ? time : null"></calendar-cell-event-tooltip>
 		</gt-tooltip>
 		<gt-context-menu *if="canContextMenu">
 			<ul>
@@ -130,20 +130,19 @@
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="calendar-cell-event-tooltip">
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="calendar-colors">
 	<template>
-		<meta is="roster-main" [user]="event.owner" [main]>
 		<div .row>
-			<b {state}="event.state" {type}="event.type" {answer}="event.answer.answer">{{event.title}}</b>
-			<b *if="showTime">{{time}}</b>
+			<b [@state]="event.state" [@type]="event.type" [@answer]="answer">{{event.title}}</b>
+			<b *if="time != null">{{time}}</b>
 		</div>
 		<div .row>
-			<b {class-color}="main.class">{{main.name}}</b>
+			<span><roster-toon [user]="event.owner"></roster-toon></span>
 			<b #type>{{eventType}}</b>
 		</div>
-		<div #desc {hidden}="!event.desc">{{event.desc}}</div>
-		<div #declined {hidden}="declined.length == 0">
+		<div #desc *if="event.desc">{{event.desc}}</div>
+		<div #declined *if="hasDeclines">
 			<div .title>Declined:</div>
-			<span .decline *for="declined">
-				<roster-main [user]="item"></roster-main>
+			<span .decline *for="answer of declines">
+				<roster-toon [user]="answer.user"></roster-toon>
 			</span>
 		</div>
 	</template>

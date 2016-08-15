@@ -46,12 +46,14 @@ object GtTooltip extends Component[GtTooltip](
 		parent.addEventListener("mousemove", moveListener)
 		visible := true
 		move(e)
+		fire("tooltip-show")
 	}
 
 	def hide(e: Event): Unit = if (visible) {
 		parent.removeEventListener("mousemove", moveListener)
 		FloatingUtil.unlift(this)
 		visible := false
+		fire("tooltip-hide")
 	}
 
 	def move(e: MouseEvent): Unit = if (visible) {

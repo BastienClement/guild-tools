@@ -4,12 +4,32 @@ import rx.{Obs, Rx, Var}
 import scala.collection.immutable.TreeMap
 import util.intervaltree.IntervalTree
 
+/**
+  * A reactive local data cache.
+  * Caches are used to store data fetched from the server.
+  *
+  * The task of maintaining an up-to-date reactive representation of the data is
+  * tedious. Caches provides a was to automatically store, index, update and retrieve
+  * values as well as constructing default value when some data is missing.
+  *
+  * The main hash function is used to compute the primary indexing key. Only
+  * a single element can be stored for a given primary key. If another value with
+  * the same primary key is inserted, its values will overwrite the previous value.
+  *
+  * Caches can define additionnal indexes based on arbitrary criterias for faster access.
+  *
+  * @param hash the main index hash function
+  * @tparam K the type of the main index key
+  * @tparam V the type of values stored in the cache
+  */
 abstract class Cache[K, V <: AnyRef](hash: V => K) {
 	/** Default value for newly allocated cells */
 	def default(key: K): V = throw new UnsupportedOperationException("Default value factory is not defined")
 
 	/** Collection of items in the cache */
 	private var items = Map[K, Var[V]]()
+
+	/** Sets of defined index for this cache */
 	private var indexes = Set[BaseIndex]()
 
 	private def constructCell(key: K, value: V) = {

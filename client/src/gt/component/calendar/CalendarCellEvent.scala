@@ -10,7 +10,7 @@ import xuen.Component
 object CalendarCellEvent extends Component[CalendarCellEvent](
 	selector = "calendar-cell-event",
 	templateUrl = "/assets/imports/views/calendar.html",
-	dependencies = Seq(GtTooltip, GtContextMenu)
+	dependencies = Seq(GtTooltip, GtContextMenu, CalendarCellEventTooltip)
 )
 
 @js class CalendarCellEvent extends GtHandler {

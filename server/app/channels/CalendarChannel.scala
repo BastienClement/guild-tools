@@ -31,29 +31,7 @@ class CalendarChannel(user: User) extends ChannelHandler {
 
 	/**
 	  * Requests events and slacks data for a specific month.
-	  * The month is given as the "month-key" in client-side application.
-	  * (Actually identical to the first part of an ISO date string.
 	  */
-	message("request-events") { month_key: String =>
-		"^(201[0-9])\\-(0[1-9]|1[0-2])$".r.findFirstMatchIn(month_key) match {
-			case None => throw new IllegalArgumentException(s"Bad date requested: $month_key")
-			case Some(matched) =>
-				val year = matched.group(1).toInt
-				val month = matched.group(2).toInt
-
-				val from = DateTime(year, month, 1)
-				val to = DateTime(year, month, 1) + 1.month - 1.day
-
-				val events = Events.findBetween(from, to).filter(Events.canAccess(user))
-				val events_answers = Answers.withOwnAnswer(events, user).run
-				val slacks = Slacks.findBetween(from, to).run.map(_.map(_.conceal))
-
-				for ((ea, s) <- events_answers.zip(slacks)) {
-					send("events", (ea, s, month_key))
-				}
-		}
-	}
-
 	request("load-month") { key: Int =>
 		val month = key % 12
 		val year = key / 12 + 2000
@@ -73,7 +51,7 @@ class CalendarChannel(user: User) extends ChannelHandler {
 	  */
 	request("event-answers") { event: Int =>
 		Events.ifAccessible(user, event) {
-			Answers.findForEvent(event).run.await
+			Answers.findForEvent(event).run
 		}
 	}
 
