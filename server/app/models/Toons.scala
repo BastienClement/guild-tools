@@ -30,4 +30,6 @@ object Toons extends TableQuery(new Toons(_)) {
 		case "TANK" | "HEALING" | "DPS" => true
 		case _ => false
 	}
+
+	def findById(id: Rep[Int]) = this.filter(_.id === id)
 }

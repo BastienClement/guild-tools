@@ -21,12 +21,14 @@ object CalendarChannel extends ChannelValidator {
 class CalendarChannel(user: User) extends ChannelHandler {
 	init {
 		Events.subscribe(user)
+		Answers.subscribe(user)
 	}
 
 	akka {
-		case Events.Created(event) => send("event-created", event)
+		case Events.Created(event) => send("event-updated", event)
 		case Events.Updated(event) => send("event-updated", event)
 		case Events.Deleted(event) => send("event-deleted", event)
+		case Answers.Updated(answer) => send("answer-updated", answer)
 	}
 
 	/**
@@ -67,6 +69,9 @@ class CalendarChannel(user: User) extends ChannelHandler {
 	/**
 	  * Changes the user's answer to an event.
 	  */
-	message("change-event-answer") { (event: Int, answer: Int, toon: Option[Int], note: String) =>
+	message("change-event-answer") { (event: Int, answer: Int, toon: Option[Int], note: Option[String]) =>
+		Events.ifAccessible(user, event) {
+			Answers.changeAnswer(user.id, event, answer, toon, note)
+		}
 	}
 }

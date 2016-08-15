@@ -92,19 +92,19 @@
 		<gt-context-menu *if="canContextMenu">
 			<ul>
 				<template *if="canAcceptDecline">
-					<li (click)="AcceptEvent"><i>check</i> Accept</li>
-					<li (click)="DeclineEvent"><i>clear</i> Decline</li>
+					<li (click)="acceptEvent()"><i>check</i> Accept</li>
+					<li (click)="declineEvent()"><i>clear</i> Decline</li>
 					<li .separator></li>
 				</template>
 				<template *if="canEdit">
 					<template *if="!announce">
-						<li (click)="OpenEvent"><i>panorama_fish_eye</i> Open</li>
-						<li (click)="CloseEvent"><i>lock_outline</i> Close</li>
-						<li (click)="CancelEvent"><i>remove_circle_outline</i> Cancel</li>
+						<li (click)="openEvent()"><i>panorama_fish_eye</i> Open</li>
+						<li (click)="closeEvent()"><i>lock_outline</i> Close</li>
+						<li (click)="cancelEvent()"><i>remove_circle_outline</i> Cancel</li>
 						<li .separator></li>
 					</template>
-					<li (click)="EditEvent"><i>edit</i> Edit</li>
-					<li (click)="DeleteEvent"><i>delete_forever</i> Delete</li>
+					<li (click)="editEvent()"><i>edit</i> Edit</li>
+					<li (click)="deleteEvent()"><i>delete_forever</i> Delete</li>
 				</template>
 			</ul>
 		</gt-context-menu>

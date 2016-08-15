@@ -3,7 +3,7 @@ package gt.component.calendar
 import gt.component.GtHandler
 import gt.component.widget.{GtContextMenu, GtTooltip}
 import gt.service.CalendarService
-import model.calendar.{Event, EventState, EventVisibility}
+import model.calendar.{AnswerValue, Event, EventState, EventVisibility}
 import rx.Rx
 import util.jsannotation.js
 import xuen.Component
@@ -47,4 +47,14 @@ object CalendarCellEvent extends Component[CalendarCellEvent](
 	val canAcceptDecline = event ~ (e => e.state == EventState.Open && e.visibility != EventVisibility.Announce)
 	val canEdit = Rx { app.user.promoted || event.owner == app.user.id || answerData.promote }
 	val canContextMenu = Rx { canAcceptDecline || canEdit }
+
+	def acceptEvent(): Unit = calendar.changeEventAnswer(event.id, AnswerValue.Accepted)
+	def declineEvent(): Unit = calendar.changeEventAnswer(event.id, AnswerValue.Declined)
+
+	def openEvent(): Unit = println("decline")
+	def closeEvent(): Unit = println("decline")
+	def cancelEvent(): Unit = println("decline")
+
+	def editEvent(): Unit = {}
+	def deleteEvent(): Unit = println("decline")
 }

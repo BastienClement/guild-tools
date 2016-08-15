@@ -3,6 +3,7 @@ package gt.service
 import boopickle.DefaultBasic._
 import gt.App
 import gt.service.base.{Cache, Delegate, Service}
+import model.Toon
 import model.calendar.{Answer, Event, Slack}
 import rx.Rx
 import scala.collection.immutable.BitSet
@@ -130,6 +131,14 @@ object CalendarService extends Service with Delegate {
 			ranges.containing(key, key)
 		}
 	}
+
+	def changeEventAnswer(event: Int, answer: Int, message: Option[String] = None, toon: Option[Toon] = None): Unit = {
+		channel.send("change-event-answer", (event, answer, message, toon))
+	}
+
+	message("event-updated")(events.update _)
+	message("event-deleted")(events.remove _)
+	message("answer-updated")(answers.update _)
 
 	/** Clears every caches when the service is suspended */
 	override protected def disable(): Unit = {

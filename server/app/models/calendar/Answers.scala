@@ -4,7 +4,10 @@ import model.User
 import model.calendar.{Answer, Event}
 import models._
 import models.mysql._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import util.DateTime
+import utils.PubSub
 
 class Answers(tag: Tag) extends Table[Answer](tag, "gt_answers") {
 	def user = column[Int]("user", O.PrimaryKey)
@@ -18,10 +21,8 @@ class Answers(tag: Tag) extends Table[Answer](tag, "gt_answers") {
 	def * = (user, event, date, answer, note, char, promote) <> (Answer.tupled, Answer.unapply)
 }
 
-object Answers extends TableQuery(new Answers(_)) {
-	val Pending = 0
-	val Accepted = 1
-	val Declined = 2
+object Answers extends TableQuery(new Answers(_)) with PubSub[User] {
+	case class Updated(answer: Answer)
 
 	def findForEvent(event: Rep[Int]) = {
 		Answers.filter(_.event === event)
@@ -36,4 +37,31 @@ object Answers extends TableQuery(new Answers(_)) {
 	}
 
 	def fullEvent(answer: Answer) = Events.filter(_.id === answer.event).head
+
+	def changeAnswer(user: Int, event: Int, answer: Int, toon: Option[Int], note: Option[String]): Unit = {
+		for {
+			old <- Answers.findForEventAndUser(event, user).headOption
+			toonData <- toon.map(Toons.findById(_).headOption).getOrElse(Future.successful(None))
+			_ = if (!toonData.forall(_.owner == user)) throw new Exception("Illegal toon given")
+		} {
+			val updated = old match {
+				case Some(o) if o.answer != answer => o.copy(date = DateTime.now, answer = answer, toon = toon, note = note)
+				case None => Answer(user, event, DateTime.now, answer, note, toon, false)
+				case _ => throw new Exception("Answer did not change")
+			}
+
+			for (n <- Answers.findForEventAndUser(event, user).update(updated).run if n > 0) {
+				publishUpdate(updated)
+			}
+		}
+	}
+
+	private def publishUpdate(answer: Answer): Unit = {
+		for {
+			event <- Events.findById(answer.event).head
+			answers <- for (as <- Answers.findForEvent(event.id).run) yield as.map(a => (a.user, a)).toMap
+		} {
+			publish(Updated(answer), u => Events.canAccess(u, event, answers.get(u.id)))
+		}
+	}
 }
