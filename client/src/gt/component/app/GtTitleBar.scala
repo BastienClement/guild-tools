@@ -8,6 +8,7 @@ import rx.Var
 import scala.scalajs.js.timers.setTimeout
 import util.jsannotation.js
 import xuen.Component
+import xuen.compat.Platform
 
 object GtTitleBar extends Component[GtTitleBar](
 	selector = "gt-title-bar",
@@ -18,7 +19,7 @@ object GtTitleBar extends Component[GtTitleBar](
 @js class GtTitleBar extends GtHandler {
 	override def ready(): Unit = {
 		// Remove the title bar if not launched as an app
-		if (!app.standalone) {
+		if (!Platform.standalone) {
 			val ctrls = child.`window-controls`
 			ctrls.parentNode.removeChild(ctrls)
 		}

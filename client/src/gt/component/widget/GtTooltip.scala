@@ -2,7 +2,7 @@ package gt.component.widget
 
 import facade.dom4.HTMLElement
 import gt.component.GtHandler
-import gt.component.widget.floating.{AbstractFloating, FloatingUtil, GtFloatingPlaceholder}
+import gt.component.widget.floating.{AbstractFloating, FloatingUtils, GtFloatingPlaceholder}
 import org.scalajs.dom.{Event, MouseEvent, window}
 import scala.scalajs.js
 import util.jsannotation.js
@@ -26,7 +26,7 @@ object GtTooltip extends Component[GtTooltip](
 	val moveListener: js.Function1[MouseEvent, Unit] = move _
 
 	override def attached(): Unit = if (!transition) {
-		parent = FloatingUtil.parent(this)
+		parent = FloatingUtils.parent(this)
 		if (parent != null) {
 			parent.addEventListener("mouseenter", enterListener)
 			parent.addEventListener("mouseleave", leaveListener)
@@ -42,7 +42,7 @@ object GtTooltip extends Component[GtTooltip](
 	}
 
 	def show(e: MouseEvent): Unit = if (!visible) {
-		FloatingUtil.lift(this, hide)
+		FloatingUtils.lift(this, hide)
 		parent.addEventListener("mousemove", moveListener)
 		visible := true
 		move(e)
@@ -51,7 +51,7 @@ object GtTooltip extends Component[GtTooltip](
 
 	def hide(e: Event): Unit = if (visible) {
 		parent.removeEventListener("mousemove", moveListener)
-		FloatingUtil.unlift(this)
+		FloatingUtils.unlift(this)
 		visible := false
 		fire("tooltip-hide")
 	}

@@ -13,6 +13,7 @@ import scala.scalajs.js
 import scala.util.{Failure, Success}
 import util.jsannotation.js
 import xuen.Component
+import xuen.compat.Platform
 
 object ProfileInfo extends Component[ProfileInfo](
 	selector = "profile-info",
@@ -51,7 +52,7 @@ object ProfileInfo extends Component[ProfileInfo](
 
 	/** Navigates to the profile management page */
 	def edit(): Unit = {
-		val base = if (app.dev) "/auth" else "//auth.fromscratch.gg"
+		val base = if (Platform.dev) "/auth" else "//auth.fromscratch.gg"
 		window.location.href = s"$base/user/${ user.! }"
 	}
 }

@@ -91,10 +91,30 @@
 	});
 </script>
 
-@* Check browser compatibility *@
+@* Check browser compatibility and load polyfills *@
 <script src='@routes.Assets.versioned("javascripts/bowser.js")'></script>
 <script>
+	var COMPAT, pfready;
 	(function() {
+		var acquire, release;
+		pfready = new Promise(function(done) {
+			var count = 0;
+			acquire = function() { ++count; };
+			release = function() { if(--count < 1) done(); };
+		});
+
+		var imports = '@routes.Assets.versioned("javascripts/polyfills/imports.js")';
+
+		function load(polyfill) {
+			acquire();
+			var script = document.createElement("script");
+			script.type = "text/javascript";
+			script.src = polyfill;
+			script.async = true;
+			script.onload = release;
+			document.head.appendChild(script);
+		}
+
 		var bowser = this.bowser || module.exports;
 		var valid = (function() {
 			var version = parseInt(bowser.version.split(".")[0]);
@@ -102,8 +122,15 @@
 			//else if (bowser.firefox) return version >= 41;
 			else return false;
 		})();
+
+		COMPAT = !valid;
+
 		if (!valid && localStorage.getItem("unsupported.ignored") != navigator.userAgent) {
 			document.location.href = "/unsupported";
+		} else if (bowser.firefox || bowser.msedge) {
+			load(imports);
+		} else {
+			release();
 		}
 	})();
 </script>
@@ -115,7 +142,9 @@
 
 @* Launcher *@
 <script>
-	var scripts = document.querySelectorAll("body > script");
-	for (var i = 0; i < scripts.length; i++) scripts[i].parentNode.removeChild(scripts[i]);
-	gt.App().main();
+	pfready.then(function() {
+		var scripts = document.querySelectorAll("body > script");
+		for (var i = 0; i < scripts.length; i++) scripts[i].parentNode.removeChild(scripts[i]);
+		gt.App().main();
+	});
 </script>

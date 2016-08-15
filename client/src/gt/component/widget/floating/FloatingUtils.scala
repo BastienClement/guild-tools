@@ -4,7 +4,7 @@ import facade.dom4.HTMLElement
 import org.scalajs.dom.{Event, document}
 import scala.scalajs.js
 
-object FloatingUtil {
+object FloatingUtils {
 	def parent(self: AbstractFloating): HTMLElement = {
 		if (self.parentNode.nodeType == 11) self.parentNode.asInstanceOf[js.Dynamic].host
 		else self.parentNode

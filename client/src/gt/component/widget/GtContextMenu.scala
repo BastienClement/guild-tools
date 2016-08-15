@@ -2,7 +2,7 @@ package gt.component.widget
 
 import facade.dom4.HTMLElement
 import gt.component.GtHandler
-import gt.component.widget.floating.{AbstractFloating, FloatingUtil, GtFloatingPlaceholder}
+import gt.component.widget.floating.{AbstractFloating, FloatingUtils, GtFloatingPlaceholder}
 import org.scalajs.dom.{Event, MouseEvent, document, window}
 import util.jsannotation.js
 import xuen.Component
@@ -27,7 +27,7 @@ object GtContextMenu extends Component[GtContextMenu](
 	val stopListener: scalajs.js.Function1[Event, Unit] = stop _
 
 	override def attached(): Unit = if (!transition) {
-		parent = FloatingUtil.parent(this)
+		parent = FloatingUtils.parent(this)
 		if (parent != null && !passive) {
 			parent.addEventListener("contextmenu", contextListener)
 			if (useclick) parent.addEventListener("click", contextListener)
@@ -43,7 +43,7 @@ object GtContextMenu extends Component[GtContextMenu](
 	}
 
 	def context(e: MouseEvent): Unit = if (!e.shiftKey) {
-		FloatingUtil.lift(this, close)
+		FloatingUtils.lift(this, close)
 		visible := true
 		document.addEventListener("mousedown", closeListener)
 		document.addEventListener("click", closeListener)
@@ -64,7 +64,7 @@ object GtContextMenu extends Component[GtContextMenu](
 		document.removeEventListener("mousedown", closeListener)
 		document.removeEventListener("click", closeListener)
 		removeEventListener("mousedown", stopListener)
-		FloatingUtil.unlift(this)
+		FloatingUtils.unlift(this)
 		visible := false
 		fire("context-close")
 	}

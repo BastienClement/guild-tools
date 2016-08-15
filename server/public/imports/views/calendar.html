@@ -92,8 +92,8 @@
 		<gt-context-menu *if="canContextMenu">
 			<ul>
 				<template *if="canAcceptDecline">
-					<li (click)="acceptEvent()"><i>check</i> Accept</li>
-					<li (click)="declineEvent()"><i>clear</i> Decline</li>
+					<li (click)="acceptEvent()" [hidden]="answer == 1"><i>check</i> Accept</li>
+					<li (click)="declineEvent()" [hidden]="answer == 2"><i>clear</i> Decline</li>
 					<li .separator></li>
 				</template>
 				<template *if="canEdit">

@@ -27,11 +27,6 @@ import xuen.expr.PipesRegistry
 	/** The logged in application user */
 	var user: User = null
 
-	// Flags
-	val standalone: Boolean = window.dyn.APP.as[Boolean]
-	val dev: Boolean = window.dyn.DEV.as[Boolean]
-	val prod: Boolean = !dev
-
 	/** Elements to load when application is booting */
 	private val coreElements = Seq(GtApp, GtFloatingPlaceholder)
 

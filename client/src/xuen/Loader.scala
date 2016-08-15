@@ -11,6 +11,7 @@ import scala.scalajs.js.RegExp
 import util.Global._
 import util.GtWorker
 import util.implicits._
+import xuen.compat.Platform
 
 object Loader {
 	private val fetchCache = mutable.Map.empty[String, Future[String]]
@@ -51,7 +52,11 @@ object Loader {
 			link.href = url
 			document.head.appendChild(link)
 			link.onLoadFuture.map { e =>
-				e.asInstanceOf[js.Dynamic].`import`.as[Document]
+				if (Platform.isFirefox) {
+					e.asInstanceOf[js.Dynamic].__doc.as[Document]
+				} else {
+					e.asInstanceOf[js.Dynamic].`import`.as[Document]
+				}
 			}
 		})
 	}
