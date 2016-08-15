@@ -60,13 +60,8 @@ object GtTooltip extends Component[GtTooltip](
 		var x = e.clientX + 10
 		var y = window.innerHeight - e.clientY + 10
 
-		if (x + offsetWidth + 20 > window.innerWidth) {
-			x -= offsetWidth + 20
-		}
-
-		if (y + offsetHeight + 20 > window.innerHeight) {
-			y -= offsetHeight + 20
-		}
+		if (x + offsetWidth + 20 > window.innerWidth) x -= offsetWidth + 20
+		if (y + offsetHeight + 20 > window.innerHeight) y -= offsetHeight + 20
 
 		style.left = x + "px"
 		style.bottom = y + "px"
