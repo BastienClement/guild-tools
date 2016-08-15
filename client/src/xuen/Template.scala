@@ -83,20 +83,20 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 
 		templateWrap(element, s"*if $sourceExpr", this) { (placeholder, context, template, parent) =>
 			var instance: Template#Instance = null
-			var inserted: Seq[Node] = Nil
+			var inserted: Vector[Node] = Vector.empty
 
 			val rx = Rx { Interpreter.safeEvaluate(expr, context) }
 			val obs = Obs {
 				if (instance == null && rx.!.dyn) {
 					instance = template.bind(context)
-					inserted = instance.root.childNodes.toSeq
+					inserted = instance.root.childNodes.toVector
 					parent.attach(instance)
 					placeholder.parentNode.insertBefore(instance.root, placeholder.nextSibling)
 				} else if (instance != null && !rx.!.dyn) {
 					parent.detach(instance)
 					for (node <- inserted) node.parentNode.removeChild(node)
 					instance = null
-					inserted = Nil
+					inserted = Vector.empty
 				}
 			}
 			Some((rx, obs))
