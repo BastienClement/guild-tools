@@ -83,20 +83,20 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 
 		templateWrap(element, s"*if $sourceExpr", this) { (placeholder, context, template, parent) =>
 			var instance: Template#Instance = null
-			var inserted: Node = null
+			var inserted: Seq[Node] = Nil
 
 			val rx = Rx { Interpreter.safeEvaluate(expr, context) }
 			val obs = Obs {
 				if (instance == null && rx.!.dyn) {
 					instance = template.bind(context)
-					inserted = instance.root.firstChild
+					inserted = instance.root.childNodes.toSeq
 					parent.attach(instance)
 					placeholder.parentNode.insertBefore(instance.root, placeholder.nextSibling)
 				} else if (instance != null && !rx.!.dyn) {
 					parent.detach(instance)
-					inserted.parentNode.removeChild(inserted)
+					for (node <- inserted) node.parentNode.removeChild(node)
 					instance = null
-					inserted = null
+					inserted = Nil
 				}
 			}
 			Some((rx, obs))
@@ -104,6 +104,8 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 	}
 
 	private def compileForTransformation(element: Element): Unit = {
+		if (element.tagName == "TEMPLATE") throw XuenException("<template *for> is not supported")
+
 		val sourceExpr = element.getAttribute("*for")
 		val enumerator = Parser.parseEnumerator(sourceExpr)
 		element.removeAttribute("*for")
@@ -670,11 +672,18 @@ object Template {
 	private def templateWrap(element: Element, text: String, parent: Template)
 	                        (builderImpl: (Node, Context, Template, Template#Instance) => Option[(Rx[_], Obs)]): Unit = {
 		val id = nextBindingId
-		val template = document.createElement("template").as[HTMLTemplateElement]
+
+		val (template, wrapped) = {
+			if (element.tagName == "TEMPLATE") (element.as[HTMLTemplateElement], false)
+			else (document.createElement("template").as[HTMLTemplateElement], true)
+		}
+
 		template.setAttribute("xuen-bindings", id)
 
-		element.parentNode.replaceChild(template, element)
-		template.content.appendChild(element)
+		if (wrapped) {
+			element.parentNode.replaceChild(template, element)
+			template.content.appendChild(element)
+		}
 
 		val child = new Template(template, parent.component, parent.componentChilds)
 
