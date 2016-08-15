@@ -48,7 +48,6 @@ object GtContextMenu extends Component[GtContextMenu](
 		document.addEventListener("mousedown", closeListener)
 		document.addEventListener("click", closeListener)
 		addEventListener("mousedown", stopListener)
-		addEventListener("click", stopListener)
 		fire("context-open")
 
 		var x = e.clientX - 1
@@ -65,7 +64,6 @@ object GtContextMenu extends Component[GtContextMenu](
 		document.removeEventListener("mousedown", closeListener)
 		document.removeEventListener("click", closeListener)
 		removeEventListener("mousedown", stopListener)
-		removeEventListener("click", stopListener)
 		FloatingUtil.unlift(this)
 		visible := false
 		fire("context-close")
