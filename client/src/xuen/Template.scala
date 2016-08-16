@@ -1,7 +1,6 @@
 package xuen
 
 import facade.dom4.HTMLTemplateElement
-import facade.dom4.implicits.UpgradeElement
 import org.scalajs.dom._
 import rx.{Obs, Rx, Var}
 import scala.collection.mutable
@@ -233,6 +232,8 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 		val expr = Parser.parseExpression(selector)
 		element.removeAttribute("*match")
 
+		val isTemplate = element.tagName == "TEMPLATE"
+
 		type Case = (Option[Expression], Template)
 		val cases = js.Array[Case]()
 
@@ -245,15 +246,17 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 
 		@inline def caseMatch(casee: Case, value: Any, context: Context): Boolean = casee._1 match {
 			case None => true
-			case Some(ref) => Interpreter.safeEvaluate(ref, context) match {
-				case bool: Boolean => bool
-				case res => res == value
+			case Some(ref) => (Interpreter.safeEvaluate(ref, context), value) match {
+				case (a: Boolean, b: Boolean) => a == b
+				case (a: Boolean, _) => a
+				case (a: Any, b: Any) => a == b
 			}
 			case _ => false
 		}
 
 		var children = js.Array[Node]()
-		for (child <- element.childNodes) children.push(child)
+		val childNodes = if (isTemplate) element.as[HTMLTemplateElement].content.childNodes else element.childNodes
+		for (child <- childNodes) children.push(child)
 
 		children.foreach {
 			case el: Element if el.hasAttribute("*case") =>
@@ -266,26 +269,31 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 				wrapCase(el, None)
 
 			case el: Element =>
-				console.warn("*match: removing untagged element:", el)
-				el.remove()
+				console.warn("*match: ignoring untagged element:", el)
 
-			case node =>
-				element.removeChild(node)
+			case _ => // ignore
 		}
 
 		children = null
 		val comment = document.createComment(s" *match $selector ")
 		element.parentNode.insertBefore(comment, element)
+		element.innerHTML = ""
 
 		registerBinding(element) { case (node, context, instance) =>
-			node.innerHTML = ""
+			val cmnt = node.previousSibling
+			val parent = node.parentNode
+			if (isTemplate) parent.removeChild(node)
 
 			var current: Option[(Case, Template#Instance)] = None
 			val rx = Rx { cases.find(caseMatch(_, Interpreter.safeEvaluate(expr, context), context)) }
 
 			@inline def setCurrentCase(casee: Case): Unit = {
 				val newChild = casee._2.bind(context)
-				node.appendChild(newChild.root)
+				if (isTemplate) {
+					parent.insertBefore(newChild.root, cmnt.nextSibling)
+				} else {
+					node.appendChild(newChild.root)
+				}
 				instance.attach(newChild)
 				current = Some((casee, newChild))
 			}
@@ -293,7 +301,11 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 			@inline def detachCurrent(): Unit = {
 				for ((_, child) <- current) {
 					instance.detach(child)
-					node.removeChild(node.firstChild)
+					if (isTemplate) {
+						parent.removeChild(cmnt.nextSibling)
+					} else {
+						node.removeChild(node.firstChild)
+					}
 					current = None
 				}
 			}
