@@ -51,10 +51,10 @@ object CalendarCellEvent extends Component[CalendarCellEvent](
 	def acceptEvent(): Unit = calendar.changeEventAnswer(event.id, AnswerValue.Accepted)
 	def declineEvent(): Unit = calendar.changeEventAnswer(event.id, AnswerValue.Declined)
 
-	def openEvent(): Unit = println("decline")
-	def closeEvent(): Unit = println("decline")
-	def cancelEvent(): Unit = println("decline")
+	def openEvent(): Unit = calendar.changeEventState(event.id, EventState.Open)
+	def closeEvent(): Unit = calendar.changeEventState(event.id, EventState.Closed)
+	def cancelEvent(): Unit = calendar.changeEventState(event.id, EventState.Canceled)
 
 	def editEvent(): Unit = {}
-	def deleteEvent(): Unit = println("decline")
+	def deleteEvent(): Unit = {}
 }

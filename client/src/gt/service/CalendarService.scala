@@ -136,6 +136,10 @@ object CalendarService extends Service with Delegate {
 		channel.send("change-event-answer", (event, answer, message, toon))
 	}
 
+	def changeEventState(event: Int, state: Int): Unit = {
+		channel.send("change-event-state", (event, state))
+	}
+
 	message("event-updated")(events.update _)
 	message("event-deleted")(events.remove _)
 	message("answer-updated")(answers.update _)
