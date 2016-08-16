@@ -1,11 +1,15 @@
 package gt.component.calendar
 
 import gt.component.calendar.CalendarCell.CalendarCellDate
-import gt.component.widget.GtBox
 import gt.component.widget.form.GtButton
+import gt.component.widget.{GtBox, GtTooltip, RosterToon}
 import gt.component.{GtHandler, Tab, View}
-import rx.Var
+import gt.service.CalendarService
+import model.calendar.Slack
+import org.scalajs.dom.MouseEvent
+import rx.{Const, Var}
 import scala.scalajs.js
+import util.Lazy
 import util.implicits._
 import util.jsannotation.js
 import xuen.Component
@@ -13,7 +17,7 @@ import xuen.Component
 object GtCalendar extends Component[GtCalendar](
 	selector = "gt-calendar",
 	templateUrl = "/assets/imports/views/calendar.html",
-	dependencies = Seq(GtBox, GtButton, CalendarCell)
+	dependencies = Seq(GtBox, GtButton, CalendarCell, GtTooltip, CalendarEventTooltip, RosterToon)
 ) with View {
 	val module = "calendar"
 
@@ -40,6 +44,8 @@ object GtCalendar extends Component[GtCalendar](
 }
 
 @js class GtCalendar extends GtHandler {
+	val calendar = service(CalendarService)
+
 	val page = {
 		val now = new js.Date()
 		Var((now.getMonth, now.getFullYear))
@@ -88,4 +94,30 @@ object GtCalendar extends Component[GtCalendar](
 	def nextMonth(): Unit = page ~= { case (month, year) => if (month == 11) (0, year + 1) else (month + 1, year) }
 	def previousMonth(): Unit = page ~= { case (month, year) => if (month == 0) (11, year - 1) else (month - 1, year) }
 	def currentMonth(): Unit = page := { val now = new js.Date(); (now.getMonth, now.getFullYear) }
+
+	val eventTooltip = Lazy(child.as[GtTooltip]("#event-tooltip"))
+	val eventTooltipInner = Lazy(child.as[CalendarEventTooltip]("#event-tooltip > :first-child"))
+
+	listenCustom[(Int, MouseEvent)]("show-event-tooltip") { case (event, e) =>
+		eventTooltipInner.eventid := Some(event)
+		eventTooltip.show(e)
+	}
+
+	listenCustom[Unit]("hide-event-tooltip") { _ =>
+		eventTooltip.hide()
+	}
+
+	val slacksTooltip = Lazy(child.as[GtTooltip]("#slacks-tooltip"))
+	val slacksTooltipKey = Var[Option[Int]](None)
+	val slacksNone = Const(Set.empty[Slack])
+	val slacks = slacksTooltipKey ~! (_.map(calendar.slacks.forKey).getOrElse(slacksNone))
+
+	listenCustom[(Int, MouseEvent)]("show-slacks-tooltip") { case (key, e) =>
+		slacksTooltipKey := Some(key)
+		slacksTooltip.show(e)
+	}
+
+	listenCustom[Unit]("hide-slacks-tooltip") { _ =>
+		slacksTooltip.hide()
+	}
 }

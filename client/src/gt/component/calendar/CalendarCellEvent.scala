@@ -1,9 +1,10 @@
 package gt.component.calendar
 
 import gt.component.GtHandler
-import gt.component.widget.{GtContextMenu, GtTooltip}
+import gt.component.widget.GtContextMenu
 import gt.service.CalendarService
 import model.calendar.{AnswerValue, Event, EventState, EventVisibility}
+import org.scalajs.dom.MouseEvent
 import rx.Rx
 import util.jsannotation.js
 import xuen.Component
@@ -11,7 +12,7 @@ import xuen.Component
 object CalendarCellEvent extends Component[CalendarCellEvent](
 	selector = "calendar-cell-event",
 	templateUrl = "/assets/imports/views/calendar.html",
-	dependencies = Seq(GtTooltip, GtContextMenu, CalendarCellEventTooltip)
+	dependencies = Seq(GtContextMenu)
 )
 
 @js class CalendarCellEvent extends GtHandler {
@@ -28,11 +29,6 @@ object CalendarCellEvent extends Component[CalendarCellEvent](
 
 	val hasDesc = event ~ (!_.desc.trim.isEmpty && !isAnnounce)
 	val showTime = isAnnounce ~ (!_)
-
-	val time = event ~ { e =>
-		val base = (e.time + 10000).toString.drop(1)
-		base.take(2) + ":" + base.takeRight(2)
-	}
 
 	val icon = event ~ {
 		_.visibility match {
@@ -57,4 +53,7 @@ object CalendarCellEvent extends Component[CalendarCellEvent](
 
 	def editEvent(): Unit = {}
 	def deleteEvent(): Unit = {}
+
+	listen("mouseenter") { e: MouseEvent => fire("show-event-tooltip", (event.id, e)) }
+	listen("mouseleave") { e: MouseEvent => fire("hide-event-tooltip") }
 }

@@ -28,6 +28,13 @@ object Pipes extends PipesCollection {
 	declare("race", Strings.raceName _)
 	declare("rank", Strings.rankName _)
 
+	declare("calendarTime", (_: Any) match {
+		case time: Int =>
+			val base = (time + 10000).toString.drop(1)
+			base.take(2) + ":" + base.takeRight(2)
+		case other => other
+	})
+
 	locally {
 		val phoneFormats = Seq(
 			"+33 x xx xx xx xx",

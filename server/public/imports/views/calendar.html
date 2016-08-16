@@ -53,6 +53,15 @@
 				</gt-box>
 			</div>
 		</gt-box>
+		<gt-tooltip passive #event-tooltip>
+			<calendar-event-tooltip></calendar-event-tooltip>
+		</gt-tooltip>
+		<gt-tooltip passive #slacks-tooltip>
+			<div style="margin-bottom: 8px;">Slackers this day:</div>
+			<div *for="slack of slacks">
+				<roster-toon [user]="slack.user"></roster-toon>
+			</div>
+		</gt-tooltip>
 	</template>
 </xuen-component>
 
@@ -66,12 +75,6 @@
 			<b>{{day}}</b>
 			<span #slacks [hidden]="slacksCount < 1">
 				<i>flash_on</i><b>{{slacksCount}}</b>
-				<gt-tooltip>
-					<div style="margin-bottom: 8px;">Slackers this day:</div>
-					<div *for="slack of slacks">
-						<roster-toon [user]="slack.user"></roster-toon>
-					</div>
-				</gt-tooltip>
 			</span>
 		</div>
 		<div #events>
@@ -86,9 +89,6 @@
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="calendar-cell-event">
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="calendar-colors">
 	<template>
-		<gt-tooltip>
-			<calendar-cell-event-tooltip #tooltip [event] [answer] [time]="showTime ? time : null"></calendar-cell-event-tooltip>
-		</gt-tooltip>
 		<gt-context-menu *if="canContextMenu">
 			<ul>
 				<template *if="canAcceptDecline">
@@ -112,34 +112,36 @@
 			<i #icon *if="icon">{{icon}}</i>
 			<b #title>{{event.title}}</b>
 			<i #note *if="hasDesc">edit</i>
-			<b #time *if="showTime">{{time}}</b>
-			<span #actions *if="canAcceptDecline">
-				<i (click)="acceptEvent()">check</i>
-				<i (click)="declineEvent()">clear</i>
-			</span>
-			<span #actions *if="!canAcceptDecline">
-				<i>lock_outline</i>
-			</span>
+			<b #time *if="showTime">{{event.time | calendarTime}}</b>
+			<template *match="canAcceptDecline">
+				<span #actions *case="true">
+					<i (click)="acceptEvent()">check</i>
+					<i (click)="declineEvent()">clear</i>
+				</span>
+				<span #actions *case="false">
+					<i .lock>lock_outline</i>
+				</span>
+			</template>
 		</div>
 	</template>
 </xuen-component>
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
-<xuen-component id="calendar-cell-event-tooltip">
-	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="calendar-cell-event-tooltip">
+<xuen-component id="calendar-event-tooltip">
+	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="calendar-event-tooltip">
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="calendar-colors">
 	<template>
 		<div .row>
-			<b [@state]="event.state" [@type]="event.type" [@answer]="answer">{{event.title}}</b>
-			<b *if="time != null">{{time}}</b>
+			<b [@state]="event.state" [@type]="event.type" [@answer]="answer.answer">{{event.title}}</b>
+			<b [hidden]="announce">{{event.time | calendarTime}}</b>
 		</div>
 		<div .row>
 			<span><roster-toon [user]="event.owner"></roster-toon></span>
 			<b #type>{{eventType}}</b>
 		</div>
-		<div #desc *if="event.desc">{{event.desc}}</div>
-		<div #declined *if="hasDeclines">
+		<div #desc [hidden]="!event.desc">{{event.desc}}</div>
+		<div #declined [hidden]="!hasDeclines">
 			<div .title>Declined:</div>
 			<span .decline *for="answer of declines">
 				<roster-toon [user]="answer.user"></roster-toon>

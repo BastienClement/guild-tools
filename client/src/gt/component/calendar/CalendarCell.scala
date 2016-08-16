@@ -2,8 +2,8 @@ package gt.component.calendar
 
 import gt.component.GtHandler
 import gt.component.calendar.CalendarCell.CalendarCellDate
-import gt.component.widget.{GtTooltip, RosterToon}
 import gt.service.CalendarService
+import org.scalajs.dom._
 import scala.scalajs.js
 import util.annotation.data
 import util.jsannotation.js
@@ -12,7 +12,7 @@ import xuen.Component
 object CalendarCell extends Component[CalendarCell](
 	selector = "calendar-cell",
 	templateUrl = "/assets/imports/views/calendar.html",
-	dependencies = Seq(CalendarCellEvent, RosterToon, GtTooltip)
+	dependencies = Seq(CalendarCellEvent)
 ) {
 	@data case class CalendarCellDate(date: js.Date, inactive: Boolean, today: Boolean)
 }
@@ -35,4 +35,7 @@ object CalendarCell extends Component[CalendarCell](
 
 	val slacks = key ~! calendar.slacks.forKey
 	val slacksCount = slacks ~ (_.size)
+
+	listen("mouseenter", child("#slacks")) { e: MouseEvent => fire("show-slacks-tooltip", (key.!, e)) }
+	listen("mouseleave", child("#slacks")) { e: MouseEvent => fire("hide-slacks-tooltip") }
 }

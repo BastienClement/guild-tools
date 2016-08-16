@@ -6,23 +6,30 @@ import gt.service.CalendarService
 import model.calendar.{Answer, AnswerValue, Event, EventVisibility}
 import org.scalajs.dom.raw.CustomEvent
 import rx.{Rx, Var}
+import util.DateTime
 import util.jsannotation.js
 import xuen.Component
 
-object CalendarCellEventTooltip extends Component[CalendarCellEventTooltip](
-	selector = "calendar-cell-event-tooltip",
+object CalendarEventTooltip extends Component[CalendarEventTooltip](
+	selector = "calendar-event-tooltip",
 	templateUrl = "/assets/imports/views/calendar.html",
 	dependencies = Seq(RosterToon)
-)
+) {
+	val dummyEvent: Rx[Event] = Event(0, "", "", 2, DateTime.now, 0, 0, 0)
+	val dummyAnswer: Rx[Answer] = Answer(0, 0, DateTime.now, 0, None, None, false)
+}
 
-@js class CalendarCellEventTooltip extends GtHandler {
+@js class CalendarEventTooltip extends GtHandler {
 	val calendar = service(CalendarService)
-	val event = property[Event]
-	val answer = property[Answer]
-	val showTime = property[Boolean]
-	val time = property[String]
+	val eventid = property[Option[Int]] := None
 
-	val eventType = event ~ (_.visibility) ~ {
+	val event = eventid ~! (_.map(calendar.events.get).getOrElse(CalendarEventTooltip.dummyEvent))
+	val answer = eventid ~! (_.map(calendar.answers.myAnswerForEvent).getOrElse(CalendarEventTooltip.dummyAnswer))
+
+	val visibility = event ~ (_.visibility)
+	val announce = visibility ~ (_ == EventVisibility.Announce)
+
+	val eventType = visibility ~ {
 		case EventVisibility.Announce => "Announce"
 		case EventVisibility.Guild => "Guild event"
 		case EventVisibility.Public => "Public event"

@@ -116,6 +116,8 @@ object CalendarService extends Service with Delegate {
 			loadAnswers(event)
 			byEvent.get(event)
 		}
+
+		def myAnswerForEvent(event: Int): Rx[Answer] = get((App.user.id, event))
 	}
 
 	/**
