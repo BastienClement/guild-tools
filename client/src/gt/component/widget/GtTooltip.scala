@@ -16,6 +16,7 @@ object GtTooltip extends Component[GtTooltip](
 @js class GtTooltip extends GtHandler with AbstractFloating {
 	val visible = attribute[Boolean] := false
 	val width = (attribute[Int] := 300) ~>> (w => style.maxWidth = w + "px")
+	val passive = attribute[Boolean] := false
 
 	var parent: HTMLElement = null
 	var transition: Boolean = false
@@ -27,7 +28,7 @@ object GtTooltip extends Component[GtTooltip](
 
 	override def attached(): Unit = if (!transition) {
 		parent = FloatingUtils.parent(this)
-		if (parent != null) {
+		if (parent != null && !passive) {
 			parent.addEventListener("mouseenter", enterListener)
 			parent.addEventListener("mouseleave", leaveListener)
 		}
@@ -49,7 +50,7 @@ object GtTooltip extends Component[GtTooltip](
 		fire("tooltip-show")
 	}
 
-	def hide(e: Event): Unit = if (visible) {
+	def hide(e: Event = null): Unit = if (visible) {
 		parent.removeEventListener("mousemove", moveListener)
 		FloatingUtils.unlift(this)
 		visible := false
