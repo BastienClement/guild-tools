@@ -180,7 +180,7 @@
 			width: auto;
 			text-shadow: 0 0 0;
 			transition: color ease-out .3s;
-			&:hover { color: @fs-blue; }
+			&:not(.lock):hover { color: @fs-blue; }
 		}
 	}
 
@@ -216,9 +216,9 @@
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// <calendar-cell-event-tooltip>
+// <calendar-event-tooltip>
 
-:namespace("calendar-cell-event-tooltip") {
+:namespace("calendar-event-tooltip") {
 	.row {
 		display: flex;
 		align-items: center;
