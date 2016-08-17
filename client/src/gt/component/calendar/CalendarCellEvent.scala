@@ -1,5 +1,6 @@
 package gt.component.calendar
 
+import gt.Router
 import gt.component.GtHandler
 import gt.component.widget.GtContextMenu
 import gt.service.CalendarService
@@ -9,6 +10,9 @@ import rx.Rx
 import util.jsannotation.js
 import xuen.Component
 
+/**
+  * An event in a cell of the main calendar view.
+  */
 object CalendarCellEvent extends Component[CalendarCellEvent](
 	selector = "calendar-cell-event",
 	templateUrl = "/assets/imports/views/calendar.html",
@@ -52,8 +56,10 @@ object CalendarCellEvent extends Component[CalendarCellEvent](
 	def cancelEvent(): Unit = calendar.changeEventState(event.id, EventState.Canceled)
 
 	def editEvent(): Unit = {}
-	def deleteEvent(): Unit = {}
+	def deleteEvent(): Unit = fire("show-delete-dialog", event.id)
 
 	listen("mouseenter") { e: MouseEvent => fire("show-event-tooltip", (event.id, e)) }
 	listen("mouseleave") { e: MouseEvent => fire("hide-event-tooltip") }
+
+	listen("click") { e: MouseEvent => Router.goto(s"/calendar/event/${ event.id }") }
 }

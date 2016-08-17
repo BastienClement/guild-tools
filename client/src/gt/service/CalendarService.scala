@@ -8,7 +8,13 @@ import model.calendar.{Answer, Event, Slack}
 import rx.Rx
 import scala.collection.immutable.BitSet
 
+/**
+  * The calendar services is responsible for handling calendar and slacks
+  * related taks. This include keeping local caches of events, answers and
+  * slacks and providing high-level API for manipulating calendar data.
+  */
 object CalendarService extends Service with Delegate {
+	/** The calendar service channel */
 	val channel = registerChannel("calendar")
 
 	/** The set of already requested month keys */
@@ -134,12 +140,35 @@ object CalendarService extends Service with Delegate {
 		}
 	}
 
+	/**
+	  * Changes the user's answer to an event.
+	  *
+	  * @param event   the event id
+	  * @param answer  the answer value
+	  * @param message an optional details message
+	  * @param toon    an optional toon to associate with the answer
+	  */
 	def changeEventAnswer(event: Int, answer: Int, message: Option[String] = None, toon: Option[Toon] = None): Unit = {
 		channel.send("change-event-answer", (event, answer, message, toon))
 	}
 
+	/**
+	  * Changes the state of an event.
+	  *
+	  * @param event the event id
+	  * @param state the new state value
+	  */
 	def changeEventState(event: Int, state: Int): Unit = {
 		channel.send("change-event-state", (event, state))
+	}
+
+	/**
+	  * Deletes an event.
+	  *
+	  * @param event the event id
+	  */
+	def deleteEvent(event: Int): Unit = {
+		channel.send("delete-event", event)
 	}
 
 	message("event-updated")(events.update _)

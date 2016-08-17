@@ -1,7 +1,7 @@
 package gt
 
 import gt.component.View
-import gt.component.calendar.GtCalendar
+import gt.component.calendar.{GtCalendar, GtCalendarEvent}
 import gt.component.dashboard.GtDashboard
 import gt.component.misc.{GtAbout, GtSettings}
 import gt.component.profile.GtProfile
@@ -17,6 +17,7 @@ object Routes {
 		"/profile(/:[0-9]+:user)?" -> GtProfile,
 
 		"/calendar" -> GtCalendar,
+		"/calendar/event/:[0-9]+:event" -> GtCalendarEvent,
 
 		"/about" -> GtAbout,
 		"/settings" -> GtSettings

@@ -2,7 +2,7 @@ package gt.component.calendar
 
 import gt.component.calendar.CalendarCell.CalendarCellDate
 import gt.component.widget.form.GtButton
-import gt.component.widget.{GtBox, GtTooltip, RosterToon}
+import gt.component.widget.{GtBox, GtDialog, GtTooltip, RosterToon}
 import gt.component.{GtHandler, Tab, View}
 import gt.service.CalendarService
 import model.calendar.Slack
@@ -14,18 +14,23 @@ import util.implicits._
 import util.jsannotation.js
 import xuen.Component
 
+/**
+  * The main calendar view.
+  */
 object GtCalendar extends Component[GtCalendar](
 	selector = "gt-calendar",
 	templateUrl = "/assets/imports/views/calendar.html",
-	dependencies = Seq(GtBox, GtButton, CalendarCell, GtTooltip, CalendarEventTooltip, RosterToon)
+	dependencies = Seq(GtBox, GtButton, CalendarCell, GtTooltip, CalendarTooltip, RosterToon, GtDialog, GtButton)
 ) with View {
 	val module = "calendar"
 
-	val tabs: TabGenerator = (selector, path, user) => Seq(
-		Tab("Calendar", "/calendar", active = true),
-		Tab("Slacks", "/slacks"),
-		Tab("Composer", "/composer")
+	def genTabs(active: String): TabGenerator = (selector, path, user) => Seq(
+		Tab("Calendar", "/calendar", active == "calendar"),
+		Tab("Slacks", "/slacks", active == "slacks"),
+		Tab("Composer", "/composer", active == "composer", hidden = !user.promoted)
 	)
+
+	val tabs: TabGenerator = genTabs("calendar")
 
 	val monthName = Vector(
 		"January",
@@ -96,7 +101,7 @@ object GtCalendar extends Component[GtCalendar](
 	def currentMonth(): Unit = page := { val now = new js.Date(); (now.getMonth, now.getFullYear) }
 
 	val eventTooltip = Lazy(child.as[GtTooltip]("#event-tooltip"))
-	val eventTooltipInner = Lazy(child.as[CalendarEventTooltip]("#event-tooltip > :first-child"))
+	val eventTooltipInner = Lazy(child.as[CalendarTooltip]("#event-tooltip > :first-child"))
 
 	listenCustom[(Int, MouseEvent)]("show-event-tooltip") { case (event, e) =>
 		eventTooltipInner.eventid := Some(event)
@@ -119,5 +124,19 @@ object GtCalendar extends Component[GtCalendar](
 
 	listenCustom[Unit]("hide-slacks-tooltip") { _ =>
 		slacksTooltip.hide()
+	}
+
+	val deleteEventDialog = Lazy(child.as[GtDialog]("#delete-dialog"))
+	val deleteEventId = Var[Option[Int]](None)
+	val deleteEventTitle = deleteEventId ~! (_.map(calendar.events.get(_) ~ (_.title)).getOrElse(Const("")))
+
+	listenCustom[Int]("show-delete-dialog") { id =>
+		deleteEventId := Some(id)
+		deleteEventDialog.show()
+	}
+
+	def deleteEvent(): Unit = {
+		calendar.deleteEvent(deleteEventId.!.get)
+		deleteEventDialog.hide()
 	}
 }

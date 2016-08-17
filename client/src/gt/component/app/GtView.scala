@@ -11,6 +11,12 @@ import util.implicits._
 import util.jsannotation.js
 import xuen.Component
 
+/**
+  * The main view area of the application.
+  *
+  * This component is responsible for reacting to the router state changes
+  * and load the appropriate view component.
+  */
 object GtView extends Component[GtView](
 	selector = "gt-view",
 	templateUrl = "/assets/imports/app.html"

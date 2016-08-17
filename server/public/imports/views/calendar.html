@@ -62,6 +62,18 @@
 				<roster-toon [user]="slack.user"></roster-toon>
 			</div>
 		</gt-tooltip>
+		<gt-dialog #delete-dialog>
+			<gt-box heading="Are you sure ?" scrollable>
+				<p>
+					The event "<strong>{{deleteEventTitle}}</strong>" and every associated data (answers and tabs)
+					will be deleted. This action cannot be undone.
+				</p>
+				<div .actions>
+					<gt-button collapse-right (click)="#delete-dialog.hide()">Cancel</gt-button>
+					<gt-button collapse-right (click)="deleteEvent()">Delete</gt-button>
+				</div>
+			</gt-box>
+		</gt-dialog>
 	</template>
 </xuen-component>
 

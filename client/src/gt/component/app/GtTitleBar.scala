@@ -10,6 +10,9 @@ import util.jsannotation.js
 import xuen.Component
 import xuen.compat.Platform
 
+/**
+  * The application title bar component.
+  */
 object GtTitleBar extends Component[GtTitleBar](
 	selector = "gt-title-bar",
 	templateUrl = "/assets/imports/app.html",

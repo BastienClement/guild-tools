@@ -8,6 +8,9 @@ import util.annotation.data
 import util.jsannotation.js
 import xuen.Component
 
+/**
+  * The application sidebar.
+  */
 object GtSidebar extends Component[GtSidebar](
 	selector = "gt-sidebar",
 	templateUrl = "/assets/imports/app.html"

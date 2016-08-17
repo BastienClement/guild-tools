@@ -9,6 +9,9 @@ import util.annotation.data
 import util.jsannotation.js
 import xuen.Component
 
+/**
+  * A cell of the main calendar view.
+  */
 object CalendarCell extends Component[CalendarCell](
 	selector = "calendar-cell",
 	templateUrl = "/assets/imports/views/calendar.html",

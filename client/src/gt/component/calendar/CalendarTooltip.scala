@@ -10,7 +10,10 @@ import util.DateTime
 import util.jsannotation.js
 import xuen.Component
 
-object CalendarEventTooltip extends Component[CalendarEventTooltip](
+/**
+  * The event tooltip from the main calendar view
+  */
+object CalendarTooltip extends Component[CalendarTooltip](
 	selector = "calendar-event-tooltip",
 	templateUrl = "/assets/imports/views/calendar.html",
 	dependencies = Seq(RosterToon)
@@ -19,12 +22,12 @@ object CalendarEventTooltip extends Component[CalendarEventTooltip](
 	val dummyAnswer: Rx[Answer] = Answer(0, 0, DateTime.now, 0, None, None, false)
 }
 
-@js class CalendarEventTooltip extends GtHandler {
+@js class CalendarTooltip extends GtHandler {
 	val calendar = service(CalendarService)
 	val eventid = property[Option[Int]] := None
 
-	val event = eventid ~! (_.map(calendar.events.get).getOrElse(CalendarEventTooltip.dummyEvent))
-	val answer = eventid ~! (_.map(calendar.answers.myAnswerForEvent).getOrElse(CalendarEventTooltip.dummyAnswer))
+	val event = eventid ~! (_.map(calendar.events.get).getOrElse(CalendarTooltip.dummyEvent))
+	val answer = eventid ~! (_.map(calendar.answers.myAnswerForEvent).getOrElse(CalendarTooltip.dummyAnswer))
 
 	val visibility = event ~ (_.visibility)
 	val announce = visibility ~ (_ == EventVisibility.Announce)

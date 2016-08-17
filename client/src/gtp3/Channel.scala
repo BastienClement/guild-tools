@@ -5,6 +5,7 @@ import org.scalajs.dom.console
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
+import scala.scalajs.js.timers
 import scodec.bits.ByteVector
 import util.EventSource
 
@@ -29,6 +30,8 @@ class Channel private[gtp3] (val socket: Socket, val tpe: String, val id: Int, v
 		for ((buffer, flags) <- Payload.encode(data)) {
 			val frame = MessageFrame(0, remote, message, flags, buffer.toByteVector)
 			socket.send(frame)
+			socket.onRequestStart.emit()
+			timers.setTimeout(500) { socket.onRequestEnd.emit() }
 		}
 	}
 

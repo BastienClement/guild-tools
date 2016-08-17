@@ -8,7 +8,9 @@ import scala.scalajs.js.timers.setTimeout
 import util.jsannotation.js
 import xuen.Component
 
-/** Main application component */
+/**
+  * The main application component
+  */
 object GtApp extends Component[GtApp](
 	selector = "gt-app",
 	templateUrl = "/assets/imports/app.html",
