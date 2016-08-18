@@ -70,3 +70,18 @@
 		}
 	}
 }
+
+:namespace("tooltip") {
+	::content .small { font-size: 13px; }
+	::content .smaller { font-size: 12px; }
+	::content .light { font-weight: 300; }
+	::content .blue { color: @fs-blue; }
+	::content .light-blue { color: @light-blue; }
+	::content .gray { color: @fs-gray; }
+	::content .row {
+		display: flex;
+		align-items: center;
+		& > :first-child { flex: 1; }
+		& > :not(:first-child) { margin-left: 20px; }
+	}
+}
