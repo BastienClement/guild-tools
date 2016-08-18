@@ -223,11 +223,17 @@
 		display: flex;
 		align-items: center;
 
-		& > *:first-child { flex: 1; }
-		& > *:last-child:not(:first-child) { margin-left: 20px; }
+		& > *:first-child {
+			flex: 1;
+		}
+		& > *:last-child:not(:first-child) {
+			margin-left: 20px;
+		}
 	}
 
-	#type { color: @fs-gray; }
+	#type {
+		color: @fs-gray;
+	}
 	#desc {
 		margin-top: 8px;
 		font-size: 13px;
@@ -249,6 +255,91 @@
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// <calendar-add-dialog>
+
+:namespace("calendar-add-dialog") {
+	@cell-width: 25px;
+
+	gt-box {
+		width: 530px;
+	}
+
+	p {
+		margin: 0 0 12px 0;
+		max-width: 500px;
+	}
+
+	#calendars {
+		display: flex;
+		justify-content: space-around;
+		margin-bottom: 12px;
+
+		.calendar {
+			width: @cell-width * 7 + 14px;
+		}
+
+		.title {
+			font-weight: 500;
+			text-align: center;
+			margin-bottom: 12px;
+		}
+
+		.layout {
+			display: flex;
+			flex-wrap: wrap;
+		}
+
+		.cell {
+			display: inline-block;
+			width: @cell-width;
+			height: @cell-width;
+			padding: 2px 0;
+			text-align: center;
+			box-sizing: border-box;
+			margin: 1px;
+
+			&.name {
+				font-weight: 300;
+				font-size: 12px;
+			}
+
+			&.day {
+				border-radius: 100%;
+				border: 2px solid transparent;
+				transition: border ease-in-out .1s;
+
+				&:not(.selectable) {
+					color: @fs-gray;
+				}
+
+				&.selectable {
+					&:hover {
+						border-color: fade(@fs-blue, 50%);
+					}
+					&.selected {
+						border-color: @fs-blue;
+					}
+				}
+
+				&.today {
+					color: @fs-blue;
+				}
+			}
+		}
+	}
+
+	#tip {
+		font-weight: 300;
+	}
+
+	.actions {
+		display: flex;
+		justify-content: flex-end;
+		margin: 0 0 -6px -12px;
+	}
+}
+
+	///////////////////////////////////////////////////////////////////////////////
 // <calendar-colors>
 
 :namespace("calendar-colors") {

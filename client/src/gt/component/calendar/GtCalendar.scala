@@ -20,7 +20,7 @@ import xuen.Component
 object GtCalendar extends Component[GtCalendar](
 	selector = "gt-calendar",
 	templateUrl = "/assets/imports/views/calendar.html",
-	dependencies = Seq(GtBox, GtButton, CalendarCell, GtTooltip, CalendarTooltip, RosterToon, GtDialog, GtButton)
+	dependencies = Seq(GtBox, GtButton, CalendarCell, GtTooltip, CalendarTooltip, RosterToon, GtDialog, GtButton, CalendarAddDialog)
 ) with View {
 	val module = "calendar"
 

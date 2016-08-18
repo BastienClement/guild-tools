@@ -61,5 +61,7 @@ object CalendarCellEvent extends Component[CalendarCellEvent](
 	listen("mouseenter") { e: MouseEvent => fire("show-event-tooltip", (event.id, e)) }
 	listen("mouseleave") { e: MouseEvent => fire("hide-event-tooltip") }
 
-	listen("click") { e: MouseEvent => Router.goto(s"/calendar/event/${ event.id }") }
+	listen("click") { e: MouseEvent =>
+		if (event.visibility != EventVisibility.Announce) Router.goto(s"/calendar/event/${ event.id }")
+	}
 }

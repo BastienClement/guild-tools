@@ -107,7 +107,11 @@ class DateTime private (val instant: Instant) extends Ordered[DateTime] {
 
 	override def hashCode(): Int = timestamp.hashCode()
 
-	def compare(that: DateTime): Int = (timestamp - that.timestamp).toInt
+	def compare(that: DateTime): Int = (timestamp, that.timestamp) match {
+		case (a, b) if a < b => -1
+		case (a, b) if a > b => 1
+		case _ => 0
+	}
 
 	def between(a: DateTime, b: DateTime) = this >= a && this <= b
 

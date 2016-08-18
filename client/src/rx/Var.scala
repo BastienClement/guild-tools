@@ -2,6 +2,7 @@ package rx
 
 import scala.language.implicitConversions
 import scala.scalajs.js
+import util.Zero
 
 /**
   * A reactive varibale, whose value can be modified.
@@ -54,4 +55,5 @@ class Var[T] protected (initial: T) extends Rx[T] {
 object Var {
 	implicit def wrapper[T](value: T): Var[T] = Var(value)
 	def apply[T](value: T): Var[T] = new Var(value)
+	def apply[T](implicit zero: Zero[T], dummy: DummyImplicit) = new Var(zero.zero)
 }

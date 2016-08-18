@@ -28,7 +28,7 @@ object GtButton extends Component[GtButton](
 	def mouseenter(): Unit = setAttribute("hover", "")
 	def mouseleave(): Unit = removeAttribute("hover")
 
-	listen("click", capture = true) { e: MouseEvent =>
+	listen("click", child("#btn"), capture = true) { e: MouseEvent =>
 		if (_disabled) {
 			e.preventDefault()
 			e.stopPropagation()

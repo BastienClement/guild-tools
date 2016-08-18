@@ -16,7 +16,7 @@
 							<gt-button (click)="nextMonth()"><i>chevron_right</i></gt-button>
 						</div>
 						<div #right>
-							<gt-button>New event</gt-button>
+							<gt-button (click)="#add-dialog.show()">New event</gt-button>
 						</div>
 					</div>
 					<div #days>
@@ -73,6 +73,9 @@
 					<gt-button collapse-right (click)="deleteEvent()">Delete</gt-button>
 				</div>
 			</gt-box>
+		</gt-dialog>
+		<gt-dialog>
+			<calendar-add-dialog #add-dialog></calendar-add-dialog>
 		</gt-dialog>
 	</template>
 </xuen-component>
@@ -177,6 +180,71 @@
 				Next lockout
 			</h2>
 			<gt-alert dark icon="cloud_off">No data available</gt-alert>
+		</gt-box>
+	</template>
+</xuen-component>
+
+<!-- ////////////////////////////////////////////////////////////////////// -->
+
+<xuen-component id="calendar-add-dialog">
+	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="calendar-add-dialog">
+	<template>
+		<gt-box heading="New event" scrollable>
+			<template *match="step">
+				<div #step1 *case="1">
+					<p>Select the day on which the new event should happen:</p>
+					<div #calendars>
+						<div #left .calendar>
+							<div .title>{{currentMonthName}}</div>
+							<div .layout>
+								<div .cell .name>Mon</div>
+								<div .cell .name>Tue</div>
+								<div .cell .name>Wed</div>
+								<div .cell .name>Thu</div>
+								<div .cell .name>Fri</div>
+								<div .cell .name>Sat</div>
+								<div .cell .name>Sun</div>
+								<div .cell .padding *for="_ of currentMonthPadding"></div>
+								<div .cell .day *for="day of currentMonthDays"
+										.selectable="day >= lowLimit" .today="day == currentDay"
+										.selected="selected(day, currentMonth, currentYear)"
+										(click)="day >= lowLimit && select(day, currentMonth, currentYear, $event)">{{day}}</div>
+							</div>
+						</div>
+						<div #right .calendar>
+							<div .title>{{nextMonthName}}</div>
+							<div .layout>
+								<div .cell .name>Mon</div>
+								<div .cell .name>Tue</div>
+								<div .cell .name>Wed</div>
+								<div .cell .name>Thu</div>
+								<div .cell .name>Fri</div>
+								<div .cell .name>Sat</div>
+								<div .cell .name>Sun</div>
+								<div .cell .padding *for="_ of nextMonthPadding"></div>
+								<div .cell .day *for="day of nextMonthDays" .selectable
+										.selected="selected(day, nextMonth, nextYear)"
+										(click)="select(day, nextMonth, nextYear, $event)">{{day}}</div>
+							</div>
+						</div>
+					</div>
+					<p #tip [hidden]="!app.user.promoted">
+						<i>priority_high</i>
+						Tip: Officers can use shift or ctrl to create the same event on multiple days.
+					</p>
+					<div .actions>
+						<gt-button collapse-right (click)="hide()">Cancel</gt-button>
+						<gt-button collapse-right (click)="step = 2" [disabled]="!canGoNext">Next</gt-button>
+					</div>
+				</div>
+				<div #step2 *case="2">
+					<div .actions>
+						<gt-button collapse-right (click)="hide()">Cancel</gt-button>
+						<gt-button collapse-right (click)="step = 1">Back</gt-button>
+						<gt-button collapse-right (click)="submit()">Create</gt-button>
+					</div>
+				</div>
+			</template>
 		</gt-box>
 	</template>
 </xuen-component>
