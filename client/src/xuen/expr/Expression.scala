@@ -24,6 +24,7 @@ object Expression {
 	case class Binary(op: String, lhs: Expression, rhs: Expression) extends Expression
 	case class Unary(op: String, operand: Expression) extends Expression
 
+	case class Range(from: Expression, to: Expression) extends Expression
 	case class SelectorQuery(selector: String) extends Expression
 
 	case class LiteralPrimitive(value: Any) extends Expression

@@ -125,6 +125,12 @@ object Interpreter {
 		}).norm
 	}
 
+	private def evaluateRange(from: Expression, to: Expression)(implicit context: Context): Any = {
+		val lower = (from.evaluate.norm.dyn | 0).asInstanceOf[Int]
+		val upper = (to.evaluate.norm.dyn | 0).asInstanceOf[Int]
+		lower to upper
+	}
+
 	private def evaluateSelectorQuery(selector: String)(implicit context: Context): Any = {
 		context.selectElement(selector)
 	}
@@ -167,6 +173,7 @@ object Interpreter {
 		case KeyedWrite(obj, key, value) => evaluateKeyedWrite(obj, key, value)
 		case Binary(op, lhs, rhs) => evaluateBinary(op, lhs, rhs)
 		case Unary(op, operand) => evaluateUnary(op, operand)
+		case Range(from, to) => evaluateRange(from, to)
 		case SelectorQuery(id) => evaluateSelectorQuery(id)
 		case LiteralPrimitive(value) => value
 		case LiteralArray(values) => evaluateLiteralArray(values)

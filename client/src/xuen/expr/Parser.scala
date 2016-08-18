@@ -137,7 +137,15 @@ class Parser(val input: String, private[this] val tokens: Array[Token]) {
 			case Token.Operator(op @ ("<" | ">" | "<=" | ">=")) => advance(); parse(Binary(op, lhs, additive))
 			case _ => lhs
 		}
-		parse(additive)
+		parse(range)
+	}
+
+	def range: Expression = {
+		var res = additive
+		if (optionalKeyword("to")) {
+			res = Range(res, additive)
+		}
+		res
 	}
 
 	def additive: Expression = {
@@ -291,7 +299,7 @@ class Parser(val input: String, private[this] val tokens: Array[Token]) {
 
 	def enumerator: Enumerator = {
 		val (index, key) = expectBindingKeys
-		expectKeyword("of")
+		if (!optionalKeyword("of")) expectOperator("<-")
 		val iterable = expression
 		val by = if (optionalKeyword("by")) Some(expression) else None
 		val filter = if (optionalKeyword("if")) Some(expression) else None

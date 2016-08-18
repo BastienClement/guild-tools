@@ -8,6 +8,7 @@ class Lexer(val input: String, val from: Int = 0) {
 	private[this] val chars = input.toCharArray
 	private[this] val length = chars.length
 	private[this] var peek: Char = '\u0000'
+	private[this] var next: Char = '\u0000'
 	private[this] var index: Int = from - 1
 
 	advance()
@@ -16,7 +17,10 @@ class Lexer(val input: String, val from: Int = 0) {
 	@tailrec private final def advance(count: Int = 1): Unit = {
 		index += 1
 		if (count > 1) advance(count - 1)
-		else peek = if (index >= length) '\u0000' else chars(index)
+		else {
+			peek = if (index >= length) '\u0000' else chars(index)
+			next = if (index + 1 >= length) '\u0000' else chars(index + 1)
+		}
 	}
 
 	@inline
@@ -61,6 +65,9 @@ class Lexer(val input: String, val from: Int = 0) {
 				case '?' =>
 					scanComplexOperator('?', '.')
 
+				case '<' if next == '-' =>
+					scanComplexOperator('<', '-')
+
 				case '<' | '>' =>
 					scanComplexOperator(peek, '=')
 
@@ -93,7 +100,7 @@ class Lexer(val input: String, val from: Int = 0) {
 		while (isIdentifierPart(peek)) advance()
 
 		String.valueOf(chars, start, index - start) match {
-			case kw @ ("val" | "null" | "undefined" | "true" | "false" | "if" | "then" | "else" | "of" | "by") =>
+			case kw @ ("val" | "null" | "undefined" | "true" | "false" | "if" | "then" | "else" | "of" | "by" | "to") =>
 				Token.Keyword(kw)
 
 			case id =>

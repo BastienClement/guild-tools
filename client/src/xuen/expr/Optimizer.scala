@@ -25,6 +25,12 @@ object Optimizer {
 		case KeyedWrite(_, _, value) => compileTimeValue(value)
 		case LiteralPrimitive(value) => Some(value)
 
+		case Range(from, to) =>
+			(compileTimeValue(from), compileTimeValue(to)) match {
+				case (Some(a: Int), Some(b: Int)) => Some(a to b)
+				case _ => None
+			}
+
 		case _ => None
 	}
 
@@ -83,6 +89,8 @@ object Optimizer {
 			case StringFragment(_) => true
 			case ExpressionFragment(expr) => pure(expr)
 		}
+
+		case Range(from, to) => pure(from) && pure(to)
 
 		case SelectorQuery(_) | LiteralPrimitive(_) => true
 
@@ -182,6 +190,11 @@ object Optimizer {
 				value <- compileTimeValue(operand)
 				result <- compileTimeUnary(op, value.dyn)
 			} yield LiteralPrimitive(result)).getOrElse(Unary(op, optOperand))
+
+		case range: Range => compileTimeValue(range) match {
+			case Some(r) => LiteralPrimitive(r)
+			case None => range
+		}
 
 		case LiteralArray(values) => LiteralArray(values.map(optimize))
 		case LiteralMap(keys, values) => LiteralMap(keys, values.map(optimize))
