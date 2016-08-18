@@ -32,6 +32,7 @@
 			<i>check</i>
 			<div #dot></div>
 		</div>
+		<span #label *if="label">{{label}}</span>
 	</template>
 </xuen-component>
 
@@ -40,7 +41,10 @@
 <xuen-component id="gt-textarea">
 	<link rel="stylesheet/less" href="/assets/less/widgets.less" ns="gt-textarea">
 	<template>
-		<textarea #textarea {disabled}></textarea>
+		<label>
+			<span #label *if="label">{{label}}</span>
+			<textarea #textarea [value] [disabled]></textarea>
+		</label>
 	</template>
 </xuen-component>
 
