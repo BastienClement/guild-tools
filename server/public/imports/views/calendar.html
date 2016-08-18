@@ -234,14 +234,84 @@
 					</p>
 					<div .actions>
 						<gt-button collapse-right (click)="hide()">Cancel</gt-button>
-						<gt-button collapse-right (click)="step = 2" [disabled]="!canGoNext">Next</gt-button>
+						<gt-button collapse-right (click)="step = 2; #event-title.focus()" [disabled]="!canGoNext">Next</gt-button>
 					</div>
 				</div>
 				<div #step2 *case="2">
+					<div .top>
+						<div .left>
+							<gt-input #event-title [(value)]="eventTitle" label="Event title"></gt-input>
+							<gt-textarea label="Description"></gt-textarea>
+						</div>
+						<div .right>
+							<div .title>Time</div>
+							<div .time-display>
+								<span (click)="clockMinutes = false">{{ eventHours < 10 ? '0' + eventHours : eventHours }}</span>
+								:
+								<span (click)="clockMinutes = true">{{ eventMinutes < 10 ? '0' + eventMinutes : eventMinutes }}</span>
+							</div>
+							<div .clock>
+								<div .face .hours .mini="clockMinutes">
+									<div .face>
+										<div *for="digit <- 0 to 11; hours = digit + 12"
+												digit="{{digit}}" .selected="eventHours == hours"
+												(click)="setHours(hours)">{{hours}}</div>
+									</div>
+									<div .face .morning>
+										<div *for="digit <- 0 to 11" digit="{{digit}}" .selected="eventHours == digit"
+												(click)="setHours(digit)">{{digit}}</div>
+									</div>
+								</div>
+								<div .face .minutes [hidden]="!clockMinutes">
+									<div .face>
+										<div *for="digit <- 0 to 11; minutes = digit * 5"
+												digit="{{digit}}" .selected="eventMinutes == minutes"
+												(click)="setMinutes(minutes)">{{minutes}}</div>
+										<div .back-zone (click)="clockMinutes = false">
+											<i>replay</i>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div .bottom>
+						<div .title>Event visibility</div>
+						<gt-checkbox [radio]="1" [(value)]="eventVisibility" label="Roster" *if="app.user.promoted">
+							<gt-tooltip>
+								Visible only to members of the guild roster<br>
+								<span .light .gray .small>Use this for progress events</span>
+							</gt-tooltip>
+						</gt-checkbox>
+						<gt-checkbox [radio]="5" [(value)]="eventVisibility" label="Guild">
+							<gt-tooltip>
+								Visible to any guilded player<br>
+								<span .light .gray .small>Use this for heroic split runs</span>
+							</gt-tooltip>
+						</gt-checkbox>
+						<gt-checkbox [radio]="3" [(value)]="eventVisibility" label="Restricted">
+							<gt-tooltip>
+								Visible only to invited players<br>
+								<span .light .gray .small>Use this for private events</span>
+							</gt-tooltip>
+						</gt-checkbox>
+						<gt-checkbox [radio]="2" [(value)]="eventVisibility" label="Public">
+							<gt-tooltip>
+								Visible to everybody<br>
+								<span .light .gray .small>Use this for community events</span>
+							</gt-tooltip>
+						</gt-checkbox>
+						<gt-checkbox [radio]="4" [(value)]="eventVisibility" label="Announce" *if="app.user.promoted">
+							<gt-tooltip>
+								A special kind of event without answers<br>
+								<span .light .gray .small>It is pretty obvious when to use this...</span>
+							</gt-tooltip>
+						</gt-checkbox>
+					</div>
 					<div .actions>
 						<gt-button collapse-right (click)="hide()">Cancel</gt-button>
 						<gt-button collapse-right (click)="step = 1">Back</gt-button>
-						<gt-button collapse-right (click)="submit()">Create</gt-button>
+						<gt-button collapse-right (click)="create()" [disabled]="!canCreate">Create</gt-button>
 					</div>
 				</div>
 			</template>

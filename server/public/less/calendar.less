@@ -269,67 +269,182 @@
 		max-width: 500px;
 	}
 
-	#calendars {
-		display: flex;
-		justify-content: space-around;
-		margin-bottom: 12px;
-
-		.calendar {
-			width: @cell-width * 7 + 14px;
-		}
-
-		.title {
-			font-weight: 500;
-			text-align: center;
-			margin-bottom: 12px;
-		}
-
-		.layout {
+	#step1 {
+		#calendars {
 			display: flex;
-			flex-wrap: wrap;
+			justify-content: space-around;
+			margin-bottom: 12px;
+
+			.calendar {
+				width: @cell-width * 7 + 14px;
+			}
+
+			.title {
+				font-weight: 500;
+				text-align: center;
+				margin-bottom: 12px;
+			}
+
+			.layout {
+				display: flex;
+				flex-wrap: wrap;
+			}
+
+			.cell {
+				display: inline-block;
+				width: @cell-width;
+				height: @cell-width;
+				padding: 2px 0;
+				text-align: center;
+				box-sizing: border-box;
+				margin: 1px;
+
+				&.name {
+					font-weight: 300;
+					font-size: 12px;
+				}
+
+				&.day {
+					border-radius: 100%;
+					border: 2px solid transparent;
+					transition: border ease-in-out .1s;
+
+					&:not(.selectable) {
+						color: @fs-gray;
+					}
+
+					&.selectable {
+						&:hover {
+							border-color: fade(@fs-blue, 50%);
+						}
+						&.selected {
+							border-color: @fs-blue;
+						}
+					}
+
+					&.today {
+						color: @fs-blue;
+					}
+				}
+			}
 		}
 
-		.cell {
-			display: inline-block;
-			width: @cell-width;
-			height: @cell-width;
-			padding: 2px 0;
-			text-align: center;
-			box-sizing: border-box;
-			margin: 1px;
-
-			&.name {
-				font-weight: 300;
-				font-size: 12px;
-			}
-
-			&.day {
-				border-radius: 100%;
-				border: 2px solid transparent;
-				transition: border ease-in-out .1s;
-
-				&:not(.selectable) {
-					color: @fs-gray;
-				}
-
-				&.selectable {
-					&:hover {
-						border-color: fade(@fs-blue, 50%);
-					}
-					&.selected {
-						border-color: @fs-blue;
-					}
-				}
-
-				&.today {
-					color: @fs-blue;
-				}
-			}
+		#tip {
+			font-weight: 300;
 		}
 	}
 
-	#tip {
-		font-weight: 300;
+	#step2 {
+		.title {
+			font: 400 13px Roboto;
+			margin-bottom: 12px;
+		}
+
+		.top {
+			display: flex;
+			justify-content: space-between;
+			& > div { width: 47%; }
+
+			.left {
+				gt-textarea { height: 150px; }
+			}
+
+			.time-display {
+				font-size: 18px;
+				text-align: center;
+				margin-bottom: 12px;
+				span {
+					transition: color ease-in-out .2s;
+					&:hover { color: @fs-blue; }
+				}
+			}
+		}
+
+		.clock {
+			height: 160px;
+			width: 160px;
+			margin: auto;
+			border: 2px solid rgb(59, 85, 110);
+			border-radius: 50%;
+			box-sizing: content-box;
+			position: relative;
+
+			[digit] {
+				position: absolute;
+				width: 21px;
+				height: 21px;
+				text-align: center;
+				font-weight: 500;
+				transition: color ease-in-out .2s;
+
+				&:hover { color: @fs-blue; }
+				&.selected { color: @fs-blue; }
+			}
+
+			.face { .gpu;
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				overflow: visible;
+				z-index: 70;
+				transform: translate3d(0, 0, 0);
+				transition: all ease-in-out .2s;
+
+				&.mini {
+					transform: scale(0.6) translate3d(0, 0, 0);
+					z-index: 50;
+
+					[digit] {
+						color: fade(@light-blue, 50%);
+					}
+				}
+
+				&.morning {
+					transform: scale(0.6) translate3d(0, 0, 0);
+					[digit] {
+						transform: scale(1.5);
+						font-weight: 400;
+					}
+				}
+			}
+
+			[digit="0"] { top: 7px; left: 70px; }
+			[digit="1"] { top: 16px; left: 102px; }
+			[digit="2"] { top: 39px; left: 126px; }
+			[digit="3"] { top: 72px; left: 135px; }
+			[digit="4"] { top: 104px; left: 126px; }
+			[digit="5"] { top: 128px; left: 102px; }
+			[digit="6"] { top: 137px; left: 70px; }
+			[digit="7"] { top: 128px; left: 37px; }
+			[digit="8"] { top: 104px; left: 14px; }
+			[digit="9"] { top: 72px; left: 5px; }
+			[digit="10"] { top: 39px; left: 14px; }
+			[digit="11"] { top: 16px; left: 37px; }
+
+			.back-zone {
+				position: absolute;
+				top: 30px;
+				left: 30px;
+				right: 30px;
+				bottom: 30px;
+				border-radius: 50%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				i { font-size: 21px;
+					color: fade(@light-blue, 50%); }
+			}
+		}
+
+		.bottom {
+			margin: 20px 0 8px 0;
+
+			gt-checkbox {
+				margin-right: 12px;
+			}
+		}
 	}
 
 	.actions {

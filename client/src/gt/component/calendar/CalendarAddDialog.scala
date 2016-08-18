@@ -1,8 +1,9 @@
 package gt.component.calendar
 
 import gt.component.GtHandler
-import gt.component.widget.form.GtButton
-import gt.component.widget.{GtBox, GtDialog}
+import gt.component.widget.form._
+import gt.component.widget.{GtBox, GtDialog, GtTooltip}
+import model.calendar.EventVisibility
 import org.scalajs.dom.raw.MouseEvent
 import rx.{Rx, Var}
 import scala.concurrent.duration._
@@ -14,9 +15,8 @@ import xuen.Component
 object CalendarAddDialog extends Component[CalendarAddDialog](
 	selector = "calendar-add-dialog",
 	templateUrl = "/assets/imports/views/calendar.html",
-	dependencies = Seq(GtBox, GtButton)
-) {
-}
+	dependencies = Seq(GtBox, GtButton, GtInput, GtTextarea, GtCheckbox, GtTooltip)
+)
 
 @js class CalendarAddDialog extends GtHandler {
 	val now = new js.Date()
@@ -76,10 +76,33 @@ object CalendarAddDialog extends Component[CalendarAddDialog](
 		days.contains(DateTime(year, month, day))
 	}
 
+	val eventTitle = Var[String]("")
+
+	val defaultVisibility = if (app.user.promoted) EventVisibility.Roster else EventVisibility.Restricted
+	val eventVisibility = Var[Int](defaultVisibility)
+
+	val eventHours = Var(0)
+	val eventMinutes = Var(0)
+	val clockMinutes = Var(false)
+
+	val canCreate = eventTitle ~ (_.trim.nonEmpty)
+
+	def setHours(hours: Int): Unit = {
+		eventHours := hours
+		clockMinutes := true
+	}
+
+	def setMinutes(minutes: Int): Unit = eventMinutes := minutes
+
 	def show(): Unit = {
 		step := 1
 		days ~= (_.empty)
 		lastSelection = None
+		eventTitle := ""
+		eventVisibility := defaultVisibility
+		eventHours := 0
+		eventMinutes := 0
+		clockMinutes := false
 		closest("gt-dialog").asInstanceOf[GtDialog].show()
 	}
 
