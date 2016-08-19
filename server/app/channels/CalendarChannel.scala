@@ -4,6 +4,7 @@ import akka.actor.Props
 import boopickle.DefaultBasic._
 import gtp3._
 import model.User
+import model.calendar.{Event, EventVisibility}
 import models._
 import models.calendar.{Answers, Events, Slacks}
 import models.mysql._
@@ -72,6 +73,20 @@ class CalendarChannel(user: User) extends ChannelHandler {
 	message("change-event-answer") { (event: Int, answer: Int, toon: Option[Int], note: Option[String]) =>
 		Events.ifAccessible(user, event) {
 			Answers.changeAnswer(user.id, event, answer, toon, note)
+		}
+	}
+
+	message("create-event") { (template: Event, dates: Set[DateTime]) =>
+		require(dates.nonEmpty)
+
+		if (!EventVisibility.canCreate(template.visibility, user))
+			throw Error("You don't have the permission to create this kind of event")
+
+		if (!user.promoted && dates.size > 1)
+			throw Error("You don't have the permission to creates multiple events at once")
+
+		for (date <- dates) {
+			val event = template.copy(owner = user.id, date = date, state = 0)
 		}
 	}
 }

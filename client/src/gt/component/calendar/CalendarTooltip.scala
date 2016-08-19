@@ -1,9 +1,10 @@
 package gt.component.calendar
 
+import gt.App
 import gt.component.GtHandler
 import gt.component.widget.RosterToon
 import gt.service.CalendarService
-import model.calendar.{Answer, AnswerValue, Event, EventVisibility}
+import model.calendar._
 import org.scalajs.dom.raw.CustomEvent
 import rx.{Rx, Var}
 import util.DateTime
@@ -18,7 +19,7 @@ object CalendarTooltip extends Component[CalendarTooltip](
 	templateUrl = "/assets/imports/views/calendar.html",
 	dependencies = Seq(RosterToon)
 ) {
-	val dummyEvent: Rx[Event] = Event(0, "", "", 2, DateTime.now, 0, 0, 0)
+	val dummyEvent: Rx[Event] = Event(0, "", "", App.user.id, DateTime.now, 0, EventVisibility.Restricted, EventState.Open)
 	val dummyAnswer: Rx[Answer] = Answer(0, 0, DateTime.now, 0, None, None, false)
 }
 

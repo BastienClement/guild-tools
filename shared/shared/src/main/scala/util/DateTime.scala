@@ -47,6 +47,9 @@ object DateTime {
 		fromLocalDateTime(LocalDateTime.of(year, month, day, hour, minute, second)) + millis.millis
 	}
 
+	/** Constructs a new DateTime from the given milliseconds timestamp */
+	def apply(millis: Long): DateTime = new DateTime(Instant.ofEpochMilli(millis))
+
 	/** Constructs a DateTime holding the current time */
 	def now: DateTime = fromInstant(clock.instant())
 
@@ -54,13 +57,13 @@ object DateTime {
 	def today: DateTime = fromInstant(clock.instant().truncatedTo(ChronoUnit.DAYS))
 
 	// Pickler
-	implicit val DateTimePickler = transformPickler[DateTime, String](parse)(_.toISOString)
+	implicit val DateTimePickler = transformPickler[DateTime, Long](apply)(_.timestamp)
 
 	// Slick bindings
 	implicit val DateTimeMapping = DateTimeCompat.slickMapping
 
 	// Duration helpers
-	implicit class Units(val amount: Int) extends AnyVal {
+	implicit final class Units(val amount: Int) extends AnyVal {
 		@inline def millis = Duration.of(amount, ChronoUnit.MILLIS)
 		@inline def seconds = Duration.of(amount, ChronoUnit.SECONDS)
 		@inline def minutes = Duration.of(amount, ChronoUnit.MINUTES)
@@ -113,7 +116,7 @@ class DateTime private (val instant: Instant) extends Ordered[DateTime] {
 		case _ => 0
 	}
 
-	def between(a: DateTime, b: DateTime) = this >= a && this <= b
+	def between(a: DateTime, b: DateTime) = a <= this && this <= b
 
 	// Date arithmetic with Scala duration
 	def + (duration: FiniteDuration): DateTime = instant.plusMillis(duration.toMillis)

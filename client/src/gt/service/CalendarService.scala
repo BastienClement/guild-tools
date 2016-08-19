@@ -7,6 +7,7 @@ import model.Toon
 import model.calendar.{Answer, Event, Slack}
 import rx.Rx
 import scala.collection.immutable.BitSet
+import util.DateTime
 
 /**
   * The calendar services is responsible for handling calendar and slacks
@@ -138,6 +139,10 @@ object CalendarService extends Service with Delegate {
 			loadMonth(key)
 			ranges.containing(key, key)
 		}
+	}
+
+	def createEvent(template: Event, dates: Set[DateTime]): Unit = {
+		channel.send("create-event", (template, dates))
 	}
 
 	/**

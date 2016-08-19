@@ -5,10 +5,14 @@ import util.annotation.data
 
 @data case class Event(id: Int, title: String, desc: String, owner: Int,
                        date: DateTime, time: Int, `type`: Int, state: Int) {
-	val visibility = `type`
+	require(EventVisibility.isValid(`type`), s"invalid event visibility (${`type`})")
+	require(EventState.isValid(state), s"invalid event state ($state)")
+	require(0 <= time && time < 2400, s"invalid event time ($time)")
 
-	val isRestricted = visibility == EventVisibility.Restricted
-	val isAnnounce = visibility == EventVisibility.Announce
+	@inline final def visibility = `type`
 
-	val sortingTime = if (time < 600) time + 2400 else time
+	@inline final def isRestricted = visibility == EventVisibility.Restricted
+	@inline final def isAnnounce = visibility == EventVisibility.Announce
+
+	@inline final def sortingTime = if (time < 600) time + 2400 else time
 }

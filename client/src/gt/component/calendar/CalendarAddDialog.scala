@@ -3,12 +3,13 @@ package gt.component.calendar
 import gt.component.GtHandler
 import gt.component.widget.form._
 import gt.component.widget.{GtBox, GtDialog, GtTooltip}
-import model.calendar.EventVisibility
+import gt.service.CalendarService
+import model.calendar.{Event, EventState, EventVisibility}
 import org.scalajs.dom.raw.MouseEvent
 import rx.{Rx, Var}
-import scala.concurrent.duration._
 import scala.scalajs.js
 import util.DateTime
+import util.DateTime.Units
 import util.jsannotation.js
 import xuen.Component
 
@@ -19,6 +20,7 @@ object CalendarAddDialog extends Component[CalendarAddDialog](
 )
 
 @js class CalendarAddDialog extends GtHandler {
+	val calendar = service(CalendarService)
 	val now = new js.Date()
 
 	implicit class TrueMod(private val a: Int) {
@@ -77,6 +79,7 @@ object CalendarAddDialog extends Component[CalendarAddDialog](
 	}
 
 	val eventTitle = Var[String]("")
+	val eventDesc = Var[String]("")
 
 	val defaultVisibility = if (app.user.promoted) EventVisibility.Roster else EventVisibility.Restricted
 	val eventVisibility = Var[Int](defaultVisibility)
@@ -93,6 +96,12 @@ object CalendarAddDialog extends Component[CalendarAddDialog](
 	}
 
 	def setMinutes(minutes: Int): Unit = eventMinutes := minutes
+
+	def create(): Unit = {
+		val template = Event(0, eventTitle.trim, eventDesc, 0, DateTime.now, eventHours * 100 + eventMinutes, eventVisibility, EventState.Open)
+		calendar.createEvent(template, days)
+		hide()
+	}
 
 	def show(): Unit = {
 		step := 1

@@ -241,7 +241,7 @@
 					<div .top>
 						<div .left>
 							<gt-input #event-title [(value)]="eventTitle" label="Event title"></gt-input>
-							<gt-textarea label="Description"></gt-textarea>
+							<gt-textarea [(value)]="eventDesc" label="Description"></gt-textarea>
 						</div>
 						<div .right>
 							<div .title>Time</div>
@@ -283,10 +283,10 @@
 								<span .light .gray .small>Use this for progress events</span>
 							</gt-tooltip>
 						</gt-checkbox>
-						<gt-checkbox [radio]="5" [(value)]="eventVisibility" label="Guild">
+						<gt-checkbox [radio]="5" [(value)]="eventVisibility" label="Guild" *if="app.user.roster">
 							<gt-tooltip>
 								Visible to any guilded player<br>
-								<span .light .gray .small>Use this for heroic split runs</span>
+								<span .light .gray .small>Use this for heroic split runs or optional events</span>
 							</gt-tooltip>
 						</gt-checkbox>
 						<gt-checkbox [radio]="3" [(value)]="eventVisibility" label="Restricted">
@@ -295,7 +295,7 @@
 								<span .light .gray .small>Use this for private events</span>
 							</gt-tooltip>
 						</gt-checkbox>
-						<gt-checkbox [radio]="2" [(value)]="eventVisibility" label="Public">
+						<gt-checkbox [radio]="2" [(value)]="eventVisibility" label="Public" *if="app.user.member">
 							<gt-tooltip>
 								Visible to everybody<br>
 								<span .light .gray .small>Use this for community events</span>
