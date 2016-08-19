@@ -6,6 +6,7 @@ import rx.Var
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
+import scala.scalajs.js
 import scala.scalajs.js.DynamicImplicits._
 import scala.scalajs.js.timers._
 import scala.scalajs.js.typedarray.ArrayBuffer
@@ -50,9 +51,8 @@ class Socket(private val url: String) {
 
 	// Events
 	val onConnect = new EventSource[String]
-	val onReconnect = new EventSource.Simple
 	val onClose = new EventSource[String]
-	val onDisconnect = new EventSource.Simple
+	val onReconnect = new EventSource.Simple
 	val onReset = new EventSource.Simple
 	val onRequestStart = new EventSource.Simple
 	val onRequestEnd = new EventSource.Simple
@@ -69,14 +69,17 @@ class Socket(private val url: String) {
 
 		// Reconnect on error or socket closed
 		var closed_once = false
-		ws.onerror = (e: Event) => if (!closed_once) {
+		val close_handler: js.Function1[Event, Unit] = (e: Event) => if (!closed_once) {
 			closed_once = true
 			if (e.dyn.wasClean) {
 				onClose.emit(e.dyn.reason.asInstanceOf[String])
-				closed_once = true
+			} else {
 				reconnect()
 			}
 		}
+
+		ws.onerror = close_handler
+		ws.onclose = close_handler
 
 		// Handle message processing
 		ws.onmessage = (ev: MessageEvent) => {
@@ -140,9 +143,6 @@ class Socket(private val url: String) {
 		// Ensure the socket is not closed more than once
 		if (state == SocketState.Closed) return
 		state = SocketState.Closed
-
-		// Emit event
-		onDisconnect.emit()
 
 		// Actually close the WebSocket
 		ws.close()
@@ -359,7 +359,7 @@ class Socket(private val url: String) {
 	/** Reconnected to the server, but unable to restore context */
 	private def reset(): Unit = {
 		// Send reset on channels
-		channels.values.forall(c => c.reset())
+		channels.values.foreach(c => c.reset())
 
 		// Clear own state
 		channels.clear()

@@ -140,7 +140,7 @@ class Channel private[gtp3] (val socket: Socket, val tpe: String, val id: Int, v
 		}
 	}
 
-	private[gtp3] def reset() = throw GTP3Error("Channel reset is not yet supported")
-	private[gtp3] def pause(outBufferLen: Int): Unit = throw GTP3Error("Channel pause is not yet supported")
-	private[gtp3] def resume(outBufferLength: Int): Unit = throw GTP3Error("Channel resume is not yet supported")
+	private[gtp3] def reset() = {} //throw GTP3Error("Channel reset is not yet supported")
+	private[gtp3] def pause(outBufferLen: Int): Unit = {} //throw GTP3Error("Channel pause is not yet supported")
+	private[gtp3] def resume(outBufferLength: Int): Unit = {} //throw GTP3Error("Channel resume is not yet supported")
 }

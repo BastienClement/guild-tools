@@ -26,8 +26,8 @@ object Server {
 		socket.verbose = Settings.`socket.verbose`
 
 		socket.onConnect ~> `on-connect`
+		socket.onClose ~> `on-close`
 		socket.onReconnect ~> `on-reconnect`
-		socket.onDisconnect ~> `on-disconnect`
 		socket.onReset ~> `on-reset`
 		socket.onRequestStart ~> `on-request-start`
 		socket.onRequestEnd ~> `on-request-end`
@@ -66,7 +66,7 @@ object Server {
 	}
 
 	/** EVENT: The socket is definitively closed */
-	private def `on-disconnect`(): Unit = {
+	private def `on-close`(reason: String): Unit = {
 		for (app <- App.root) app.disconnected()
 		if (promise != null) {
 			promise.failure(GTP3Error("Socket was closed"))
