@@ -6,6 +6,7 @@ import models._
 import models.mysql._
 import reactive.ExecutionContext
 import scala.concurrent.Future
+import scala.util.Success
 import slick.lifted.Case
 import util.DateTime
 import utils.PubSub
@@ -25,9 +26,8 @@ class Events(tag: Tag) extends Table[Event](tag, "gt_events_visible") {
 }
 
 object Events extends TableQuery(new Events(_)) with PubSub[User] {
-	case class Created(event: Event)
 	case class Updated(event: Event)
-	case class Deleted(event: Event)
+	case class Deleted(event: Int)
 
 	/**
 	  * Checks if a user can access an event.
@@ -145,6 +145,24 @@ object Events extends TableQuery(new Events(_)) with PubSub[User] {
 		require(EventState.isValid(state))
 		for (n <- Events.findById(event_id).filter(_.state =!= state).map(_.state).update(state).run if n > 0) {
 			publishUpdate(event_id)
+		}
+	}
+
+	def create(event: Event): Unit = {
+		(for {
+			e <- Events.returning(Events.map(_.id)).into((a, id) => a.copy(id = id)) += event
+			answer = Answer(e.owner, e.id, DateTime.now, AnswerValue.Accepted, None, None, true)
+			a <- Answers += answer
+		} yield (e.id, answer)).transactionally.run andThen {
+			case Success((id, answer)) =>
+				Answers.publishUpdate(answer)
+				publishUpdate(id)
+		}
+	}
+
+	def delete(event: Int): Unit = {
+		for (n <- Events.findById(event).delete.run if n > 0) {
+			publish(Deleted(event))
 		}
 	}
 

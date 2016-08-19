@@ -29,7 +29,7 @@ object CalendarAddDialog extends Component[CalendarAddDialog](
 
 	val currentMonthName = GtCalendar.monthName(now.getMonth())
 	val currentYear = now.getFullYear()
-	val currentMonth = now.getMonth()
+	val currentMonth = now.getMonth() + 1
 	val currentDay = now.getDate()
 	val currentMonthPadding = 0 until (new js.Date(now.getFullYear(), now.getMonth(), 1).getDay() - 1) %% 7
 	val currentMonthDays = 1 to new js.Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
@@ -37,7 +37,7 @@ object CalendarAddDialog extends Component[CalendarAddDialog](
 
 	val nextMonthName = GtCalendar.monthName((now.getMonth() + 1) % 12)
 	val nextYear = new js.Date(now.getFullYear(), now.getMonth() + 1, 1).getFullYear()
-	val nextMonth = new js.Date(now.getFullYear(), now.getMonth() + 1, 1).getMonth()
+	val nextMonth = new js.Date(now.getFullYear(), now.getMonth() + 1, 1).getMonth() + 1
 	val nextMonthPadding = 0 until (new js.Date(now.getFullYear(), now.getMonth() + 1, 1).getDay() - 1) %% 7
 	val nextMonthDays = 1 to new js.Date(now.getFullYear(), now.getMonth() + 2, 0).getDate()
 

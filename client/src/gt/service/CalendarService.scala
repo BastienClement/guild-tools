@@ -177,7 +177,7 @@ object CalendarService extends Service with Delegate {
 	}
 
 	message("event-updated")(events.update _)
-	message("event-deleted")(events.remove _)
+	message("event-deleted")(events.removeKey _)
 	message("answer-updated")(answers.update _)
 
 	/** Clears every caches when the service is suspended */

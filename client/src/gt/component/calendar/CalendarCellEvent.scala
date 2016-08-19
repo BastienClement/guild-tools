@@ -46,6 +46,7 @@ object CalendarCellEvent extends Component[CalendarCellEvent](
 
 	val canAcceptDecline = event ~ (e => e.state == EventState.Open && e.visibility != EventVisibility.Announce)
 	val canEdit = Rx { app.user.promoted || event.owner == app.user.id || answerData.promote }
+	val canDelete = Rx { app.user.promoted || event.owner == app.user.id }
 	val canContextMenu = Rx { canAcceptDecline || canEdit }
 
 	def acceptEvent(): Unit = calendar.changeEventAnswer(event.id, AnswerValue.Accepted)

@@ -119,7 +119,7 @@
 						<li .separator></li>
 					</template>
 					<li (click)="editEvent()"><i>edit</i> Edit</li>
-					<li (click)="deleteEvent()"><i>delete_forever</i> Delete</li>
+					<li (click)="deleteEvent()" [hidden]="!canDelete"><i>delete_forever</i> Delete</li>
 				</template>
 			</ul>
 		</gt-context-menu>

@@ -26,7 +26,6 @@ class CalendarChannel(user: User) extends ChannelHandler {
 	}
 
 	akka {
-		case Events.Created(event) => send("event-updated", event)
 		case Events.Updated(event) => send("event-updated", event)
 		case Events.Deleted(event) => send("event-deleted", event)
 		case Answers.Updated(answer) => send("answer-updated", answer)
@@ -80,13 +79,26 @@ class CalendarChannel(user: User) extends ChannelHandler {
 		require(dates.nonEmpty)
 
 		if (!EventVisibility.canCreate(template.visibility, user))
-			throw Error("You don't have the permission to create this kind of event")
+			throw new Exception("You don't have the permission to create this kind of event")
 
 		if (!user.promoted && dates.size > 1)
-			throw Error("You don't have the permission to creates multiple events at once")
+			throw new Exception("You don't have the permission to creates multiple events at once")
 
 		for (date <- dates) {
-			val event = template.copy(owner = user.id, date = date, state = 0)
+			Events.create(template.copy(owner = user.id, date = date, state = 0))
+		}
+	}
+
+	message("delete-event") { id: Int =>
+		for {
+			event <- Events.findById(id).head
+			answer <- Answers.findForEventAndUser(id, user.id).headOption
+		} if ((event, answer) match {
+			case (ev, _) if ev.owner == user.id || user.promoted => true
+			case (_, Some(a)) => a.promote
+			case _ => false
+		}) {
+			Events.delete(id)
 		}
 	}
 }

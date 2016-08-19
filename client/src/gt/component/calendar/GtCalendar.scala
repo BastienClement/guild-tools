@@ -110,6 +110,7 @@ object GtCalendar extends Component[GtCalendar](
 
 	listenCustom[Unit]("hide-event-tooltip") { _ =>
 		eventTooltip.hide()
+		eventTooltipInner.eventid := None
 	}
 
 	val slacksTooltip = Lazy(child.as[GtTooltip]("#slacks-tooltip"))
@@ -124,6 +125,7 @@ object GtCalendar extends Component[GtCalendar](
 
 	listenCustom[Unit]("hide-slacks-tooltip") { _ =>
 		slacksTooltip.hide()
+		slacksTooltipKey := None
 	}
 
 	val deleteEventDialog = Lazy(child.as[GtDialog]("#delete-dialog"))
@@ -136,7 +138,8 @@ object GtCalendar extends Component[GtCalendar](
 	}
 
 	def deleteEvent(): Unit = {
-		calendar.deleteEvent(deleteEventId.!.get)
 		deleteEventDialog.hide()
+		calendar.deleteEvent(deleteEventId.!.get)
+		deleteEventId := None
 	}
 }

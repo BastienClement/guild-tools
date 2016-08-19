@@ -56,7 +56,7 @@ object Answers extends TableQuery(new Answers(_)) with PubSub[User] {
 		}
 	}
 
-	private def publishUpdate(answer: Answer): Unit = {
+	def publishUpdate(answer: Answer): Unit = {
 		for {
 			event <- Events.findById(answer.event).head
 			answers <- for (as <- Answers.findForEvent(event.id).run) yield as.map(a => (a.user, a)).toMap
