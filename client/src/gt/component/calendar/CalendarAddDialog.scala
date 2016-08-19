@@ -90,6 +90,7 @@ object CalendarAddDialog extends Component[CalendarAddDialog](
 	val clockMinutes = Var(false)
 
 	val canCreate = eventTitle ~ (_.trim.nonEmpty)
+	val isAnnounce = Var(false)
 
 	def setHours(hours: Int): Unit = {
 		eventHours := hours
@@ -114,6 +115,7 @@ object CalendarAddDialog extends Component[CalendarAddDialog](
 		eventHours := 0
 		eventMinutes := 0
 		clockMinutes := false
+		isAnnounce := false
 		closest("gt-dialog").asInstanceOf[GtDialog].show()
 	}
 
@@ -125,6 +127,7 @@ object CalendarAddDialog extends Component[CalendarAddDialog](
 		eventHours := event.time / 100
 		eventMinutes := event.time % 100
 		clockMinutes := false
+		isAnnounce := event.isAnnounce
 		closest("gt-dialog").asInstanceOf[GtDialog].show()
 	}
 

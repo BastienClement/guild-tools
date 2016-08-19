@@ -277,31 +277,31 @@
 					</div>
 					<div .bottom>
 						<div .title>Event visibility</div>
-						<gt-checkbox [radio]="1" [(value)]="eventVisibility" label="Roster" *if="app.user.promoted">
+						<gt-checkbox [radio]="1" [(value)]="eventVisibility" label="Roster" *if="app.user.promoted" [disabled]="isAnnounce">
 							<gt-tooltip>
 								Visible only to members of the guild roster<br>
 								<span .light .gray .small>Use this for progress events</span>
 							</gt-tooltip>
 						</gt-checkbox>
-						<gt-checkbox [radio]="5" [(value)]="eventVisibility" label="Guild" *if="app.user.roster">
+						<gt-checkbox [radio]="5" [(value)]="eventVisibility" label="Guild" *if="app.user.roster" [disabled]="isAnnounce">
 							<gt-tooltip>
 								Visible to any guilded player<br>
 								<span .light .gray .small>Use this for heroic split runs or optional events</span>
 							</gt-tooltip>
 						</gt-checkbox>
-						<gt-checkbox [radio]="3" [(value)]="eventVisibility" label="Restricted">
+						<gt-checkbox [radio]="3" [(value)]="eventVisibility" label="Restricted" [disabled]="isAnnounce">
 							<gt-tooltip>
 								Visible only to invited players<br>
 								<span .light .gray .small>Use this for private events</span>
 							</gt-tooltip>
 						</gt-checkbox>
-						<gt-checkbox [radio]="2" [(value)]="eventVisibility" label="Public" *if="app.user.member">
+						<gt-checkbox [radio]="2" [(value)]="eventVisibility" label="Public" *if="app.user.member" [disabled]="isAnnounce">
 							<gt-tooltip>
 								Visible to everybody<br>
 								<span .light .gray .small>Use this for community events</span>
 							</gt-tooltip>
 						</gt-checkbox>
-						<gt-checkbox [radio]="4" [(value)]="eventVisibility" label="Announce" *if="app.user.promoted">
+						<gt-checkbox [radio]="4" [(value)]="eventVisibility" label="Announce" *if="app.user.promoted" [disabled]="editing && !isAnnounce">
 							<gt-tooltip>
 								A special kind of event without answers<br>
 								<span .light .gray .small>It is pretty obvious when to use this...</span>
