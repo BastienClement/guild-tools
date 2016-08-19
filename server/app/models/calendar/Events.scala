@@ -149,14 +149,19 @@ object Events extends TableQuery(new Events(_)) with PubSub[User] {
 	}
 
 	def create(event: Event): Unit = {
-		(for {
-			e <- Events.returning(Events.map(_.id)).into((a, id) => a.copy(id = id)) += event
-			answer = Answer(e.owner, e.id, DateTime.now, AnswerValue.Accepted, None, None, true)
-			a <- Answers += answer
-		} yield (e.id, answer)).transactionally.run andThen {
-			case Success((id, answer)) =>
-				Answers.publishUpdate(answer)
-				publishUpdate(id)
+		def insertEvent(event: Event) = Events.returning(Events.map(_.id)).into((a, id) => a.copy(id = id)) += event
+		if (event.isAnnounce) {
+			for (e <- insertEvent(event).run) publishUpdate(e.id)
+		} else {
+			(for {
+				e <- insertEvent(event)
+				answer = Answer(e.owner, e.id, DateTime.now, AnswerValue.Accepted, None, None, true)
+				a <- Answers += answer
+			} yield (e.id, answer)).transactionally.run andThen {
+				case Success((id, answer)) =>
+					Answers.publishUpdate(answer)
+					publishUpdate(id)
+			}
 		}
 	}
 
