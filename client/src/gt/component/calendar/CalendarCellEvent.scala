@@ -56,7 +56,7 @@ object CalendarCellEvent extends Component[CalendarCellEvent](
 	def closeEvent(): Unit = calendar.changeEventState(event.id, EventState.Closed)
 	def cancelEvent(): Unit = calendar.changeEventState(event.id, EventState.Canceled)
 
-	def editEvent(): Unit = {}
+	def editEvent(): Unit = fire("edit-event", event.!)
 	def deleteEvent(): Unit = fire("show-delete-dialog", event.id)
 
 	listen("mouseenter") { e: MouseEvent => fire("show-event-tooltip", (event.id, e)) }

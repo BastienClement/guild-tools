@@ -5,7 +5,7 @@ import gt.component.widget.form.GtButton
 import gt.component.widget.{GtBox, GtDialog, GtTooltip, RosterToon}
 import gt.component.{GtHandler, Tab, View}
 import gt.service.CalendarService
-import model.calendar.Slack
+import model.calendar.{Event, Slack}
 import org.scalajs.dom.MouseEvent
 import rx.{Const, Var}
 import scala.scalajs.js
@@ -141,5 +141,9 @@ object GtCalendar extends Component[GtCalendar](
 		deleteEventDialog.hide()
 		calendar.deleteEvent(deleteEventId.!.get)
 		deleteEventId := None
+	}
+
+	listenCustom[Event]("edit-event") { event =>
+		child.as[CalendarAddDialog]("#add-dialog").edit(event)
 	}
 }

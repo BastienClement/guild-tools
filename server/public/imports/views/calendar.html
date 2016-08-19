@@ -189,7 +189,7 @@
 <xuen-component id="calendar-add-dialog">
 	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="calendar-add-dialog">
 	<template>
-		<gt-box heading="New event" scrollable>
+		<gt-box [heading]="editing ? 'Edit event' : 'New event'" scrollable>
 			<template *match="step">
 				<div #step1 *case="1">
 					<p>Select the day on which the new event should happen:</p>
@@ -310,7 +310,7 @@
 					</div>
 					<div .actions>
 						<gt-button collapse-right (click)="hide()">Cancel</gt-button>
-						<gt-button collapse-right (click)="step = 1">Back</gt-button>
+						<gt-button collapse-right (click)="step = 1" [hidden]="editing">Back</gt-button>
 						<gt-button collapse-right (click)="create()" [disabled]="!canCreate">Create</gt-button>
 					</div>
 				</div>

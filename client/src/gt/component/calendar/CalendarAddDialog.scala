@@ -42,6 +42,7 @@ object CalendarAddDialog extends Component[CalendarAddDialog](
 	val nextMonthDays = 1 to new js.Date(now.getFullYear(), now.getMonth() + 2, 0).getDate()
 
 	val step = Var[Int]
+	val editing = Var[Boolean]
 
 	val days = Var(Set.empty[DateTime])
 	val canGoNext = days ~ (_.nonEmpty)
@@ -105,12 +106,24 @@ object CalendarAddDialog extends Component[CalendarAddDialog](
 
 	def show(): Unit = {
 		step := 1
+		editing := false
 		days ~= (_.empty)
 		lastSelection = None
 		eventTitle := ""
 		eventVisibility := defaultVisibility
 		eventHours := 0
 		eventMinutes := 0
+		clockMinutes := false
+		closest("gt-dialog").asInstanceOf[GtDialog].show()
+	}
+
+	def edit(event: Event) = {
+		step := 2
+		editing := true
+		eventTitle := event.title
+		eventVisibility := event.visibility
+		eventHours := event.time / 100
+		eventMinutes := event.time % 100
 		clockMinutes := false
 		closest("gt-dialog").asInstanceOf[GtDialog].show()
 	}
