@@ -42,7 +42,6 @@ object GtApp extends Component[GtApp](
 	def connected(): Unit = showDisconnected(false)
 	def reconnecting(): Unit = showDisconnected(true)
 	def disconnected(): Unit = showDead(1)
-	def versionChanged(): Unit = showDead(2)
 	def reset(): Unit = showDead(3)
 }
 

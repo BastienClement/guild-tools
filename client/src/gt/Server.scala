@@ -1,7 +1,6 @@
 package gt
 
 import gtp3.{Channel, GTP3Error, Socket}
-import org.scalajs.dom.console
 import rx.Var
 import scala.concurrent.{Future, Promise}
 import scala.scalajs.js.timers.setTimeout
@@ -47,22 +46,13 @@ object Server {
 	/** EVENT: The socket is connected to the server */
 	private def `on-connect`(serverVersion: String): Unit = {
 		for (app <- App.root) app.connected()
-
-		// Check if server was updated
-		val oldVersion = version.!
-		if (oldVersion != null && oldVersion != serverVersion) {
-			for (app <- App.root) app.versionChanged()
-			socket.close()
-		} else {
-			version := serverVersion
-			if (promise != null) promise.success(())
-			promise = null
-		}
+		version := serverVersion
+		if (promise != null) promise.success(())
+		promise = null
 	}
 
 	private def `on-reconnect`(): Unit = {
 		for (app <- App.root) app.reconnecting()
-		console.warn("NYI: on-reconnect called")
 	}
 
 	/** EVENT: The socket is definitively closed */
