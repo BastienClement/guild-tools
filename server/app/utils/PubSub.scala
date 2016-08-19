@@ -39,7 +39,7 @@ object PubSub {
 				context.watch(actor)
 
 			case Terminated(actor) =>
-				for ((ps, actors) <- watching.find { case (p, a) => a.contains(actor) }) {
+				for ((ps, actors) <- watching.filter { case (p, a) => a.contains(actor) }) {
 					ps.unsubscribe(actor)
 					actors -= actor
 				}
