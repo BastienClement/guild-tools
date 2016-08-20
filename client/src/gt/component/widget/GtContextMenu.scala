@@ -58,6 +58,9 @@ object GtContextMenu extends Component[GtContextMenu](
 
 		style.left = x + "px"
 		style.top = y + "px"
+
+		e.preventDefault()
+		e.stopImmediatePropagation()
 	}
 
 	def close(e: Event): Unit = {
