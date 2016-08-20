@@ -28,7 +28,7 @@ object CalendarTooltip extends Component[CalendarTooltip](
 	val eventid = property[Option[Int]] := None
 
 	val event = eventid ~! (_.map(calendar.events.get).getOrElse(CalendarTooltip.dummyEvent))
-	val answer = eventid ~! (_.map(calendar.answers.myAnswerForEvent).getOrElse(CalendarTooltip.dummyAnswer))
+	val answer = eventid ~! (_.map(calendar.answers.mineForEvent).getOrElse(CalendarTooltip.dummyAnswer))
 
 	val visibility = event ~ (_.visibility)
 	val announce = visibility ~ (_ == EventVisibility.Announce)
