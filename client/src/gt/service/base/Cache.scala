@@ -1,5 +1,6 @@
 package gt.service.base
 
+import gt.service.base.CacheUtils.LiftedHashFunction
 import rx.{Obs, Rx, Var}
 import scala.collection.immutable.TreeMap
 import util.intervaltree.IntervalTree
@@ -185,11 +186,16 @@ abstract class Cache[K, V <: AnyRef](hash: V => K) {
 	  * @tparam H the type of the hash
 	  */
 	trait HashingIndex[H] extends BaseIndex {
+		/** The interface of hash observer */
+		trait HashObs extends Obs {
+			def onRemove(): Unit
+		}
+
 		/** A local registry of observers associated with reactive values */
-		private var observers = Map[Rx[V], Obs]()
+		private var observers = Map[Rx[V], HashObs]()
 
 		/** The hash function to use */
-		protected val hash: V => H
+		protected val hash: LiftedHashFunction[V, H]
 
 		/** Called when an element is inserted or modified */
 		protected def insert(hash: H, rx: Rx[V]): Unit
@@ -210,21 +216,29 @@ abstract class Cache[K, V <: AnyRef](hash: V => K) {
 		  * previous value is no longer accessible and thus hash can no
 		  * longer be computed.
 		  *
-		  * @param currentHash the current hash of the value
 		  * @param rx          the reactive value
 		  */
-		protected def observerFor(currentHash: H, rx: Rx[V]): Obs = new Obs {
+		protected def observerFor(rx: Rx[V]): HashObs = new HashObs {
 			/** The previous hash value */
-			private val previousHash: H = currentHash
+			private var previousHash: Option[H] = None
 
 			/** Called when the reactive value changes */
 			protected def callback(): Unit = {
 				val newHash = hash(rx.!)
-				if (previousHash != newHash) {
-					remove(previousHash, rx)
-					insert(newHash, rx)
+				(previousHash, newHash) match {
+					case (Some(oldh), Some(newh)) if oldh != newh =>
+						remove(oldh, rx)
+						insert(newh, rx)
+					case (Some(oldh), None) =>
+						remove(oldh, rx)
+					case (None, Some(newh)) =>
+						insert(newh, rx)
+					case _ => // ignore
 				}
+				previousHash = newHash
 			}
+
+			def onRemove(): Unit = for (h <- previousHash) remove(h, rx)
 		}
 
 		/**
@@ -234,11 +248,9 @@ abstract class Cache[K, V <: AnyRef](hash: V => K) {
 		  */
 		private[Cache] override def register(rx: Rx[V]): Unit = {
 			super.register(rx)
-			val currentHash = hash(rx.!)
-			val obs = observerFor(currentHash, rx)
+			val obs = observerFor(rx)
 			observers += (rx -> obs)
-			rx ~> obs
-			insert(currentHash, rx)
+			rx ~>> obs
 		}
 
 		/**
@@ -250,7 +262,7 @@ abstract class Cache[K, V <: AnyRef](hash: V => K) {
 			super.unregister(rx)
 			val obs = observers(rx)
 			rx ~/> obs
-			remove(hash(rx), rx)
+			obs.onRemove()
 			observers -= rx
 		}
 
@@ -273,7 +285,10 @@ abstract class Cache[K, V <: AnyRef](hash: V => K) {
 	  * @param hash the hash function to use
 	  * @tparam H the type of value produces by the hash function
 	  */
-	class SimpleIndex[H: Ordering](protected val hash: V => H) extends BaseIndex with HashingIndex[H] {
+	class SimpleIndex[H: Ordering](protected val hash: LiftedHashFunction[V, H]) extends BaseIndex with HashingIndex[H] {
+		def this(hash: V => H) = this(LiftedHashFunction((v: V) => Some(hash(v))))
+		def this(hash: PartialFunction[V, H]) = this(LiftedHashFunction(hash.lift))
+
 		/** The data tree */
 		private val tree = Var(TreeMap[H, Var[Set[Rx[V]]]]())
 
@@ -350,7 +365,10 @@ abstract class Cache[K, V <: AnyRef](hash: V => K) {
 	  * @param hash
 	  * @tparam H
 	  */
-	class RangeIndex[H: Ordering](protected val hash: V => (H, H)) extends BaseIndex with HashingIndex[(H, H)] {
+	class RangeIndex[H: Ordering](protected val hash: LiftedHashFunction[V, (H, H)]) extends BaseIndex with HashingIndex[(H, H)] {
+		def this(hash: V => (H, H)) = this(LiftedHashFunction((v: V) => Some(hash(v))))
+		def this(hash: PartialFunction[V, (H, H)]) = this(LiftedHashFunction(hash.lift))
+
 		private val tree = Var(IntervalTree[H, Var[Set[Rx[V]]]]())
 
 		def overlapping(lo: H, up: H): Rx[Set[V]] = tree ~ (_.overlapping(lo, up)) ~ (_.foldLeft(Set.empty[V])(_ ++ _.!.map(_.!)))
