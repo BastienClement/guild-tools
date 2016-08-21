@@ -107,8 +107,8 @@
 		<gt-context-menu *if="canContextMenu">
 			<ul>
 				<template *if="canAcceptDecline">
-					<li (click)="acceptEvent()" [hidden]="answer == 1"><i>check</i> Accept</li>
-					<li (click)="declineEvent()" [hidden]="answer == 2"><i>clear</i> Decline</li>
+					<li (click)="acceptEvent($event)" [hidden]="answer == 1"><i>check</i> Accept</li>
+					<li (click)="declineEvent($event)" [hidden]="answer == 2"><i>clear</i> Decline</li>
 					<li .separator></li>
 				</template>
 				<template *if="canEdit">
@@ -130,8 +130,8 @@
 			<b #time *if="showTime">{{event.time | calendarTime}}</b>
 			<template *match="canAcceptDecline">
 				<span #actions *case="true">
-					<i (click)="acceptEvent()">check</i>
-					<i (click)="declineEvent()">clear</i>
+					<i (click)="acceptEvent($event)">check</i>
+					<i (click)="declineEvent($event)">clear</i>
 				</span>
 				<span #actions *case="false">
 					<i .lock>lock_outline</i>
@@ -311,7 +311,7 @@
 					<div .actions>
 						<gt-button collapse-right (click)="hide()">Cancel</gt-button>
 						<gt-button collapse-right (click)="step = 1" [hidden]="editing">Back</gt-button>
-						<gt-button collapse-right (click)="create()" [disabled]="!canCreate">Create</gt-button>
+						<gt-button collapse-right (click)="editing ? save() : create()" [disabled]="!canCreate">{{ editing ? 'Save' : 'Create' }}</gt-button>
 					</div>
 				</div>
 			</template>

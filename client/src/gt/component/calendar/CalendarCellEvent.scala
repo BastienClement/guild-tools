@@ -49,8 +49,15 @@ object CalendarCellEvent extends Component[CalendarCellEvent](
 	val canDelete = Rx { app.user.promoted || event.owner == app.user.id }
 	val canContextMenu = Rx { canAcceptDecline || canEdit }
 
-	def acceptEvent(): Unit = calendar.changeEventAnswer(event.id, AnswerValue.Accepted)
-	def declineEvent(): Unit = calendar.changeEventAnswer(event.id, AnswerValue.Declined)
+	def acceptEvent(ev: MouseEvent): Unit = {
+		calendar.changeEventAnswer(event.id, AnswerValue.Accepted)
+		ev.stopPropagation()
+	}
+
+	def declineEvent(ev: MouseEvent): Unit = {
+		calendar.changeEventAnswer(event.id, AnswerValue.Declined)
+		ev.stopPropagation()
+	}
 
 	def openEvent(): Unit = calendar.changeEventState(event.id, EventState.Open)
 	def closeEvent(): Unit = calendar.changeEventState(event.id, EventState.Closed)
