@@ -372,8 +372,9 @@ abstract class Cache[K, V <: AnyRef](hash: V => K) {
 		private val tree = Var(IntervalTree[H, Var[Set[Rx[V]]]]())
 
 		def overlapping(lo: H, up: H): Rx[Set[V]] = tree ~ (_.overlapping(lo, up)) ~ (_.foldLeft(Set.empty[V])(_ ++ _.!.map(_.!)))
-		def containing(lo: H, up: H): Rx[Set[V]] = tree ~ (_.containing(lo, up)) ~ (_.foldLeft(Set.empty[V])(_ ++ _.!.map(_.!)))
 		def contained(lo: H, up: H): Rx[Set[V]] = tree ~ (_.contained(lo, up)) ~ (_.foldLeft(Set.empty[V])(_ ++ _.!.map(_.!)))
+		def containing(lo: H, up: H): Rx[Set[V]] = tree ~ (_.containing(lo, up)) ~ (_.foldLeft(Set.empty[V])(_ ++ _.!.map(_.!)))
+		@inline final def containing(lo: H): Rx[Set[V]] = containing(lo, lo)
 
 		protected def remove(hash: (H, H), rx: Rx[V]): Unit = {
 			val (lo, up) = hash

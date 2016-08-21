@@ -34,9 +34,14 @@ object CalendarEventAnswers extends Component[CalendarEventAnswers](
 	}
 
 	def withSyntheticAnswers(event: Event, answers: Set[Answer]): Set[Answer] = {
+		lazy val slacks = CalendarService.slacks.ranges.containing(event.date.toCalendarKey).!.map(s => (s.user, s)).toMap
 		def build(groups: Set[Int]) = {
 			(groups.flatMap(g => RosterService.users.byGroup.get(g).map(_.id)) -- answers.map(_.user)).map { user =>
-				Answer(user, event.id, DateTime.now, AnswerValue.Pending, None, None, false)
+				val status = slacks.get(user) match {
+					case Some(slack) => AnswerValue.Declined
+					case None => AnswerValue.Pending
+				}
+				Answer(user, event.id, DateTime.now, status, None, None, false)
 			} ++ answers
 		}
 

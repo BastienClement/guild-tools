@@ -93,7 +93,10 @@ object CalendarService extends Service with Delegate {
 			if (eventid > 0 && !eventsDeleted.contains(eventid)) {
 				channel.request("load-event", eventid) { ev: Option[Event] =>
 					ev match {
-						case Some(e) => update(e)
+						case Some(e) =>
+							update(e)
+							// Ensure that the whole month of this event is loaded to have slacks data
+							loadMonth(e.date.toCalendarKey)
 						case None => removeKey(eventid)
 					}
 				}
