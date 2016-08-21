@@ -4,14 +4,15 @@ import boopickle.DefaultBasic._
 import gt.App
 import gt.service.base.{Cache, Delegate, Service}
 import model.Toon
-import model.calendar.{Answer, Event, Slack}
+import model.calendar._
 import rx.Rx
 import scala.collection.immutable.BitSet
+import scala.concurrent.Future
 import util.DateTime
 
 /**
   * The calendar services is responsible for handling calendar and slacks
-  * related taks. This include keeping local caches of events, answers and
+  * related tasks. This include keeping local caches of events, answers and
   * slacks and providing high-level API for manipulating calendar data.
   */
 object CalendarService extends Service with Delegate {
@@ -44,7 +45,7 @@ object CalendarService extends Service with Delegate {
 	  * Imports data received from load in caches.
 	  *
 	  * If there is no answer for an event, a default one is
-	  * genereated to prevent a trigger of the full event data
+	  * generated to prevent a trigger of the full event data
 	  * when displayed in the calendar.
 	  *
 	  * @param e events and answers data
@@ -84,6 +85,19 @@ object CalendarService extends Service with Delegate {
 		/** Events by date key */
 		val byDate = new SimpleIndex(e => e.date.toCalendarKey)
 
+		/** Constructs and requests unknown events */
+		override def default(eventid: Int): Event = {
+			if (eventid > 0) {
+				channel.request("load-event", eventid) { ev: Option[Event] =>
+					ev match {
+						case Some(e) => update(e)
+						case None => removeKey(eventid)
+					}
+				}
+			}
+			Event(eventid, s"Event#$eventid", "", 0, DateTime.now, 0, EventVisibility.Restricted, EventState.Open)
+		}
+
 		/**
 		  * Returns the sorted list of event for a given day.
 		  *
@@ -96,16 +110,26 @@ object CalendarService extends Service with Delegate {
 			loadMonth(key)
 			byDate.get(key) ~ (_.toSeq.sorted)
 		}
+
+		/**
+		  * Checks event existence on the server-side.
+		  *
+		  * This function returns false if the event exists but is
+		  * not accessible to the current user.
+		  *
+		  * @param key the event id
+		  */
+		def exists(key: Int): Future[Boolean] = channel.request("event-exists", key).as[Boolean]
 	}
 
 	/**
 	  * The cache of Answers objects
 	  */
 	object answers extends Cache((a: Answer) => (a.user, a.event)) {
-		/** Answers groupping by events */
+		/** Answers grouped by events */
 		val byEvent = new SimpleIndex(e => e.event)
 
-		/** Constructs a default, synthethic, answer */
+		/** Constructs a default, synthetic, answer */
 		def constructDefault(user: Int, event: Int): Answer = Answer(user, event, null, 0, None, None, false)
 
 		/** Insert the default answer in the cache */
@@ -126,9 +150,7 @@ object CalendarService extends Service with Delegate {
 		  *
 		  * @param event the event for which answers should be removed
 		  */
-		private[CalendarService] def removeForEvent(event: Int): Unit = {
-
-		}
+		private[CalendarService] def removeForEvent(event: Int): Unit = prune(a => a.event == event)
 
 		/**
 		  * Queries answers for a given event.
@@ -171,7 +193,7 @@ object CalendarService extends Service with Delegate {
 	}
 
 	/**
-	  * Creates a new event from the given tempalte for each day in the given set.
+	  * Creates a new event from the given template for each day in the given set.
 	  *
 	  * Creating an event for more than one day requires promoted privileges
 	  * on the server-side. Some fields in the given template are automatically
@@ -227,8 +249,9 @@ object CalendarService extends Service with Delegate {
 		channel.send("delete-event", event)
 	}
 
+	// Message bindings
 	message("event-updated")(events.update _)
-	message("event-deleted")(events.removeKey _)
+	message("event-deleted") { (id: Int) => events.removeKey(id); answers.removeForEvent(id) }
 	message("answer-updated")(answers.update _)
 
 	/** Clears every caches when the service is suspended */

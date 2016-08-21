@@ -49,6 +49,28 @@ class CalendarChannel(user: User) extends ChannelHandler {
 	}
 
 	/**
+	  * Loads an event
+	  */
+	request("load-event") { event: Int =>
+		Events.ifAccessible(user, event) {
+			Events.findById(event).head
+		}.flatMap(identity).map(Some(_)).recover {
+			case _: Throwable => None
+		}
+	}
+
+	/**
+	  * Checks if an event exists
+	  */
+	request("event-exists") { event: Int =>
+		Events.ifAccessible(user, event) {
+			true
+		}.recover {
+			case _: Throwable => false
+		}
+	}
+
+	/**
 	  * Requests answers to a specific event.
 	  */
 	request("event-answers") { event: Int =>

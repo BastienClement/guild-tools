@@ -17,7 +17,7 @@ object Routes {
 		"/profile(/:[0-9]+:user)?" -> GtProfile,
 
 		"/calendar" -> GtCalendar,
-		"/calendar/event/:[0-9]+:event" -> GtCalendarEvent,
+		"/calendar/event/:[0-9]+:eventid" -> GtCalendarEvent,
 
 		"/about" -> GtAbout,
 		"/settings" -> GtSettings

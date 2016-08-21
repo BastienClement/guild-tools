@@ -72,7 +72,7 @@ object RosterService extends Service with Delegate {
 			dataForToon.remove(toon.id).foreach(Rx.invalidate)
 		}
 
-		// Apply template is availble of request it
+		// Apply template is available or request it
 		data match {
 			case Some(d) => loadData(d)
 			case None => if (userid > 0) channel.request("load-user", userid).apply(loadData _)

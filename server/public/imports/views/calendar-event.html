@@ -1,7 +1,49 @@
 <xuen-component id="gt-calendar-event">
 	<link rel="stylesheet/less" href="/assets/less/calendar-event.less" ns="gt-calendar-event">
-	<link rel="stylesheet/less" href="/assets/less/calendar.less" ns="calendar-colors">
 	<template>
-		Foobar
+		<div #layout>
+			<div #left>
+				<calendar-event-info [event]></calendar-event-info>
+				<calendar-event-answers [event]></calendar-event-answers>
+				<calendar-event-reply [event]></calendar-event-reply>
+			</div>
+			<div #right>
+				<gt-box heading="RaidComp">
+
+				</gt-box>
+			</div>
+		</div>
+	</template>
+</xuen-component>
+
+<xuen-component id="calendar-event-info">
+	<link rel="stylesheet/less" href="/assets/less/calendar-event.less" ns="calendar-event-info">
+	<template>
+		<gt-box [heading]="event.title">
+			<div #meta>{{date}} | {{event.time | calendarTime}} | {{state}}</div>
+			<div *if="event.desc">{{event.desc}}</div>
+		</gt-box>
+	</template>
+</xuen-component>
+
+<xuen-component id="calendar-event-answers">
+	<link rel="stylesheet/less" href="/assets/less/calendar-event.less" ns="calendar-event-answers">
+	<template>
+		<gt-box heading="Answers"></gt-box>
+	</template>
+</xuen-component>
+
+<xuen-component id="calendar-event-reply">
+	<link rel="stylesheet/less" href="/assets/less/calendar-event.less" ns="calendar-event-reply">
+	<template>
+		<gt-box heading="Status" scrollable>
+			<gt-form>
+				<div #status>
+					<gt-checkbox label="Available" [radio]="1"></gt-checkbox>
+					<gt-checkbox label="Unavailable" [radio]="2"></gt-checkbox>
+				</div>
+				<gt-input label="Note"></gt-input>
+			</gt-form>
+		</gt-box>
 	</template>
 </xuen-component>

@@ -1,3 +1,67 @@
 :namespace("gt-calendar-event") {
+	#layout {
+		display: flex;
+		height: 100%;
 
+		#left {
+			width: 330px;
+			flex-shrink: 0;
+			margin-right: 8px;
+			display: flex;
+			flex-direction: column;
+
+			& > :not(:first-child) {
+				margin-top: 8px;
+			}
+
+			calendar-event-answers {
+				flex: 1;
+			}
+		}
+
+		#right {
+			flex: 1;
+			gt-box { height: 100%; }
+		}
+	}
+}
+
+:namespace("calendar-event-info") {
+	:host {
+		display: block;
+	}
+
+	#meta {
+		font-size: 13px;
+		color: @light-blue;
+		margin-top: -8px;
+		&:not(:last-child) {
+			margin-bottom: 12px;
+		}
+	}
+}
+
+:namespace("calendar-event-answers") {
+	:host {
+		display: block;
+		position: relative;
+	}
+
+	gt-box {
+		.pos(absolute);
+	}
+}
+
+:namespace("calendar-event-reply") {
+	:host {
+		display: block;
+	}
+
+	#status {
+		margin-top: 8px;
+
+		:first-child {
+			margin-right: 12px;
+		}
+	}
 }
