@@ -33,14 +33,7 @@ object CalendarTooltip extends Component[CalendarTooltip](
 	val visibility = event ~ (_.visibility)
 	val announce = visibility ~ (_ == EventVisibility.Announce)
 
-	val eventType = visibility ~ {
-		case EventVisibility.Announce => "Announce"
-		case EventVisibility.Guild => "Guild event"
-		case EventVisibility.Public => "Public event"
-		case EventVisibility.Restricted => "Restricted event"
-		case EventVisibility.Roster => "Roster event"
-		case _ => "Event"
-	}
+	val eventType = visibility ~ EventVisibility.name
 
 	val visible = Var(false)
 
