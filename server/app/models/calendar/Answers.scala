@@ -44,14 +44,14 @@ object Answers extends TableQuery(new Answers(_)) with PubSub[User] {
 			toonData <- toon.map(Toons.findById(_).headOption).getOrElse(Future.successful(None))
 			_ = if (!toonData.forall(_.owner == user)) throw new Exception("Illegal toon given")
 		} {
-			val updated = old match {
-				case Some(o) if o.answer != answer => o.copy(date = DateTime.now, answer = answer, toon = toon, note = note)
-				case None => Answer(user, event, DateTime.now, answer, note, toon, false)
-				case _ => throw new Exception("Answer did not change")
-			}
-
-			for (n <- Answers.findForEventAndUser(event, user).update(updated).run if n > 0) {
-				publishUpdate(updated)
+			old match {
+				case Some(o) if o.answer != answer =>
+					val updated = o.copy(date = DateTime.now, answer = answer, toon = toon, note = note)
+					for (n <- Answers.findForEventAndUser(event, user).update(updated).run if n > 0) publishUpdate(updated)
+				case None =>
+					val inserted = Answer(user, event, DateTime.now, answer, note, toon, false)
+					for (n <- (Answers += inserted).run if n > 0) publishUpdate(inserted)
+				case _ => // Ignore
 			}
 		}
 	}

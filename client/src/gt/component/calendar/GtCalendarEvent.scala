@@ -49,10 +49,15 @@ object GtCalendarEvent extends Component[GtCalendarEvent](
 
 	/** The event data */
 	val event = eventid ~! { id =>
-		if (exists) {
+		if (calendar.events.deleted(id)) {
+			Router.goto("/calendar")
+			GtCalendarEvent.dummy
+		} else if (exists) {
 			val ev = calendar.events.get(id)
 			// Filter out dummy events (Loading... is a better placeholder title)
 			if (ev.owner > 0) ev else GtCalendarEvent.dummy
-		} else GtCalendarEvent.dummy
+		} else {
+			GtCalendarEvent.dummy
+		}
 	}
 }

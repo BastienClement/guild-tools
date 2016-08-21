@@ -1,25 +1,25 @@
 package data
 
 object UserGroups {
+	final val Officer = 11
+	final val Member = 9
+	final val Apply = 8
+	final val Casual = 12
+	final val Veteran = 13
+	final val Guest = 10
+
 	/** The set of every user having developer rights */
 	val developers = Set(1647)
 
 	/** The set of every groups considered officer */
-	val officers = Set(11)
+	val officers = Set.empty + Officer
 
 	/** The set of every groups considered guild members */
-	val members = Set(9, 11)
+	val members = officers + Member
 
 	/** The set of every groups forming the guild roster */
-	val roster = Set(8, 9, 11)
+	val roster = members + Apply
 
 	/** The set of every groups considered part of the guild */
-	val fromscratch = Set(
-		8, // Apply
-		12, // Casual
-		9, // Member
-		11, // Officer
-		10, // Guest
-		13 // Veteran
-	)
+	val fromscratch = roster + Casual + Veteran + Guest
 }

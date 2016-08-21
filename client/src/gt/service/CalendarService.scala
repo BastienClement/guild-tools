@@ -25,6 +25,9 @@ object CalendarService extends Service with Delegate {
 	/** The set of events already requested */
 	private var answersRequested = Set[Int]()
 
+	/** The set of deleted events */
+	private var eventsDeleted = Set[Int]()
+
 	/**
 	  * Ensures that the given month was loaded in the cache.
 	  *
@@ -87,7 +90,7 @@ object CalendarService extends Service with Delegate {
 
 		/** Constructs and requests unknown events */
 		override def default(eventid: Int): Event = {
-			if (eventid > 0) {
+			if (eventid > 0 && !eventsDeleted.contains(eventid)) {
 				channel.request("load-event", eventid) { ev: Option[Event] =>
 					ev match {
 						case Some(e) => update(e)
@@ -119,7 +122,12 @@ object CalendarService extends Service with Delegate {
 		  *
 		  * @param key the event id
 		  */
-		def exists(key: Int): Future[Boolean] = channel.request("event-exists", key).as[Boolean]
+		def exists(key: Int): Future[Boolean] = {
+			if (key > 0) channel.request("event-exists", key).as[Boolean]
+			else Future.successful(false)
+		}
+
+		def deleted(key: Int): Boolean = eventsDeleted.contains(key)
 	}
 
 	/**
@@ -251,8 +259,12 @@ object CalendarService extends Service with Delegate {
 
 	// Message bindings
 	message("event-updated")(events.update _)
-	message("event-deleted") { (id: Int) => events.removeKey(id); answers.removeForEvent(id) }
 	message("answer-updated")(answers.update _)
+	message("event-deleted") { (id: Int) =>
+		eventsDeleted += id
+		events.removeKey(id)
+		answers.removeForEvent(id)
+	}
 
 	/** Clears every caches when the service is suspended */
 	override protected def disable(): Unit = {

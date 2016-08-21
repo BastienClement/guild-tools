@@ -1,13 +1,16 @@
 package gt.component.calendar
 
+import _root_.data.UserGroups
+import gt.Router
 import gt.component.GtHandler
 import gt.component.calendar.CalendarEventAnswers.AnswerData
 import gt.component.widget.form.GtButton
 import gt.component.widget.{GtBox, GtContextMenu, GtTooltip}
 import gt.service.{CalendarService, RosterService}
-import model.calendar.{Answer, AnswerValue, Event, EventState}
+import model.calendar._
 import model.{Toon, User}
 import rx.{Const, Rx, Var}
+import util.DateTime
 import util.annotation.data
 import util.jsannotation.js
 import xuen.Component
@@ -26,6 +29,20 @@ object CalendarEventAnswers extends Component[CalendarEventAnswers](
 			if (event.owner == answer.user) 1
 			else if (user.promoted || answer.promote) 2
 			else 0
+		}
+		def gotoProfile(): Unit = Router.goto("/profile/" + user.id)
+	}
+
+	def withSyntheticAnswers(event: Event, answers: Set[Answer]): Set[Answer] = {
+		def build(groups: Set[Int]) = {
+			(groups.flatMap(g => RosterService.users.byGroup.get(g).map(_.id)) -- answers.map(_.user)).map { user =>
+				Answer(user, event.id, DateTime.now, AnswerValue.Pending, None, None, false)
+			} ++ answers
+		}
+
+		event.visibility match {
+			case EventVisibility.Roster => build(UserGroups.roster)
+			case _ => answers
 		}
 	}
 }
@@ -47,7 +64,7 @@ object CalendarEventAnswers extends Component[CalendarEventAnswers](
 		if (e.owner > 0) calendar.answers.forEvent(e.id)
 		else Const(Set.empty[Answer])
 	} ~ { as =>
-		as.groupBy(a => a.answer) withDefaultValue Set.empty
+		CalendarEventAnswers.withSyntheticAnswers(event, as).groupBy(a => a.answer) withDefaultValue Set.empty
 	}
 
 	val accepts = answers ~ (a => a(1).size)

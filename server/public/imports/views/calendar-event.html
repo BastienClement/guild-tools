@@ -53,7 +53,7 @@
 									<span>{{data.user.name}}</span>
 									<span .light-blue>{{data.toon.server | serverSlang}}</span>
 								</div>
-								<div .space *if="data.hasNote">
+								<div .space .small *if="data.hasNote">
 									{{data.note}}
 								</div>
 								<div .space .gray .small [hidden]="data.pending">
@@ -62,7 +62,7 @@
 							</gt-tooltip>
 							<gt-context-menu>
 								<ul>
-									<li><i>account_circle</i> Profile</li>
+									<li (click)="data.gotoProfile()"><i>account_circle</i> Profile</li>
 									<li .separator></li>
 									<li><i>star_border</i> Promote</li>
 									<li><i>do_not_disturb</i> Demote</li>
