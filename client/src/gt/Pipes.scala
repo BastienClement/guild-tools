@@ -9,6 +9,8 @@ import scala.scalajs.js.timers.setInterval
 import xuen.expr.PipesCollection
 
 object Pipes extends PipesCollection {
+	private def capitalize(str: String): String = str.head.toUpper + str.tail
+
 	declare("uppercase", (_: Any) match {
 		case str: String => str.toUpperCase
 		case other => other
@@ -20,7 +22,7 @@ object Pipes extends PipesCollection {
 	})
 
 	declare("capitalize", (_: Any) match {
-		case str: String if str.length > 0 => str.head.toUpper + str.tail
+		case str: String if str.length > 0 => capitalize(str)
 		case other => other
 	})
 
@@ -32,6 +34,15 @@ object Pipes extends PipesCollection {
 		case time: Int =>
 			val base = (time + 10000).toString.drop(1)
 			base.take(2) + ":" + base.takeRight(2)
+		case other => other
+	})
+
+	declare("serverSlang", (_: Any) match {
+		case str: String =>
+			str.split("-").map {
+				case fragment if fragment.length < 4 => fragment
+				case fragment => capitalize(fragment)
+			}.mkString(" ")
 		case other => other
 	})
 

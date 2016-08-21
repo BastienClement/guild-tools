@@ -20,7 +20,7 @@
 	<link rel="stylesheet/less" href="/assets/less/calendar-event.less" ns="calendar-event-info">
 	<template>
 		<gt-box [heading]="event.title">
-			<div #meta>{{date}} | {{event.time | calendarTime}} | {{state}}</div>
+			<div #meta>{{date}} <span>⋮</span> {{event.time | calendarTime}} <span>⋮</span> {{state}}</div>
 			<div *if="event.desc">{{event.desc}}</div>
 		</gt-box>
 	</template>
@@ -29,7 +29,50 @@
 <xuen-component id="calendar-event-answers">
 	<link rel="stylesheet/less" href="/assets/less/calendar-event.less" ns="calendar-event-answers">
 	<template>
-		<gt-box heading="Answers"></gt-box>
+		<gt-box heading="Answers">
+			<div #layout>
+				<div #tabs>
+					<gt-button .selected="tab == 1" (click)="tab = 1"><i>done</i> {{accepts}}</gt-button>
+					<gt-button .selected="tab == 2" (click)="tab = 2"><i>clear</i> {{declines}}</gt-button>
+					<gt-button .selected="tab == 0" (click)="tab = 0"><i>hourglass_empty</i> {{pendings}}</gt-button>
+				</div>
+				<div #answers>
+					<div .unit *for="data of tabAnswers">
+						<calendar-unit-frame [toon]="data.toon.id">
+							<template *match="data.star">
+								<i *case="1">star</i>
+								<i *case="2">star_border</i>
+							</template>
+							<i *if="data.hasNote">edit</i>
+							<gt-tooltip>
+								<div .row>
+									<span [@class-color]="data.toon.clss">{{data.toon.name}}</span>
+									<span .light>{{data.toon.ilvl}} ilvl</span>
+								</div>
+								<div .row .small>
+									<span>{{data.user.name}}</span>
+									<span .light-blue>{{data.toon.server | serverSlang}}</span>
+								</div>
+								<div .space *if="data.hasNote">
+									{{data.note}}
+								</div>
+								<div .space .gray .small [hidden]="data.pending">
+									{{data.datetime}}
+								</div>
+							</gt-tooltip>
+							<gt-context-menu>
+								<ul>
+									<li><i>account_circle</i> Profile</li>
+									<li .separator></li>
+									<li><i>star_border</i> Promote</li>
+									<li><i>do_not_disturb</i> Demote</li>
+								</ul>
+							</gt-context-menu>
+						</calendar-unit-frame>
+					</div>
+				</div>
+			</div>
+		</gt-box>
 	</template>
 </xuen-component>
 
@@ -45,5 +88,19 @@
 				<gt-input label="Note"></gt-input>
 			</gt-form>
 		</gt-box>
+	</template>
+</xuen-component>
+
+<xuen-component id="calendar-unit-frame">
+	<link rel="stylesheet/less" href="/assets/less/calendar-event.less" ns="calendar-unit-frame">
+	<template>
+		<template *if="!hasToon">
+			&nbsp;
+		</template>
+		<template *if="hasToon">
+			<div #role><img src="/assets/images/roles/{{data.role}}.png"></div>
+			<div #name [@class-color]="data.clss">{{data.name}}</div>
+		</template>
+		<content></content>
 	</template>
 </xuen-component>
