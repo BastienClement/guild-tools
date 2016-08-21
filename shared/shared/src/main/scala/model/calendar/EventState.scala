@@ -9,4 +9,11 @@ object EventState {
 	final val Canceled = 2
 
 	def isValid(s: Int) = 0 <= s && s <= 2
+
+	def name(state: Int): String = state match {
+		case EventState.Open => "Open"
+		case EventState.Canceled => "Canceled"
+		case EventState.Closed => "Closed"
+		case _ => "Unknown"
+	}
 }

@@ -102,7 +102,11 @@ abstract class Cache[K, V <: AnyRef](hash: V => K) {
 		}
 	}
 
-	/** Removes an item by key from the cache */
+	/**
+	  * Removes an item by key from the cache.
+	  *
+	  * @param key the key to remove from the cache
+	  */
 	def removeKey(key: K): Unit = Rx.atomically {
 		items.get(key) match {
 			case None => // Ignore
@@ -127,13 +131,15 @@ abstract class Cache[K, V <: AnyRef](hash: V => K) {
 	/**
 	  * Removes every items in the cache matching the given predicate.
 	  *
-	  * @param pred the predicate to use
+	  * @param predicate the predicate to use
 	  */
-	def prune(pred: V => Boolean): Unit = {
-		for ((key, item) <- items if pred(item.!)) removeKey(key)
+	def prune(predicate: V => Boolean): Unit = {
+		for ((key, item) <- items if predicate(item.!)) removeKey(key)
 	}
 
-	/** Clears the cache */
+	/**
+	  * Clears the cache, removing every entries.
+	  */
 	def clear(): Unit = Rx.atomically {
 		for (idx <- indexes) idx.clear()
 		items.values.foreach(Rx.kill)
@@ -259,18 +265,65 @@ abstract class Cache[K, V <: AnyRef](hash: V => K) {
 	}
 
 	/**
-	  * TODO
+	  * Simple index storing data in a tree.
 	  *
-	  * @param hash
-	  * @tparam H
+	  * The hashing function must produce keys of type H for which an
+	  * Ordering[H] is implicitly available.
+	  *
+	  * @param hash the hash function to use
+	  * @tparam H the type of value produces by the hash function
 	  */
 	class SimpleIndex[H: Ordering](protected val hash: V => H) extends BaseIndex with HashingIndex[H] {
+		/** The data tree */
 		private val tree = Var(TreeMap[H, Var[Set[Rx[V]]]]())
 
+		/**
+		  * Returns every items in the cache that matches the given key.
+		  *
+		  * @param key the key to lookup in the index
+		  */
 		def get(key: H): Rx[Set[V]] = tree ~ (_.get(key)) ~ (_.map(_.!).getOrElse(Set.empty)) ~ (_.map(_.!))
-		def from(lo: H): Rx[Set[V]] = tree ~ (_.from(lo).valuesIterator) ~ (_.foldLeft(Set.empty[V])(_ ++ _.!.map(_.!)))
-		def until(lo: H): Rx[Set[V]] = tree ~ (_.until(lo).valuesIterator) ~ (_.foldLeft(Set.empty[V])(_ ++ _.!.map(_.!)))
-		def range(lo: H, hi: H): Rx[Set[V]] = tree ~ (_.range(lo, hi).valuesIterator) ~ (_.foldLeft(Set.empty[V])(_ ++ _.!.map(_.!)))
+
+		/**
+		  * Returns every items in the cache for which the computed key
+		  * is higher than the given bound.
+		  *
+		  * @param lower the lower bound (inclusive)
+		  */
+		def from(lower: H): Rx[Set[V]] = {
+			tree ~ (_.from(lower).valuesIterator) ~ (_.foldLeft(Set.empty[V])(_ ++ _.!.map(_.!)))
+		}
+
+		/**
+		  * Returns every items in the cache for which the computed key
+		  * is lower than the given bound.
+		  *
+		  * @param upper the upper bound (inclusive)
+		  */
+		def to(upper: H): Rx[Set[V]] = {
+			tree ~ (_.to(upper).valuesIterator) ~ (_.foldLeft(Set.empty[V])(_ ++ _.!.map(_.!)))
+		}
+
+		/**
+		  * Returns every items in the cache for which the computed key
+		  * is lower than the given bound.
+		  *
+		  * @param upper the upper bound (exclusive)
+		  */
+		def until(upper: H): Rx[Set[V]] = {
+			tree ~ (_.until(upper).valuesIterator) ~ (_.foldLeft(Set.empty[V])(_ ++ _.!.map(_.!)))
+		}
+
+		/**
+		  * Returns every items in the cache for which the computed key
+		  * is between the given bounds.
+		  *
+		  * @param lower the lower bound (inclusive)
+		  * @param upper the upper bound (exclusive)
+		  */
+		def range(lower: H, upper: H): Rx[Set[V]] = {
+			tree ~ (_.range(lower, upper).valuesIterator) ~ (_.foldLeft(Set.empty[V])(_ ++ _.!.map(_.!)))
+		}
 
 		protected def remove(hash: H, rx: Rx[V]): Unit = {
 			val set = tree.!(hash)
