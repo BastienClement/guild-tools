@@ -178,7 +178,7 @@ object Events extends TableQuery(new Events(_)) with PubSub[User] {
 	  * @param message  An optional constructor for the message object.
 	  *                 Defaults to Events.Updated.apply
 	  */
-	private def publishUpdate(event_id: Int, message: (Event) => Any = Updated.apply) = {
+	def publishUpdate(event_id: Int, message: (Event) => Any = Updated.apply) = {
 		val queries = for {
 			e <- Events.findById(event_id).result.head
 			a <- Answers.findForEvent(event_id).result

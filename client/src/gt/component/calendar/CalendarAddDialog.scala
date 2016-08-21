@@ -43,6 +43,7 @@ object CalendarAddDialog extends Component[CalendarAddDialog](
 
 	val step = Var[Int]
 	val editing = Var[Boolean]
+	val original = Var[Event]
 
 	val days = Var(Set.empty[DateTime])
 	val canGoNext = days ~ (_.nonEmpty)
@@ -105,6 +106,12 @@ object CalendarAddDialog extends Component[CalendarAddDialog](
 		hide()
 	}
 
+	def save(): Unit = {
+		val template = Event(original.id, eventTitle.trim, eventDesc, 0, original.date, eventHours * 100 + eventMinutes, eventVisibility, original.state)
+		calendar.updateEvent(template)
+		hide()
+	}
+
 	def show(): Unit = {
 		step := 1
 		editing := false
@@ -122,6 +129,7 @@ object CalendarAddDialog extends Component[CalendarAddDialog](
 	def edit(event: Event) = {
 		step := 2
 		editing := true
+		original := event
 		eventTitle := event.title
 		eventVisibility := event.visibility
 		eventHours := event.time / 100

@@ -9,6 +9,7 @@ import models._
 import models.calendar.{Answers, Events, Slacks}
 import models.mysql._
 import reactive.ExecutionContext
+import scala.util.Success
 import util.DateTime
 import util.DateTime.Units
 
@@ -108,6 +109,24 @@ class CalendarChannel(user: User) extends ChannelHandler {
 
 		for (date <- dates) {
 			Events.create(template.copy(owner = user.id, date = date, state = 0))
+		}
+	}
+
+	message("update-event") { template: Event =>
+		for (e <- Events.findById(template.id).filter(Events.canEdit(user)).head) {
+			if ((e.visibility == EventVisibility.Announce && template.visibility != EventVisibility.Announce)
+					|| (e.visibility != EventVisibility.Announce && template.visibility == EventVisibility.Announce)) {
+				throw new Exception("Cannot change the event type from or to Announce")
+			}
+
+			Events.findById(template.id).map { e =>
+				(e.title, e.desc, e.time, e.visibility)
+			}.update {
+				(template.title, template.desc, template.time, template.visibility)
+			}.run.onComplete {
+				case Success(i) if i > 0 => Events.publishUpdate(template.id)
+				case _ => // ignore
+			}
 		}
 	}
 
