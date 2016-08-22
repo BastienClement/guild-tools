@@ -95,7 +95,7 @@ class CalendarChannel(user: User) extends ChannelHandler {
 	  */
 	message("change-event-answer") { (event: Int, answer: Int, toon: Option[Int], note: Option[String]) =>
 		Events.ifAccessible(user, event) {
-			Answers.changeAnswer(user.id, event, answer, toon, note)
+			Answers.changeAnswer(user.id, event, answer, toon.filter(_ > 0), note.filter(_.trim.nonEmpty))
 		}
 	}
 
