@@ -44,9 +44,10 @@ class CalendarChannel(user: User) extends ChannelHandler {
 
 		val events = Events.findBetween(from, to).filter(Events.canAccess(user))
 		val events_answers = Answers.withOwnAnswer(events, user).run
-		val slacks = Slacks.findBetween(from, to).run.map(_.map(_.conceal))
+		val slacks = Slacks.findBetween(from, to).run
+		val concealed = if (user.promoted) slacks else slacks.map(_.map(_.conceal))
 
-		events_answers.zip(slacks)
+		events_answers.zip(concealed)
 	}
 
 	/**

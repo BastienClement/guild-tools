@@ -3,7 +3,6 @@ package gt.component.calendar
 import _root_.data.UserGroups
 import gt.Router
 import gt.component.GtHandler
-import gt.component.calendar.CalendarEventAnswers.AnswerData
 import gt.component.widget.form.GtButton
 import gt.component.widget.{GtBox, GtContextMenu, GtTooltip}
 import gt.service.{CalendarService, RosterService}
@@ -19,17 +18,44 @@ object CalendarEventAnswers extends Component[CalendarEventAnswers](
 	selector = "calendar-event-answers",
 	templateUrl = "/assets/imports/views/calendar-event.html",
 	dependencies = Seq(GtBox, GtButton, CalendarUnitFrame, GtTooltip, GtContextMenu)
-) {
+)
+
+@js class CalendarEventAnswers extends GtHandler {
+	val calendar = service(CalendarService)
+	val roster = service(RosterService)
+
+	val ss = calendar.slacks
+
+	val event = property[Event]
+	val slacks = event ~ { e =>
+		calendar.slacks.ranges.containing(e.date.toCalendarKey).map { s =>
+			(s.user, s.reason.getOrElse(""))
+		}.toMap
+	}
+
+	def date: String = {
+		val date = event.date
+		s"${ date.day }/${ date.month }/${ date.year }"
+	}
+
+	def state: String = EventState.name(event.state)
+
 	@data case class AnswerData(event: Event, answer: Answer, toon: Toon, user: User) {
 		def hasNote = answer.note.isDefined
 		def note = answer.note.get
+
+		def hasSlack = slacks.contains(user.id)
+		def slack = slacks(user.id)
+
 		def datetime = answer.date.toISOString.replaceFirst("""^([0-9]+)\-([0-9]+)-([0-9]+)T([0-9]+):([0-9]+).*$""", "$3/$2/$1 – $4:$5")
-		def pending = answer.answer == AnswerValue.Pending
+		def pending = answer.answer == AnswerValue.Pending || answer.date == DateTime.zero
+
 		def star = {
 			if (event.owner == answer.user) 1
 			else if (user.promoted || answer.promote) 2
 			else 0
 		}
+
 		def gotoProfile(): Unit = Router.goto("/profile/" + user.id)
 	}
 
@@ -41,7 +67,7 @@ object CalendarEventAnswers extends Component[CalendarEventAnswers](
 					case Some(slack) => AnswerValue.Declined
 					case None => AnswerValue.Pending
 				}
-				Answer(user, event.id, DateTime.now, status, None, None, false)
+				Answer(user, event.id, DateTime.zero, status, None, None, false)
 			} ++ answers
 		}
 
@@ -50,26 +76,12 @@ object CalendarEventAnswers extends Component[CalendarEventAnswers](
 			case _ => answers
 		}
 	}
-}
-
-@js class CalendarEventAnswers extends GtHandler {
-	val calendar = service(CalendarService)
-	val roster = service(RosterService)
-
-	val event = property[Event]
-
-	def date: String = {
-		val date = event.date
-		s"${ date.day }/${ date.month }/${ date.year }"
-	}
-
-	def state: String = EventState.name(event.state)
 
 	val answers = event ~! { e =>
 		if (e.owner > 0) calendar.answers.forEvent(e.id)
 		else Const(Set.empty[Answer])
 	} ~ { as =>
-		CalendarEventAnswers.withSyntheticAnswers(event, as).groupBy(a => a.answer) withDefaultValue Set.empty
+		withSyntheticAnswers(event, as).groupBy(a => a.answer) withDefaultValue Set.empty
 	}
 
 	val accepts = answers ~ (a => a(1).size)

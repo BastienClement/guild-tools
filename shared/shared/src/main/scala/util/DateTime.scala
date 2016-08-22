@@ -53,6 +53,8 @@ object DateTime {
 	/** Constructs a DateTime holding the current time */
 	def now: DateTime = fromInstant(clock.instant())
 
+	def zero: DateTime = apply(0)
+
 	/** Constructs a DateTime holding the current day at 00:00:00 */
 	def today: DateTime = fromInstant(clock.instant().truncatedTo(ChronoUnit.DAYS))
 
@@ -91,7 +93,7 @@ object DateTime {
   */
 class DateTime private (val instant: Instant) extends Ordered[DateTime] {
 	val date = DateTime.compat.instantAtOffset(instant, DateTime.utc)
-	def timestamp = instant.toEpochMilli
+	@inline def timestamp = instant.toEpochMilli
 
 	def year = date.getYear
 	def month = date.getMonthValue

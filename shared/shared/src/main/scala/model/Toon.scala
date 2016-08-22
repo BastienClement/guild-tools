@@ -18,4 +18,9 @@ import util.annotation.data
                       ilvl: Int,
                       role: String,
                       invalid: Boolean = false,
-                      last_update: Long = Platform.currentTime)
+                      last_update: Long = Platform.currentTime) {
+	@inline def crossrealm = server match {
+		case "sargeras" | "garona" | "nerzhul" => false
+		case _ => true
+	}
+}
