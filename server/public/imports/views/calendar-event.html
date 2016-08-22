@@ -5,7 +5,7 @@
 			<div #left>
 				<calendar-event-info [event]></calendar-event-info>
 				<calendar-event-answers [event]></calendar-event-answers>
-				<calendar-event-reply [event]></calendar-event-reply>
+				<calendar-event-reply [event] [answer]></calendar-event-reply>
 			</div>
 			<div #right>
 				<gt-box heading="RaidComp">
@@ -87,8 +87,8 @@
 		<gt-box heading="Status" scrollable>
 			<gt-form>
 				<div #status>
-					<gt-checkbox label="Available" [radio]="1"></gt-checkbox>
-					<gt-checkbox label="Unavailable" [radio]="2"></gt-checkbox>
+					<gt-checkbox label="Available" [value]="status" [radio]="1" (click)="status = 1; update()"></gt-checkbox>
+					<gt-checkbox label="Unavailable" [value]="status" [radio]="2" (click)="status = 2; update()"></gt-checkbox>
 				</div>
 				<gt-input label="Note"></gt-input>
 			</gt-form>

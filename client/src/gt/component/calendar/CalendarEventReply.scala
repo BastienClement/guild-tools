@@ -3,7 +3,10 @@ package gt.component.calendar
 import gt.component.GtHandler
 import gt.component.widget.GtBox
 import gt.component.widget.form.{GtCheckbox, GtForm, GtInput}
-import model.calendar.{Event, EventState}
+import gt.service.CalendarService
+import model.calendar.{Answer, AnswerValue, Event}
+import rx.Var
+import util.Microtask
 import util.jsannotation.js
 import xuen.Component
 
@@ -14,12 +17,24 @@ object CalendarEventReply extends Component[CalendarEventReply](
 )
 
 @js class CalendarEventReply extends GtHandler {
-	val event = property[Event]
+	val calendar = service(CalendarService)
 
-	def date: String = {
-		val date = event.date
-		s"${ date.day }/${ date.month }/${ date.year }"
+	val event = property[Event]
+	val answer = property[Answer]
+
+	answer ~> { a =>
+		status := a.answer
+		toon := a.toon.getOrElse(0)
+		note := a.note.orNull
 	}
 
-	def state: String = EventState.name(event.state)
+	val status = Var[Int](AnswerValue.Pending)
+	val toon = Var[Int](0)
+	val note = Var[String](null)
+
+	def update(): Unit = Microtask.schedule {
+		if (status > 0) {
+			calendar.changeEventAnswer(event.id, status, Option(toon.!).filter(_ > 0), Option(note.!).filter(_.trim.nonEmpty))
+		}
+	}
 }

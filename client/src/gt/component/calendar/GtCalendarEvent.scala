@@ -23,7 +23,7 @@ object GtCalendarEvent extends Component[GtCalendarEvent](
 	val tabs: TabGenerator = GtCalendar.genTabs("calendar")
 
 	/** A dummy event used while the true one is being loaded */
-	val dummy = Const { Event(0, "Loading...", "", 0, DateTime.now, 0, EventVisibility.Restricted, EventState.Open) }
+	val dummy = Const { Event(0, "Loading...", "", 0, DateTime.zero, 0, EventVisibility.Restricted, EventState.Open) }
 }
 
 @js class GtCalendarEvent extends GtHandler {
@@ -60,4 +60,7 @@ object GtCalendarEvent extends Component[GtCalendarEvent](
 			GtCalendarEvent.dummy
 		}
 	}
+
+	/** Own response to the event */
+	val answer = event ~! (e => calendar.answers.mineForEvent(e.id))
 }

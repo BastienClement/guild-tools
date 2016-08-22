@@ -3,7 +3,6 @@ package gt.service
 import boopickle.DefaultBasic._
 import gt.App
 import gt.service.base.{Cache, Delegate, Service}
-import model.Toon
 import model.calendar._
 import rx.Rx
 import scala.collection.immutable.BitSet
@@ -141,7 +140,7 @@ object CalendarService extends Service with Delegate {
 		val byEvent = new SimpleIndex(e => e.event)
 
 		/** Constructs a default, synthetic, answer */
-		def constructDefault(user: Int, event: Int): Answer = Answer(user, event, null, 0, None, None, false)
+		def constructDefault(user: Int, event: Int): Answer = Answer(user, event, DateTime.zero, 0, None, None, false)
 
 		/** Insert the default answer in the cache */
 		def insertDefault(user: Int, event: Int): Unit = update(constructDefault(user, event))
@@ -149,7 +148,7 @@ object CalendarService extends Service with Delegate {
 		/** Automatically query server when accessing undefined answers */
 		override def default(key: (Int, Int)): Answer = key match {
 			case (user, event) =>
-				loadAnswers(event)
+				if (event > 0) loadAnswers(event)
 				constructDefault(user, event)
 		}
 
@@ -232,13 +231,13 @@ object CalendarService extends Service with Delegate {
 	/**
 	  * Changes the user's answer to an event.
 	  *
-	  * @param event   the event id
-	  * @param answer  the answer value
-	  * @param message an optional details message
-	  * @param toon    an optional toon to associate with the answer
+	  * @param event  the event id
+	  * @param answer the answer value
+	  * @param toon   an optional toon to associate with the answer
+	  * @param note   an optional details message
 	  */
-	def changeEventAnswer(event: Int, answer: Int, message: Option[String] = None, toon: Option[Toon] = None): Unit = {
-		channel.send("change-event-answer", (event, answer, message, toon))
+	def changeEventAnswer(event: Int, answer: Int, toon: Option[Int] = None, note: Option[String] = None): Unit = {
+		channel.send("change-event-answer", (event, answer, toon, note))
 	}
 
 	/**
