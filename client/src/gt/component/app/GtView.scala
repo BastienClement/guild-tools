@@ -61,7 +61,9 @@ object GtView extends Component[GtView](
 			val promise = Promise[Unit]()
 			child.classList.remove("active")
 			child.addEventListener("transitionend", (e: Event) => {
-				removeChild(child)
+				if (child.parentNode != null) {
+					child.parentNode.removeChild(child)
+				}
 				promise.success(())
 			})
 			promise.future
