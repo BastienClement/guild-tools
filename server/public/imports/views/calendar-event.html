@@ -65,12 +65,12 @@
 									{{data.slack}}
 								</div>
 							</gt-tooltip>
-							<gt-context-menu>
+							<gt-context-menu *if="data.hasGrant">
 								<ul>
 									<li (click)="data.gotoProfile()"><i>account_circle</i> Profile</li>
 									<li .separator></li>
-									<li><i>star_border</i> Promote</li>
-									<li><i>do_not_disturb</i> Demote</li>
+									<li *if="data.canBePromoted"><i>star_border</i> Promote</li>
+									<li *if="data.canBeDemoted"><i>do_not_disturb</i> Demote</li>
 								</ul>
 							</gt-context-menu>
 						</calendar-unit-frame>

@@ -50,9 +50,16 @@ object CalendarEventAnswers extends Component[CalendarEventAnswers](
 		def datetime = answer.date.toISOString.replaceFirst("""^([0-9]+)\-([0-9]+)-([0-9]+)T([0-9]+):([0-9]+).*$""", "$3/$2/$1 – $4:$5")
 		def pending = answer.answer == AnswerValue.Pending || answer.date == DateTime.zero
 
+		def isOwner = event.owner == answer.user
+		def isPromoted = user.promoted || answer.promote
+
+		def hasGrant = app.user.promoted || event.owner == app.user.id
+		def canBePromoted = hasGrant && !isPromoted
+		def canBeDemoted = hasGrant && isPromoted && user.id != app.user.id && !user.promoted
+
 		def star = {
-			if (event.owner == answer.user) 1
-			else if (user.promoted || answer.promote) 2
+			if (isOwner) 1
+			else if (isPromoted) 2
 			else 0
 		}
 
