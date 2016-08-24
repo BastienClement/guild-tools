@@ -3,8 +3,9 @@ package gt.component.dashboard
 import gt.component.GtHandler
 import gt.component.widget.{GtAlert, GtBox}
 import gt.service.NewsFeedService
+import model.NewsFeedData
+import rx.Var
 import rx.syntax.MonadicOps
-import rx.{Rx, Var}
 import util.annotation.data
 import util.jsannotation.js
 import xuen.Component
@@ -19,8 +20,19 @@ object DashboardNews extends Component[DashboardNews](
 	val newsfeed = service(NewsFeedService)
 	val available = newsfeed.channel.open
 
-	val news = Var[Seq[Unit]](Nil)
-	val count = Rx { news.length }
+	val news = newsfeed.news
+	val count = news ~ (_.size)
+
+	def icon(item: NewsFeedData): String = {
+		val base = item.source match {
+			case "MMO" => "mmo"
+			case "WOW" => "wow"
+			case "BLUE" =>
+				if (item.tags.contains("EU")) "eu"
+				else "us"
+		}
+		s"/assets/images/feed/$base.png"
+	}
 
 	@data object sources {
 		val mmo = Var(true)
@@ -32,7 +44,5 @@ object DashboardNews extends Component[DashboardNews](
 			blue <- blue
 			wow <- wow
 		} yield (mmo, blue, wow)
-
-		foo ~> { v => println(v) }
 	}
 }

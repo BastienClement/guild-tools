@@ -43,10 +43,10 @@
 				The news feed may be temporarily unavailable.
 			</gt-alert>
 			<div #list>
-				<div .news *for="item of news" [@visible]="visible(item.source)" (click)="open">
+				<div .news .visible *for="item of news" (click)="open">
 					<img [src]="icon(item)">
-					<b {tags}="item.tags" {source}="item.source">{{item.title}}</b>
-					<gt-timeago [date]="item.time"></gt-timeago>
+					<b [@tags]="item.tags" [@source]="item.source">{{item.title}}</b>
+					<span .timeago>{{item.time | ago}}</span>
 				</div>
 			</div>
 		</gt-box>

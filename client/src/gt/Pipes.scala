@@ -6,6 +6,7 @@ import scala.concurrent.duration._
 import scala.scalajs.js
 import scala.scalajs.js.JSStringOps._
 import scala.scalajs.js.timers.setInterval
+import util.DateTime
 import xuen.expr.PipesCollection
 
 object Pipes extends PipesCollection {
@@ -98,6 +99,7 @@ object Pipes extends PipesCollection {
 		declare("ago", (timestamp: Any) => timestamp match {
 			case _: String | _: Int | _: Double => ago(timestamp)
 			case long: Long => ago(long.toDouble)
+			case dt: DateTime => ago(dt.timestamp.toDouble)
 			case other => other
 		})
 	}

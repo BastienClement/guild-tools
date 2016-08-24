@@ -107,22 +107,17 @@
 
 	.news {
 		.gpu;
-		height: 0px;
-		opacity: 0;
+		height: 25px;
+		opacity: 1;
+
+		padding: 3px 5px;
+		margin: 0 -10px 0 -5px;
 
 		display: flex;
 		transition: all .2s ease-out;
 
 		&:hover {
 			background-color: fade(@fs-blue, 10%);
-		}
-
-		&[visible] {
-			height: 25px;
-			opacity: 1;
-
-			padding: 3px 5px;
-			margin: 0 -10px 0 -5px;
 		}
 
 		img {
@@ -146,7 +141,7 @@
 			}
 		}
 
-		gt-timeago {
+		.timeago {
 			color: @light-blue;
 			margin-left: 12px;
 		}

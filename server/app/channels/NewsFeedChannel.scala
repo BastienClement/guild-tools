@@ -4,7 +4,6 @@ import akka.actor.{ActorRef, Props}
 import boopickle.DefaultBasic._
 import gtp3._
 import models._
-import models.mysql._
 import scala.concurrent.duration._
 import utils.CacheCell
 
@@ -21,7 +20,7 @@ object NewsFeedChannel extends ChannelValidator {
 	}
 
 	def cache = CacheCell(5.minutes) {
-		Feeds.sortBy(_.time.desc).take(50).run.await
+		NewsFeed.sortBy(_.time.desc).take(50).run.await
 	}
 
 	case object Update
@@ -37,9 +36,9 @@ class NewsFeedChannel extends ChannelHandler {
 
 	stop {
 		NewsFeedChannel.open_feeds.synchronized {
-		NewsFeedChannel.open_feeds -= self
+			NewsFeedChannel.open_feeds -= self
+		}
 	}
-}
 
 	akka {
 		case NewsFeedChannel.Update => update()
