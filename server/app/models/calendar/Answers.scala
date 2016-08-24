@@ -1,7 +1,7 @@
 package models.calendar
 
 import model.User
-import model.calendar.{Answer, Event}
+import model.calendar.{Answer, Event, EventState}
 import models._
 import models.mysql._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -40,6 +40,8 @@ object Answers extends TableQuery(new Answers(_)) with PubSub[User] {
 
 	def changeAnswer(user: Int, event: Int, answer: Int, toon: Option[Int], note: Option[String]): Unit = {
 		for {
+			ev <- Events.findById(event).head
+			_ = if (ev.state != EventState.Open) throw new Exception("Cannot answer to a closed or canceled event")
 			old <- Answers.findForEventAndUser(event, user).headOption
 			toonData <- toon.map(Toons.findById(_).headOption).getOrElse(Future.successful(None))
 			_ = if (!toonData.forall(_.owner == user)) throw new Exception("Illegal toon given")
