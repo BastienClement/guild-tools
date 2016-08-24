@@ -4,7 +4,7 @@ resolvers += Resolver.typesafeRepo("releases")
 addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.1.9")
 
 // The Play plugin
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.5.4")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.5.6")
 
 // web plugins
 addSbtPlugin("com.typesafe.sbt" % "sbt-digest" % "1.0.0")
