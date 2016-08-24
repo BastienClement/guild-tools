@@ -22,7 +22,7 @@ object GtContextMenu extends Component[GtContextMenu](
 	val passive = attribute[Boolean] := false
 	val useclick = attribute[Boolean] := false
 
-	val contextListener: scalajs.js.Function1[MouseEvent, Unit] = context _
+	val contextListener: scalajs.js.Function1[MouseEvent, Unit] = open _
 	val closeListener: scalajs.js.Function1[Event, Unit] = close _
 	val stopListener: scalajs.js.Function1[Event, Unit] = stop _
 
@@ -42,7 +42,7 @@ object GtContextMenu extends Component[GtContextMenu](
 		}
 	}
 
-	def context(e: MouseEvent): Unit = if (!e.shiftKey) {
+	def open(e: MouseEvent): Unit = if (!e.shiftKey) {
 		FloatingUtils.lift(this, close)
 		visible := true
 		document.addEventListener("mousedown", closeListener)

@@ -3,9 +3,9 @@
 	<template>
 		<div #layout>
 			<div #left>
-				<calendar-event-info [event]></calendar-event-info>
+				<calendar-event-info [event] [answer]></calendar-event-info>
 				<calendar-event-answers [event]></calendar-event-answers>
-				<calendar-event-reply [event] [answer]></calendar-event-reply>
+				<calendar-event-reply [event] [answer] *if="event.state == 0"></calendar-event-reply>
 			</div>
 			<div #right>
 				<gt-box heading="RaidComp">
@@ -23,6 +23,18 @@
 			<div #meta>{{date}} <span>⋮</span> {{event.time | calendarTime}} <span>⋮</span> {{state}}</div>
 			<div *if="event.desc">{{event.desc}}</div>
 		</gt-box>
+		<gt-context-menu #menu *if="editable">
+			<ul>
+				<li (click)="#edit-dialog.edit(event)"><i>edit</i> Edit</li>
+				<li .separator></li>
+				<li (click)="openEvent()" [hidden]="event.state == 0"><i>panorama_fish_eye</i> Open</li>
+				<li (click)="closeEvent()" [hidden]="event.state == 1"><i>lock_outline</i> Close</li>
+				<li (click)="cancelEvent()" [hidden]="event.state == 2"><i>remove_circle_outline</i> Cancel</li>
+			</ul>
+		</gt-context-menu>
+		<gt-dialog>
+			<calendar-add-dialog #edit-dialog></calendar-add-dialog>
+		</gt-dialog>
 	</template>
 </xuen-component>
 
