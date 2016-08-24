@@ -12,7 +12,7 @@ case class Debouncer[T](delay: FiniteDuration)(block: => T) {
 		if (scheduled == null) schedule()
 	}
 
-	def now(): Unit = {
+	def now(flush: Boolean = false): Unit = if (!flush || scheduled != null) {
 		cancel()
 		block
 	}

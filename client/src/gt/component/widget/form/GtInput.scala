@@ -30,6 +30,7 @@ object GtInput extends Component[GtInput](
 
 	/** Proxy to input value */
 	val value = model[String] := ""
+	private var oldValue = ""
 
 	/** Error message */
 	val error = property[String]
@@ -46,7 +47,10 @@ object GtInput extends Component[GtInput](
 	// Update the cached value of the input
 	private val update = Debouncer(500.millis) {
 		value := child.as[HTMLInputElement].input.value
-		fire("change")
+		if (oldValue != value.!) {
+			fire("change")
+			oldValue = value.!
+		}
 	}
 
 	def reset(): Unit = {
@@ -78,7 +82,7 @@ object GtInput extends Component[GtInput](
 	listen("keypress", child.input) { e: KeyboardEvent =>
 		if (e.keyCode == 13) {
 			e.preventDefault()
-			update.now()
+			update.now(true)
 			for (form <- Option(closest("gt-form").asInstanceOf[GtForm])) {
 				blur()
 				form.submit()
