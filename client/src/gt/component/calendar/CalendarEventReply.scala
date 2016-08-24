@@ -30,7 +30,7 @@ object CalendarEventReply extends Component[CalendarEventReply](
 
 	val status = Var[Int](AnswerValue.Pending)
 	val toon = Var[Int](0)
-	val note = Var[String](null)
+	val note = Var[String]("")
 
 	def update(): Unit = Microtask.schedule {
 		if (status > 0) {

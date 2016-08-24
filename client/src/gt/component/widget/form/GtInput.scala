@@ -44,8 +44,9 @@ object GtInput extends Component[GtInput](
 	override def blur(): Unit = child.input.blur()
 
 	// Update the cached value of the input
-	private val update = Debouncer(200.millis) {
+	private val update = Debouncer(500.millis) {
 		value := child.as[HTMLInputElement].input.value
+		fire("change")
 	}
 
 	def reset(): Unit = {

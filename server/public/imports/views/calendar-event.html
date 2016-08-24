@@ -90,7 +90,7 @@
 					<gt-checkbox label="Available" [value]="status" [radio]="1" (click)="status = 1; update()"></gt-checkbox>
 					<gt-checkbox label="Unavailable" [value]="status" [radio]="2" (click)="status = 2; update()"></gt-checkbox>
 				</div>
-				<gt-input label="Note"></gt-input>
+				<gt-input #note [value]="note" label="Note" (change)="note = #note.value; update()"></gt-input>
 			</gt-form>
 		</gt-box>
 	</template>

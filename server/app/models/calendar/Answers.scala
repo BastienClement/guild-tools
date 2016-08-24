@@ -45,7 +45,7 @@ object Answers extends TableQuery(new Answers(_)) with PubSub[User] {
 			_ = if (!toonData.forall(_.owner == user)) throw new Exception("Illegal toon given")
 		} {
 			old match {
-				case Some(o) if o.answer != answer =>
+				case Some(o) if o.answer != answer || o.toon != toon || o.note != note =>
 					val updated = o.copy(date = DateTime.now, answer = answer, toon = toon, note = note)
 					for (n <- Answers.findForEventAndUser(event, user).update(updated).run if n > 0) publishUpdate(updated)
 				case None =>
