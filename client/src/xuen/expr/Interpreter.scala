@@ -42,6 +42,7 @@ object Interpreter {
 		}
 
 		@inline def call(name: String, args: Seq[Any]): Any = receiver match {
+			case ctx: Context if name == "$dump" => console.log(args.toJSArray)
 			case ctx: Context => ctx.invoke(name, args)
 			case other =>
 				val r = receiver.dyn
