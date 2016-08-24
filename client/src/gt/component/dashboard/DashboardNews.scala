@@ -4,6 +4,7 @@ import gt.component.GtHandler
 import gt.component.widget.{GtAlert, GtBox}
 import gt.service.NewsFeedService
 import model.NewsFeedData
+import org.scalajs.dom
 import rx.Var
 import rx.syntax.MonadicOps
 import util.annotation.data
@@ -13,7 +14,7 @@ import xuen.Component
 object DashboardNews extends Component[DashboardNews](
 	selector = "dashboard-news",
 	templateUrl = "/assets/imports/views/dashboard.html",
-	dependencies = Seq(GtBox, GtAlert, DashboardNewsFilter)
+	dependencies = Seq(GtBox, GtAlert/*, DashboardNewsFilter*/)
 )
 
 @js class DashboardNews extends GtHandler {
@@ -32,6 +33,10 @@ object DashboardNews extends Component[DashboardNews](
 				else "us"
 		}
 		s"/assets/images/feed/$base.png"
+	}
+
+	def open(item: NewsFeedData): Unit = {
+		dom.window.open(item.link)
 	}
 
 	@data object sources {

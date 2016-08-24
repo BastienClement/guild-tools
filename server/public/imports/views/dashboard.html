@@ -33,17 +33,17 @@
 			<div #disconnected *if="!available">
 				<i>cloud_off</i>
 			</div>
-			<div #actions>
+			<!--<div #actions>
 				<dashboard-news-filter key="MMO" [(active)]="sources.mmo"></dashboard-news-filter>
 				<dashboard-news-filter key="BLUE" [(active)]="sources.blue"></dashboard-news-filter>
 				<dashboard-news-filter key="WOW" [(active)]="sources.wow"></dashboard-news-filter>
-			</div>
+			</div>-->
 			<gt-alert #none *if="count < 1" icon="cloud_off" dark>
 				No news to display.<br>
 				The news feed may be temporarily unavailable.
 			</gt-alert>
 			<div #list>
-				<div .news .visible *for="item of news" (click)="open">
+				<div .news .visible *for="item of news" (click)="open(item)">
 					<img [src]="icon(item)">
 					<b [@tags]="item.tags" [@source]="item.source">{{item.title}}</b>
 					<span .timeago>{{item.time | ago}}</span>
