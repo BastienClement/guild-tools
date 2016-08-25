@@ -21,7 +21,7 @@ object NewsFeedChannel extends ChannelValidator {
 	}
 
 	def cache = CacheCell(5.minutes) {
-		NewsFeed.sortBy(_.link.desc).take(50).run.await
+		NewsFeed.sortBy(_.time.desc).take(50).run.await
 	}
 
 	case object Update
