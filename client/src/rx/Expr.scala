@@ -14,7 +14,7 @@ package rx
   * @param generate the value generator
   * @tparam T the type of the result of the generator
   */
-class Expr[T] protected[rx] (generate: () => T) extends Rx[T] {
+class Expr[@specialized +T] protected[rx] (generate: () => T) extends Rx[T] {
 	/** The current value of this expression */
 	private[this] var current: Option[T] = None
 

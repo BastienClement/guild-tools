@@ -10,7 +10,7 @@ import util.Zero
   * @param initial the initial value of this variable
   * @tparam T the type of this reactive value
   */
-class Var[T] protected (initial: T) extends Rx[T] {
+class Var[@specialized T] protected (initial: T) extends Rx[T] {
 	/** Current value of this reactive variable */
 	private[this] var current = initial
 

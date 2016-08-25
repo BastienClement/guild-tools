@@ -13,7 +13,7 @@ import scala.util.DynamicVariable
   *
   * @tparam T the type of this reactive value
   */
-trait Rx[+T] {
+trait Rx[@specialized +T] {
 	// Status flags
 	private[rx] var hasChildren = false
 	private[rx] var hasObservers = false
