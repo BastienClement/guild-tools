@@ -112,7 +112,8 @@
 	<link rel="stylesheet/less" href="/assets/less/calendar-event.less" ns="calendar-unit-frame">
 	<template>
 		<template *if="!hasToon">
-			&nbsp;
+			<div #role><img src="/assets/images/roles/UNKNOW.png"></div>
+			<div #name class-color="0">Unknown</div>
 		</template>
 		<template *if="hasToon">
 			<div #role><img src="/assets/images/roles/{{data.role}}.png"></div>
