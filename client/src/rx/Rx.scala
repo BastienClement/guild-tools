@@ -62,7 +62,7 @@ trait Rx[@specialized +T] {
 		// Enqueue observers, if any
 		if (hasObservers && alive) {
 			for (observer <- observers if Rx.observersSet.add(observer)) {
-				Rx.observersStack.push(observer)
+				Rx.observersQueue.enqueue(observer)
 			}
 		}
 	}
@@ -143,7 +143,7 @@ object Rx {
 	private[rx] var topLevel = true
 
 	/** The stack of observers to notify once the atomically block exits */
-	private[rx] val observersStack = mutable.Stack[Obs]()
+	private[rx] val observersQueue = mutable.Queue[Obs]()
 
 	/** The set of observers already in the stacks */
 	private[rx] val observersSet = mutable.Set[Obs]()
@@ -154,8 +154,8 @@ object Rx {
 		if (isTopLevel) topLevel = false
 		val res = block
 		if (isTopLevel) Microtask.schedule {
-			while (observersStack.nonEmpty) {
-				val observer = observersStack.pop()
+			while (observersQueue.nonEmpty) {
+				val observer = observersQueue.dequeue()
 				observersSet.remove(observer)
 				observer.trigger()
 			}
