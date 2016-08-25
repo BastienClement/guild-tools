@@ -7,6 +7,7 @@ import scala.language.implicitConversions
 import scala.scalajs.js.Date
 import scala.scalajs.js.timers.setInterval
 import scala.util.DynamicVariable
+import util.Microtask
 
 /**
   * A reactive value.
@@ -148,11 +149,11 @@ object Rx {
 	private[rx] val observersSet = mutable.Set[Obs]()
 
 	/** Executes a mutator block atomically */
-	def atomically[T](block: => T): T = {
+	@inline final def atomically[T](block: => T): T = {
 		val isTopLevel = topLevel
 		if (isTopLevel) topLevel = false
 		val res = block
-		if (isTopLevel) {
+		if (isTopLevel) Microtask.schedule {
 			while (observersStack.nonEmpty) {
 				val observer = observersStack.pop()
 				observersSet.remove(observer)
