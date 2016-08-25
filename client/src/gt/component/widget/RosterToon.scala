@@ -2,6 +2,7 @@ package gt.component.widget
 
 import gt.component.GtHandler
 import gt.service.RosterService
+import rx.Obs
 import util.jsannotation.js
 import xuen.Component
 
@@ -15,8 +16,17 @@ object RosterToon extends Component[RosterToon](
 	val user = attribute[Int]
 	val toon = attribute[Int]
 
-	val effectiveToon = (user ~! roster.main) ~+ (toon ~! roster.toon)
+	val effectiveToon = user ~! {
+		case 0 => roster.toon(toon)
+		case i if i > 0 => roster.main(i)
+	}
 
-	val `class-color` = attribute[Int] <~ (effectiveToon ~ (_.clss))
-	effectiveToon ~> (t => textContent = t.name)
+	private val toonObs = Obs {
+		val toon = effectiveToon.!
+		textContent = toon.name
+		setAttribute("class-color", toon.clss.toString)
+	}
+
+	override def attached(): Unit = effectiveToon ~>> toonObs
+	override def detached(): Unit = effectiveToon ~/> toonObs
 }
