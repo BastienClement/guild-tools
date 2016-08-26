@@ -11,7 +11,7 @@ object Specializations {
 	private final val TANK = "TANK"
 
 	/** Constructs dummy specialization */
-	private def dummy(id: Int, clss: Int = 0): Spec = Spec(id, clss, "Unknown", "UNKNOW", "", inactive = true)
+	private def dummy(id: Int, clss: Int = 0): Spec = Spec(id, clss, "Unknown", "UNKNOW", "")
 
 	/** Specializations data */
 	private val specs = IndexedSeq(
@@ -34,7 +34,7 @@ object Specializations {
 
 		// Rogue
 		Spec(10, 4, "Assassination", DPS, "ability_rogue_deadlybrew"),
-		Spec(11, 4, "Combat", DPS, "ability_backstab", inactive = true),
+		Spec(11, 4, "Outlaw", DPS, "inv_sword_30"),
 		Spec(12, 4, "Subtlety", DPS, "ability_stealth"),
 
 		// Priest
@@ -73,16 +73,13 @@ object Specializations {
 		Spec(33, 11, "Guardian", TANK, "ability_racial_bearform"),
 		Spec(34, 11, "Restoration", HEALING, "spell_nature_healingtouch"),
 
-		// Rogue v2
-		Spec(35, 4, "Outlaw", DPS, "inv_sword_30"),
-
 		// Demon Hunter
-		Spec(36, 12, "Havoc", DPS, "ability_demonhunter_specdps"),
-		Spec(37, 12, "Vengeance", TANK, "ability_demonhunter_spectank")
+		Spec(35, 12, "Havoc", DPS, "ability_demonhunter_specdps"),
+		Spec(36, 12, "Vengeance", TANK, "ability_demonhunter_spectank")
 	)
 
 	/** Specializations by class */
-	private val byClass = specs.filter(!_.inactive).groupBy(s => s.clss)
+	private val byClass = specs.groupBy(s => s.clss)
 
 	/**
 	  * Returns the specialization data from a spec ID
