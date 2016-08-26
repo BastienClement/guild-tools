@@ -1,3 +1,4 @@
+import sbt.Keys._
 import sbt.Project.projectToRef
 
 name := """guild-tools"""
@@ -52,23 +53,22 @@ lazy val client = (project in file("client"))
 lazy val shared = (crossProject.crossType(CrossType.Full) in file("shared"))
                   .settings(
 	                  scalaVersion := scalaV,
-	                  scalacOptions ++= scalaOpts
+	                  scalacOptions ++= scalaOpts,
+	                  libraryDependencies ++= Seq (
+		                  "org.scodec" %%% "scodec-core" % "1.10.1",
+		                  "org.scodec" %%% "scodec-bits" % "1.1.0",
+		                  "me.chrons" %%% "boopickle" % "1.2.4"
+	                  )
                   )
                   .jvmSettings(
 	                  libraryDependencies ++= Seq(
-		                  "org.scodec" %% "scodec-core" % "1.10.1",
-		                  "org.scodec" %% "scodec-bits" % "1.1.0",
-		                  "me.chrons" %% "boopickle" % "1.2.4",
 		                  "com.typesafe.play" %% "play-slick" % "2.0.2",
 		                  "org.scala-js" %% "scalajs-stubs" % scalaJSVersion % "provided"
 	                  )
                   )
                   .jsSettings(
 	                  libraryDependencies ++= Seq(
-		                  "org.scodec" %%% "scodec-core" % "1.10.1",
-		                  "org.scodec" %%% "scodec-bits" % "1.1.0",
-		                  "org.scala-js" %%% "scalajs-java-time" % "0.2.0",
-		                  "me.chrons" %%% "boopickle" % "1.2.4"
+		                  "org.scala-js" %%% "scalajs-java-time" % "0.2.0"
 	                  )
                   )
                   .jsConfigure(_ enablePlugins ScalaJSPlay)
