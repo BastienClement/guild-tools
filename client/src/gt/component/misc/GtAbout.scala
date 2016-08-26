@@ -18,7 +18,7 @@ object GtAbout extends Component[GtAbout](
 }
 
 @js class GtAbout extends GtHandler {
-	val version = Server.version ~ (v => v.substring(0, 9 max v.length))
+	val version = Server.version ~ (v => v.substring(0, 9 min v.length))
 }
 
 
