@@ -261,9 +261,25 @@
 			color: @light-blue;
 		}
 
-		&[main] #main { display: block; }
-		&[active]:not([main]) #active { display: block; }
-		&:not([active]) #inactive { display: block; }
+		&[invalid] {
+			#invalid {
+				display: block;
+			}
+		}
+
+		&:not([invalid]) {
+			&[main] #main {
+				display: block;
+			}
+
+			&[active]:not([main]) #active {
+				display: block;
+			}
+
+			&:not([active]) #inactive {
+				display: block;
+			}
+		}
 
 		#inactive {
 			transform: scaleX(-1);

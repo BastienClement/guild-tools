@@ -149,7 +149,9 @@
 			<div #layout>
 				<bnet-thumb [toon]="char"></bnet-thumb>
 				<div #infos>
-					<div #name [@class-color]="char.clss">{{ char.name }}</div>
+					<div #name [@class-color]="char.clss">
+						{{ char.name }}
+					</div>
 					<div>
 						{{ char.level }}
 						{{ char.race | race }}
@@ -161,10 +163,11 @@
 						{{ char.ilvl }} ilvl
 					</div>
 				</div>
-				<div #icon [@main]="char.main" [@active]="char.active">
+				<div #icon [@main]="char.main" [@active]="char.active" [@invalid]="char.invalid">
 					<i #main>star</i>
 					<i #active>star_border</i>
 					<i #inactive>brightness_3</i>
+					<i #invalid>cloud_off</i>
 				</div>
 			</div>
 			<div #actions [hidden]="!editable">
