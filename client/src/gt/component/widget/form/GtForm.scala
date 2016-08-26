@@ -2,6 +2,7 @@ package gt.component.widget.form
 
 import gt.component.GtHandler
 import rx.Rx
+import util.Microtask
 import util.implicits._
 import util.jsannotation.js
 import xuen.Component
@@ -27,6 +28,8 @@ object GtForm extends Component[GtForm](
 		valid
 	}
 
-	def submit(): Unit = if (isValid) fire("submit")
+	def submit(): Unit = if (isValid) {
+		Microtask.schedule(fire("submit"))
+	}
 }
 

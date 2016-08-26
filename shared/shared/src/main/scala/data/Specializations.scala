@@ -1,18 +1,20 @@
 package data
 
-import scala.scalajs.js
 import util.annotation.data
 
 object Specializations {
 	@data case class Spec(id: Int, clss: Int, name: String, role: String, icon: String, inactive: Boolean = false)
 
+	// Roles aliases
 	private final val DPS = "DPS"
 	private final val HEALING = "HEALING"
 	private final val TANK = "TANK"
 
+	/** Constructs dummy specialization */
 	private def dummy(id: Int, clss: Int = 0): Spec = Spec(id, clss, "Unknown", "UNKNOW", "", inactive = true)
 
-	val specs = js.Array[Spec](
+	/** Specializations data */
+	private val specs = IndexedSeq(
 		dummy(0),
 
 		// Warrior
@@ -76,6 +78,23 @@ object Specializations {
 
 		// Demon Hunter
 		Spec(36, 12, "Havoc", DPS, "ability_demonhunter_specdps"),
-		Spec(37, 12, "Vengeance", TANK, "ability_demonhunter_spectank"),
+		Spec(37, 12, "Vengeance", TANK, "ability_demonhunter_spectank")
 	)
+
+	/** Specializations by class */
+	private val byClass = specs.filter(!_.inactive).groupBy(s => s.clss)
+
+	/**
+	  * Returns the specialization data from a spec ID
+	  * @param id the specialization ID
+	  */
+	def get(id: Int): Spec = specs(id)
+
+	/**
+	  * Returns the ordered list of all specializations for a given class.
+	  * @param clss the class
+	  */
+	def forClass(clss: Int): Seq[Spec] = byClass.getOrElse(clss, Seq.empty)
+
+	def resolve(name: String, clss: Int): Int = specs.find(s => s.clss == clss && s.name == name).map(_.id).getOrElse(0)
 }

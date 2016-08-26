@@ -1,5 +1,6 @@
 package gt.component.profile
 
+import data.Specializations
 import gt.component.GtHandler
 import gt.component.widget.form.GtButton
 import gt.component.widget.{BnetThumb, GtBox}
@@ -24,6 +25,8 @@ object ProfileCharsCard extends Component[ProfileCharsCard](
 	val tid = char ~ (_.id)
 	val updatePending = Var(false)
 
+	val specs = char ~ (c => Specializations.forClass(c.clss))
+
 	val updatable = for {
 		pending <- updatePending
 		char <- char
@@ -32,7 +35,7 @@ object ProfileCharsCard extends Component[ProfileCharsCard](
 		!pending && (now - char.last_update > 1000 * 60 * 15)
 	}
 
-	def setRole(role: String): Unit = if (role != char.role) roster.changeToonRole(tid, role)
+	def setSpec(spec: Int): Unit = if (spec != char.specid) roster.changeToonSpec(tid, spec)
 	def promote(): Unit = roster.promoteToon(tid)
 	def enable(): Unit = roster.enableToon(tid)
 	def disable(): Unit = roster.disableToon(tid)

@@ -1,5 +1,6 @@
 package gt.component.profile
 
+import data.Specializations
 import gt.component.GtHandler
 import gt.component.widget._
 import gt.component.widget.form.{GtButton, GtForm, GtInput}
@@ -27,10 +28,18 @@ object ProfileAddChar extends Component[ProfileAddChar](
 
 	val server = Var("")
 	val name = Var("")
-	val role = Var("")
+	val spec = Var(0)
 	val toon = Var(null: Toon)
 	val loadDone = Var(false)
 	val inFlight = Var(false)
+
+	val specs = toon ~ {
+		case null =>
+			Seq.empty[Specializations.Spec]
+		case t: Toon =>
+			println(t.clss, Specializations.forClass(t.clss))
+			Specializations.forClass(t.clss)
+	}
 
 	val hasToon = toon ~ (_ != null)
 	val canLoad = Rx { server.trim.nonEmpty && name.trim.nonEmpty && !loadDone }
@@ -75,7 +84,7 @@ object ProfileAddChar extends Component[ProfileAddChar](
 			img <- loadToonImage(toon.thumbnail)
 		} yield {
 			this.toon := toon
-			this.role := toon.role
+			this.spec := toon.specid
 		}
 
 		for (e <- process.failed) {
@@ -89,7 +98,7 @@ object ProfileAddChar extends Component[ProfileAddChar](
 	def confirm(): Unit = if(!inFlight) {
 		inFlight := true
 
-		profile.registerToon(server, name, role, owner).andThen {
+		profile.registerToon(server, name, spec, owner).andThen {
 			case _ => inFlight := false
 		}.onComplete {
 			case Failure(e) =>
@@ -108,12 +117,14 @@ object ProfileAddChar extends Component[ProfileAddChar](
 
 	def show() = {
 		child.as[GtForm].form.reset()
+		Rx.flush()
 
 		server := "sargeras"
-		role := ""
+		spec := 0
 		toon := null
 		loadDone := false
 		inFlight := false
+		Rx.flush()
 
 		// Remove old backgrounds
 		removeToonImages()

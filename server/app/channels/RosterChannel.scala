@@ -67,7 +67,7 @@ class RosterChannel(val user: User) extends ChannelHandler {
 		RosterService.refreshToon(toon, update_user)
 	}
 
-	request("change-toon-role") { (toon: Int, role: String) =>
-		RosterService.changeRole(toon, role, update_user)
+	request("change-toon-spec") { (toon: Int, spec: Int) =>
+		RosterService.changeSpec(toon, spec, update_user)
 	}
 }

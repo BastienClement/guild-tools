@@ -1,5 +1,6 @@
 package model
 
+import _root_.data.Specializations
 import scala.compat.Platform
 import util.annotation.data
 
@@ -16,11 +17,14 @@ import util.annotation.data
                       achievements: Int,
                       thumbnail: String,
                       ilvl: Int,
-                      role: String,
+                      specid: Int,
                       invalid: Boolean = false,
                       last_update: Long = Platform.currentTime) {
 	@inline def crossrealm = server match {
 		case "sargeras" | "garona" | "nerzhul" => false
 		case _ => true
 	}
+
+	lazy val spec = Specializations.get(specid)
+	lazy val role = spec.role
 }

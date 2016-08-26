@@ -1,6 +1,7 @@
 package actors
 
 import actors.BattleNet._
+import data.Specializations
 import gt.GuildTools
 import model.Toon
 import play.api.libs.json.JsValue
@@ -57,14 +58,16 @@ trait BattleNet {
 	def fetchToon(server: String, name: String): Future[Toon] = {
 		query(s"/character/$server/$name", "fields" -> "items,talents").map { char =>
 			// Extract talents
-			val talents = char \ "talents"
+			val talents = (char \ "talents").asOpt[Seq[JsValue]].getOrElse(Seq.empty)
 
-			// Get primary role
-			val role =
-				(talents(0) :: talents(1) :: Nil)
-					.find { tree => (tree \ "selected").asOpt[Boolean] getOrElse false }
-					.flatMap { tree => (tree \ "spec" \ "role").asOpt[String] }
-					.getOrElse("DPS")
+			// Get primary spec
+			val spec = talents.find { tree =>
+				(tree \ "selected").asOpt[Boolean].getOrElse(false)
+			}.flatMap { tree =>
+				(tree \ "spec" \ "name").asOpt[String]
+			}.map { spec =>
+				Specializations.resolve(spec, (char \ "class").as[Int])
+			}.getOrElse(0)
 
 			Toon(
 				id = 0,
@@ -80,7 +83,7 @@ trait BattleNet {
 				achievements = (char \ "achievementPoints").as[Int],
 				thumbnail = (char \ "thumbnail").as[String],
 				ilvl = (char \ "items" \ "averageItemLevelEquipped").as[Int],
-				role = role)
+				specid = spec)
 		}
 	}
 }

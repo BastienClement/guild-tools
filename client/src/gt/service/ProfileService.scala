@@ -33,12 +33,12 @@ object ProfileService extends Service {
 	  *
 	  * @param server the toon's server
 	  * @param name   the toon's name
-	  * @param role   the toon's registered role
+	  * @param spec   the toon's registered spec
 	  * @param owner  the toon's owner, setting this value to another value than
 	  *               the current user's id requires promoted privileges.
 	  */
-	def registerToon(server: String, name: String, role: String, owner: Int): Future[Unit] = {
-		channel.request("register-toon", (server, name, role, owner)).as[Unit]
+	def registerToon(server: String, name: String, spec: Int, owner: Int): Future[Unit] = {
+		channel.request("register-toon", (server, name, spec, owner)).as[Unit]
 	}
 
 	/**

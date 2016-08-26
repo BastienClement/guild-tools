@@ -2,7 +2,7 @@ package actors
 
 import actors.BattleNet.BnetFailure
 import actors.RosterService.{ToonDeleted, ToonUpdated}
-import data.UserGroups
+import data.{Specializations, UserGroups}
 import model.{Toon, User}
 import models._
 import models.mysql._
@@ -175,15 +175,25 @@ trait RosterService extends PubSub[User] {
 	def enableToon(id: Int, user: Option[User] = None): Future[Toon] = changeEnabledState(id, user, true)
 	def disableToon(id: Int, user: Option[User] = None): Future[Toon] = changeEnabledState(id, user, false)
 
-	def changeRole(id: Int, role: String, user: Option[User] = None): Future[Toon] = DB.run {
-		if (!Toons.validateRole(role)) throw new Exception("Invalid role")
-		val char_query = getOwnChar(id, user)
+	/**
+	  * Changes a toon's specialization
+	  *
+	  * @param id the toon's ID
+	  * @param spec the specialization ID
+	  * @param user if set, the toon's owner must match the given user
+	  */
+	def changeSpec(id: Int, spec: Int, user: Option[User] = None): Future[Toon] = {
+		val toonQuery = getOwnChar(id, user)
 		for {
-			_ <- char_query.filter(_.role =!= role).map(_.role).update(role)
-			char <- char_query.result.head
-		} yield {
-			this.notifyUpdate(char)
-		}
+			oldToon <- toonQuery.head
+			_ = if (oldToon.clss != Specializations.get(spec).clss) throw new Exception("Invalid specialization for class")
+			newToon <- (for {
+				_ <- toonQuery.filter(_.spec =!= spec).map(_.spec).update(spec)
+				toon <- toonQuery.result.head
+			} yield {
+				this.notifyUpdate(toon)
+			}).run
+		} yield newToon
 	}
 
 	// Remove an existing character from the database
@@ -201,22 +211,22 @@ trait RosterService extends PubSub[User] {
 	}
 
 	// Add a new character for a specific user
-	def registerChar(server: String, name: String, owner: Int, role: Option[String]): Future[Toon] = {
+	def registerChar(server: String, name: String, owner: Int, spec: Option[Int]): Future[Toon] = {
 		for {
-			char <- BattleNet.fetchToon(server, name)
-			res <- registerChar(char, owner, role)
+			toon <- BattleNet.fetchToon(server, name)
+			res <- registerChar(toon, owner, spec)
 		} yield {
 			res
 		}
 	}
 
-	def registerChar(char: Toon, owner: Int, role: Option[String]): Future[Toon] = DB.run {
+	def registerChar(char: Toon, owner: Int, spec: Option[Int]): Future[Toon] = DB.run {
 		val count_main = Toons.filter(c => c.owner === owner && c.main === true).size.result
 		val query = for {
 		// Count the number of main for this user
 			pre_count <- count_main
 			// Construct the char for insertion with correct role, owner and main flag
-			insert_char = char.copy(role = role.getOrElse(char.role), owner = owner, main = pre_count < 1)
+			insert_char = char.copy(specid = spec.getOrElse(char.specid), owner = owner, main = pre_count < 1)
 			// Insert this char
 			insert_id <- (Toons returning Toons.map(_.id)) += insert_char
 			// Ensure we have exactly one main for this user now

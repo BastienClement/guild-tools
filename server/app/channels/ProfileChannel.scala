@@ -64,7 +64,7 @@ class ProfileChannel(val user: User) extends ChannelHandler {
 			_ = if (exists) () else throw new Exception("Invalid server name")
 
 			// Query local database
-			query = Toons.filter(c => c.server === server && c.name === name).size === 0
+			query = Toons.filter(c => c.server === server && c.name.toLowerCase === name.toLowerCase).size === 0
 			free <- query.result.run
 		} yield free
 	}
@@ -73,15 +73,13 @@ class ProfileChannel(val user: User) extends ChannelHandler {
 	request("realms-list") { ProfileChannel.realms_cache.value }
 
 	// Register a new char to a user
-	request("register-toon") { (server: String, name: String, role: String, owner: Int) =>
-		require(Toons.validateRole(role))
+	request("register-toon") { (server: String, name: String, spec: Int, owner: Int) =>
 		val effectiveOwner = if (user.promoted) owner else user.id
-
 		lastToon match {
 			case Some(toon) if toon.server == server && toon.name == name =>
-				RosterService.registerChar(toon, effectiveOwner, Some(role))
+				RosterService.registerChar(toon, effectiveOwner, Some(spec))
 			case _ =>
-				RosterService.registerChar(server, name, effectiveOwner, Some(role))
+				RosterService.registerChar(server, name, effectiveOwner, Some(spec))
 		}
 	}
 

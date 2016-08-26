@@ -38,13 +38,13 @@ object RosterService extends Service with Delegate {
 		override def default(key: Int): Toon = {
 			if (key > 0) {
 				channel.request("load-user-toon", key)(loadData _)
-				Toon(-1, s"Toon#$key", "Unknown", 0, false, true, 0, 0, 0, 0, 0, null, 0, "DPS", true, 0)
+				Toon(-1, s"Toon#$key", "Unknown", 0, false, true, 0, 0, 0, 0, 0, null, 0, 0, true, 0)
 			} else if (key < 0) {
 				val user = -key
 				users.get(user)
-				Toon(-1, s"User#$user", "Unknown", user, true, true, 0, 0, 0, 0, 0, null, 0, "DPS", true, 0)
+				Toon(-1, s"User#$user", "Unknown", user, true, true, 0, 0, 0, 0, 0, null, 0, 0, true, 0)
 			} else {
-				Toon(-1, s"Toon#$key", "Unknown", 0, false, true, 0, 0, 0, 0, 0, null, 0, "DPS", true, 0)
+				Toon(-1, s"Toon#$key", "Unknown", 0, false, true, 0, 0, 0, 0, 0, null, 0, 0, true, 0)
 			}
 		}
 	}
@@ -54,7 +54,7 @@ object RosterService extends Service with Delegate {
 	def toon(toon: Int): Rx[Toon] = toons.get(toon)
 	def main(user: Int): Rx[Toon] = toons.mainForUser.get(user) ~ (_.headOption.getOrElse(toons.get(-user).!))
 
-	def changeToonRole(tid: Int, role: String): Unit = channel.send("change-toon-role", (tid, role))
+	def changeToonSpec(tid: Int, spec: Int): Unit = channel.send("change-toon-spec", (tid, spec))
 	def promoteToon(tid: Int): Unit = channel.send("promote-toon", tid)
 	def enableToon(tid: Int): Unit = channel.send("enable-toon", tid)
 	def disableToon(tid: Int): Unit = channel.send("disable-toon", tid)

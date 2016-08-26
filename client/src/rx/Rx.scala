@@ -148,18 +148,25 @@ object Rx {
 	/** The set of observers already in the stacks */
 	private[rx] val observersSet = mutable.Set[Obs]()
 
+	/** Flushing pending observer notifications */
+	def flush(): Unit = {
+		while (observersQueue.nonEmpty) {
+			val observer = observersQueue.dequeue()
+			observersSet.remove(observer)
+			observer.trigger()
+		}
+	}
+
 	/** Executes a mutator block atomically */
 	@inline final def atomically[T](block: => T): T = {
 		val isTopLevel = topLevel
 		if (isTopLevel) topLevel = false
 		val res = block
-		if (isTopLevel) Microtask.schedule {
-			while (observersQueue.nonEmpty) {
-				val observer = observersQueue.dequeue()
-				observersSet.remove(observer)
-				observer.trigger()
+		if (isTopLevel) {
+			Microtask.schedule {
+				flush()
+				topLevel = true
 			}
-			topLevel = true
 		}
 		res
 	}
