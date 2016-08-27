@@ -6,8 +6,8 @@ import gt.components.GtHandler
 import gt.components.widget.form.GtButton
 import gt.components.widget.{GtBox, GtContextMenu, GtTooltip}
 import gt.services.{CalendarService, RosterService}
-import model.calendar._
-import model.{Toon, User}
+import models.calendar._
+import models.{Toon, User}
 import rx.{Const, Rx, Var}
 import utils.DateTime
 import utils.annotation.data

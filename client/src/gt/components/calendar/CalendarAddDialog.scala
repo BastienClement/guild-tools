@@ -4,7 +4,7 @@ import gt.components.GtHandler
 import gt.components.widget.form._
 import gt.components.widget.{GtBox, GtDialog, GtTooltip}
 import gt.services.CalendarService
-import model.calendar.{Event, EventState, EventVisibility}
+import models.calendar.{Event, EventState, EventVisibility}
 import org.scalajs.dom.raw.MouseEvent
 import rx.{Rx, Var}
 import scala.scalajs.js

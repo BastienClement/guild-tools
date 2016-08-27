@@ -3,7 +3,7 @@ package gt.components.dashboard
 import gt.components.GtHandler
 import gt.components.widget.{GtAlert, GtBox}
 import gt.services.NewsFeedService
-import model.NewsFeedData
+import models.NewsFeedData
 import org.scalajs.dom
 import rx.Var
 import rx.syntax.MonadicOps

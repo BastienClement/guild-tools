@@ -4,7 +4,7 @@ import gt.Router
 import gt.components.GtHandler
 import gt.components.widget.GtContextMenu
 import gt.services.CalendarService
-import model.calendar.{AnswerValue, Event, EventState, EventVisibility}
+import models.calendar.{AnswerValue, Event, EventState, EventVisibility}
 import org.scalajs.dom.MouseEvent
 import rx.Rx
 import utils.jsannotation.js

@@ -2,7 +2,7 @@ package gtp3
 
 import akka.actor.{ActorRef, Props}
 import gtp3.Socket.Opener
-import model.User
+import models.User
 
 abstract class ChannelRequest(val socket: ActorRef, val channel_type: String, val token: String, val user: User, val opener: Opener) {
 	protected var _channel: Option[Channel] = None

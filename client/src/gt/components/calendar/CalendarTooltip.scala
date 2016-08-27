@@ -4,7 +4,7 @@ import gt.App
 import gt.components.GtHandler
 import gt.components.widget.RosterToon
 import gt.services.CalendarService
-import model.calendar._
+import models.calendar._
 import org.scalajs.dom.raw.CustomEvent
 import rx.{Rx, Var}
 import utils.DateTime

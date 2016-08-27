@@ -5,7 +5,7 @@ import gt.components.GtHandler
 import gt.components.widget.form.GtButton
 import gt.components.widget.{BnetThumb, GtBox}
 import gt.services.RosterService
-import model.Toon
+import models.Toon
 import rx.syntax.MonadicOps
 import rx.{Rx, Var}
 import scala.concurrent.ExecutionContext.Implicits.global

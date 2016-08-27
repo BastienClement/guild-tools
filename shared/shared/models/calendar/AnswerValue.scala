@@ -1,4 +1,4 @@
-package model.calendar
+package models.calendar
 
 object AnswerValue {
 	final val Pending = 0

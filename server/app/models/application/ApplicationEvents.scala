@@ -1,6 +1,6 @@
 package models.application
 
-import model.User
+import models.User
 import utils.PubSub
 
 object ApplicationEvents extends PubSub[User] {

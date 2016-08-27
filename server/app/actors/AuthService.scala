@@ -1,7 +1,7 @@
 package actors
 
 import akka.actor.ActorRef
-import model.User
+import models.User
 import models._
 import models.authentication.{Session, Sessions, Users}
 import models.mysql._

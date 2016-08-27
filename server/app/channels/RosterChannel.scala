@@ -6,7 +6,7 @@ import akka.actor.Props
 import api.Roster.UserData
 import boopickle.DefaultBasic._
 import gtp3._
-import model.User
+import models.User
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

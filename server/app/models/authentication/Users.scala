@@ -1,6 +1,6 @@
 package models.authentication
 
-import model.User
+import models.User
 import models._
 import models.mysql._
 import reactive.ExecutionContext

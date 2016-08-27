@@ -5,7 +5,7 @@ import gt.components.widget.form.GtButton
 import gt.components.widget.{GtBox, GtDialog, GtTooltip, RosterToon}
 import gt.components.{GtHandler, Tab, View}
 import gt.services.CalendarService
-import model.calendar.{Event, Slack}
+import models.calendar.{Event, Slack}
 import org.scalajs.dom.MouseEvent
 import rx.{Const, Var}
 import scala.scalajs.js

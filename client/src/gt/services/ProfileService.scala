@@ -2,7 +2,7 @@ package gt.services
 
 import boopickle.DefaultBasic._
 import gt.services.base.Service
-import model.{Profile, Toon}
+import models.{Profile, Toon}
 import scala.concurrent.Future
 
 object ProfileService extends Service {

@@ -5,7 +5,7 @@ import actors.ChatService.{UserAway, UserConnected, UserDisconnected}
 import akka.actor.Props
 import boopickle.DefaultBasic._
 import gtp3._
-import model.User
+import models.User
 import reactive.ExecutionContext
 
 object ChatChannel extends ChannelValidator {

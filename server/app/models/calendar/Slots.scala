@@ -1,6 +1,6 @@
 package models.calendar
 
-import model.calendar.Slot
+import models.calendar.Slot
 import models.mysql._
 
 class Slots(tag: Tag) extends Table[Slot](tag, "gt_events_slots") {

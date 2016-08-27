@@ -3,7 +3,7 @@ package gt.components.calendar
 import gt.components.GtHandler
 import gt.components.widget.{GtBox, GtContextMenu, GtDialog}
 import gt.services.CalendarService
-import model.calendar.{Answer, Event, EventState}
+import models.calendar.{Answer, Event, EventState}
 import rx.Rx
 import utils.jsannotation.js
 import xuen.Component

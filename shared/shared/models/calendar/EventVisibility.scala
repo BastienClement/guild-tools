@@ -1,6 +1,6 @@
-package model.calendar
+package models.calendar
 
-import model.User
+import models.User
 
 /**
   * Visibility of a calendar event

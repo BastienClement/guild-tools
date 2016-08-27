@@ -3,7 +3,7 @@ package controllers.webtools
 import actors.{AuthService, RosterService}
 import controllers.webtools.WtController._
 import data.UserGroups
-import model.{Toon, User}
+import models.{Toon, User}
 import models._
 import models.mysql._
 import play.api.mvc._

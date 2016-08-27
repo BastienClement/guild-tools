@@ -3,7 +3,7 @@ package gt.services
 import boopickle.DefaultBasic._
 import gt.App
 import gt.services.base.{Cache, Delegate, Service}
-import model.calendar._
+import models.calendar._
 import rx.Rx
 import scala.collection.immutable.BitSet
 import scala.concurrent.Future

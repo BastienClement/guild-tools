@@ -3,7 +3,7 @@ package gt.components.calendar
 import gt.Router
 import gt.components.{GtHandler, View}
 import gt.services.CalendarService
-import model.calendar.{Event, EventState, EventVisibility}
+import models.calendar.{Event, EventState, EventVisibility}
 import rx.{Const, Var}
 import scala.concurrent.ExecutionContext.Implicits.global
 import utils.DateTime

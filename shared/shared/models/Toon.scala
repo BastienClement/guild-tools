@@ -1,4 +1,4 @@
-package model
+package models
 
 import _root_.data.Specializations
 import scala.compat.Platform

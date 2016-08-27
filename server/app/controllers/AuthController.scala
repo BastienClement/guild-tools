@@ -3,7 +3,7 @@ package controllers
 import actors.AuthService
 import gt.GuildTools
 import java.util.concurrent.ExecutionException
-import model.User
+import models.User
 import models._
 import models.authentication.Sessions
 import models.mysql._

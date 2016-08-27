@@ -2,7 +2,7 @@ package actors
 
 import actors.StreamService._
 import data.UserGroups
-import model.User
+import models.User
 import models._
 import models.live.Streams
 import models.mysql._

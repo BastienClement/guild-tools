@@ -1,6 +1,6 @@
 package models.application
 
-import model.User
+import models.User
 import models._
 import models.application.ApplicationEvents.ApplyUpdated
 import models.mysql._

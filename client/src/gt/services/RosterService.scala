@@ -3,7 +3,7 @@ package gt.services
 import api.Roster.UserData
 import boopickle.DefaultBasic._
 import gt.services.base.{Cache, Delegate, Service}
-import model.{Toon, User}
+import models.{Toon, User}
 import rx.Rx
 import scala.concurrent.Future
 

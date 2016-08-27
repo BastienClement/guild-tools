@@ -1,6 +1,6 @@
 package models.calendar
 
-import model.calendar.Slack
+import models.calendar.Slack
 import models.mysql._
 import utils.DateTime
 

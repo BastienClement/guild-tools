@@ -4,7 +4,7 @@ import actors.AuthService
 import akka.actor._
 import gt.GuildTools
 import gtp3.Socket._
-import model.User
+import models.User
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.compat.Platform

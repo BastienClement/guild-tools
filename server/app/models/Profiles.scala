@@ -1,6 +1,6 @@
 package models
 
-import model.{Profile, ProfileData}
+import models.{Profile, ProfileData}
 import models.mysql._
 import utils.DateTime
 

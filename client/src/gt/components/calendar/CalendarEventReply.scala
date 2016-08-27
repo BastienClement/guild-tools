@@ -4,7 +4,7 @@ import gt.components.GtHandler
 import gt.components.widget.GtBox
 import gt.components.widget.form.{GtCheckbox, GtForm, GtInput}
 import gt.services.CalendarService
-import model.calendar.{Answer, AnswerValue, Event}
+import models.calendar.{Answer, AnswerValue, Event}
 import rx.Var
 import utils.Microtask
 import utils.jsannotation.js

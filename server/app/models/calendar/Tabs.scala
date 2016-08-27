@@ -1,6 +1,6 @@
 package models.calendar
 
-import model.calendar.Tab
+import models.calendar.Tab
 import models._
 import models.mysql._
 

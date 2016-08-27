@@ -4,7 +4,7 @@ import boopickle.DefaultBasic._
 import gt.components.app.GtApp
 import gt.components.widget.floating.GtFloatingPlaceholder
 import gt.services.RosterService
-import model.User
+import models.User
 import org.scalajs.dom.raw.HTMLSpanElement
 import org.scalajs.dom.{Event, MouseEvent, NodeListOf, window}
 import scala.concurrent.ExecutionContext.Implicits.global

@@ -6,7 +6,7 @@ import boopickle.DefaultBasic._
 import gtp3.Socket.{Opener, SetUser}
 import gtp3._
 import java.util.concurrent.atomic.AtomicInteger
-import model.User
+import models.User
 import reactive._
 import scala.collection.mutable
 import scala.concurrent.Future

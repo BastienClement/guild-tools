@@ -5,7 +5,7 @@ import gt.components.GtHandler
 import gt.components.widget.GtBox
 import gt.components.widget.form.GtButton
 import gt.services.{ProfileService, RosterService}
-import model.{Profile, ProfileData}
+import models.{Profile, ProfileData}
 import org.scalajs.dom.{console, window}
 import rx.Var
 import scala.concurrent.ExecutionContext.Implicits.global

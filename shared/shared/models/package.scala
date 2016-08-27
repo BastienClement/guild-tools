@@ -1,7 +1,7 @@
 import boopickle.DefaultBasic._
-import model.calendar._
+import models.calendar._
 
-package object model {
+package object models {
 	implicit val NewsFeedDataPickler = PicklerGenerator.generatePickler[NewsFeedData]
 	implicit val ProfilePickler = PicklerGenerator.generatePickler[Profile]
 	implicit val ToonPickler = PicklerGenerator.generatePickler[Toon]

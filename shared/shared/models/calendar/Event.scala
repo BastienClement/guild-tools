@@ -1,4 +1,4 @@
-package model.calendar
+package models.calendar
 
 import utils.DateTime
 import utils.annotation.data

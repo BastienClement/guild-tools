@@ -2,7 +2,7 @@ package actors
 
 import actors.ChatService._
 import channels.ChatChannel
-import model.User
+import models.User
 import models._
 import models.mysql._
 import reactive.ExecutionContext

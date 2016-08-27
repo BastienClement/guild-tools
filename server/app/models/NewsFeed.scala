@@ -1,6 +1,6 @@
 package models
 
-import model.NewsFeedData
+import models.NewsFeedData
 import models.mysql._
 import utils.DateTime
 

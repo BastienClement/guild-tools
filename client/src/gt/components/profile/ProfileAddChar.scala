@@ -5,7 +5,7 @@ import gt.components.GtHandler
 import gt.components.widget._
 import gt.components.widget.form.{GtButton, GtForm, GtInput}
 import gt.services.ProfileService
-import model.Toon
+import models.Toon
 import org.scalajs.dom.raw.HTMLImageElement
 import org.scalajs.dom.{Event, document}
 import rx.{Rx, Var}

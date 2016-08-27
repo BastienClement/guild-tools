@@ -3,7 +3,7 @@ package channels
 import akka.actor.Props
 import boopickle.DefaultBasic._
 import gtp3._
-import model.User
+import models.User
 import models._
 import models.mysql._
 

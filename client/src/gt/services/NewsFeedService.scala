@@ -2,7 +2,7 @@ package gt.services
 
 import boopickle.DefaultBasic._
 import gt.services.base.{Delegate, Service}
-import model.NewsFeedData
+import models.NewsFeedData
 import rx.Var
 
 object NewsFeedService extends Service with Delegate {

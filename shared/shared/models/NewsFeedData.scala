@@ -1,4 +1,4 @@
-package model
+package models
 
 import utils.DateTime
 import utils.annotation.data

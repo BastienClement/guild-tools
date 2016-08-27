@@ -1,7 +1,7 @@
 import boopickle.DefaultBasic._
 import com.google.inject.Inject
-import model.calendar._
-import model.{NewsFeedData, Profile}
+import models.calendar._
+import models.{NewsFeedData, Profile}
 import models.application.{Application, ApplicationMessage}
 import play.api.db.slick.DatabaseConfigProvider
 import scala.concurrent.duration._

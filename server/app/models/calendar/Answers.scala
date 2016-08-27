@@ -1,7 +1,7 @@
 package models.calendar
 
-import model.User
-import model.calendar.{Answer, Event, EventState}
+import models.User
+import models.calendar.{Answer, Event, EventState}
 import models._
 import models.mysql._
 import scala.concurrent.ExecutionContext.Implicits.global

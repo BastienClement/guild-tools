@@ -1,6 +1,6 @@
 package models
 
-import model.User
+import models.User
 import models.mysql._
 
 class PhpBBUsers(tag: Tag) extends Table[User](tag, "phpbb_users") {

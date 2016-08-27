@@ -3,7 +3,7 @@ package actors
 import actors.BattleNet._
 import data.Specializations
 import gt.GuildTools
-import model.Toon
+import models.Toon
 import play.api.libs.json.JsValue
 import play.api.libs.ws.WSResponse
 import reactive.ExecutionContext

@@ -1,7 +1,7 @@
 package gt.components.widget
 
 import gt.components.GtHandler
-import model.Toon
+import models.Toon
 import utils.jsannotation.js
 import xuen.Component
 

@@ -1,4 +1,4 @@
-package model.calendar
+package models.calendar
 
 /**
   * State of a calendar Event

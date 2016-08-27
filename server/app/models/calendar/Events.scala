@@ -1,7 +1,7 @@
 package models.calendar
 
-import model.User
-import model.calendar._
+import models.User
+import models.calendar._
 import models._
 import models.mysql._
 import reactive.ExecutionContext

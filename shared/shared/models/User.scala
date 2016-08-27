@@ -1,4 +1,4 @@
-package model
+package models
 
 import data.UserGroups
 import utils.annotation.data

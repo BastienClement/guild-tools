@@ -1,5 +1,5 @@
 @import controllers.webtools.WtController.UserRequest
-@import model.Toon
+@import models.Toon
 @import models.application.ApplicationMessage
 @(messages: Seq[(ApplicationMessage, Toon)])(implicit req: UserRequest[AnyContent])
 @wt.application.layout(4) {

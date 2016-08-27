@@ -3,8 +3,8 @@ package channels
 import akka.actor.Props
 import boopickle.DefaultBasic._
 import gtp3._
-import model.User
-import model.calendar.{Event, EventVisibility}
+import models.User
+import models.calendar.{Event, EventVisibility}
 import models._
 import models.calendar.{Answers, Events, Slacks}
 import models.mysql._

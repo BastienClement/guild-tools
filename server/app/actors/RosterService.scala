@@ -3,7 +3,7 @@ package actors
 import actors.BattleNet.BnetFailure
 import actors.RosterService.{ToonDeleted, ToonUpdated}
 import data.{Specializations, UserGroups}
-import model.{Toon, User}
+import models.{Toon, User}
 import models._
 import models.mysql._
 import reactive.ExecutionContext

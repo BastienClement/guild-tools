@@ -1,6 +1,6 @@
 package models.application
 
-import model.User
+import models.User
 import models.application.ApplicationEvents.UnreadUpdated
 import models.mysql._
 import reactive.ExecutionContext

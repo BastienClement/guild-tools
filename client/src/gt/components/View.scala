@@ -1,6 +1,6 @@
 package gt.components
 
-import model.User
+import models.User
 import scala.language.existentials
 import xuen.Component
 

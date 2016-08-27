@@ -4,7 +4,7 @@ import actors.{BattleNet, RosterService}
 import akka.actor.Props
 import boopickle.DefaultBasic._
 import gtp3.{Error, _}
-import model.{Profile, Toon, User}
+import models.{Profile, Toon, User}
 import models._
 import models.mysql._
 import reactive._

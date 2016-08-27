@@ -1,6 +1,6 @@
 package models
 
-import model.Toon
+import models.Toon
 import models.mysql._
 
 class Toons(tag: Tag) extends Table[Toon](tag, "gt_chars") {
