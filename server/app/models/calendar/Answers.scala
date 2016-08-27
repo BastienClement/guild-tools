@@ -1,13 +1,11 @@
 package models.calendar
 
-import models.User
-import models.calendar.{Answer, Event, EventState}
 import models._
 import models.mysql._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import utils.DateTime
-import utils.PubSub
+import slick.lifted
+import utils.{DateTime, PubSub}
 
 class Answers(tag: Tag) extends Table[Answer](tag, "gt_answers") {
 	def user = column[Int]("user", O.PrimaryKey)
@@ -18,13 +16,13 @@ class Answers(tag: Tag) extends Table[Answer](tag, "gt_answers") {
 	def char = column[Option[Int]]("char")
 	def promote = column[Boolean]("promote")
 
-	def * = (user, event, date, answer, note, char, promote) <> (Answer.tupled, Answer.unapply)
+	def * = (user, event, date, answer, note, char, promote) <> ((Answer.apply _).tupled, Answer.unapply)
 }
 
 object Answers extends TableQuery(new Answers(_)) with PubSub[User] {
 	case class Updated(answer: Answer)
 
-	def findForEvent(event: Rep[Int]) = {
+	def findForEvent(event: lifted.Rep[Int]) = {
 		Answers.filter(_.event === event)
 	}
 

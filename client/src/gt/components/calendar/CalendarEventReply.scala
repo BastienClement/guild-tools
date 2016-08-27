@@ -4,7 +4,7 @@ import gt.components.GtHandler
 import gt.components.widget.GtBox
 import gt.components.widget.form.{GtCheckbox, GtForm, GtInput}
 import gt.services.CalendarService
-import models.calendar.{Answer, AnswerValue, Event}
+import models.calendar.{Answer, Event}
 import rx.Var
 import utils.Microtask
 import utils.jsannotation.js
@@ -28,7 +28,7 @@ object CalendarEventReply extends Component[CalendarEventReply](
 		note := a.note.orNull
 	}
 
-	val status = Var[Int](AnswerValue.Pending)
+	val status = Var[Int](Answer.Pending)
 	val toon = Var[Int](0)
 	val note = Var[String]("")
 

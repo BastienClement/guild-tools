@@ -1,6 +1,5 @@
 package models
 
-import models.NewsFeedData
 import models.mysql._
 import utils.DateTime
 
@@ -12,7 +11,7 @@ class NewsFeed(tag: Tag) extends Table[NewsFeedData](tag, "gt_feed") {
 	def time = column[DateTime]("time")
 	def tags = column[String]("tags")
 
-	def * = (guid, source, title, link, time, tags) <> (NewsFeedData.tupled, NewsFeedData.unapply)
+	def * = (guid, source, title, link, time, tags) <> ((NewsFeedData.apply _).tupled, NewsFeedData.unapply)
 }
 
 object NewsFeed extends TableQuery(new NewsFeed(_))

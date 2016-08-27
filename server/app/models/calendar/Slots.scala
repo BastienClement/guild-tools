@@ -1,6 +1,5 @@
 package models.calendar
 
-import models.calendar.Slot
 import models.mysql._
 
 class Slots(tag: Tag) extends Table[Slot](tag, "gt_events_slots") {
@@ -11,7 +10,7 @@ class Slots(tag: Tag) extends Table[Slot](tag, "gt_events_slots") {
 	def clazz = column[Int]("class")
 	def role = column[String]("role")
 
-	def * = (tab, slot, owner, name, clazz, role) <> (Slot.tupled, Slot.unapply)
+	def * = (tab, slot, owner, name, clazz, role) <> ((Slot.apply _).tupled, Slot.unapply)
 }
 
 object Slots extends TableQuery(new Slots(_))

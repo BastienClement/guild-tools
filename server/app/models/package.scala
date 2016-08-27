@@ -1,8 +1,7 @@
 import boopickle.DefaultBasic._
 import com.google.inject.Inject
-import models.calendar._
-import models.{NewsFeedData, Profile}
 import models.application.{Application, ApplicationMessage}
+import models.calendar._
 import play.api.db.slick.DatabaseConfigProvider
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -41,7 +40,6 @@ package object models {
 	implicit val answerJsonFormat = PicklerGenerator.generatePickler[Answer]
 	implicit val tabJsonFormat = PicklerGenerator.generatePickler[Tab]
 	implicit val slotJsonFormat = PicklerGenerator.generatePickler[Slot]
-	implicit val eventFullJsonFormat = PicklerGenerator.generatePickler[EventFull]
 	implicit val feedJsonFormat = PicklerGenerator.generatePickler[NewsFeedData]
 	implicit val absenceJsonFormat = PicklerGenerator.generatePickler[Slack]
 	implicit val chatMessageFormat = PicklerGenerator.generatePickler[ChatMessage]

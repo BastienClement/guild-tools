@@ -1,6 +1,5 @@
 package models
 
-import models.User
 import models.mysql._
 
 class PhpBBUsers(tag: Tag) extends Table[User](tag, "phpbb_users") {
@@ -12,7 +11,7 @@ class PhpBBUsers(tag: Tag) extends Table[User](tag, "phpbb_users") {
 	def name_clean = column[String]("username_clean")
 	def user_email = column[String]("user_email")
 
-	def * = (id, name, group) <> (User.tupled, User.unapply)
+	def * = (id, name, group) <> ((User.apply _).tupled, User.unapply)
 }
 
 object PhpBBUsers extends TableQuery(new PhpBBUsers(_)) {

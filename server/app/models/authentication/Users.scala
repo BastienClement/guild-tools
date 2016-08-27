@@ -1,7 +1,6 @@
 package models.authentication
 
-import models.User
-import models._
+import models.{User, _}
 import models.mysql._
 import reactive.ExecutionContext
 import utils.crypto.BCrypt
@@ -14,7 +13,7 @@ class Users(tag: Tag) extends Table[User](tag, "gt_users") {
 	def password = column[String]("password")
 	def name_clean = column[String]("name_clean")
 
-	def * = (id, name, group) <> (User.tupled, User.unapply)
+	def * = (id, name, group) <> ((User.apply _).tupled, User.unapply)
 }
 
 object Users extends TableQuery(new Users(_)) {

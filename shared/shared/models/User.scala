@@ -1,5 +1,6 @@
 package models
 
+import boopickle.DefaultBasic._
 import data.UserGroups
 import utils.annotation.data
 
@@ -10,4 +11,8 @@ import utils.annotation.data
 	lazy val member = promoted || UserGroups.members.contains(group)
 	lazy val roster = promoted || UserGroups.roster.contains(group)
 	lazy val fs = UserGroups.fromscratch.contains(group)
+}
+
+object User {
+	implicit val UserPickler = PicklerGenerator.generatePickler[User]
 }

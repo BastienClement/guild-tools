@@ -45,7 +45,7 @@ object CalendarTooltip extends Component[CalendarTooltip](
 		}
 	}
 
-	val declines = answers ~ (_.filter(_.answer == AnswerValue.Declined))
+	val declines = answers ~ (_.filter(_.answer == Answer.Declined))
 	val hasDeclines = declines ~ (_.nonEmpty)
 
 	listen("tooltip-show", closest("gt-tooltip")) { e: CustomEvent => visible := true }

@@ -1,13 +1,8 @@
 package models
 
+import boopickle.DefaultBasic._
 import utils.DateTime
 import utils.annotation.data
-
-/**
-  * Profile data without Option
-  */
-@data case class ProfileData(user: Int = -1, realname: String = "–", btag: String = "–", phone: String = "–",
-                             birthday: String = "–", mail: String = "–", location: String = "–")
 
 /**
   * Profile row
@@ -63,4 +58,8 @@ import utils.annotation.data
 			birthday.map(dt => dt.toISOString).getOrElse("–"),
 			mail.getOrElse("–"), location.getOrElse("–"))
 	}
+}
+
+object Profile {
+	implicit val ProfilePickler = PicklerGenerator.generatePickler[Profile]
 }

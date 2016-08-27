@@ -1,6 +1,5 @@
 package models.calendar
 
-import models.calendar.Tab
 import models._
 import models.mysql._
 
@@ -13,7 +12,7 @@ class Tabs(tag: Tag) extends Table[Tab](tag, "gt_events_tabs") {
 	def locked = column[Boolean]("locked")
 	def undeletable = column[Boolean]("undeletable")
 
-	def * = (id, event, title, note, order, locked, undeletable) <> (Tab.tupled, Tab.unapply)
+	def * = (id, event, title, note, order, locked, undeletable) <> ((Tab.apply _).tupled, Tab.unapply)
 }
 
 object Tabs extends TableQuery(new Tabs(_)) {

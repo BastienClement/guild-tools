@@ -1,6 +1,5 @@
 package models
 
-import models.{Profile, ProfileData}
 import models.mysql._
 import utils.DateTime
 
@@ -30,7 +29,7 @@ class Profiles(tag: Tag) extends Table[Profile](tag, "gt_profiles") {
 
 	def * = (user, realname, battletag, phone, birthday, mail, location,
 			realname_visibility, battletag_visibility, phone_visibility, birthday_visibility,
-			mail_visibility, location_visibility) <> (Profile.tupled, Profile.unapply)
+			mail_visibility, location_visibility) <> ((Profile.apply _).tupled, Profile.unapply)
 }
 
 /**

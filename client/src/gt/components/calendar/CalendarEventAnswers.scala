@@ -48,7 +48,7 @@ object CalendarEventAnswers extends Component[CalendarEventAnswers](
 		def slack = slacks(user.id)
 
 		def datetime = answer.date.toISOString.replaceFirst("""^([0-9]+)\-([0-9]+)-([0-9]+)T([0-9]+):([0-9]+).*$""", "$3/$2/$1 – $4:$5")
-		def pending = answer.answer == AnswerValue.Pending || answer.date == DateTime.zero
+		def pending = answer.answer == Answer.Pending || answer.date == DateTime.zero
 
 		def isOwner = event.owner == answer.user
 		def isPromoted = user.promoted || answer.promote
@@ -71,8 +71,8 @@ object CalendarEventAnswers extends Component[CalendarEventAnswers](
 		def build(groups: Set[Int]) = {
 			(groups.flatMap(g => RosterService.users.byGroup.get(g).map(_.id)) -- answers.map(_.user)).map { user =>
 				val status = slacks.get(user) match {
-					case Some(slack) => AnswerValue.Declined
-					case None => AnswerValue.Pending
+					case Some(slack) => Answer.Declined
+					case None => Answer.Pending
 				}
 				Answer(user, event.id, DateTime.zero, status, None, None, false)
 			} ++ answers

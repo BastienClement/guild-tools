@@ -1,6 +1,5 @@
 package models
 
-import models.Toon
 import models.mysql._
 
 class Toons(tag: Tag) extends Table[Toon](tag, "gt_chars") {
@@ -22,7 +21,7 @@ class Toons(tag: Tag) extends Table[Toon](tag, "gt_chars") {
 	def invalid = column[Boolean]("invalid")
 	def last_update = column[Long]("last_update")
 
-	def * = (id, name, server, owner, main, active, klass, race, gender, level, achievements, thumbnail, ilvl, spec, invalid, last_update) <> (Toon.tupled, Toon.unapply)
+	def * = (id, name, server, owner, main, active, klass, race, gender, level, achievements, thumbnail, ilvl, spec, invalid, last_update) <> ((Toon.apply _).tupled, Toon.unapply)
 }
 
 object Toons extends TableQuery(new Toons(_)) {

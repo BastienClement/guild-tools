@@ -1,6 +1,5 @@
 package models.calendar
 
-import models.calendar.Slack
 import models.mysql._
 import utils.DateTime
 
@@ -11,7 +10,7 @@ class Slacks(tag: Tag) extends Table[Slack](tag, "gt_slacks") {
 	def to = column[DateTime]("to")
 	def reason = column[Option[String]]("reason")
 
-	def * = (id, user, from, to, reason) <> (Slack.tupled, Slack.unapply)
+	def * = (id, user, from, to, reason) <> ((Slack.apply _).tupled, Slack.unapply)
 }
 
 object Slacks extends TableQuery(new Slacks(_)) {

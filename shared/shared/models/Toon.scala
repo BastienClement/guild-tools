@@ -1,6 +1,7 @@
 package models
 
-import _root_.data.Specializations
+import boopickle.DefaultBasic._
+import data.Specializations
 import scala.compat.Platform
 import utils.annotation.data
 
@@ -27,4 +28,17 @@ import utils.annotation.data
 
 	lazy val spec = Specializations.get(specid)
 	lazy val role = spec.role
+}
+
+object Toon {
+	implicit val ToonPickler = PicklerGenerator.generatePickler[Toon]
+
+	implicit val ToonOrdering = new Ordering[Toon] {
+		def compare(a: Toon, b: Toon): Int = {
+			if (a.main != b.main) b.main compare a.main
+			else if (a.active != b.active) b.active compare a.active
+			else if (a.ilvl != b.ilvl) b.ilvl compare a.ilvl
+			else a.name compare b.name
+		}
+	}
 }

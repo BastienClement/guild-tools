@@ -4,7 +4,7 @@ import gt.Router
 import gt.components.GtHandler
 import gt.components.widget.GtContextMenu
 import gt.services.CalendarService
-import models.calendar.{AnswerValue, Event, EventState, EventVisibility}
+import models.calendar.{Answer, Event, EventState, EventVisibility}
 import org.scalajs.dom.MouseEvent
 import rx.Rx
 import utils.jsannotation.js
@@ -50,12 +50,12 @@ object CalendarCellEvent extends Component[CalendarCellEvent](
 	val canContextMenu = Rx { canAcceptDecline || canEdit }
 
 	def acceptEvent(ev: MouseEvent): Unit = {
-		calendar.changeEventAnswer(event.id, AnswerValue.Accepted)
+		calendar.changeEventAnswer(event.id, Answer.Accepted)
 		ev.stopPropagation()
 	}
 
 	def declineEvent(ev: MouseEvent): Unit = {
-		calendar.changeEventAnswer(event.id, AnswerValue.Declined)
+		calendar.changeEventAnswer(event.id, Answer.Declined)
 		ev.stopPropagation()
 	}
 
