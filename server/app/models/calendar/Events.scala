@@ -8,7 +8,7 @@ import reactive.ExecutionContext
 import scala.concurrent.Future
 import scala.util.Success
 import slick.lifted.Case
-import util.DateTime
+import utils.DateTime
 import utils.PubSub
 
 class Events(tag: Tag) extends Table[Event](tag, "gt_events_visible") {

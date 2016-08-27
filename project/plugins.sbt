@@ -1,6 +1,3 @@
-resolvers += Resolver.sonatypeRepo("releases")
-resolvers += Resolver.typesafeRepo("releases")
-
 addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.1.9")
 
 // The Play plugin

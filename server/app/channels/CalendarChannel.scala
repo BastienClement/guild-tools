@@ -10,8 +10,8 @@ import models.calendar.{Answers, Events, Slacks}
 import models.mysql._
 import reactive.ExecutionContext
 import scala.util.Success
-import util.DateTime
-import util.DateTime.Units
+import utils.DateTime
+import utils.DateTime.Units
 
 object CalendarChannel extends ChannelValidator {
 	def open(request: ChannelRequest) = {

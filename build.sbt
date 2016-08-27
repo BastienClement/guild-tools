@@ -3,8 +3,8 @@ import sbt.Project.projectToRef
 
 name := """guild-tools"""
 version := "7.0"
+crossPaths := false
 
-lazy val clients = Seq(client)
 lazy val scalaV = "2.11.8"
 lazy val scalaOpts = Seq(
 	"-feature",
@@ -18,7 +18,7 @@ lazy val scalaOpts = Seq(
 lazy val server = (project in file("server"))
                   .settings(
 	                  scalaVersion := scalaV,
-	                  scalaJSProjects := clients,
+	                  scalaJSProjects := Seq(client),
 	                  libraryDependencies ++= Seq(
 		                  jdbc,
 		                  cache,
@@ -29,11 +29,12 @@ lazy val server = (project in file("server"))
 		                  "com.typesafe.play" %% "play-slick" % "2.0.2"
 	                  ),
 	                  scalacOptions ++= scalaOpts,
-	                  pipelineStages := Seq(scalaJSProd, digest, gzip)
+	                  pipelineStages := Seq(scalaJSProd, digest, gzip),
+	                  includeFilter in gzip := "*.html" || "*.css" || "*.js" || "*.less"
                   )
                   .enablePlugins(PlayScala, SbtWeb)
-                  .aggregate(clients.map(projectToRef): _*)
-                  .dependsOn(sharedJvm, sharedJs)
+                  .aggregate(projectToRef(client))
+                  .dependsOn(sharedJvm)
 
 lazy val client = (project in file("client"))
                   .settings(
@@ -50,23 +51,27 @@ lazy val client = (project in file("client"))
                   .enablePlugins(ScalaJSPlugin, ScalaJSPlay)
                   .dependsOn(sharedJs)
 
-lazy val shared = (crossProject.crossType(CrossType.Full) in file("shared"))
+lazy val shared = (crossProject.crossType(CustomCrossType) in file("shared"))
                   .settings(
 	                  scalaVersion := scalaV,
 	                  scalacOptions ++= scalaOpts,
-	                  libraryDependencies ++= Seq (
+	                  crossPaths := false,
+	                  libraryDependencies ++= Seq(
 		                  "org.scodec" %%% "scodec-core" % "1.10.1",
 		                  "org.scodec" %%% "scodec-bits" % "1.1.0",
 		                  "me.chrons" %%% "boopickle" % "1.2.4"
 	                  )
                   )
                   .jvmSettings(
+	                  scalaSource in Compile := baseDirectory.value / "src",
 	                  libraryDependencies ++= Seq(
+		                  "org.scala-lang" % "scala-reflect" % scalaV % "provided",
 		                  "com.typesafe.play" %% "play-slick" % "2.0.2",
 		                  "org.scala-js" %% "scalajs-stubs" % scalaJSVersion % "provided"
 	                  )
                   )
                   .jsSettings(
+	                  scalaSource in Compile := baseDirectory.value / "src",
 	                  libraryDependencies ++= Seq(
 		                  "org.scala-js" %%% "scalajs-java-time" % "0.2.0"
 	                  )

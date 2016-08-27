@@ -1,10 +1,10 @@
 package gt
 
-import gt.component.View
-import gt.component.calendar.{GtCalendar, GtCalendarEvent}
-import gt.component.dashboard.GtDashboard
-import gt.component.misc.{GtAbout, GtSettings}
-import gt.component.profile.GtProfile
+import gt.components.View
+import gt.components.calendar.{GtCalendar, GtCalendarEvent}
+import gt.components.dashboard.GtDashboard
+import gt.components.misc.{GtAbout, GtSettings}
+import gt.components.profile.GtProfile
 import scala.language.implicitConversions
 import scala.scalajs.js
 import scala.scalajs.js.JSStringOps._

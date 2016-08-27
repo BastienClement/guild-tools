@@ -7,7 +7,7 @@ import scala.language.implicitConversions
 import scala.scalajs.js.Date
 import scala.scalajs.js.timers.setInterval
 import scala.util.DynamicVariable
-import util.Microtask
+import utils.Microtask
 
 /**
   * A reactive value.

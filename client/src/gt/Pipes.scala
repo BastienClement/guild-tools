@@ -6,7 +6,7 @@ import scala.concurrent.duration._
 import scala.scalajs.js
 import scala.scalajs.js.JSStringOps._
 import scala.scalajs.js.timers.setInterval
-import util.DateTime
+import utils.DateTime
 import xuen.expr.PipesCollection
 
 object Pipes extends PipesCollection {

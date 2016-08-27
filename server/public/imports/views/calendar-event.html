@@ -8,9 +8,7 @@
 				<calendar-event-reply [event] [answer] *if="event.state == 0"></calendar-event-reply>
 			</div>
 			<div #right>
-				<gt-box heading="RaidComp">
-
-				</gt-box>
+				<calendar-event-comp [event]></calendar-event-comp>
 			</div>
 		</div>
 	</template>
@@ -104,6 +102,15 @@
 				</div>
 				<gt-input #note [value]="note" label="Note" (change)="note = #note.value; update()"></gt-input>
 			</gt-form>
+		</gt-box>
+	</template>
+</xuen-component>
+
+<xuen-component id="calendar-event-comp">
+	<link rel="stylesheet/less" href="/assets/less/calendar-event.less" ns="calendar-event-comp">
+	<template>
+		<gt-box heading="RaidComp">
+
 		</gt-box>
 	</template>
 </xuen-component>

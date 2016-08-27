@@ -1,13 +1,13 @@
 package xuen
 
-import facade.dom4.HTMLTemplateElement
+import facades.dom4.HTMLTemplateElement
 import org.scalajs.dom._
 import rx.{Obs, Rx, Var}
 import scala.collection.mutable
 import scala.scalajs.js
 import scala.scalajs.js.DynamicImplicits._
-import util.Serializer
-import util.implicits._
+import utils.Serializer
+import utils.implicits._
 import xuen.Template._
 import xuen.expr.Expression.LiteralPrimitive
 import xuen.expr.{Expression, Interpreter, Parser}

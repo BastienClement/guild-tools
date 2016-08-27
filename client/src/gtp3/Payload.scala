@@ -4,8 +4,8 @@ import boopickle.DefaultBasic._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.scalajs.js.typedarray.ArrayBuffer
-import util.GtWorker
-import util.buffer.{BufferOps, PolymorphicBuffer}
+import utils.GtWorker
+import utils.buffer.{BufferOps, PolymorphicBuffer}
 
 private[gtp3] object Payload {
 	val compressWorker = new GtWorker("/assets/workers/compress.js")

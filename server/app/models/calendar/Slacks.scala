@@ -2,7 +2,7 @@ package models.calendar
 
 import model.calendar.Slack
 import models.mysql._
-import util.DateTime
+import utils.DateTime
 
 class Slacks(tag: Tag) extends Table[Slack](tag, "gt_slacks") {
 	def id = column[Int]("id", O.PrimaryKey, O.AutoInc)

@@ -1,9 +1,9 @@
 package gt
 
 import boopickle.DefaultBasic._
-import gt.component.app.GtApp
-import gt.component.widget.floating.GtFloatingPlaceholder
-import gt.service.RosterService
+import gt.components.app.GtApp
+import gt.components.widget.floating.GtFloatingPlaceholder
+import gt.services.RosterService
 import model.User
 import org.scalajs.dom.raw.HTMLSpanElement
 import org.scalajs.dom.{Event, MouseEvent, NodeListOf, window}
@@ -12,10 +12,10 @@ import scala.concurrent.duration._
 import scala.concurrent.{Future, Promise}
 import scala.scalajs.js
 import scala.util.{Failure, Success}
-import util.Global._
-import util.annotation.data
-import util.implicits._
-import util.{Delay, Settings}
+import utils.Global._
+import utils.annotation.data
+import utils.implicits._
+import utils.{Delay, Settings}
 import xuen.Loader
 import xuen.expr.PipesRegistry
 

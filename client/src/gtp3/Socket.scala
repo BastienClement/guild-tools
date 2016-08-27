@@ -10,9 +10,9 @@ import scala.scalajs.js
 import scala.scalajs.js.DynamicImplicits._
 import scala.scalajs.js.timers._
 import scala.scalajs.js.typedarray.ArrayBuffer
-import util.EventSource
-import util.buffer.BufferOps
-import util.implicits._
+import utils.EventSource
+import utils.buffer.BufferOps
+import utils.implicits._
 
 class Socket(private val url: String) {
 	// The two parts of the 64 bits socket-id

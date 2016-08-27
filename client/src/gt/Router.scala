@@ -1,10 +1,10 @@
 package gt
 
-import gt.component.View
+import gt.components.View
 import org.scalajs.dom.{PopStateEvent, window}
 import scala.scalajs.js.JSStringOps._
 import scala.scalajs.js.RegExp
-import util.EventSource
+import utils.EventSource
 
 object Router {
 	private[this] var locked = false

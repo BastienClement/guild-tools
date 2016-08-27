@@ -1,6 +1,6 @@
 package xuen
 
-import facade.dom4.HTMLTemplateElement
+import facades.dom4.HTMLTemplateElement
 import gt.App
 import org.scalajs.dom.raw.{HTMLLinkElement, HTMLStyleElement}
 import org.scalajs.dom.{console, _}
@@ -10,8 +10,8 @@ import scala.language.higherKinds
 import scala.scalajs.js
 import scala.scalajs.js.ConstructorTag
 import scala.util.Failure
-import util.Global._
-import util.implicits._
+import utils.Global._
+import utils.implicits._
 import xuen.Loader.LessLoader
 
 abstract class Component[H <: ComponentInstance : ConstructorTag](val selector: String,

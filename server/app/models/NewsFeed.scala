@@ -2,7 +2,7 @@ package models
 
 import model.NewsFeedData
 import models.mysql._
-import util.DateTime
+import utils.DateTime
 
 class NewsFeed(tag: Tag) extends Table[NewsFeedData](tag, "gt_feed") {
 	def guid = column[String]("guid", O.PrimaryKey)

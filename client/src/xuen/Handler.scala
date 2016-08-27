@@ -6,9 +6,9 @@ import rx.{Obs, Rx, Var}
 import scala.collection.mutable
 import scala.language.{dynamics, existentials}
 import scala.scalajs.js
-import util.implicits._
-import util.jsannotation.js
-import util.{Microtask, Serializer, Zero}
+import utils.implicits._
+import utils.jsannotation.js
+import utils.{Microtask, Serializer, Zero}
 
 /**
   * The handler object associated with a custom element.

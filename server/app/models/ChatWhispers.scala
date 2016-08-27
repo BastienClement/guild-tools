@@ -1,7 +1,7 @@
 package models
 
 import models.mysql._
-import util.DateTime
+import utils.DateTime
 
 case class ChatWhisper(id: Int, from: Int, to: Int, date: DateTime, text: String)
 

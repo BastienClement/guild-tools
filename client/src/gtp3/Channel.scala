@@ -7,7 +7,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 import scala.scalajs.js.timers
 import scodec.bits.ByteVector
-import util.EventSource
+import utils.EventSource
 
 /** Channel implementation */
 class Channel private[gtp3] (val socket: Socket, val tpe: String, val id: Int, val remote: Int) {

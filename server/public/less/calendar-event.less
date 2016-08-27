@@ -21,7 +21,7 @@
 
 		#right {
 			flex: 1;
-			gt-box { height: 100%; }
+			calendar-event-comp { height: 100%; }
 		}
 	}
 }
@@ -145,6 +145,17 @@
 		:first-child {
 			margin-right: 12px;
 		}
+	}
+}
+
+:namespace("calendar-event-comp") {
+	:host {
+		display: block;
+		position: relative;
+	}
+
+	gt-box {
+		.pos(absolute)
 	}
 }
 

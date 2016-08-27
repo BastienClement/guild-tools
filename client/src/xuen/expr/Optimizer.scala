@@ -2,7 +2,7 @@ package xuen.expr
 
 import scala.scalajs.js
 import scala.scalajs.js.DynamicImplicits._
-import util.implicits._
+import utils.implicits._
 import xuen.expr.Expression._
 
 object Optimizer {

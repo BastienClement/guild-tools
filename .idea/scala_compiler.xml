@@ -25,8 +25,8 @@
       <option name="uncheckedWarnings" value="true" />
       <option name="featureWarnings" value="true" />
       <parameters>
-        <parameter value="-P:scalajs:mapSourceURI:file:/D:/workspace/scala/guild-tools/shared/js/src/main/scala/-&gt;ef7d25edacf9ee0d8ede/" />
-        <parameter value="-P:scalajs:mapSourceURI:file:/D:/workspace/scala/guild-tools/shared/shared/src/main/scala/-&gt;72acaf720a727b9d893e/" />
+        <parameter value="-P:scalajs:mapSourceURI:file:/D:/workspace/scala/guild-tools/shared/js/src/-&gt;77c66bb5217df7576725/" />
+        <parameter value="-P:scalajs:mapSourceURI:file:/D:/workspace/scala/guild-tools/shared/shared/-&gt;b90b98388e80a6a59e38/" />
         <parameter value="-Xfatal-warnings" />
       </parameters>
       <plugins>

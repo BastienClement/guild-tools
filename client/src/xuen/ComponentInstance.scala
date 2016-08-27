@@ -1,9 +1,9 @@
 package xuen
 
-import facade.dom4
-import facade.dom4.ShadowRoot
+import facades.dom4
+import facades.dom4.ShadowRoot
 import scala.scalajs.js.annotation.ScalaJSDefined
-import util.implicits._
+import utils.implicits._
 
 /**
   * An instance of a component

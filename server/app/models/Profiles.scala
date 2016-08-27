@@ -2,7 +2,7 @@ package models
 
 import model.{Profile, ProfileData}
 import models.mysql._
-import util.DateTime
+import utils.DateTime
 
 /**
   * Profile table

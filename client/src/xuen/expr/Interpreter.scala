@@ -6,7 +6,7 @@ import rx.{Rx, Var}
 import scala.scalajs.js
 import scala.scalajs.js.DynamicImplicits._
 import scala.scalajs.js.JSConverters._
-import util.implicits._
+import utils.implicits._
 import xuen.Context
 import xuen.expr.Expression._
 

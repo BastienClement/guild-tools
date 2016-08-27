@@ -4,7 +4,7 @@ import gtp3.{Channel, GTP3Error, Socket}
 import rx.Var
 import scala.concurrent.{Future, Promise}
 import scala.scalajs.js.timers.setTimeout
-import util.Settings
+import utils.Settings
 
 /** Manages connection to the server */
 object Server {

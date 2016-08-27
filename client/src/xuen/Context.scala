@@ -3,7 +3,7 @@ package xuen
 import scala.language.dynamics
 import scala.scalajs.js
 import scala.scalajs.js.UndefOr
-import util.implicits._
+import utils.implicits._
 
 /**
   * A Context used during expression evaluation.

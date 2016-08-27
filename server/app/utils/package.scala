@@ -1,11 +1,13 @@
 import gt.GuildTools
 import java.math.BigInteger
 import java.security.{MessageDigest, SecureRandom}
+import java.sql.Timestamp
 import reactive.ExecutionContext
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future, Promise}
 import scala.language.{higherKinds, implicitConversions}
 import scala.util.{Failure, Success}
+import slick.driver.MySQLDriver.api._
 
 package object utils {
 	/**
@@ -67,4 +69,6 @@ package object utils {
 			false
 		}
 	}
+
+	implicit val DateTimeSlickMapping = MappedColumnType.base[DateTime, Timestamp](_.toTimestamp, DateTime.fromTimestamp)
 }

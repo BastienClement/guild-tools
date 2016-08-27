@@ -1,7 +1,7 @@
 package models
 
 import models.mysql._
-import util.DateTime
+import utils.DateTime
 
 case class ChatMessage(id: Int, room: Int, user: Option[Int], from: String, text: String, date: DateTime = DateTime.now)
 

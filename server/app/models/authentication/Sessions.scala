@@ -1,7 +1,7 @@
 package models.authentication
 
 import models.mysql._
-import util.DateTime
+import utils.DateTime
 
 case class Session(token: String, user: Int, ip: Option[String], ua: Option[String], created: DateTime, last_access: DateTime)
 

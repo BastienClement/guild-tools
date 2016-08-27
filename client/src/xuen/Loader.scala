@@ -8,9 +8,9 @@ import scala.concurrent.Future
 import scala.scalajs.js
 import scala.scalajs.js.JSStringOps.enableJSStringOps
 import scala.scalajs.js.RegExp
-import util.Global._
-import util.GtWorker
-import util.implicits._
+import utils.Global._
+import utils.GtWorker
+import utils.implicits._
 import xuen.compat.Platform
 
 object Loader {

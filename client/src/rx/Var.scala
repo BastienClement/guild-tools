@@ -2,7 +2,7 @@ package rx
 
 import scala.language.implicitConversions
 import scala.scalajs.js
-import util.Zero
+import utils.Zero
 
 /**
   * A reactive varibale, whose value can be modified.

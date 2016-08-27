@@ -6,7 +6,7 @@ import models._
 import models.mysql._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import util.DateTime
+import utils.DateTime
 import utils.PubSub
 
 class Answers(tag: Tag) extends Table[Answer](tag, "gt_answers") {
