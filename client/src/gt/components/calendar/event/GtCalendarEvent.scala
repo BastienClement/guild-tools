@@ -1,6 +1,7 @@
-package gt.components.calendar
+package gt.components.calendar.event
 
 import gt.Router
+import gt.components.calendar.GtCalendar
 import gt.components.{GtHandler, View}
 import gt.services.CalendarService
 import models.calendar.{Event, EventState, EventVisibility}

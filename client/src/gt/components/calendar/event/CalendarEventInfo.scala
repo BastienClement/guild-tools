@@ -1,6 +1,7 @@
-package gt.components.calendar
+package gt.components.calendar.event
 
 import gt.components.GtHandler
+import gt.components.calendar.CalendarAddDialog
 import gt.components.widget.{GtBox, GtContextMenu, GtDialog}
 import gt.services.CalendarService
 import models.calendar.{Answer, Event, EventState}

@@ -1,4 +1,4 @@
-package gt.components.calendar
+package gt.components.calendar.event
 
 import gt.components.GtHandler
 import gt.components.widget.GtBox

@@ -12,6 +12,8 @@ package object gtp3 {
 		"apply" -> ApplyChannel,
 		"auth" -> AuthChannel,
 		"calendar" -> CalendarChannel,
+		"calendar-event" -> CalendarEventChannel,
+		"calendar-composer" -> CalendarComposerChannel,
 		"chat" -> ChatChannel,
 		"master" -> MasterChannel,
 		"newsfeed" -> NewsFeedChannel,

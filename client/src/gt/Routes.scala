@@ -1,7 +1,8 @@
 package gt
 
 import gt.components.View
-import gt.components.calendar.{GtCalendar, GtCalendarEvent}
+import gt.components.calendar.GtCalendar
+import gt.components.calendar.event.GtCalendarEvent
 import gt.components.dashboard.GtDashboard
 import gt.components.misc.{GtAbout, GtSettings}
 import gt.components.profile.GtProfile

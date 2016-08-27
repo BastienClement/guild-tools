@@ -1,8 +1,9 @@
-package gt.components.calendar
+package gt.components.calendar.event
 
 import _root_.data.UserGroups
 import gt.Router
 import gt.components.GtHandler
+import gt.components.calendar.CalendarUnitFrame
 import gt.components.widget.form.GtButton
 import gt.components.widget.{GtBox, GtContextMenu, GtTooltip}
 import gt.services.{CalendarService, RosterService}
