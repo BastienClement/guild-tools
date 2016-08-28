@@ -14,7 +14,7 @@
 						</template>
 						<template *match="hasDoc">
 							<gt-button .action *case="false" (click)="showCreate()"><i>add</i> New</gt-button>
-							<gt-button .action *case="true"><i>filter_list</i> Filters</gt-button>
+							<gt-button .action *case="true" (click)="#edit-filter.show()"><i>filter_list</i> Filters</gt-button>
 						</template>
 					</div>
 					<div #slider .slided="hasDoc">
@@ -22,7 +22,7 @@
 							<composer-document-list></composer-document-list>
 						</div>
 						<div .panel>
-							Hello world
+							<composer-roster [filter]></composer-roster>
 						</div>
 					</div>
 				</div>
@@ -45,6 +45,19 @@
 				</gt-form>
 			</gt-box>
 		</gt-dialog>
+		<gt-dialog #edit-filter>
+			<gt-box heading="Roster filter configuration" scrollable>
+				<gt-checkbox-group label="Display members of the following groups">
+					<gt-checkbox label="Roster" [(checked)]="filterRoster"></gt-checkbox>
+					<gt-checkbox label="Casuals" [(checked)]="filterCasuals"></gt-checkbox>
+					<gt-checkbox label="Veterans" [(checked)]="filterVeterans"></gt-checkbox>
+					<gt-checkbox label="Guests" [(checked)]="filterGuests"></gt-checkbox>
+				</gt-checkbox-group>
+				<div .actions>
+					<gt-button collapse-right (click)="#edit-filter.hide()">Ok</gt-button>
+				</div>
+			</gt-box>
+		</gt-dialog>
 	</template>
 </xuen-component>
 
@@ -60,5 +73,12 @@
 				{{doc.title}}
 			</div>
 		</gt-box>
+	</template>
+</xuen-component>
+
+<xuen-component id="composer-roster">
+	<link rel="stylesheet/less" href="/assets/less/composer.less" ns="composer-roster">
+	<template>
+		Hello world
 	</template>
 </xuen-component>

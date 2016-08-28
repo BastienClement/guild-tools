@@ -81,6 +81,17 @@
 			width: 400px;
 		}
 	}
+
+	#edit-filter {
+		gt-checkbox {
+			width: 40%;
+			margin: 0 0 8px 0;
+		}
+
+		gt-checkbox-group {
+			margin-bottom: -8px;
+		}
+	}
 }
 
 :namespace("composer-document-list") {
@@ -90,5 +101,11 @@
 
 	gt-box:not(:first-child) {
 		margin-top: 8px;
+	}
+}
+
+:namespace("composer-roster") {
+	:host {
+		display: block;
 	}
 }

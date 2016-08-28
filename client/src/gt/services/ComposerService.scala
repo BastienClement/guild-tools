@@ -20,7 +20,6 @@ object ComposerService extends Service with Delegate {
 	message("document-removed")(documents.removeKey _)
 
 	override protected def enable(): Unit = {
-		println("enable")
 		channel.request("load-documents") { (docs: Seq[ComposerDocument]) =>
 			docs.foreach(documents.update)
 			promise.success(())
@@ -28,7 +27,6 @@ object ComposerService extends Service with Delegate {
 	}
 
 	override protected def disable(): Unit = {
-		println("disable")
 		documents.clear()
 		promise = Promise()
 	}

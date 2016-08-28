@@ -19,7 +19,8 @@ import xuen.Component
 object GtComposer extends Component[GtComposer](
 	selector = "gt-composer",
 	templateUrl = "/assets/imports/views/composer.html",
-	dependencies = Seq(GtBox, GtButton, GtDialog, GtForm, GtInput, GtCheckbox, GtCheckboxGroup, ComposerDocumentList)
+	dependencies = Seq(GtBox, GtButton, GtDialog, GtForm, GtInput, GtCheckbox, GtCheckboxGroup,
+		ComposerDocumentList, ComposerRoster)
 ) with View.Sticky {
 	val module = "composer"
 
@@ -70,4 +71,10 @@ object GtComposer extends Component[GtComposer](
 		composer.createDocument(createTitle, createStyle)
 		createDialog.hide()
 	}
+
+	val filterRoster = Var[Boolean] := true
+	val filterCasuals = Var[Boolean]
+	val filterVeterans = Var[Boolean]
+	val filterGuests = Var[Boolean]
+	def filter = ComposerRoster.Filter(filterRoster, filterCasuals, filterVeterans, filterGuests)
 }
