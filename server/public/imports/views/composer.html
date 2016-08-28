@@ -85,7 +85,7 @@
 		<div .group *for="group <- groups">
 			<div .title>{{group.title}}</div>
 			<div .toons>
-				<div .toon *for="toon <- group.sorted">
+				<div .toon *for="toon <- group.sorted by toon.id">
 					<calendar-unit-frame [toon]="toon.id">
 						<gt-tooltip>
 							<div .row>
