@@ -10,6 +10,7 @@ class Lexer(val input: String, val from: Int = 0) {
 	private[this] var peek: Char = '\u0000'
 	private[this] var next: Char = '\u0000'
 	private[this] var index: Int = from - 1
+	private[this] var selector: Boolean = false
 
 	advance()
 
@@ -41,6 +42,7 @@ class Lexer(val input: String, val from: Int = 0) {
 		} else if (peek.isDigit) {
 			scanNumber()
 		} else {
+			selector = false
 			implicit val start = index
 			peek match {
 				case '.' =>
@@ -53,7 +55,11 @@ class Lexer(val input: String, val from: Int = 0) {
 				case '\'' | '"' =>
 					scanString()
 
-				case '#' | '@' | '+' | '*' | '/' | '%' | '^' =>
+				case '#' =>
+					selector = true
+					scanOperator(peek)
+
+				case '@' | '+' | '*' | '/' | '%' | '^' =>
 					scanOperator(peek)
 
 				case ':' =>
@@ -91,7 +97,7 @@ class Lexer(val input: String, val from: Int = 0) {
 		peek.isLetter || peek == '_' || peek == '$'
 	}
 
-	@inline private def isIdentifierPart(peek: Char): Boolean = isIdentifierStart(peek) || peek.isDigit || peek == '-'
+	@inline private def isIdentifierPart(peek: Char): Boolean = isIdentifierStart(peek) || peek.isDigit || (selector && peek == '-')
 	@inline private def isExponentStart(peek: Char): Boolean = peek == 'e' || peek == 'E'
 	@inline private def isExponentSign(peek: Char): Boolean = peek == '+' || peek == '-'
 
