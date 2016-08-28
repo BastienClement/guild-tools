@@ -31,6 +31,9 @@ trait Service {
 	/** Number of component currently using the service */
 	private[this] var counter = 0
 
+	/** Current activation status of the service */
+	private[this] var enabled = false
+
 	/** Disable delay timer handler */
 	private[this] var delay: SetTimeoutHandle = null
 
@@ -40,9 +43,10 @@ trait Service {
 	/** Enables the service when a component requiring it is attached */
 	final def acquire(): Unit = {
 		counter += 1
-		if (counter == 1) {
+		if (counter == 1 && !enabled) {
 			clearTimeout(delay)
 			channels.foreach(c => c.eagerOpen())
+			enabled = true
 			enable()
 		}
 	}
@@ -55,6 +59,7 @@ trait Service {
 			delay = setTimeout(5.seconds) {
 				if (counter == 0) {
 					channels.foreach(c => c.close())
+					enabled = false
 					disable()
 				}
 			}

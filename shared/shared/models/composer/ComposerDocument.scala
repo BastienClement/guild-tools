@@ -5,6 +5,7 @@ import utils.annotation.data
 
 @data case class ComposerDocument(id: Int, title: String, style: String) {
 	require(style == DocumentStyle.Grid || style == DocumentStyle.Groups)
+	@inline final def dummy = id < 1
 }
 
 object ComposerDocument {
