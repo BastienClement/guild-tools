@@ -1,7 +1,7 @@
 package gt
 
 import gt.components.View
-import org.scalajs.dom.{PopStateEvent, window}
+import org.scalajs.dom.{PopStateEvent, document, window}
 import scala.scalajs.js.JSStringOps._
 import scala.scalajs.js.RegExp
 import utils.EventSource
@@ -27,7 +27,7 @@ object Router {
 		}
 
 		// Search matching view
-		for (route <- Routes.definitions) {
+		for (route <- Routes.definitions if route.view.validate(App.user)) {
 			for (args <- route.matches(path)) {
 				activePath = path
 				onUpdate.emit((path, args, route.view))
@@ -41,9 +41,13 @@ object Router {
 	}
 
 	def goto(path: String, replace: Boolean = false): Unit = if (!locked) {
-		if (replace) window.history.replaceState(null, null, path)
-		else window.history.pushState(null, null, path)
-		update()
+		if (path.matches("^https?://.*")) {
+			document.location.href = path
+		} else {
+			if (replace) window.history.replaceState(null, null, path)
+			else window.history.pushState(null, null, path)
+			update()
+		}
 	}
 
 	def lock(): Unit = { locked = true }

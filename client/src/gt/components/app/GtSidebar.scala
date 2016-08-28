@@ -26,7 +26,8 @@ object GtSidebar extends Component[GtSidebar](
 		Icon("account_circle", "profile", "/profile"),
 		//Icon("mail", "messages", "/messages"),
 		Icon("today", "calendar", "/calendar", hidden = !App.user.fs),
-		//Icon("supervisor_account", "roster", "/roster", hidden = !App.user.fs),
+		Icon("pages", "composer", "/composer", hidden = !App.user.promoted),
+		Icon("supervisor_account", "roster", "/roster", hidden = !App.user.fs),
 		//Icon("assignment_ind", "apply", if (app.user.roster) "/apply" else "/apply-guest"),
 		Icon("airplay", "streams", "/streams", hidden = !App.user.fs)
 	).filter(!_.hidden)

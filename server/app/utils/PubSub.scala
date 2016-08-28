@@ -95,6 +95,13 @@ trait PubSub[A] {
 	final def subscribe(data: A)(implicit actor: ActorRef): Unit = subscribe(actor, data)
 
 	/**
+	  * TODO
+	  * @param actor
+	  * @param ev
+	  */
+	final def subscribe()(implicit actor: ActorRef, ev: Unit =:= A): Unit = subscribe(actor, ())
+
+	/**
 	  * Unsubscribe an actor from this feed
 	  *
 	  * @param actor The actor to remove

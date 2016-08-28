@@ -3,6 +3,7 @@ package gt
 import gt.components.View
 import gt.components.calendar.GtCalendar
 import gt.components.calendar.event.GtCalendarEvent
+import gt.components.composer.GtComposer
 import gt.components.dashboard.GtDashboard
 import gt.components.misc.{GtAbout, GtSettings}
 import gt.components.profile.GtProfile
@@ -20,13 +21,12 @@ object Routes {
 		"/calendar" -> GtCalendar,
 		"/calendar/event/:[0-9]+:eventid" -> GtCalendarEvent,
 
+		"/composer(/:[0-9]+:docid)?" -> GtComposer,
+
 		"/about" -> GtAbout,
 		"/settings" -> GtSettings
 
 		/*
-	"/profile(/:[0-9]+:user)?" -> null,
-
-	"/calendar" -> null,
 
 	"/apply(/:[0-9]+:selected)?" -> null,
 	"/apply-guest" -> null,
@@ -37,13 +37,11 @@ object Routes {
 
 	"/roster" -> null,
 
-	"/about" -> null,
 	"/server-status" -> null,
-	"/settings" -> null
 	*/
 	)
 
-	case class RouteDefinition(pattern: String, view: View = null) {
+	case class RouteDefinition(pattern: String, view: View) {
 		def -> (view: View) = copy(view = view)
 
 		lazy val (regexp, tags) = {
@@ -76,5 +74,7 @@ object Routes {
 		}
 	}
 
-	private[this] implicit def StringToDefinition(str: String): RouteDefinition = RouteDefinition(str)
+	private[this] implicit class PatternDefinition(private val pattern: String) extends AnyVal {
+		def -> (view: View): RouteDefinition = RouteDefinition(pattern, view)
+	}
 }

@@ -249,7 +249,7 @@ class Template(val template: HTMLTemplateElement, val component: Component[_], v
 			case Some(ref) => (Interpreter.safeEvaluate(ref, context), value) match {
 				case (a: Boolean, b: Boolean) => a == b
 				case (a: Boolean, _) => a
-				case (a: Any, b: Any) => a == b
+				case (a, b) => a == b
 			}
 			case _ => false
 		}

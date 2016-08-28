@@ -1,0 +1,56 @@
+:namespace("gt-composer") {
+	#left {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		width: 350px;
+
+		display: flex;
+		flex-direction: column;
+
+		.header {
+			border-bottom: 2px solid #426585;
+			padding: 0 12px 12px 12px;
+			margin: 0 -12px;
+			flex-shrink: 0;
+
+			.back {
+				height: 0;
+				opacity: 0;
+				transition: all ease-in-out .2s;
+
+				&[open] {
+					opacity: 1;
+					height: 24px;
+				}
+
+				gt-button {
+					position: relative;
+					top: -12px;
+					padding-left: 0;
+				}
+			}
+
+			h2 {
+				font-family: "Roboto Condensed";
+				font-size: 24px;
+				font-weight: 400;
+				line-height: 24px;
+				margin: 0;
+			}
+
+			.action {
+				position: absolute;
+				top: 6px;
+				right: 0;
+			}
+		}
+	}
+
+	#create-document {
+		gt-box {
+			width: 400px;
+		}
+	}
+}

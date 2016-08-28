@@ -1,0 +1,36 @@
+<xuen-component id="gt-composer">
+	<link rel="stylesheet/less" href="/assets/less/composer.less" ns="gt-composer">
+	<template>
+		<div #layout>
+			<gt-box #left>
+				<div .header>
+					<div .back [@open]="hasDoc">
+						<gt-button collapse-left goto="/composer"><i>keyboard_arrow_left</i> Back</gt-button>
+					</div>
+					<template *match="hasDoc">
+						<h2 *case="false">Composer</h2>
+						<h2 *case="true">{{doc.title}}</h2>
+					</template>
+					<gt-button .action (click)="showCreate()"><i>add</i>New</gt-button>
+				</div>
+			</gt-box>
+			<div #right>
+			</div>
+		</div>
+		<gt-dialog #create-document>
+			<gt-box heading="New composer document" scrollable>
+				<gt-form #create-document-form (submit)="createDocument()">
+					<gt-input .autofocus [(value)]="createTitle" label="Title"></gt-input>
+					<gt-checkbox-group label="Document type">
+						<gt-checkbox label="Groups" [(value)]="createStyle" radio="GROUPS"></gt-checkbox>
+						<gt-checkbox label="Grid" [(value)]="createStyle" radio="GRID" disabled></gt-checkbox>
+					</gt-checkbox-group>
+					<div .actions>
+						<gt-button collapse-right (click)="#create-document.hide()">Cancel</gt-button>
+						<gt-button collapse-right (click)="#create-document-form.submit()" [disabled]="!canCreate">Create</gt-button>
+					</div>
+				</gt-form>
+			</gt-box>
+		</gt-dialog>
+	</template>
+</xuen-component>

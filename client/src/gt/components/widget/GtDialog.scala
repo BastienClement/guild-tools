@@ -6,6 +6,7 @@ import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 import scala.scalajs.js
+import utils.Microtask
 import utils.jsannotation.js
 import xuen.Component
 
@@ -61,6 +62,13 @@ object GtDialog extends Component[GtDialog](
 		child.slider.classList.add("slide-in")
 
 		fire("show")
+
+		Microtask.schedule {
+			val autoFocus = querySelector(".autofocus")
+			if (autoFocus != null) {
+				autoFocus.asInstanceOf[js.Dynamic].focus()
+			}
+		}
 	}
 
 	def hide(): Future[Unit] = if (shown) {

@@ -15,6 +15,8 @@ trait View {
 
 	type TabGenerator = (String, String, User) => Seq[Tab]
 	val tabs: TabGenerator
+
+	def validate(user: User): Boolean = true
 }
 
 object View {
