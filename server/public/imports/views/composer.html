@@ -79,6 +79,32 @@
 <xuen-component id="composer-roster">
 	<link rel="stylesheet/less" href="/assets/less/composer.less" ns="composer-roster">
 	<template>
-		Hello world
+		<gt-alert dark *if="empty" icon="perm_identity">
+			No toons are matching your filters.
+		</gt-alert>
+		<div .group *for="group <- groups">
+			<div .title>{{group.title}}</div>
+			<div .toons>
+				<div .toon *for="toon <- group.sorted">
+					<calendar-unit-frame [toon]="toon.id">
+						<gt-tooltip>
+							<div .row>
+								<span [@class-color]="toon.clss">{{toon.name}}</span>
+								<span .light>{{toon.ilvl}} ilvl</span>
+							</div>
+							<div .row .small>
+								<span>{{ownerName(toon.owner)}}</span>
+								<span .light-blue>{{toon.server | serverSlang}}</span>
+							</div>
+						</gt-tooltip>
+						<gt-context-menu>
+							<ul>
+								<li (click)="gotoProfile(toon.owner)"><i>account_circle</i> Profile</li>
+							</ul>
+						</gt-context-menu>
+					</calendar-unit-frame>
+				</div>
+			</div>
+		</div>
 	</template>
 </xuen-component>

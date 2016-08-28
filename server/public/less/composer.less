@@ -4,7 +4,7 @@
 		top: 0;
 		bottom: 0;
 		left: 0;
-		width: 350px;
+		width: 400px;
 
 		.layout {
 			.pos(absolute);
@@ -41,7 +41,7 @@
 				font-weight: 400;
 				line-height: 24px;
 				margin: 0;
-				width: 240px;
+				width: 290px;
 				overflow: hidden;
 				white-space: nowrap;
 				text-overflow: ellipsis;
@@ -107,5 +107,26 @@
 :namespace("composer-roster") {
 	:host {
 		display: block;
+	}
+
+	.title {
+		font-size: 18px;
+		margin: 12px 0 8px 0;
+
+		.group:first-child & {
+			margin-top: 0;
+		}
+	}
+
+	.toons {
+		display: flex;
+		flex-wrap: wrap;
+		margin: 0 -4px;
+	}
+
+	.toon {
+		width: 33%;
+		padding: 0 4px;
+		margin-top: 4px;
 	}
 }
