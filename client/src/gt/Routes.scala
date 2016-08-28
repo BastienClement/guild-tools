@@ -66,7 +66,8 @@ object Routes {
 				val args = js.Array[(String, String)]()
 				var i = 0
 				while (i < tags.length) {
-					args.push((tags(i), matches(i + 1).asInstanceOf[js.UndefOr[String]].orNull))
+					val value = matches(i + 1).asInstanceOf[js.UndefOr[String]].orNull
+					if (value != null) args.push((tags(i), value))
 					i += 1
 				}
 				Some(args)

@@ -58,6 +58,11 @@ abstract class Cache[K, V <: AnyRef](hash: V => K) {
 	private var indexes = Set[BaseIndex]()
 
 	/**
+	  * A reactive iterator over every values in this cache
+	  */
+	val values: Rx[Iterable[Rx[V]]] = Rx { items.values }
+
+	/**
 	  * Constructs a new cache cell for the given key and value.
 	  *
 	  * @param key   the computed key for this item
@@ -66,6 +71,7 @@ abstract class Cache[K, V <: AnyRef](hash: V => K) {
 	private def constructCell(key: K, value: V): Var[V] = {
 		val cell = Var[V](value)
 		items += (key -> cell)
+		Rx.invalidate(values)
 		for (idx <- indexes) idx.register(cell)
 		cell
 	}
@@ -115,6 +121,7 @@ abstract class Cache[K, V <: AnyRef](hash: V => K) {
 				for (idx <- indexes) idx.unregister(cell)
 				Rx.invalidate(cell)
 				items -= key
+				Rx.invalidate(values)
 		}
 	}
 
@@ -134,7 +141,7 @@ abstract class Cache[K, V <: AnyRef](hash: V => K) {
 	  *
 	  * @param predicate the predicate to use
 	  */
-	def prune(predicate: V => Boolean): Unit = {
+	def prune(predicate: V => Boolean): Unit = Rx.atomically {
 		for ((key, item) <- items if predicate(item.!)) removeKey(key)
 	}
 
@@ -145,6 +152,7 @@ abstract class Cache[K, V <: AnyRef](hash: V => K) {
 		for (idx <- indexes) idx.clear()
 		items.values.foreach(Rx.kill)
 		items = items.empty
+		Rx.invalidate(values)
 	}
 
 	/**

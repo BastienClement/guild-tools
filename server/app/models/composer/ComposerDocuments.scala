@@ -3,6 +3,7 @@ package models.composer
 import models._
 import models.mysql._
 import scala.concurrent.ExecutionContext.Implicits.global
+import slick.lifted.TableQuery
 import utils.PubSub
 
 class ComposerDocuments(tag: Tag) extends Table[ComposerDocument](tag, "gt_composer_docs") {

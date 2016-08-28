@@ -3,15 +3,28 @@
 	<template>
 		<div #layout>
 			<gt-box #left>
-				<div .header>
-					<div .back [@open]="hasDoc">
-						<gt-button collapse-left goto="/composer"><i>keyboard_arrow_left</i> Back</gt-button>
+				<div .layout>
+					<div .header>
+						<div .back [@open]="hasDoc">
+							<gt-button collapse-left goto="/composer"><i>keyboard_arrow_left</i> Back</gt-button>
+						</div>
+						<template *match="hasDoc">
+							<h2 *case="false">Composer</h2>
+							<h2 *case="true">{{doc.title}}</h2>
+						</template>
+						<template *match="hasDoc">
+							<gt-button .action *case="false" (click)="showCreate()"><i>add</i> New</gt-button>
+							<gt-button .action *case="true"><i>filter_list</i> Filters</gt-button>
+						</template>
 					</div>
-					<template *match="hasDoc">
-						<h2 *case="false">Composer</h2>
-						<h2 *case="true">{{doc.title}}</h2>
-					</template>
-					<gt-button .action (click)="showCreate()"><i>add</i>New</gt-button>
+					<div #slider .slided="hasDoc">
+						<div .panel>
+							<composer-document-list></composer-document-list>
+						</div>
+						<div .panel>
+							Hello world
+						</div>
+					</div>
 				</div>
 			</gt-box>
 			<div #right>
@@ -32,5 +45,20 @@
 				</gt-form>
 			</gt-box>
 		</gt-dialog>
+	</template>
+</xuen-component>
+
+<xuen-component id="composer-document-list">
+	<link rel="stylesheet/less" href="/assets/less/composer.less" ns="composer-document-list">
+	<template>
+		<gt-box dark *for="doc <- docs" (click)="selectDocument(doc.id)">
+			<div .layout>
+				<template *match="doc.style">
+					<i *case="'GROUPS'"></i>
+					<i *case="'GRID'"></i>
+				</template>
+				{{doc.title}}
+			</div>
+		</gt-box>
 	</template>
 </xuen-component>

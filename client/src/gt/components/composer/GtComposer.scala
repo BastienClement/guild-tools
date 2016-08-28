@@ -6,8 +6,9 @@ import gt.components.widget.{GtBox, GtDialog}
 import gt.components.{GtHandler, Tab, View}
 import gt.services.ComposerService
 import models.User
-import models.composer.ComposerDocument
+import models.composer.{ComposerDocument, DocumentStyle}
 import rx.{Const, Rx, Var}
+import scala.concurrent.ExecutionContext.Implicits.global
 import utils.Lazy
 import utils.jsannotation.js
 import xuen.Component
@@ -18,7 +19,7 @@ import xuen.Component
 object GtComposer extends Component[GtComposer](
 	selector = "gt-composer",
 	templateUrl = "/assets/imports/views/composer.html",
-	dependencies = Seq(GtBox, GtButton, GtDialog, GtForm, GtInput, GtCheckbox, GtCheckboxGroup)
+	dependencies = Seq(GtBox, GtButton, GtDialog, GtForm, GtInput, GtCheckbox, GtCheckboxGroup, ComposerDocumentList)
 ) with View.Sticky {
 	val module = "composer"
 
@@ -28,7 +29,8 @@ object GtComposer extends Component[GtComposer](
 
 	override def validate(user: User): Boolean = user.promoted
 
-	private val DefaultDocumentRx: Rx[ComposerDocument] = Const(null)
+	private val DummyDocument = ComposerDocument(-1, "", DocumentStyle.Groups)
+	private val DefaultDocumentRx: Rx[ComposerDocument] = Const(DummyDocument)
 }
 
 @js class GtComposer extends GtHandler {
@@ -38,15 +40,17 @@ object GtComposer extends Component[GtComposer](
 
 	private val docProvider = Var[Rx[ComposerDocument]](GtComposer.DefaultDocumentRx)
 	def doc = docProvider.!
-	def hasDoc = null != doc.!
+	def hasDoc = !doc.dummy
 
 	private def updateDocument(docid: String): Unit = {
-		if (docid == null) docProvider := GtComposer.DefaultDocumentRx
-		else {
-			val id = docid.toInt
-			composer.documents.contains(id) match {
-				case true => docProvider := composer.documents.get(id)
-				case false => Router.goto("/composer")
+		for (_ <- composer.ready) {
+			if (docid == null) docProvider := GtComposer.DefaultDocumentRx
+			else {
+				val id = docid.toInt
+				composer.documents.contains(id) match {
+					case true => docProvider := composer.documents.get(id)
+					case false => Router.goto("/composer")
+				}
 			}
 		}
 	}
@@ -62,7 +66,7 @@ object GtComposer extends Component[GtComposer](
 		createDialog.show()
 	}
 
-	def createDocument(): Unit = if(canCreate) {
+	def createDocument(): Unit = if (canCreate) {
 		composer.createDocument(createTitle, createStyle)
 		createDialog.hide()
 	}

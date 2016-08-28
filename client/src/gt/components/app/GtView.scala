@@ -39,6 +39,7 @@ object GtView extends Component[GtView](
 		// element but update attributes values
 		if (view.selector == currentSelector && view.sticky) {
 			var map = args.toMap
+
 			for ((name, _) <- currentArgs.toMap) map.get(name) match {
 				case Some(value) =>
 					currentNode.setAttribute(name, value)
@@ -46,7 +47,8 @@ object GtView extends Component[GtView](
 				case None =>
 					currentNode.removeAttribute(name)
 			}
-			for ((name, value) <- args) {
+
+			for ((name, value) <- map) {
 				currentNode.setAttribute(name, value)
 			}
 

@@ -1,19 +1,22 @@
 :namespace("gt-composer") {
-	#left {
+	#left { .gpu;
 		position: absolute;
 		top: 0;
 		bottom: 0;
 		left: 0;
 		width: 350px;
 
-		display: flex;
-		flex-direction: column;
+		.layout {
+			.pos(absolute);
+			display: flex;
+			flex-direction: column;
+		}
 
 		.header {
 			border-bottom: 2px solid #426585;
-			padding: 0 12px 12px 12px;
-			margin: 0 -12px;
+			padding: 12px;
 			flex-shrink: 0;
+			position: relative;
 
 			.back {
 				height: 0;
@@ -38,12 +41,37 @@
 				font-weight: 400;
 				line-height: 24px;
 				margin: 0;
+				width: 240px;
+				overflow: hidden;
+				white-space: nowrap;
+				text-overflow: ellipsis;
 			}
 
 			.action {
 				position: absolute;
-				top: 6px;
+				bottom: 6px;
 				right: 0;
+			}
+		}
+
+		#slider {
+			flex: 1;
+			width: 200%;
+			display: flex;
+			position: relative;
+			left: 0;
+			transition: left ease-in-out .2s;
+
+			&.slided {
+				left: -100%;
+			}
+
+			.panel {
+				.custom-scrolls;
+				width: 50%;
+				height: 100%;
+				padding: 12px;
+				overflow: auto;
 			}
 		}
 	}
@@ -52,5 +80,15 @@
 		gt-box {
 			width: 400px;
 		}
+	}
+}
+
+:namespace("composer-document-list") {
+	:host {
+		display: block;
+	}
+
+	gt-box:not(:first-child) {
+		margin-top: 8px;
 	}
 }
