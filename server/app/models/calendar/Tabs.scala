@@ -1,7 +1,6 @@
 package models.calendar
 
-import models._
-import models.mysql._
+import utils.SlickAPI._
 
 class Tabs(tag: Tag) extends Table[Tab](tag, "gt_events_tabs") {
 	def id = column[Int]("id", O.PrimaryKey, O.AutoInc)

@@ -3,13 +3,13 @@ package controllers
 import com.google.inject.Inject
 import gt.GuildTools
 import models._
-import models.mysql._
 import play.api.cache.Cached
 import play.api.libs.json.Json
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.api.mvc.{Action, Controller, RequestHeader}
 import scala.util.Try
 import utils.DateTime
+import utils.SlickAPI._
 
 class APIController @Inject() (val cached: Cached) extends Controller {
 	def catchall(path: String) = Action {

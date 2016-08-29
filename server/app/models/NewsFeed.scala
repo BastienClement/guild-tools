@@ -1,7 +1,7 @@
 package models
 
-import models.mysql._
 import utils.DateTime
+import utils.SlickAPI._
 
 class NewsFeed(tag: Tag) extends Table[NewsFeedData](tag, "gt_feed") {
 	def guid = column[String]("guid", O.PrimaryKey)

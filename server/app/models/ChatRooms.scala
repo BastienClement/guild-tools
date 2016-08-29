@@ -1,6 +1,6 @@
 package models
 
-import models.mysql._
+import utils.SlickAPI._
 
 case class ChatRoom(id: Int, title: String)
 

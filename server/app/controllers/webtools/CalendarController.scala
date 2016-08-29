@@ -1,10 +1,9 @@
 package controllers.webtools
 
-import models._
-import models.mysql._
 import play.api.mvc.Controller
 import reactive.ExecutionContext
 import scala.concurrent.Future
+import utils.SlickAPI._
 
 class CalendarController extends Controller with WtController {
 	def unread_events = UserAction.async { req =>

@@ -14,7 +14,7 @@ class ProfileController extends Controller with WtController {
 	def profile = UserAction.async { req =>
 		req.queryString.get("action") match {
 			case Some(a) =>
-				val char = req.queryString.get("char").get.head.toInt
+				val char = req.queryString("char").head.toInt
 				val action = a.head match {
 					case "enable" => RosterService.enableToon(char)
 					case "disable" => RosterService.disableToon(char)

@@ -2,16 +2,15 @@ package actors
 
 import actors.StreamService._
 import data.UserGroups
-import models.User
-import models._
 import models.live.Streams
-import models.mysql._
+import models.{PhpBBUsers, User}
 import reactive._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
-import scala.concurrent.Future
 import scala.concurrent.duration.{Deadline, _}
+import scala.concurrent.{Await, Future}
 import utils.Implicits._
+import utils.SlickAPI._
 import utils._
 
 private[actors] class StreamServiceImpl extends StreamService
@@ -68,7 +67,7 @@ object StreamService extends StaticActor[StreamService, StreamServiceImpl]("Stre
 		  */
 		def startPublishing(stream_id: String) = this.synchronized {
 			actives.getOrElseUpdate(stream_id, {
-				val meta = Streams.filter(_.token === stream_id).head.await
+				val meta = Await.result(Streams.filter(_.token === stream_id).head, 15.seconds)
 				ActiveStream(meta)
 			}).startPublishing()
 		}

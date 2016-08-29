@@ -1,7 +1,7 @@
 package models
 
-import models.mysql._
 import utils.DateTime
+import utils.SlickAPI._
 
 case class ChatWhisper(id: Int, from: Int, to: Int, date: DateTime, text: String)
 

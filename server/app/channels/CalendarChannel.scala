@@ -4,14 +4,12 @@ import akka.actor.Props
 import boopickle.DefaultBasic._
 import gtp3._
 import models.User
-import models.calendar.{Event, EventVisibility}
-import models._
-import models.calendar.{Answers, Events, Slacks}
-import models.mysql._
+import models.calendar._
 import reactive.ExecutionContext
 import scala.util.Success
 import utils.DateTime
 import utils.DateTime.Units
+import utils.SlickAPI._
 
 object CalendarChannel extends ChannelValidator {
 	def open(request: ChannelRequest) = {

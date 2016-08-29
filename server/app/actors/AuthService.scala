@@ -1,17 +1,15 @@
 package actors
 
 import akka.actor.ActorRef
-import models.User
-import models._
 import models.authentication.{Session, Sessions, Users}
-import models.mysql._
+import models.{PhpBBUsers, User}
 import reactive._
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Success
-import utils.DateTime
 import utils.Implicits._
-import utils._
+import utils.SlickAPI._
+import utils.{DateTime, _}
 import utils.crypto.Hasher
 
 private[actors] class AuthServiceImpl extends AuthService

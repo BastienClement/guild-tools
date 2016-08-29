@@ -3,16 +3,14 @@ package actors
 import actors.BattleNet.BnetFailure
 import actors.RosterService.{ToonDeleted, ToonUpdated}
 import data.{Specializations, UserGroups}
-import models.{Toon, User}
-import models._
-import models.mysql._
+import models.{PhpBBUsers, Toon, Toons, User}
 import reactive.ExecutionContext
 import scala.compat.Platform
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import utils.DateTime
 import utils.Implicits._
-import utils._
+import utils.SlickAPI._
+import utils.{DateTime, _}
 
 private[actors] class RosterServiceImpl extends RosterService
 

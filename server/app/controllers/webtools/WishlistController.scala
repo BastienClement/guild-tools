@@ -1,12 +1,11 @@
 package controllers.webtools
 
 import controllers.webtools.WtController.Deny
-import models._
-import models.mysql._
 import play.api.libs.json.{JsNull, Json}
 import play.api.mvc.Controller
 import reactive._
 import scala.concurrent.Future
+import utils.SlickAPI._
 
 class WishlistController extends Controller with WtController {
 	/**

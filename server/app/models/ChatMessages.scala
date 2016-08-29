@@ -1,7 +1,7 @@
 package models
 
-import models.mysql._
 import utils.DateTime
+import utils.SlickAPI._
 
 case class ChatMessage(id: Int, room: Int, user: Option[Int], from: String, text: String, date: DateTime = DateTime.now)
 

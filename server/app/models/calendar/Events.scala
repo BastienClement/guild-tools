@@ -1,11 +1,11 @@
 package models.calendar
 
-import models._
-import models.mysql._
+import models.User
 import reactive.ExecutionContext
 import scala.concurrent.Future
 import scala.util.Success
 import slick.lifted.Case
+import utils.SlickAPI._
 import utils.{DateTime, PubSub}
 
 class Events(tag: Tag) extends Table[Event](tag, "gt_events_visible") {

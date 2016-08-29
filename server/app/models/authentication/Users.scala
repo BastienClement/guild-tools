@@ -1,8 +1,8 @@
 package models.authentication
 
 import models.{User, _}
-import models.mysql._
 import reactive.ExecutionContext
+import utils.SlickAPI._
 import utils.crypto.BCrypt
 
 class Users(tag: Tag) extends Table[User](tag, "gt_users") {

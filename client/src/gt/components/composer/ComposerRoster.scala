@@ -43,7 +43,7 @@ object ComposerRoster extends Component[ComposerRoster](
 		def default = Filter(true, false, false, false)
 	}
 
-	val breakpoints = Seq(740, 730, 720, 710, 700)
+	val breakpoints = Seq(860, 840)
 	val ordering = Seq("Mains", "Casuals", "Veterans", "Guests").zipWithIndex.toMap
 
 	@data case class RosterGroup(title: String, toons: Iterable[Rx[Toon]]) {

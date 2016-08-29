@@ -1,6 +1,7 @@
 package gt.components.composer
 
 import gt.Router
+import gt.components.composer.groups.ComposerGroupsDocument
 import gt.components.widget.form._
 import gt.components.widget.{GtBox, GtDialog}
 import gt.components.{GtHandler, Tab, View}
@@ -20,7 +21,7 @@ object GtComposer extends Component[GtComposer](
 	selector = "gt-composer",
 	templateUrl = "/assets/imports/views/composer.html",
 	dependencies = Seq(GtBox, GtButton, GtDialog, GtForm, GtInput, GtCheckbox, GtCheckboxGroup,
-		ComposerDocumentList, ComposerRoster)
+		ComposerDocumentList, ComposerRoster, ComposerGroupsDocument)
 ) with View.Sticky {
 	val module = "composer"
 

@@ -1,6 +1,6 @@
 package models
 
-import models.mysql._
+import utils.SlickAPI._
 
 case class ComposerLockout(id: Int, title: String)
 

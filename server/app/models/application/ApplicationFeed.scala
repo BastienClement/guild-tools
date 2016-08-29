@@ -2,9 +2,10 @@ package models.application
 
 import models.User
 import models.application.ApplicationEvents.{ApplyUpdated, MessagePosted, UnreadUpdated}
-import models.mysql._
 import reactive.ExecutionContext
+import slick.lifted.Compiled
 import utils.DateTime
+import utils.SlickAPI._
 
 case class ApplicationMessage(id: Int, apply: Int, user: Int, date: DateTime, text: String, secret: Boolean, system: Boolean)
 

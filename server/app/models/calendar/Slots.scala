@@ -1,6 +1,6 @@
 package models.calendar
 
-import models.mysql._
+import utils.SlickAPI._
 
 class Slots(tag: Tag) extends Table[Slot](tag, "gt_events_slots") {
 	def tab = column[Int]("tab", O.PrimaryKey)

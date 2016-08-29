@@ -1,10 +1,12 @@
 :namespace("gt-composer") {
+	@left-width: 400px;
+
 	#left { .gpu;
 		position: absolute;
 		top: 0;
 		bottom: 0;
 		left: 0;
-		width: 400px;
+		width: @left-width;
 
 		.layout {
 			.pos(absolute);
@@ -76,6 +78,18 @@
 		}
 	}
 
+	#right {
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: @left-width + 8px;
+
+		& > * {
+			.pos(absolute);
+		}
+	}
+
 	#create-document {
 		gt-box {
 			width: 400px;
@@ -101,6 +115,43 @@
 
 	gt-box:not(:first-child) {
 		margin-top: 8px;
+	}
+
+	gt-box:hover i.chevron {
+		color: @fs-blue;
+		transform: translateX(2px);
+	}
+
+	.layout {
+		display: flex;
+		align-items: center;
+
+		& > * {
+			flex-shrink: 0;
+		}
+
+		i.icon {
+			font-size: 18px;
+			margin-right: 8px;
+			color: mix(@light-blue, @fs-blue);
+			position: relative;
+		}
+
+		.title {
+			flex: 1 !important;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		i.chevron {
+			font-size: 24px;
+			color: white;
+			position: relative;
+			transform: translateX(0);
+			transition: transform ease-in-out .2s;
+			margin-left: 8px;
+		}
 	}
 }
 
@@ -128,5 +179,27 @@
 		width: 33%;
 		padding: 0 4px;
 		margin-top: 4px;
+	}
+}
+
+:namespace("composer-groups-document") {
+	:host {
+		display: block;
+	}
+
+	gt-box#main {
+		.pos(absolute);
+	}
+
+	#actions {
+		position: absolute;
+		top: 6px;
+		right: 12px;
+	}
+
+	#rename-doc {
+		gt-box {
+			width: 400px;
+		}
 	}
 }

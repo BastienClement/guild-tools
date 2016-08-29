@@ -1,6 +1,6 @@
 package models
 
-import models.mysql._
+import utils.SlickAPI._
 
 /**
   * A phpBB session

@@ -1,10 +1,10 @@
 package models.calendar
 
-import models._
-import models.mysql._
+import models.{Toons, User}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import slick.lifted
+import utils.SlickAPI._
 import utils.{DateTime, PubSub}
 
 class Answers(tag: Tag) extends Table[Answer](tag, "gt_answers") {
@@ -26,7 +26,7 @@ object Answers extends TableQuery(new Answers(_)) with PubSub[User] {
 		Answers.filter(_.event === event)
 	}
 
-	def findForEventAndUser(event: Rep[Int], user: Rep[Int]) = {
+	def findForEventAndUser(event: lifted.Rep[Int], user: lifted.Rep[Int]) = {
 		findForEvent(event).filter(_.user === user)
 	}
 

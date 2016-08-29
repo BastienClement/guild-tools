@@ -3,9 +3,8 @@ package channels
 import akka.actor.Props
 import boopickle.DefaultBasic._
 import gtp3._
-import models.User
-import models._
-import models.mysql._
+import models.{Config, Configs, User}
+import utils.SlickAPI._
 
 object MasterChannel extends ChannelValidator {
 	def open(request: ChannelRequest) = request.accept(Props(new MasterChannel(request.user)))

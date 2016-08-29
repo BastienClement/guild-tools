@@ -1,7 +1,7 @@
 package models.application
 
 import boopickle.DefaultBasic._
-import models.mysql._
+import utils.SlickAPI._
 
 /**
   * Defines the encoding of the application data in the database.

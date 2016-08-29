@@ -3,10 +3,11 @@ package channels
 import akka.actor.{ActorRef, Props}
 import boopickle.DefaultBasic._
 import gtp3._
-import models._
-import models.mysql._
+import models.NewsFeed
+import scala.concurrent.Await
 import scala.concurrent.duration._
 import utils.CacheCell
+import utils.SlickAPI._
 
 object NewsFeedChannel extends ChannelValidator {
 	def open(request: ChannelRequest) = request.accept(Props(new NewsFeedChannel))
@@ -21,7 +22,7 @@ object NewsFeedChannel extends ChannelValidator {
 	}
 
 	def cache = CacheCell(5.minutes) {
-		NewsFeed.sortBy(_.time.desc).take(50).run.await
+		Await.result(NewsFeed.sortBy(_.time.desc).take(50).run, 10.seconds)
 	}
 
 	case object Update

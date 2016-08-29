@@ -1,6 +1,6 @@
 package models
 
-import models.mysql._
+import utils.SlickAPI._
 
 class PhpBBUsers(tag: Tag) extends Table[User](tag, "phpbb_users") {
 	def id = column[Int]("user_id", O.PrimaryKey)

@@ -1,12 +1,11 @@
 package models.application
 
 import models.User
-import models._
 import models.application.ApplicationEvents.ApplyUpdated
-import models.mysql._
 import reactive.ExecutionContext
 import scala.util.Success
 import utils.DateTime
+import utils.SlickAPI._
 
 case class Application(id: Int, user: Int, date: DateTime, stage: Int, have_posts: Boolean, updated: DateTime)
 

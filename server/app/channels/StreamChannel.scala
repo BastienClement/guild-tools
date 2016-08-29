@@ -6,10 +6,9 @@ import akka.actor.Props
 import boopickle.DefaultBasic._
 import gtp3._
 import models.User
-import models._
 import models.live.Streams
-import models.mysql._
 import reactive.ExecutionContext
+import utils.SlickAPI._
 
 object StreamChannel extends ChannelValidator {
 	def open(request: ChannelRequest) = request.accept(Props(new StreamChannel(request.user)))

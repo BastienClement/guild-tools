@@ -1,14 +1,14 @@
 package controllers.webtools
 
 import controllers.webtools.WtController.{Deny, UserRequest}
-import models._
+import models.Toons
 import models.application._
-import models.mysql._
 import play.api.libs.json.Json
 import play.api.mvc._
 import reactive.ExecutionContext
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
+import utils.SlickAPI._
 
 class ApplicationController extends Controller with WtController {
 	/**

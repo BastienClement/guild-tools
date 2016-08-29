@@ -1,8 +1,8 @@
 package models.application
 
-import models.mysql._
 import play.api.libs.json.{Format, JsValue, Json}
 import scala.language.implicitConversions
+import utils.SlickAPI._
 
 /**
   * An application stage.
@@ -51,7 +51,7 @@ object Stage {
 
 	/** Automatic JSON serialization for Stage instances */
 	implicit val StageJsonFormat = new Format[Stage] {
-		def reads(json: JsValue) = json.validate[Int].map(fromId _)
+		def reads(json: JsValue) = json.validate[Int].map(fromId)
 		def writes(stage: Stage) = Json.toJson(stage.id)
 	}
 }

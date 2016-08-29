@@ -4,15 +4,14 @@ import actors.{BattleNet, RosterService}
 import akka.actor.Props
 import boopickle.DefaultBasic._
 import gtp3.{Error, _}
-import models.{Profile, Toon, User}
-import models._
-import models.mysql._
+import models.{Profile, Profiles, Toon, Toons, User}
 import reactive._
 import scala.compat.Platform
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Success
 import utils.CacheCell
+import utils.SlickAPI._
 
 object ProfileChannel extends ChannelValidator {
 	def open(request: ChannelRequest) = request.accept(Props(new ProfileChannel(request.user)))

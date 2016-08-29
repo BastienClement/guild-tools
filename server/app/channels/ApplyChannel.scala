@@ -6,8 +6,8 @@ import gtp3._
 import models.User
 import models.application.ApplicationEvents._
 import models.application._
-import models.mysql._
 import reactive.ExecutionContext
+import utils.SlickAPI._
 
 object ApplyChannel extends ChannelValidator {
 	def open(request: ChannelRequest) = {

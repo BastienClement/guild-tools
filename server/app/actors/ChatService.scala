@@ -2,14 +2,13 @@ package actors
 
 import actors.ChatService._
 import channels.ChatChannel
-import models.User
-import models._
-import models.mysql._
+import models.{ChatMessage, ChatMessages, User}
 import reactive.ExecutionContext
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.language.implicitConversions
 import utils.PubSub
+import utils.SlickAPI._
 
 private[actors] class ChatServiceImpl extends ChatService
 
@@ -107,7 +106,7 @@ trait ChatService extends PubSub[User] {
 
 	/**
 	  * Changes the away state of a specific socket.
- *
+	  *
 	  * @todo Make the ActorTag implicit
 	  */
 	def setAway(actor: ActorTag[ChatChannel], away: Boolean) = {
@@ -119,7 +118,7 @@ trait ChatService extends PubSub[User] {
 
 	/**
 	  * Returns a room messages backlog.
- *
+	  *
 	  * @todo Replace by a MessageQuery system.
 	  */
 	def roomBacklog(room: Int, user: Option[User] = None, count: Option[Int] = None, limit: Option[Int] = None): Future[Seq[ChatMessage]] = {

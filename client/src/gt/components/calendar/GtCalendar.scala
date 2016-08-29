@@ -26,8 +26,8 @@ object GtCalendar extends Component[GtCalendar](
 
 	def genTabs(active: String): TabGenerator = (selector, path, user) => Seq(
 		Tab("Calendar", "/calendar", active == "calendar"),
-		Tab("Slacks", "http://tools.fromscratch.gg/calendar/abs", active == "slacks"),
-		Tab("Composer", "http://tools.fromscratch.gg/calendar/composer", active == "composer", hidden = !user.promoted)
+		Tab("Slacks", "http://tools.fromscratch.gg/calendar/abs", active == "slacks")
+		//Tab("Composer", "http://tools.fromscratch.gg/calendar/composer", active == "composer", hidden = !user.promoted)
 	)
 
 	val tabs: TabGenerator = genTabs("calendar")

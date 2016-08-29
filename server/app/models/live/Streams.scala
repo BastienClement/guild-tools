@@ -1,6 +1,6 @@
 package models.live
 
-import models.mysql._
+import utils.SlickAPI._
 
 /**
   * A private stream for guildmates.

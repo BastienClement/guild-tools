@@ -7,6 +7,7 @@ crossPaths := false
 
 lazy val scalaV = "2.11.8"
 lazy val scalaOpts = Seq(
+	//"-Xlog-implicits",
 	"-feature",
 	"-deprecation",
 	"-Xfatal-warnings",

@@ -10,7 +10,7 @@
 						</div>
 						<template *match="hasDoc">
 							<h2 *case="false">Composer</h2>
-							<h2 *case="true">{{doc.title}}</h2>
+							<h2 *case="true">Roster</h2>
 						</template>
 						<template *match="hasDoc">
 							<gt-button .action *case="false" (click)="showCreate()"><i>add</i> New</gt-button>
@@ -27,7 +27,10 @@
 					</div>
 				</div>
 			</gt-box>
-			<div #right>
+			<div #right *if="hasDoc">
+				<template *match="doc.style">
+					<composer-groups-document *case="'GROUPS'" [doc]></composer-groups-document>
+				</template>
 			</div>
 		</div>
 		<gt-dialog #create-document>
@@ -66,11 +69,9 @@
 	<template>
 		<gt-box dark *for="doc <- docs" (click)="selectDocument(doc.id)">
 			<div .layout>
-				<template *match="doc.style">
-					<i *case="'GROUPS'"></i>
-					<i *case="'GRID'"></i>
-				</template>
-				{{doc.title}}
+				<i .icon>description</i>
+				<span .title>{{doc.title}}</span>
+				<i .chevron>chevron_right</i>
 			</div>
 		</gt-box>
 	</template>
@@ -106,5 +107,44 @@
 				</div>
 			</div>
 		</div>
+	</template>
+</xuen-component>
+
+<xuen-component id="composer-header">
+	<link rel="stylesheet/less" href="/assets/less/composer.less" ns="composer-header">
+	<template>
+		<gt-box>
+			<div .layout>
+				<div .title>{{doc.title}}</div>
+				<div .actions>
+					<content></content>
+					<gt-button><i>edit</i> Rename</gt-button>
+					<gt-button><i>delete_forever</i> Delete</gt-button>
+				</div>
+			</div>
+		</gt-box>
+	</template>
+</xuen-component>
+
+<xuen-component id="composer-groups-document">
+	<link rel="stylesheet/less" href="/assets/less/composer.less" ns="composer-groups-document">
+	<template>
+		<gt-box #main [heading]="doc.title" scrollable>
+			<div #actions>
+				<gt-button collapse-right (click)="#rename-doc.show()"><i>edit</i> Rename</gt-button>
+				<gt-button collapse-right><i>delete_forever</i> Delete</gt-button>
+			</div>
+		</gt-box>
+		<gt-dialog #rename-doc>
+			<gt-box heading="Rename document" scrollable>
+				<gt-form (submit)="renameDocument(#rename-input.value); #rename-doc.hide()">
+					<gt-input #rename-input .autofocus [value]="doc.title" label="Document title"></gt-input>
+					<div .actions .spacing>
+						<gt-button (click)="#rename-doc.hide()"> Cancel</gt-button>
+						<gt-button submit> Ok</gt-button>
+					</div>
+				</gt-form>
+			</gt-box>
+		</gt-dialog>
 	</template>
 </xuen-component>

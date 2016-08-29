@@ -3,14 +3,13 @@ package controllers.webtools
 import actors.{AuthService, RosterService}
 import controllers.webtools.WtController._
 import data.UserGroups
-import models.{Toon, User}
-import models._
-import models.mysql._
+import models.{PhpBBSessions, PhpBBUsers, Toon, User}
 import play.api.mvc._
 import reactive.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import utils.CacheCell
+import utils.SlickAPI._
 
 object WtController {
 	/**

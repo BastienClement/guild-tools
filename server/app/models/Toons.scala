@@ -1,6 +1,6 @@
 package models
 
-import models.mysql._
+import utils.SlickAPI._
 
 class Toons(tag: Tag) extends Table[Toon](tag, "gt_chars") {
 	def id = column[Int]("id", O.PrimaryKey, O.AutoInc)

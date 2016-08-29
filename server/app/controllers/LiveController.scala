@@ -3,15 +3,14 @@ package controllers
 import actors.StreamService
 import com.google.inject.Inject
 import gt.GuildTools
-import models._
 import models.live.Streams
-import models.mysql._
 import play.api.Mode
 import play.api.libs.ws.WSClient
 import play.api.mvc.{Action, Controller}
 import reactive.ExecutionContext
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.Future
+import utils.SlickAPI._
 
 class LiveController @Inject() (ws: WSClient) extends Controller {
 	private val client_stream = TrieMap[Int, String]()

@@ -2,9 +2,9 @@ package models.application
 
 import models.User
 import models.application.ApplicationEvents.UnreadUpdated
-import models.mysql._
 import reactive.ExecutionContext
 import utils.DateTime
+import utils.SlickAPI._
 
 case class ApplicationReadState(user: Int, apply: Int, date: DateTime)
 

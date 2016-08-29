@@ -1,14 +1,13 @@
 package gtp3
 
-import boopickle.Default._
-import boopickle.Pickler
+import boopickle.DefaultBasic._
 import java.nio.ByteBuffer
 import java.util.zip.Deflater
-import models.DB
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scodec.bits.ByteVector
 import slick.dbio.{DBIOAction, NoStream}
+import utils.SlickAPI._
 
 trait Pickleable[-T] {
 	def pickle(data: T): Future[ByteBuffer]
@@ -45,6 +44,6 @@ object Pickleable {
 
 	type DBIOA[T] = DBIOAction[T, NoStream, Nothing]
 	implicit def DBIOActionIsPickleable[T: Pickleable]: Pickleable[DBIOA[T]] = new Pickleable[DBIOA[T]] {
-		def pickle(action: DBIOA[T]): Future[ByteBuffer] = DB.run(action).flatMap(implicitly[Pickleable[T]].pickle)
+		def pickle(action: DBIOA[T]): Future[ByteBuffer] = action.run.flatMap(implicitly[Pickleable[T]].pickle)
 	}
 }

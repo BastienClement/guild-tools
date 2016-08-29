@@ -3,16 +3,15 @@ package controllers
 import actors.AuthService
 import gt.GuildTools
 import java.util.concurrent.ExecutionException
-import models.User
-import models._
 import models.authentication.Sessions
-import models.mysql._
+import models.{Profiles, User}
 import play.api.mvc._
 import reactive.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
 import utils.Implicits._
+import utils.SlickAPI._
 import utils.{Cache, TokenBucket}
 
 class AuthController extends Controller {
