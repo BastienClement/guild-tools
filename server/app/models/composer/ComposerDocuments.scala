@@ -38,4 +38,10 @@ object ComposerDocuments extends TableQuery(new ComposerDocuments(_)) with PubSu
 			case Success(doc) => publish(Updated(doc))
 		}
 	}
+
+	def delete(id: Int): Unit = {
+		for (n <- findById(id).filter(_.id == id).delete.run if n > 0) {
+			publish(Deleted(id))
+		}
+	}
 }

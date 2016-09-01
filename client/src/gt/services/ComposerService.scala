@@ -16,6 +16,7 @@ object ComposerService extends Service with Delegate {
 
 	def createDocument(title: String, style: String): Unit = channel.send("create-document", (title, style))
 	def renameDocument(id: Int, title: String): Unit = channel.send("rename-document", (id, title))
+	def deleteDocument(id: Int): Unit = channel.send("delete-document", id)
 
 	message("document-updated")(documents.update _)
 	message("document-removed")(documents.removeKey _)

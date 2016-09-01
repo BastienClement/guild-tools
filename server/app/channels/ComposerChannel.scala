@@ -34,5 +34,9 @@ class ComposerChannel extends ChannelHandler {
 	message("rename-document") { (id: Int, name: String) =>
 		ComposerDocuments.rename(id, name)
 	}
+
+	message("delete-document") { (id: Int) =>
+		ComposerDocuments.delete(id)
+	}
 }
 

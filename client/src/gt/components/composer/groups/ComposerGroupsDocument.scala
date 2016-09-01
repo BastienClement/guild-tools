@@ -19,5 +19,6 @@ object ComposerGroupsDocument extends Component[ComposerGroupsDocument](
 	val doc = property[ComposerDocument]
 
 	def renameDocument(title: String): Unit = composer.renameDocument(doc.id, title)
+	def deleteDocument(): Unit = composer.deleteDocument(doc.id)
 }
 
