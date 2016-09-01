@@ -40,7 +40,7 @@ object ComposerDocuments extends TableQuery(new ComposerDocuments(_)) with PubSu
 	}
 
 	def delete(id: Int): Unit = {
-		for (n <- findById(id).filter(_.id == id).delete.run if n > 0) {
+		for (n <- findById(id).filter(_.id === id).delete.run if n > 0) {
 			publish(Deleted(id))
 		}
 	}

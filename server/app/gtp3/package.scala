@@ -14,6 +14,7 @@ package object gtp3 {
 		"calendar" -> CalendarChannel,
 		"calendar-event" -> CalendarEventChannel,
 		"composer" -> ComposerChannel,
+		"composer-document" -> composer.DocumentChannel,
 		"chat" -> ChatChannel,
 		"master" -> MasterChannel,
 		"newsfeed" -> NewsFeedChannel,
