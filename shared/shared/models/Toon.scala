@@ -1,7 +1,7 @@
 package models
 
 import boopickle.DefaultBasic._
-import data.Specializations
+import data.Spec
 import scala.compat.Platform
 import utils.annotation.data
 
@@ -26,7 +26,7 @@ import utils.annotation.data
 		case _ => true
 	}
 
-	lazy val spec = Specializations.get(specid)
+	lazy val spec = Spec.get(specid)
 	lazy val role = spec.role
 }
 

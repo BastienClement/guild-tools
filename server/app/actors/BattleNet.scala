@@ -1,7 +1,7 @@
 package actors
 
 import actors.BattleNet._
-import data.Specializations
+import data.Spec
 import gt.GuildTools
 import models.Toon
 import play.api.libs.json.JsValue
@@ -66,7 +66,7 @@ trait BattleNet {
 			}.flatMap { tree =>
 				(tree \ "spec" \ "name").asOpt[String]
 			}.map { spec =>
-				Specializations.resolve(spec, (char \ "class").as[Int])
+				Spec.resolve(spec, (char \ "class").as[Int])
 			}.getOrElse(0)
 
 			Toon(

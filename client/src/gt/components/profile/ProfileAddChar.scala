@@ -1,6 +1,6 @@
 package gt.components.profile
 
-import data.Specializations
+import data.Spec
 import gt.components.GtHandler
 import gt.components.widget._
 import gt.components.widget.form.{GtButton, GtForm, GtInput}
@@ -35,10 +35,10 @@ object ProfileAddChar extends Component[ProfileAddChar](
 
 	val specs = toon ~ {
 		case null =>
-			Seq.empty[Specializations.Spec]
+			Seq.empty[Spec.Spec]
 		case t: Toon =>
-			println(t.clss, Specializations.forClass(t.clss))
-			Specializations.forClass(t.clss)
+			println(t.clss, Spec.forClass(t.clss))
+			Spec.forClass(t.clss)
 	}
 
 	val hasToon = toon ~ (_ != null)
