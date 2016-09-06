@@ -1,97 +1,121 @@
 package data
 
+import data.Role._
+import scala.collection.mutable
 import utils.annotation.data
 
-@data sealed abstract class Spec(val clss: Int, val name: String, val role: String, val icon: String) {
-	val id = Spec.specs.size
-	Spec.specs = Spec.specs :+ this
+@data
+sealed abstract class Spec(val id: Int, val clss: Class, val name: String, val role: Role, val icon: String) {
+	def this(id: Int, name: String, role: Role, icon: String)(implicit clss: Class) = this(id, clss, name, role, icon)
 }
 
 object Spec {
-	// Roles aliases
-	private final val DPS = "DPS"
-	private final val HEALING = "HEALING"
-	private final val TANK = "TANK"
+	private val cache = mutable.Map[Int, Spec]()
 
-	/** Specializations data */
-	private var specs = Vector.empty[Spec]
+	def get(id: Int) = cache.getOrElseUpdate(id, Class.list.map(_.specs.find(s => s.id == id)).find {
+		case Some(_) => true
+		case _ => false
+	}.flatten.getOrElse(Dummy))
 
-	object Dummy extends Spec(0, "Unknown", "UNKNOW", "")
+	def resolve(name: String, clss: Int) = Class.byId(clss).specs.collect { case s if s.name == name => s.id }.headOption.getOrElse(0)
+
+	def forClass(clss: Int) = Class.byId(clss).specs
+
+	object Dummy extends Spec(0, Class.Unknown, "Unknown", Role.Unknown, "")
 
 	// Warrior
-	object Arms extends Spec(1, "Arms", DPS, "ability_warrior_savageblow")
-	object Fury extends Spec(1, "Fury", DPS, "ability_warrior_innerrage")
-	object ProtectionWarrior extends Spec(1, "Protection", TANK, "ability_warrior_defensivestance")
+	object Warrior {
+		implicit val clss = Class.Warrior
+		object Arms extends Spec(1, "Arms", DPS, "ability_warrior_savageblow")
+		object Fury extends Spec(2, "Fury", DPS, "ability_warrior_innerrage")
+		object Protection extends Spec(3, "Protection", Tank, "ability_warrior_defensivestance")
+	}
 
 	// Paladin
-	object HolyPaladin extends Spec(2, "Holy", HEALING, "spell_holy_holybolt")
-	object ProtectionPaladin extends Spec(2, "Protection", TANK, "ability_paladin_shieldofthetemplar")
-	object Retribution extends Spec(2, "Retribution", DPS, "spell_holy_auraoflight")
+	object Paladin {
+		implicit val clss = Class.Paladin
+		object Holy extends Spec(4, "Holy", Healing, "spell_holy_holybolt")
+		object Protection extends Spec(5, "Protection", Tank, "ability_paladin_shieldofthetemplar")
+		object Retribution extends Spec(6, "Retribution", DPS, "spell_holy_auraoflight")
+	}
 
 	// Hunter
-	object BeastMastery extends Spec(3, "Beast Mastery", DPS, "ability_hunter_bestialdiscipline")
-	object Marksmanship extends Spec(3, "Marksmanship", DPS, "ability_hunter_focusedaim")
-	object Survival extends Spec(3, "Survival", DPS, "ability_hunter_camouflage")
+	object Hunter {
+		implicit val clss = Class.Hunter
+		object BeastMastery extends Spec(7, "Beast Mastery", DPS, "ability_hunter_bestialdiscipline")
+		object Marksmanship extends Spec(8, "Marksmanship", DPS, "ability_hunter_focusedaim")
+		object Survival extends Spec(9, "Survival", DPS, "ability_hunter_camouflage")
+	}
 
 	// Rogue
-	object Assassination extends Spec(4, "Assassination", DPS, "ability_rogue_deadlybrew")
-	object Outlaw extends Spec(4, "Outlaw", DPS, "inv_sword_30")
-	object Subtlety extends Spec(4, "Subtlety", DPS, "ability_stealth")
+	object Rogue {
+		implicit val clss = Class.Rogue
+		object Assassination extends Spec(10, "Assassination", DPS, "ability_rogue_deadlybrew")
+		object Outlaw extends Spec(11, "Outlaw", DPS, "inv_sword_30")
+		object Subtlety extends Spec(12, "Subtlety", DPS, "ability_stealth")
+	}
 
 	// Priest
-	object Discipline extends Spec(5, "Discipline", HEALING, "spell_holy_powerwordshield")
-	object HolyPriest extends Spec(5, "Holy", HEALING, "spell_holy_guardianspirit")
-	object Shadow extends Spec(5, "Shadow", DPS, "spell_shadow_shadowwordpain")
+	object Priest {
+		implicit val clss = Class.Priest
+		object Discipline extends Spec(13, "Discipline", Healing, "spell_holy_powerwordshield")
+		object Holy extends Spec(14, "Holy", Healing, "spell_holy_guardianspirit")
+		object Shadow extends Spec(15, "Shadow", DPS, "spell_shadow_shadowwordpain")
+	}
 
 	// Death Knight
-	object Blood extends Spec(6, "Blood", TANK, "spell_deathknight_bloodpresence")
-	object FrostDk extends Spec(6, "Frost", DPS, "spell_deathknight_frostpresence")
-	object Unholy extends Spec(6, "Unholy", DPS, "spell_deathknight_unholypresence")
+	object DeathKnight {
+		implicit val clss = Class.DeathKnight
+		object Blood extends Spec(16, "Blood", Tank, "spell_deathknight_bloodpresence")
+		object Frost extends Spec(17, "Frost", DPS, "spell_deathknight_frostpresence")
+		object Unholy extends Spec(18, "Unholy", DPS, "spell_deathknight_unholypresence")
+	}
 
 	// Shaman
-	object Elemental extends Spec(7, "Elemental", DPS, "spell_nature_lightning")
-	object Enhancement extends Spec(7, "Enhancement", DPS, "spell_shaman_improvedstormstrike")
-	object RestorationShaman extends Spec(7, "Restoration", HEALING, "spell_nature_magicimmunity")
+	object Shaman {
+		implicit val clss = Class.Shaman
+		object Elemental extends Spec(19, "Elemental", DPS, "spell_nature_lightning")
+		object Enhancement extends Spec(20, "Enhancement", DPS, "spell_shaman_improvedstormstrike")
+		object Restoration extends Spec(21, "Restoration", Healing, "spell_nature_magicimmunity")
+	}
 
 	// Mage
-	object Arcane extends Spec(8, "Arcane", DPS, "spell_holy_magicalsentry")
-	object Fire extends Spec(8, "Fire", DPS, "spell_fire_firebolt02")
-	object FrostMage extends Spec(8, "Frost", DPS, "spell_frost_frostbolt02")
+	object Mage {
+		implicit val clss = Class.Mage
+		object Arcane extends Spec(22, "Arcane", DPS, "spell_holy_magicalsentry")
+		object Fire extends Spec(23, "Fire", DPS, "spell_fire_firebolt02")
+		object Frost extends Spec(24, "Frost", DPS, "spell_frost_frostbolt02")
+	}
 
 	// Warlock
-	object Affliction extends Spec(9, "Affliction", DPS, "spell_shadow_deathcoil")
-	object Demonology extends Spec(9, "Demonology", DPS, "spell_shadow_metamorphosis")
-	object Destruction extends Spec(9, "Destruction", DPS, "spell_shadow_rainoffire")
+	object Warlock {
+		implicit val clss = Class.Warlock
+		object Affliction extends Spec(25, "Affliction", DPS, "spell_shadow_deathcoil")
+		object Demonology extends Spec(26, "Demonology", DPS, "spell_shadow_metamorphosis")
+		object Destruction extends Spec(27, "Destruction", DPS, "spell_shadow_rainoffire")
+	}
 
 	// Monk
-	object Brewmaster extends Spec(10, "Brewmaster", TANK, "spell_monk_brewmaster_spec")
-	object Mistweaver extends Spec(10, "Mistweaver", HEALING, "spell_monk_mistweaver_spec")
-	object Windwalker extends Spec(10, "Windwalker", DPS, "spell_monk_windwalker_spec")
+	object Monk {
+		implicit val clss = Class.Monk
+		object Brewmaster extends Spec(28, "Brewmaster", Tank, "spell_monk_brewmaster_spec")
+		object Mistweaver extends Spec(29, "Mistweaver", Healing, "spell_monk_mistweaver_spec")
+		object Windwalker extends Spec(30, "Windwalker", DPS, "spell_monk_windwalker_spec")
+	}
 
 	// Druid
-	object Balance extends Spec(11, "Balance", DPS, "spell_nature_starfall")
-	object Feral extends Spec(11, "Feral", DPS, "ability_druid_catform")
-	object Guardian extends Spec(11, "Guardian", TANK, "ability_racial_bearform")
-	object RestorationDruid extends Spec(11, "Restoration", HEALING, "spell_nature_healingtouch")
+	object Druid {
+		implicit val clss = Class.Druid
+		object Balance extends Spec(31, "Balance", DPS, "spell_nature_starfall")
+		object Feral extends Spec(32, "Feral", DPS, "ability_druid_catform")
+		object Guardian extends Spec(33, "Guardian", Tank, "ability_racial_bearform")
+		object Restoration extends Spec(34, "Restoration", Healing, "spell_nature_healingtouch")
+	}
 
 	// Demon Hunter
-	object Havoc extends Spec(12, "Havoc", DPS, "ability_demonhunter_specdps")
-	object Vengeance extends Spec(12, "Vengeance", TANK, "ability_demonhunter_spectank")
-
-	/** Specializations by class */
-	private val byClass = specs.groupBy(s => s.clss)
-
-	/**
-	  * Returns the specialization data from a spec ID
-	  * @param id the specialization ID
-	  */
-	def get(id: Int): Spec = specs(id)
-
-	/**
-	  * Returns the ordered list of all specializations for a given class.
-	  * @param clss the class
-	  */
-	def forClass(clss: Int): Seq[Spec] = byClass.getOrElse(clss, Seq.empty)
-
-	def resolve(name: String, clss: Int): Int = specs.find(s => s.clss == clss && s.name == name).map(_.id).getOrElse(0)
+	object DemonHunter {
+		implicit val clss = Class.DemonHunter
+		object Havoc extends Spec(35, "Havoc", DPS, "ability_demonhunter_specdps")
+		object Vengeance extends Spec(36, "Vengeance", Tank, "ability_demonhunter_spectank")
+	}
 }

@@ -1,5 +1,6 @@
 package gt.components.composer
 
+import _root_.data.Role.{DPS, Healing, Tank}
 import data.UserGroups
 import gt.Router
 import gt.components.GtHandler
@@ -52,8 +53,8 @@ object ComposerRoster extends Component[ComposerRoster](
 			val b = y.!
 			if (a.role !=  b.role) {
 				(a.role, b.role) match {
-					case ("TANK", _) => true
-					case ("HEALING", "DPS") => true
+					case (Tank, _) => true
+					case (Healing, DPS) => true
 					case _ => false
 				}
 			} else if (a.ilvl != b.ilvl) {

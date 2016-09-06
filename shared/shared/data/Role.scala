@@ -9,4 +9,5 @@ object Role {
 	object Tank extends Role("TANK")
 	object Healing extends Role("HEALING")
 	object DPS extends Role("DPS")
+	object Unknown extends Role("UNKNOWN")
 }

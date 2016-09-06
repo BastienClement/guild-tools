@@ -35,7 +35,7 @@ object ProfileAddChar extends Component[ProfileAddChar](
 
 	val specs = toon ~ {
 		case null =>
-			Seq.empty[Spec.Spec]
+			Seq.empty[Spec]
 		case t: Toon =>
 			println(t.clss, Spec.forClass(t.clss))
 			Spec.forClass(t.clss)

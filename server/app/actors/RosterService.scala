@@ -184,7 +184,7 @@ trait RosterService extends PubSub[User] {
 		val toonQuery = getOwnChar(id, user)
 		for {
 			oldToon <- toonQuery.head
-			_ = if (oldToon.clss != Spec.get(spec).clss) throw new Exception("Invalid specialization for class")
+			_ = if (oldToon.clss != Spec.get(spec).clss.id) throw new Exception("Invalid specialization for class")
 			newToon <- (for {
 				_ <- toonQuery.filter(_.spec =!= spec).map(_.spec).update(spec)
 				toon <- toonQuery.result.head
