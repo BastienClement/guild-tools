@@ -16,5 +16,5 @@ object Relic {
 	object Life extends Relic("Life")
 	object Shadow extends Relic("Shadow")
 	object Water extends Relic("Water")
-	object Wind extends Relic("Wind")
+	object Storm extends Relic("Storm")
 }
