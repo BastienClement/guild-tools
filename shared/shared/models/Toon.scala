@@ -1,7 +1,7 @@
 package models
 
+import _root_.data.{Class, Role, Spec}
 import boopickle.DefaultBasic._
-import _root_.data.{Class, Spec}
 import scala.compat.Platform
 import utils.annotation.data
 
@@ -11,7 +11,7 @@ import utils.annotation.data
                       owner: Int,
                       main: Boolean,
                       active: Boolean,
-                      clss: Int,
+                      classid: Int,
                       race: Int,
                       gender: Int,
                       level: Int,
@@ -21,14 +21,20 @@ import utils.annotation.data
                       specid: Int,
                       invalid: Boolean = false,
                       last_update: Long = Platform.currentTime) {
-	@inline def crossrealm = server match {
+	/** Indicates if the toon is from another realm */
+	lazy val crossrealm = server match {
 		case "sargeras" | "garona" | "nerzhul" => false
 		case _ => true
 	}
 
-	lazy val classData = Class.byId(clss)
-	lazy val spec = classData.specs.find(s => s.id == specid).getOrElse(Spec.Dummy)
-	lazy val role = spec.role
+	/** The Class data for this toon */
+	lazy val clss: Class = Class.fromId(classid)
+
+	/** The Spec data for the main specialization of this toon */
+	lazy val spec: Spec = clss.specs.find(s => s.id == specid).getOrElse(Spec.Dummy)
+
+	/** The defined role for this toon's main specialization */
+	lazy val role: Role = spec.role
 }
 
 object Toon {

@@ -1,6 +1,5 @@
 package gt.components.profile
 
-import data.Spec
 import gt.components.GtHandler
 import gt.components.widget.form.GtButton
 import gt.components.widget.{BnetThumb, GtBox}
@@ -25,7 +24,7 @@ object ProfileCharsCard extends Component[ProfileCharsCard](
 	val tid = char ~ (_.id)
 	val updatePending = Var(false)
 
-	val specs = char ~ (c => Spec.forClass(c.clss))
+	val specs = char ~ (c => c.clss.specs)
 
 	val updatable = for {
 		pending <- updatePending

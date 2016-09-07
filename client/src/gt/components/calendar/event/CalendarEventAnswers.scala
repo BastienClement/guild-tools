@@ -105,7 +105,7 @@ object CalendarEventAnswers extends Component[CalendarEventAnswers](
 			AnswerData(event, a, toon, user)
 		}.sorted(new Ordering[AnswerData] {
 			def compare(x: AnswerData, y: AnswerData): Int = {
-				if (x.toon.clss != y.toon.clss) x.toon.clss compare y.toon.clss
+				if (x.toon.classid != y.toon.classid) x.toon.classid compare y.toon.classid
 				else x.toon.name compare y.toon.name
 			}
 		})

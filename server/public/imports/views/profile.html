@@ -35,11 +35,11 @@
 			<div #layout>
 				<bnet-thumb [toon]="main"></bnet-thumb>
 				<div #infos>
-					<div #name [@class-color]="main.clss">{{main.name}}</div>
+					<div #name [@class-color]="main.clss.id">{{main.name}}</div>
 					<div #main>
 						<b>{{main.level}}</b>
 						<b>{{main.race | race}}</b>
-						<b>{{main.clss | class}}</b>
+						<b>{{main.clss.name}}</b>
 					</div>
 					<div #rank>
 						<b>{{rank | rank}}</b>
@@ -149,13 +149,13 @@
 			<div #layout>
 				<bnet-thumb [toon]="char"></bnet-thumb>
 				<div #infos>
-					<div #name [@class-color]="char.clss">
+					<div #name [@class-color]="char.clss.id">
 						{{ char.name }}
 					</div>
 					<div>
 						{{ char.level }}
 						{{ char.race | race }}
-						{{ char.clss | class }}
+						{{ char.clss.name }}
 					</div>
 					<div #meta>
 						{{ char.last_update | ago | capitalize }}

@@ -11,15 +11,14 @@ sealed abstract class Spec(val id: Int, val clss: Class, val name: String, val r
 
 object Spec {
 	private val cache = mutable.Map[Int, Spec]()
+	private def resolve(id: Int) = {
+		Class.list.map(_.specs.find(s => s.id == id)).find {
+			case Some(_) => true
+			case _ => false
+		}.flatten.getOrElse(Dummy)
+	}
 
-	def get(id: Int) = cache.getOrElseUpdate(id, Class.list.map(_.specs.find(s => s.id == id)).find {
-		case Some(_) => true
-		case _ => false
-	}.flatten.getOrElse(Dummy))
-
-	def resolve(name: String, clss: Int) = Class.byId(clss).specs.collect { case s if s.name == name => s.id }.headOption.getOrElse(0)
-
-	def forClass(clss: Int) = Class.byId(clss).specs
+	def fromId(id: Int) = cache.getOrElseUpdate(id, resolve(id))
 
 	object Dummy extends Spec(0, Class.Unknown, "Unknown", Role.Unknown, "")
 

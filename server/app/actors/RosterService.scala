@@ -112,7 +112,7 @@ trait RosterService extends PubSub[User] {
 							char.map {
 								c => (c.klass, c.race, c.gender, c.level, c.achievements, c.thumbnail, c.ilvl, c.failures, c.invalid, c.last_update)
 							}.update {
-								(nc.clss, nc.race, nc.gender, nc.level, nc.achievements, nc.thumbnail, math.max(nc.ilvl, oc.ilvl), 0, false, DateTime.now.timestamp)
+								(nc.classid, nc.race, nc.gender, nc.level, nc.achievements, nc.thumbnail, math.max(nc.ilvl, oc.ilvl), 0, false, DateTime.now.timestamp)
 							}
 						}.flatMap {
 							query => query.run
@@ -184,7 +184,7 @@ trait RosterService extends PubSub[User] {
 		val toonQuery = getOwnChar(id, user)
 		for {
 			oldToon <- toonQuery.head
-			_ = if (oldToon.clss != Spec.get(spec).clss.id) throw new Exception("Invalid specialization for class")
+			_ = if (oldToon.classid != Spec.fromId(spec).clss.id) throw new Exception("Invalid specialization for class")
 			newToon <- (for {
 				_ <- toonQuery.filter(_.spec =!= spec).map(_.spec).update(spec)
 				toon <- toonQuery.result.head

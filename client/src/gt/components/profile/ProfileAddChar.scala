@@ -37,8 +37,7 @@ object ProfileAddChar extends Component[ProfileAddChar](
 		case null =>
 			Seq.empty[Spec]
 		case t: Toon =>
-			println(t.clss, Spec.forClass(t.clss))
-			Spec.forClass(t.clss)
+			t.clss.specs
 	}
 
 	val hasToon = toon ~ (_ != null)

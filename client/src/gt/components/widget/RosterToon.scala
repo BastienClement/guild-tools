@@ -24,7 +24,7 @@ object RosterToon extends Component[RosterToon](
 	private val toonObs = Obs {
 		val toon = effectiveToon.!
 		textContent = toon.name
-		setAttribute("class-color", toon.clss.toString)
+		setAttribute("class-color", toon.classid.toString)
 	}
 
 	override def attached(): Unit = effectiveToon ~>> toonObs

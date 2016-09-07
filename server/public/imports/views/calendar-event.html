@@ -57,7 +57,7 @@
 							<i *if="data.hasSlack">flash_on</i>
 							<gt-tooltip>
 								<div .row>
-									<span [@class-color]="data.toon.clss">{{data.toon.name}}</span>
+									<span [@class-color]="data.toon.clss.id">{{data.toon.name}}</span>
 									<span .light>{{data.toon.ilvl}} ilvl</span>
 								</div>
 								<div .row .small>
@@ -123,8 +123,8 @@
 			<div #name class-color="0">Unknown</div>
 		</template>
 		<template *if="hasToon">
-			<div #role><img src="/assets/images/roles/{{data.role}}.png"></div>
-			<div #name [@class-color]="data.clss">{{data.name}}<span *if="data.crossrealm">*</span></div>
+			<div #role><img src="/assets/images/roles/{{data.role.key}}.png"></div>
+			<div #name [@class-color]="data.clss.id">{{data.name}}<span *if="data.crossrealm">*</span></div>
 		</template>
 		<content></content>
 	</template>

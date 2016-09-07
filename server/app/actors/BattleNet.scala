@@ -1,7 +1,7 @@
 package actors
 
 import actors.BattleNet._
-import data.Spec
+import data.Class
 import gt.GuildTools
 import models.Toon
 import play.api.libs.json.JsValue
@@ -59,14 +59,15 @@ trait BattleNet {
 		query(s"/character/$server/$name", "fields" -> "items,talents").map { char =>
 			// Extract talents
 			val talents = (char \ "talents").asOpt[Seq[JsValue]].getOrElse(Seq.empty)
+			val clssid = (char \ "class").as[Int]
 
 			// Get primary spec
 			val spec = talents.find { tree =>
 				(tree \ "selected").asOpt[Boolean].getOrElse(false)
 			}.flatMap { tree =>
 				(tree \ "spec" \ "name").asOpt[String]
-			}.map { spec =>
-				Spec.resolve(spec, (char \ "class").as[Int])
+			}.flatMap { spec =>
+				Class.fromId(clssid).specs.find(s => s.name == spec).map(s => s.id)
 			}.getOrElse(0)
 
 			Toon(
@@ -76,7 +77,7 @@ trait BattleNet {
 				owner = 0,
 				main = false,
 				active = true,
-				clss = (char \ "class").as[Int],
+				classid = clssid,
 				race = (char \ "race").as[Int],
 				gender = (char \ "gender").as[Int],
 				level = (char \ "level").as[Int],

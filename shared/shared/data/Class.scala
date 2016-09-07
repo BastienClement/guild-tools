@@ -8,8 +8,12 @@ sealed abstract class Class(val id: Int, val name: String) {
 }
 
 object Class {
-	val list = Seq(Warrior, Paladin, Hunter, Rogue, Priest, DeathKnight, Shaman, Mage, Warlock, Monk, Druid, DemonHunter)
-	val byId = list.map(c => (c.id, c)).toMap withDefaultValue Unknown
+	val list = Seq(
+		Warrior, Paladin, Hunter, Rogue, Priest, DeathKnight,
+		Shaman, Mage, Warlock, Monk, Druid, DemonHunter)
+
+	private val index = list.map(c => (c.id, c)).toMap
+	def fromId(id: Int): Class = index.getOrElse(id, Unknown)
 
 	object Unknown extends Class(0, "Unknown") {
 		val specs = Seq(Spec.Dummy)
