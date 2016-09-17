@@ -4,6 +4,7 @@ import boopickle.DefaultBasic._
 import gt.services.base.{Cache, Delegate, Service}
 import models.composer.ComposerDocument
 import scala.concurrent.{Future, Promise}
+import utils.EventSource
 
 object ComposerService extends Service with Delegate {
 	private val channel = registerChannel("composer")
@@ -11,15 +12,19 @@ object ComposerService extends Service with Delegate {
 	private var promise: Promise[Unit] = Promise()
 	def ready: Future[Unit] = promise.future
 
-	object documents extends Cache((doc: ComposerDocument) => doc.id) {
-	}
+	val documentDeleted = new EventSource[Int]
+
+	object documents extends Cache((doc: ComposerDocument) => doc.id)
 
 	def createDocument(title: String, style: String): Unit = channel.send("create-document", (title, style))
 	def renameDocument(id: Int, title: String): Unit = channel.send("rename-document", (id, title))
 	def deleteDocument(id: Int): Unit = channel.send("delete-document", id)
 
 	message("document-updated")(documents.update _)
-	message("document-removed")(documents.removeKey _)
+	message("document-deleted") { key: Int =>
+		documents.removeKey(key)
+		documentDeleted.emit(key)
+	}
 
 	override protected def enable(): Unit = {
 		channel.request("load-documents") { (docs: Seq[ComposerDocument]) =>

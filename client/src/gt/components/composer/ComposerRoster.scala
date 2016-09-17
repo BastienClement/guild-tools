@@ -8,7 +8,9 @@ import gt.components.calendar.CalendarUnitFrame
 import gt.components.widget.{GtAlert, GtContextMenu, GtTooltip}
 import gt.services.{ComposerService, RosterService}
 import models.Toon
-import rx.Rx
+import org.scalajs.dom
+import org.scalajs.dom.MouseEvent
+import rx.{Const, Rx}
 import scala.annotation.switch
 import utils.annotation.data
 import utils.jsannotation.js
@@ -48,7 +50,7 @@ object ComposerRoster extends Component[ComposerRoster](
 	val ordering = Seq("Mains", "Casuals", "Veterans", "Guests").zipWithIndex.toMap
 
 	@data case class RosterGroup(title: String, toons: Iterable[Rx[Toon]]) {
-		def sorted: Iterable[Rx[Toon]] = toons.toSeq.sortWith { (x, y) =>
+		def sorted: Iterable[Rx[Toon]] = toons.toSeq.filter(_.active).sortWith { (x, y) =>
 			val a = x.!
 			val b = y.!
 			if (a.role !=  b.role) {
@@ -71,6 +73,11 @@ object ComposerRoster extends Component[ComposerRoster](
 	private val roster = service(RosterService)
 
 	val filter = property[ComposerRoster.Filter] := ComposerRoster.Filter.default
+
+	val picked = property[Int]
+	val provider = property[Option[Rx[Set[Int]]]] := None
+
+	def isUsed(toon: Int) = provider.getOrElse(Const(Set.empty[Int])).contains(toon)
 
 	val pool = roster.toons.values ~ (ts => ts.filter(t => filter.matches(t.!)))
 
@@ -95,4 +102,6 @@ object ComposerRoster extends Component[ComposerRoster](
 
 	def gotoProfile(profile: Int): Unit = Router.goto(s"/profile/$profile")
 	def ownerName(id: Int): String = roster.user(id).name
+	def openBnet(toon: Toon): Unit = dom.window.open(s"http://eu.battle.net/wow/en/character/${toon.server}/${toon.name}/advanced", "_blank")
+	def pickup(id: Int, ev: MouseEvent): Unit = fire("pickup-toon", (id, ev, None))
 }

@@ -48,4 +48,6 @@ object Toon {
 			else a.name compare b.name
 		}
 	}
+
+	val Dummy = Toon(0, "Unknown", "sargeras", 0, false, true, 0, 1, 0, 0, 0, "", 0, 0, true, 0)
 }

@@ -8,7 +8,7 @@ class EventSource[T] {
 	private val listeners = mutable.Set.empty[Listener]
 
 	def ~> (listener: Listener) = listeners.add(listener)
-	def ~!> (listener: Listener) = listeners.remove(listener)
+	def ~/> (listener: Listener) = listeners.remove(listener)
 
 	def emit(value: T): Unit = for (listener <- listeners) listener(value)
 }
@@ -20,7 +20,7 @@ object EventSource {
 		private val listeners = mutable.Set.empty[Listener]
 
 		def ~>[T] (listener: => T) = listeners.add(() => listener)
-		def ~!>[T] (listener: => T) = listeners.remove(() => listener)
+		def ~/>[T] (listener: => T) = listeners.remove(() => listener)
 
 		def emit(): Unit = for (listener <- listeners) listener()
 	}

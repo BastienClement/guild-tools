@@ -22,14 +22,14 @@
 							<composer-document-list></composer-document-list>
 						</div>
 						<div .panel>
-							<composer-roster [filter]></composer-roster>
+							<composer-roster [filter] [picked] [provider]="usedProvider"></composer-roster>
 						</div>
 					</div>
 				</div>
 			</gt-box>
 			<div #right *if="hasDoc">
 				<template *match="doc.style">
-					<composer-groups-document *case="'GROUPS'" [doc]></composer-groups-document>
+					<composer-groups-document *case="'GROUPS'" [doc] [dragging]="hasPicked"></composer-groups-document>
 				</template>
 			</div>
 		</div>
@@ -61,12 +61,16 @@
 				</div>
 			</gt-box>
 		</gt-dialog>
+		<calendar-unit-frame #drag-item [hidden]="!hasPicked" [toon]="picked" plain></calendar-unit-frame>
 	</template>
 </xuen-component>
 
 <xuen-component id="composer-document-list">
 	<link rel="stylesheet/less" href="/assets/less/composer.less" ns="composer-document-list">
 	<template>
+		<gt-alert *if="empty" icon="content_paste">
+			No document available.
+		</gt-alert>
 		<gt-box dark *for="doc <- docs" (click)="selectDocument(doc.id)">
 			<div .layout>
 				<i .icon>description</i>
@@ -87,7 +91,7 @@
 			<div .title>{{group.title}}</div>
 			<div .toons>
 				<div .toon *for="toon <- group.sorted by toon.id">
-					<calendar-unit-frame [toon]="toon.id">
+					<calendar-unit-frame [toon]="toon.id" (mousedown)="pickup(toon.id, $event)" .picked="isUsed(toon.id)">
 						<gt-tooltip>
 							<div .row>
 								<span [@class-color]="toon.clss.id">{{toon.name}}</span>
@@ -101,6 +105,7 @@
 						<gt-context-menu>
 							<ul>
 								<li (click)="gotoProfile(toon.owner)"><i>account_circle</i> Profile</li>
+								<li (click)="openBnet(toon)"><i>open_in_new</i> Battle.net</li>
 							</ul>
 						</gt-context-menu>
 					</calendar-unit-frame>
@@ -132,8 +137,16 @@
 		<gt-box #main [heading]="doc.title" scrollable>
 			<div #actions>
 				<gt-button collapse-right (click)="#rename-doc.show()"><i>edit</i> Rename</gt-button>
-				<gt-button collapse-right><i>delete_forever</i> Delete</gt-button>
+				<gt-button collapse-right (click)="#delete-doc.show()"><i>delete_forever</i> Delete</gt-button>
 			</div>
+			<gt-box .group dark .loading *if="loading">
+				Loading ...
+			</gt-box>
+			<composer-groups-group *for="group <- groups;" [@dragging]="dragging"
+					[group] [channel] [slots]="slotsForGroup(group.id)"></composer-groups-group>
+			<gt-box .add dark (click)="createGroup()" *if="!loading">
+				<i>add</i>
+			</gt-box>
 		</gt-box>
 		<gt-dialog #rename-doc>
 			<gt-box heading="Rename document" scrollable>
@@ -146,5 +159,33 @@
 				</gt-form>
 			</gt-box>
 		</gt-dialog>
+		<gt-dialog #delete-doc>
+			<gt-box heading="Delete document" scrollable>
+				Are you sure you want to delete this document ?<br>
+				This operation cannot be undone.
+				<div .actions .spacing>
+					<gt-button (click)="#delete-doc.hide()"> Cancel</gt-button>
+					<gt-button (click)="deleteDocument(); #delete-doc.hide()">Delete</gt-button>
+				</div>
+			</gt-box>
+		</gt-dialog>
+	</template>
+</xuen-component>
+
+<xuen-component id="composer-groups-group">
+	<link rel="stylesheet/less" href="/assets/less/composer.less" ns="composer-groups-group">
+	<template>
+		<gt-box .group dark>
+			<div .actions>
+				<gt-button collapse-right><i>edit</i></gt-button>
+				<gt-button collapse-left collapse-right (click)="deleteGroup()"><i>delete_forever</i>
+				</gt-button>
+			</div>
+			<div .title>{{group.title}}</div>
+			<div .tier *for="i <- 0 to tiers" .hover="hover == i" (mouseenter)="enterTier(i)" (mouseleave)="leaveTier(i)">
+				<calendar-unit-frame *for="slot <- slotsForTier(i)" [toon]="slot.toon" (mousedown)="beginDrag(i, slot.toon, $event)"></calendar-unit-frame>
+			</div>
+			<div .tier .new .hover="hover == tiers + 1" (mouseenter)="enterTier(tiers + 1)" (mouseleave)="leaveTier(tiers + 1)"></div>
+		</gt-box>
 	</template>
 </xuen-component>

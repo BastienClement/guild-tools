@@ -2,6 +2,7 @@ package gt.components.calendar
 
 import gt.components.GtHandler
 import gt.services.RosterService
+import models.Toon
 import rx.Const
 import utils.jsannotation.js
 import xuen.Component
@@ -19,7 +20,7 @@ object CalendarUnitFrame extends Component[CalendarUnitFrame](
 
 	val data = toon ~! { id =>
 		if (id > 0) roster.toon(id)
-		else Const(null)
+		else Const(Toon.Dummy)
 	}
 
 	def hasToon = toon > 0
