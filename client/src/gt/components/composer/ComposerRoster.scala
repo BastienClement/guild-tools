@@ -22,7 +22,7 @@ import xuen.Component
 object ComposerRoster extends Component[ComposerRoster](
 	selector = "composer-roster",
 	templateUrl = "/assets/imports/views/composer.html",
-	dependencies = Seq(CalendarUnitFrame, GtContextMenu, GtTooltip, GtAlert)
+	dependencies = Seq(CalendarUnitFrame, GtContextMenu, GtTooltip, GtAlert, ComposerToonTooltip)
 ) {
 	@inline def ownerCategory(toon: Toon): String = (RosterService.user(toon.owner).group: @switch) match {
 		case UserGroups.Officer | UserGroups.Member | UserGroups.Apply => "Mains"
@@ -49,22 +49,22 @@ object ComposerRoster extends Component[ComposerRoster](
 	val breakpoints = Seq(860, 840)
 	val ordering = Seq("Mains", "Casuals", "Veterans", "Guests").zipWithIndex.toMap
 
-	@data case class RosterGroup(title: String, toons: Iterable[Rx[Toon]]) {
-		def sorted: Iterable[Rx[Toon]] = toons.toSeq.filter(_.active).sortWith { (x, y) =>
-			val a = x.!
-			val b = y.!
-			if (a.role !=  b.role) {
-				(a.role, b.role) match {
-					case (Tank, _) => true
-					case (Healing, DPS) => true
-					case _ => false
-				}
-			} else if (a.ilvl != b.ilvl) {
-				a.ilvl > b.ilvl
-			} else {
-				a.name < b.name
+	def compareToons(a: Toon, b: Toon): Boolean = {
+		if (a.role != b.role) {
+			(a.role, b.role) match {
+				case (Tank, _) => true
+				case (Healing, DPS) => true
+				case _ => false
 			}
+		} else if (a.ilvl != b.ilvl) {
+			a.ilvl > b.ilvl
+		} else {
+			a.name < b.name
 		}
+	}
+
+	@data case class RosterGroup(title: String, toons: Iterable[Rx[Toon]]) {
+		def sorted: Iterable[Toon] = toons.toSeq.collect { case toon if toon.active => toon.! }.sortWith(compareToons)
 	}
 }
 
@@ -84,7 +84,7 @@ object ComposerRoster extends Component[ComposerRoster](
 	val groups = pool ~ { p =>
 		p.groupBy { t =>
 			if (t.main) ComposerRoster.ownerCategory(t)
-			else ComposerRoster.breakpoints.find(bp => t.ilvl > bp).map(bp => s"Alts $bp+").getOrElse("Crappies")
+			else ComposerRoster.breakpoints.find(bp => t.ilvl >= bp).map(bp => s"Alts $bp+").getOrElse("Crappies")
 		}.map(ComposerRoster.RosterGroup.tupled).toSeq.sortWith { (a, b) =>
 			if (a.title == "Crappies" || b.title == "Crappies") b.title == "Crappies"
 			else {

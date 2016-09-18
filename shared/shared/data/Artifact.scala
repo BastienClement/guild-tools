@@ -1,10 +1,10 @@
 package data
 
-import utils.annotation.data
 import _root_.data.Relic._
+import utils.annotation.data
 
 @data
-sealed abstract class Artifact(id: Int, name: String, relics: (Relic, Relic, Relic))
+sealed abstract case class Artifact(id: Int, name: String, relics: (Relic, Relic, Relic))
 
 object Artifact {
 	object Atiesh extends Artifact(22589, "Atiesh, Greatstaff of the Guardian", (Arcane, Shadow, Fel))
@@ -43,7 +43,7 @@ object Artifact {
 
 	object Ulthalesh extends Artifact(0, "Ulthalesh, the Deadwind Harvester", (Shadow, Blood, Shadow))
 	object SkullOfTheManari extends Artifact(0, "Skull of the Man'ari", (Shadow, Fire, Fel))
-	object ScepterOfSargeras extends Artifact(0, "Scepter of Sargeras", (Life, Fire, Life))
+	object ScepterOfSargeras extends Artifact(0, "Scepter of Sargeras", (Fel, Fire, Fel))
 
 	object FuZan extends Artifact(0, "Fu Zan, The Wanderer's Companion", (Life, Storm, Iron))
 	object Sheilun extends Artifact(0, "Sheilun, Staff of the Mists", (Frost, Life, Storm))
@@ -54,6 +54,6 @@ object Artifact {
 	object ClawsOfUrsoc extends Artifact(0, "Claws of Ursoc", (Fire, Blood, Life))
 	object Ghanir extends Artifact(0, "G'Hanir, the Mother Tree", (Life, Frost, Life))
 
-	object TwinbladesOfTheDeceiver extends Artifact(0, "Twinblades of the Deceiver", (Life, Storm, Life))
-	object TheAldrachiWarblades extends Artifact(0, "The Aldrachi Warblades", (Iron, Arcane, Life))
+	object TwinbladesOfTheDeceiver extends Artifact(0, "Twinblades of the Deceiver", (Fel, Shadow, Fel))
+	object TheAldrachiWarblades extends Artifact(0, "The Aldrachi Warblades", (Iron, Arcane, Fel))
 }

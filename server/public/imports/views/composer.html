@@ -93,14 +93,7 @@
 				<div .toon *for="toon <- group.sorted by toon.id">
 					<calendar-unit-frame [toon]="toon.id" (mousedown)="pickup(toon.id, $event)" .picked="isUsed(toon.id)">
 						<gt-tooltip>
-							<div .row>
-								<span [@class-color]="toon.clss.id">{{toon.name}}</span>
-								<span .light>{{toon.ilvl}} ilvl</span>
-							</div>
-							<div .row .small>
-								<span>{{ownerName(toon.owner)}}</span>
-								<span .light-blue>{{toon.server | serverSlang}}</span>
-							</div>
+							<composer-toon-tooltip [toon]></composer-toon-tooltip>
 						</gt-tooltip>
 						<gt-context-menu>
 							<ul>
@@ -112,6 +105,24 @@
 				</div>
 			</div>
 		</div>
+	</template>
+</xuen-component>
+
+<xuen-component id="composer-toon-tooltip">
+	<link rel="stylesheet/less" href="/assets/less/floating.less" ns="tooltip-helpers">
+	<template>
+		<div .row>
+			<span [@class-color]="toon.clss.id">{{toon.name}}</span>
+			<span .light>{{toon.ilvl}} ilvl</span>
+		</div>
+		<div .row .small>
+			<span>{{ownerName(toon.owner)}}</span>
+			<span .light-blue>{{toon.server | serverSlang}}</span>
+		</div>
+		<div .row .space .light-blue .small>Spec</div>
+		<div .row .small>{{spec}}</div>
+		<div .row .space .light-blue .small>{{artifact}}</div>
+		<div .row .small>{{relics}}</div>
 	</template>
 </xuen-component>
 
@@ -177,15 +188,192 @@
 	<template>
 		<gt-box .group dark>
 			<div .actions>
+				<div .stats>
+					{{count}} <span .gray>({{overallIlvl}})</span>
+					<img src="/assets/images/roles/TANK.png"> {{tanksCount}} <span .gray>({{tanksIlvl}})</span>
+					<img src="/assets/images/roles/HEALING.png"> {{healersCount}} <span .gray>({{healersIlvl}})</span>
+					<img src="/assets/images/roles/DPS.png"> {{dpsCount}} <span .gray>({{dpsIlvl}})</span>
+				</div>
 				<gt-button collapse-right><i>edit</i></gt-button>
-				<gt-button collapse-left collapse-right (click)="deleteGroup()"><i>delete_forever</i>
-				</gt-button>
+				<gt-button collapse-left collapse-right (click)="deleteGroup()"><i>delete_forever</i></gt-button>
 			</div>
 			<div .title>{{group.title}}</div>
-			<div .tier *for="i <- 0 to tiers" .hover="hover == i" (mouseenter)="enterTier(i)" (mouseleave)="leaveTier(i)">
-				<calendar-unit-frame *for="slot <- slotsForTier(i)" [toon]="slot.toon" (mousedown)="beginDrag(i, slot.toon, $event)"></calendar-unit-frame>
+			<div .layout>
+				<div .left>
+					<div .tier *for="i <- 0 to tiers" .hover="hover == i" (mouseenter)="enterTier(i)" (mouseleave)="leaveTier(i)">
+						<calendar-unit-frame *for="slot <- slotsForTier(i)" [toon]="slot.toon" (mousedown)="beginDrag(i, slot.toon, $event)"
+								[@focus]="isFocused(slot.toon)" [@conflict]="isConflict(slot.toon)">
+							<gt-tooltip>
+								<composer-toon-tooltip [toon]="getToon(slot.toon)"></composer-toon-tooltip>
+							</gt-tooltip>
+						</calendar-unit-frame>
+					</div>
+					<div .tier .new .hover="hover == tiers + 1" (mouseenter)="enterTier(tiers + 1)" (mouseleave)="leaveTier(tiers + 1)"></div>
+				</div>
+				<div .right>
+					<gt-box dark .conflicts>
+						<div .items>
+							<div>
+								<span .label>Cloth</span>
+								<span .value>
+									{{clothsCount}}
+								</span>
+								<gt-tooltip *if="clothsCount > 0">
+									<div *for="user <- cloths" [@class-color]="user.classid">{{user.name}}</div>
+								</gt-tooltip>
+							</div>
+							<div>
+								<span .label>Leather</span>
+								<span .value>
+									{{leathersCount}}
+								</span>
+								<gt-tooltip *if="leathersCount > 0">
+									<div *for="user <- leathers" [@class-color]="user.classid">{{user.name}}</div>
+								</gt-tooltip>
+							</div>
+							<div>
+								<span .label>Mail</span>
+								<span .value>
+									{{mailsCount}}
+								</span>
+								<gt-tooltip *if="mailsCount > 0">
+									<div *for="user <- mails" [@class-color]="user.classid">{{user.name}}</div>
+								</gt-tooltip>
+							</div>
+							<div>
+								<span .label>Plate</span>
+								<span .value>
+									{{platesCount}}
+								</span>
+								<gt-tooltip *if="platesCount > 0">
+									<div *for="user <- plates" [@class-color]="user.classid">{{user.name}}</div>
+								</gt-tooltip>
+							</div>
+						</div>
+						<div .items .space>
+							<div>
+								<span .label>Conqueror</span>
+								<span .value>
+									{{conquerorsCount}}
+								</span>
+								<gt-tooltip *if="conquerorsCount > 0">
+									<div *for="user <- conquerors" [@class-color]="user.classid">{{user.name}}</div>
+								</gt-tooltip>
+							</div>
+							<div>
+								<span .label>Protector</span>
+								<span .value>
+									{{protectorsCount}}
+								</span>
+								<gt-tooltip *if="protectorsCount > 0">
+									<div *for="user <- protectors" [@class-color]="user.classid">{{user.name}}</div>
+								</gt-tooltip>
+							</div>
+							<div>
+								<span .label>Vanquisher</span>
+								<span .value>
+									{{vanquishersCount}}
+								</span>
+								<gt-tooltip *if="vanquishersCount > 0">
+									<div *for="user <- vanquishers" [@class-color]="user.classid">{{user.name}}</div>
+								</gt-tooltip>
+							</div>
+						</div>
+						<div .items .space>
+							<div>
+								<span .label>Arcane</span>
+								<span .value>
+									{{arcaneRelicsCount}}
+								</span>
+								<gt-tooltip *if="arcaneRelicsCount > 0">
+									<div *for="user <- arcaneRelics" [@class-color]="user.classid">{{user.name}}</div>
+								</gt-tooltip>
+							</div>
+							<div>
+								<span .label>Blood</span>
+								<span .value>
+									{{bloodRelicsCount}}
+								</span>
+								<gt-tooltip *if="bloodRelicsCount > 0">
+									<div *for="user <- bloodRelics" [@class-color]="user.classid">{{user.name}}</div>
+								</gt-tooltip>
+							</div>
+							<div>
+								<span .label>Fel</span>
+								<span .value>
+									{{felRelicsCount}}
+								</span>
+								<gt-tooltip *if="felRelicsCount > 0">
+									<div *for="user <- felRelics" [@class-color]="user.classid">{{user.name}}</div>
+								</gt-tooltip>
+							</div>
+							<div>
+								<span .label>Fire</span>
+								<span .value>
+									{{fireRelicsCount}}
+								</span>
+								<gt-tooltip *if="fireRelicsCount > 0">
+									<div *for="user <- fireRelics" [@class-color]="user.classid">{{user.name}}</div>
+								</gt-tooltip>
+							</div>
+							<div>
+								<span .label>Frost</span>
+								<span .value>
+									{{frostRelicsCount}}
+								</span>
+								<gt-tooltip *if="frostRelicsCount > 0">
+									<div *for="user <- frostRelics" [@class-color]="user.classid">{{user.name}}</div>
+								</gt-tooltip>
+							</div>
+							<div>
+								<span .label>Holy</span>
+								<span .value>
+									{{holyRelicsCount}}
+								</span>
+								<gt-tooltip *if="holyRelicsCount > 0">
+									<div *for="user <- holyRelics" [@class-color]="user.classid">{{user.name}}</div>
+								</gt-tooltip>
+							</div>
+							<div>
+								<span .label>Iron</span>
+								<span .value>
+									{{ironRelicsCount}}
+								</span>
+								<gt-tooltip *if="ironRelicsCount > 0">
+									<div *for="user <- ironRelics" [@class-color]="user.classid">{{user.name}}</div>
+								</gt-tooltip>
+							</div>
+							<div>
+								<span .label>Life</span>
+								<span .value>
+									{{lifeRelicsCount}}
+								</span>
+								<gt-tooltip *if="lifeRelicsCount > 0">
+									<div *for="user <- lifeRelics" [@class-color]="user.classid">{{user.name}}</div>
+								</gt-tooltip>
+							</div>
+							<div>
+								<span .label>Shadow</span>
+								<span .value>
+									{{shadowRelicsCount}}
+								</span>
+								<gt-tooltip *if="shadowRelicsCount > 0">
+									<div *for="user <- shadowRelics" [@class-color]="user.classid">{{user.name}}</div>
+								</gt-tooltip>
+							</div>
+							<div>
+								<span .label>Storm</span>
+								<span .value>
+									{{stormRelicsCount}}
+								</span>
+								<gt-tooltip *if="stormRelicsCount > 0">
+									<div *for="user <- stormRelics" [@class-color]="user.classid">{{user.name}}</div>
+								</gt-tooltip>
+							</div>
+						</div>
+					</gt-box>
+				</div>
 			</div>
-			<div .tier .new .hover="hover == tiers + 1" (mouseenter)="enterTier(tiers + 1)" (mouseleave)="leaveTier(tiers + 1)"></div>
 		</gt-box>
 	</template>
 </xuen-component>
