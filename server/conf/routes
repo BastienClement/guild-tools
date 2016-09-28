@@ -46,11 +46,6 @@ GET         /auth/nonsecure                   controllers.AuthController.nonsecu
 GET         /auth/*path                       controllers.GtApplication.broken_path(path)
 POST        /auth/*path                       controllers.GtApplication.broken_path(path)
 
-# REST API
-POST        /api/bugsack                      controllers.APIController.bugsack
-GET         /api/socket_url                   controllers.APIController.socketURL
-GET         /api/*path                        controllers.APIController.catchall(path)
-
 # Streaming API
 POST        /api/live/connect                 controllers.LiveController.connect
 POST        /api/live/close                   controllers.LiveController.close
@@ -58,6 +53,11 @@ POST        /api/live/play                    controllers.LiveController.play
 POST        /api/live/publish                 controllers.LiveController.publish
 POST        /api/live/stop                    controllers.LiveController.stop
 POST        /api/live/unpublish               controllers.LiveController.unpublish
+
+# REST API
+POST        /api/bugsack                      controllers.APIController.bugsack
+GET         /api/socket_url                   controllers.APIController.socketURL
+GET         /api/*path                        controllers.APIController.catchall(path)
 
 # Simple pages
 GET         /unauthorized                     controllers.GtApplication.unauthorized

@@ -1,82 +1,68 @@
-<dom-module id="gt-streams">
+<xuen-component id="gt-streams">
 	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="gt-streams">
 	<template>
-		<meta is="streams-list" [list]="streams">
 		<div #left>
 			<gt-box #live-list scrollable heading="Live Streams">
-				<gt-alert icon="pause_circle_outline" dark {hidden}="streams.length != 0">
+				<gt-alert icon="pause_circle_outline" dark [@hidden]="hasStreams">
 					No live stream available
 				</gt-alert>
-				<div *for="streams">
-					<streams-item (click)="SelectStream" [stream]="item" {active}="StreamIsActive(item.user, selected)"></streams-item>
+				<div *for="stream <- list">
+					<stream-item (click)="selectStream(stream.user)" [stream] [@active]="selected == stream.user"></stream-item>
 				</div>
 			</gt-box>
-			<streams-viewers [stream]="selected" {hidden}="!selected"></streams-viewers>
+			<stream-viewers [stream]="selected" [@hidden]="selected < 1"></stream-viewers>
 		</div>
 		<div #main-box>
-			<streams-player {hide}="!selected" [stream]="selected"></streams-player>
-			<div #placeholder {hide}="selected">
+			<stream-player [@hidden]="selected < 0" [stream]="selected"></stream-player>
+			<div #placeholder [@hidden]="selected > 0">
 				<i>airplay</i>
 			</div>
 		</div>
 	</template>
-</dom-module>
+</xuen-component>
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
-<dom-module id="streams-item">
+<xuen-component id="stream-item">
 	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="streams-item">
 	<template>
-		<meta is="roster-main" [user]="stream.user" [main]>
 		<gt-box dark>
 			<div #layout>
-				<div #live {live}="stream.live"><div #light></div></div>
-				<div #name {class-color}="main.class">{{main.name}}</div>
-				<div #locked {hidden}="!stream.progress"><i>lock</i></div>
+				<div #live [@live]="stream.live"><div #light></div></div>
+				<div #name [@class-color]="main.classid">{{main.name}}</div>
+				<div #locked [@hidden]="!stream.progress"><i>lock</i></div>
 				<div #viewers>
-					<b>{{stream.viewers.length}}</b>
+					<b>{{viewers}}</b>
 					<i>person</i>
 				</div>
 				<i #chevron>chevron_right</i>
 			</div>
 		</gt-box>
 	</template>
-</dom-module>
+</xuen-component>
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
-<dom-module id="streams-viewers">
+<xuen-component id="stream-viewers">
 	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="streams-viewers">
 	<template>
 		<gt-box #viewers scrollable heading="Viewers">
-			<div #count>{{viewers.length}}</div>
-			<streams-viewers-item *for="viewers" [user]="item"></streams-viewers-item>
+			<div #count>{{count}}</div>
+			<calendar-unit-frame *for="viewer <- viewers" [toon]="viewer"></calendar-unit-frame>
 		</gt-box>
 	</template>
-</dom-module>
+</xuen-component>
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
 
-<dom-module id="streams-viewers-item">
-	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="streams-viewers-item">
-	<template>
-		<meta is="roster-main" [user] [main]>
-		<gt-box dark>
-			<span #name {class-color}="main.class">{{main.name}}</span>
-		</gt-box>
-	</template>
-</dom-module>
-
-<!-- ////////////////////////////////////////////////////////////////////// -->
-
-<dom-module id="streams-player">
+<xuen-component id="stream-player">
 	<link rel="stylesheet/less" href="/assets/less/streams.less" ns="streams-player">
 	<template>
 		<gt-alert dark icon="error_outline" *if="error">
 			<b>{{error}}</b>
 		</gt-alert>
 	</template>
-</dom-module>
+</xuen-component>
 
 <!-- ////////////////////////////////////////////////////////////////////// -->
 

@@ -5,7 +5,7 @@ import actors.StreamService.Events
 import akka.actor.Props
 import boopickle.DefaultBasic._
 import gtp3._
-import models.User
+import models.{StreamStatus, User}
 import models.live.Streams
 import reactive.ExecutionContext
 import utils.SlickAPI._
@@ -33,8 +33,8 @@ class StreamChannel(val user: User) extends ChannelHandler {
 	  * Format the stream for the client-side.
 	  * Ensure that we do not expose sensitive information.
 	  */
-	def formatStream(stream: StreamService.ActiveStream) = {
-		(stream.meta.user, stream.live, stream.meta.progress, stream.viewersIds)
+	def formatStream(stream: StreamService.ActiveStream): StreamStatus = {
+		StreamStatus(stream.meta.user, stream.live, stream.meta.progress, stream.viewersIds)
 	}
 
 	/**

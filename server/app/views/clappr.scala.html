@@ -17,13 +17,13 @@
 
 <div id="player"></div>
 
-<script src="//cdn.jsdelivr.net/clappr/latest/clappr.min.js"></script>
-<script src="//cdn.jsdelivr.net/clappr.rtmp/latest/rtmp.min.js"></script>
+<script src="/assets/flash/clappr.min.js"></script>
+<script src="/assets/flash/rtmp.js"></script>
 
 <script>
 	// Change controls layout
 	// Construct player
-	var player = new Clappr.Player({
+	/*var player = new Clappr.Player({
 		source: "rtmp://@host/live/@stream",
 		parentId: "#player",
 		height: "100%",
@@ -31,6 +31,21 @@
 		autoPlay: true,
 		plugins: { "playback": [ RTMP ] },
 		rtmpConfig: {
+			playbackType: "live",
+			bufferTime: localStorage.getItem("streams.zerolatency") === "1" ? 0 : 0.1
+		}
+	});*/
+
+	var player = new Clappr.Player({
+		source: "rtmp://@host/live/@stream",
+		parentId: "#player",
+		plugins: {"playback": [RTMP]},
+		height: "100%",
+		width: "100%",
+		autoPlay: true,
+		rtmpConfig: {
+			swfPath: "/assets/flash/RTMP.swf",
+			scaling: "stretch",
 			playbackType: "live",
 			bufferTime: localStorage.getItem("streams.zerolatency") === "1" ? 0 : 0.1
 		}

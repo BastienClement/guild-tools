@@ -7,6 +7,7 @@ import gt.components.composer.GtComposer
 import gt.components.dashboard.GtDashboard
 import gt.components.misc.{GtAbout, GtSettings}
 import gt.components.profile.GtProfile
+import gt.components.streams.GtStreams
 import scala.language.implicitConversions
 import scala.scalajs.js
 import scala.scalajs.js.JSStringOps._
@@ -22,6 +23,8 @@ object Routes {
 		"/calendar/event/:[0-9]+:eventid" -> GtCalendarEvent,
 
 		"/composer(/:[0-9]+:docid)?" -> GtComposer,
+
+		"/streams" -> GtStreams,
 
 		"/about" -> GtAbout,
 		"/settings" -> GtSettings
