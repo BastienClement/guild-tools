@@ -92,6 +92,11 @@ abstract class Cache[K, V <: AnyRef](hash: V => K) {
 		case None => constructCell(key, default(key))
 	}
 
+	def getOption(key: K): Rx[Option[V]] = Rx {
+		if (contains(key)) Some(get(key).!)
+		else None
+	}
+
 	/**
 	  * Updates the value of an item in the cache.
 	  *
