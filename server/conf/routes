@@ -9,7 +9,7 @@ GET         /assets/*file                     controllers.Assets.versioned(path=
 # Main client pages and GTP3 socket listener
 GET         /                                 controllers.GtApplication.client
 GET         /gtp3                             controllers.GtApplication.gtp3
-GET         /sso                              controllers.GtApplication.sso
+GET         /oauth                            controllers.GtApplication.oauth
 
 # WebTools
 GET         /wt/                              controllers.webtools.WebTools.main
@@ -33,18 +33,6 @@ GET         /wt/application/charter           controllers.webtools.ApplicationCo
 
 GET         /wt/calendar/unread_events        controllers.webtools.CalendarController.unread_events
 GET         /wt/*path                         controllers.webtools.WebTools.catchall(path)
-
-# Auth
-GET         /auth/                            controllers.AuthController.main
-GET         /auth/sso                         controllers.AuthController.sso
-POST        /auth/login                       controllers.AuthController.auth
-GET         /auth/account                     controllers.AuthController.account
-GET         /auth/account/sessions            controllers.AuthController.sessions
-GET         /auth/logout                      controllers.AuthController.logout
-GET         /auth/throttled                   controllers.AuthController.throttled
-GET         /auth/nonsecure                   controllers.AuthController.nonsecure
-GET         /auth/*path                       controllers.GtApplication.broken_path(path)
-POST        /auth/*path                       controllers.GtApplication.broken_path(path)
 
 # Streaming API
 POST        /api/live/connect                 controllers.LiveController.connect

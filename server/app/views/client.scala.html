@@ -1,5 +1,5 @@
 @import gt.GuildTools
-@(session: Option[String])(implicit environment: play.api.Environment)
+@(state: String, token: Option[String])(implicit environment: play.api.Environment)
 <!DOCTYPE html>
 <meta charset="UTF-8">
 <title>Guild Tools</title>
@@ -51,8 +51,8 @@
 
 @* Load the loading stylesheet *@
 <script>
-@if(session.isDefined) {
-	localStorage.setItem("auth.session", '@session.get');
+@if(token.isDefined) {
+	localStorage.setItem("auth.session", "@token");
 }
 
 	var APP = typeof require == "function";
@@ -65,8 +65,11 @@
 }
 
 	function sso_url() {
-		var sso = DEV ? "/auth/sso" : "https://auth.fromscratch.gg/sso";
-		return sso + "?service=gt&token=" + encodeURIComponent(document.location.pathname);
+		var cont = encodeURIComponent(document.location.pathname);
+		var root = "https://auth.fromscratch.gg/oauth2/authorize";
+		var client = DEV ? "bb7dda1d-a958-11e6-80ad-fa163ea5ee1a" : "02c2c612-4c32-48a4-b505-a9954847068c";
+		var permissions = "id profile.edit permissions.admin";
+		return root + "?client_id=" + client + "&response_type=code&scope=" + permissions + "&state=@state:" + cont;
 	}
 
 	var ready = new Promise(function(res, rej) {

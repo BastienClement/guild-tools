@@ -32,3 +32,6 @@ socket.url="ws://$host/gtp3"
 
 ping.secret="*******"
 ping.sources=["0:0:0:0:0:0:0:1", "127.0.0.1"]
+
+oauth.client = "***"
+oauth.secret = "***"

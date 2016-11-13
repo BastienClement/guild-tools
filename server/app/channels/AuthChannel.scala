@@ -1,15 +1,17 @@
 package channels
 
-import actors._
 import akka.actor.{ActorRef, Props}
 import boopickle.DefaultBasic._
+import gt.GuildTools
 import gtp3.Socket.{Opener, SetUser}
 import gtp3._
 import java.util.concurrent.atomic.AtomicInteger
 import models.User
+import play.api.libs.ws.WSAuthScheme.BASIC
 import reactive._
 import scala.collection.mutable
 import scala.concurrent.Future
+import scala.util.Try
 
 object AuthChannel extends ChannelValidator {
 	/** Keep track of socket for which an authenticated channel has already been opened */
@@ -44,10 +46,15 @@ class AuthChannel(val socket: ActorRef, val opener: Opener) extends ChannelHandl
 	def authorized(user: User) = user.fs
 
 	request("auth") { session: String =>
-		AuthService.auth(session, Some(opener.ip), opener.ua).map { user =>
-			Some(user)
-		}.recover {
-			case e => None
+		val username = GuildTools.conf.getString("oauth.client").get
+		val password = GuildTools.conf.getString("oauth.secret").get
+		GuildTools.ws.url("https://auth.fromscratch.gg/oauth2/verify").withAuth(username, password, BASIC).post(Map(
+			"token" -> Seq(session)
+		)).map { response =>
+			Try {
+				val user = response.json \ "user"
+				Some(User((user \ "id").as[Int], (user \ "name").as[String], (user \ "group").as[Int]))
+			}.getOrElse(None)
 		}.map {
 			case Some(user) if authorized(user) =>
 				socket ! SetUser(user, session)

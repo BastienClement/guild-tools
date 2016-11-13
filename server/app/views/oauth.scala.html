@@ -1,0 +1,22 @@
+@()
+<style>
+	body {
+		background: #2e3740;
+	}
+</style>
+<script>
+	var response = {};
+	location.hash.slice(1).split("&").forEach(function(item) {
+		var parts = item.split("=", 2);
+		response[parts[0]] = parts[1] ? decodeURIComponent(parts[1]) : null;
+	});
+
+	if (response.access_token && response.state == localStorage.getItem("oauth.nonce")) {
+		localStorage.removeItem("oauth.nonce");
+		localStorage.setItem("auth.session", response.access_token);
+		document.location.href = localStorage.getItem("oauth.continue");
+	} else {
+		localStorage.removeItem("auth.session");
+		document.location.href = "/unauthorized";
+	}
+</script>
