@@ -48,7 +48,7 @@ class AuthChannel(val socket: ActorRef, val opener: Opener) extends ChannelHandl
 	request("auth") { session: String =>
 		val username = GuildTools.conf.getString("oauth.client").get
 		val password = GuildTools.conf.getString("oauth.secret").get
-		GuildTools.ws.url("https://auth.fromscratch.gg/oauth2/verify").withAuth(username, password, BASIC).post(Map(
+		GuildTools.ws.url("https://auth.fromscratch.gg/oauth/verify").withAuth(username, password, BASIC).post(Map(
 			"token" -> Seq(session)
 		)).map { response =>
 			Try {

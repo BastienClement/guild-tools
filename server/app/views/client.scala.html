@@ -66,7 +66,7 @@
 
 	function sso_url() {
 		var cont = encodeURIComponent(document.location.pathname);
-		var root = "https://auth.fromscratch.gg/oauth2/authorize";
+		var root = "https://auth.fromscratch.gg/oauth/authorize";
 		var client = DEV ? "bb7dda1d-a958-11e6-80ad-fa163ea5ee1a" : "02c2c612-4c32-48a4-b505-a9954847068c";
 		var permissions = "id profile.edit permissions.admin";
 		return root + "?client_id=" + client + "&response_type=code&scope=" + permissions + "&state=@state:" + cont;
