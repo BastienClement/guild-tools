@@ -46,7 +46,7 @@ object ComposerRoster extends Component[ComposerRoster](
 		def default = Filter(true, false, false, false)
 	}
 
-	val breakpoints = Seq(860, 840)
+	val breakpoints = Seq(870, 865, 860, 850, 840)
 	val ordering = Seq("Mains", "Casuals", "Veterans", "Guests").zipWithIndex.toMap
 
 	def compareToons(a: Toon, b: Toon): Boolean = {
