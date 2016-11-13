@@ -35,7 +35,7 @@ class GtApplication @Inject() (ws: WSClient, conf: Configuration)
 		} else {
 			val username = conf.getString("oauth.client").get
 			val password = conf.getString("oauth.secret").get
-			ws.url("https://auth.fromscratch.gg/oauth2/token").withAuth(username, password, WSAuthScheme.BASIC).post(Map(
+			ws.url("https://auth.fromscratch.gg/oauth/token").withAuth(username, password, WSAuthScheme.BASIC).post(Map(
 				"grant_type" -> Seq("authorization_code"),
 				"code" -> Seq(req.getQueryString("code").get)
 			)).map { response =>
