@@ -17,7 +17,7 @@ class GtApplication @Inject() (ws: WSClient, conf: Configuration)
 		extends Controller {
 	implicit val ac = GuildTools.system
 
-	def sanitizeSession(session: String) = session.replaceAll("[^a-zA-Z0-9\\-_]", "")
+	def sanitizeSession(session: String) = session.replaceAll("[^a-zA-Z0-9\\-_\\.]", "")
 
 	def client = Action { req =>
 		val state = UUID.randomUUID.toString
@@ -29,7 +29,7 @@ class GtApplication @Inject() (ws: WSClient, conf: Configuration)
 	}
 
 	def oauth = Action.async { req =>
-		val Seq(nonce, continue) = req.getQueryString("state").map(_.split(":", 2).toSeq).get
+		val Array(nonce, continue) = req.getQueryString("state").map(_.split(":", 2)).get
 		if (!req.session.get("state").contains(nonce) || req.getQueryString("code").isEmpty) {
 			Future.successful(Redirect("/unauthorized"))
 		} else {

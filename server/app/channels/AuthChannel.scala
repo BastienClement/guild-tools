@@ -7,7 +7,6 @@ import gtp3.Socket.{Opener, SetUser}
 import gtp3._
 import java.util.concurrent.atomic.AtomicInteger
 import models.User
-import play.api.libs.ws.WSAuthScheme.BASIC
 import reactive._
 import scala.collection.mutable
 import scala.concurrent.Future
@@ -46,11 +45,7 @@ class AuthChannel(val socket: ActorRef, val opener: Opener) extends ChannelHandl
 	def authorized(user: User) = user.fs
 
 	request("auth") { session: String =>
-		val username = GuildTools.conf.getString("oauth.client").get
-		val password = GuildTools.conf.getString("oauth.secret").get
-		GuildTools.ws.url("https://auth.fromscratch.gg/oauth/verify").withAuth(username, password, BASIC).post(Map(
-			"token" -> Seq(session)
-		)).map { response =>
+		GuildTools.ws.url("https://auth.fromscratch.gg/oauth/tokeninfo").withQueryString("token" -> session).get().map { response =>
 			Try {
 				val user = response.json \ "user"
 				Some(User((user \ "id").as[Int], (user \ "name").as[String], (user \ "group").as[Int]))
