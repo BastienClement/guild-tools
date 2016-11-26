@@ -45,10 +45,14 @@ class AuthChannel(val socket: ActorRef, val opener: Opener) extends ChannelHandl
 	def authorized(user: User) = user.fs
 
 	request("auth") { session: String =>
-		GuildTools.ws.url("https://auth.fromscratch.gg/oauth/tokeninfo").withQueryString("token" -> session).get().map { response =>
+		GuildTools.ws.url("https://auth.fromscratch.gg/oauth/tokeninfo").withQueryString(
+			"token" -> session,
+			"acl" -> "1"
+		).get().map { response =>
 			Try {
 				val user = response.json \ "user"
-				Some(User((user \ "id").as[Int], (user \ "name").as[String], (user \ "group").as[Int]))
+				val acl = response.json \ "acl"
+				Some(User((user \ "id").as[Int], (user \ "name").as[String], (acl \ "legacy.forum.group").as[Int]))
 			}.getOrElse(None)
 		}.map {
 			case Some(user) if authorized(user) =>
