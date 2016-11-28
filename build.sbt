@@ -82,5 +82,9 @@ lazy val shared = (crossProject.crossType(CustomCrossType) in file("shared"))
 lazy val sharedJvm = shared.jvm
 lazy val sharedJs = shared.js
 
+sources in (Compile, doc) := Seq.empty
+
+publishArtifact in (Compile, packageDoc) := false
+
 // loads the Play project at sbt startup
 onLoad in Global := (Command.process("project server", _: State)) compose (onLoad in Global).value
