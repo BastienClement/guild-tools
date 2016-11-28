@@ -42,18 +42,24 @@ class AuthChannel(val socket: ActorRef, val opener: Opener) extends ChannelHandl
 		case _ => count.decrementAndGet()
 	}
 
-	def authorized(user: User) = user.fs
+	def authorized(user: User) = user != null && user.fs
 
 	request("auth") { session: String =>
 		GuildTools.ws.url("https://auth.fromscratch.gg/oauth/tokeninfo").withQueryString(
 			"token" -> session,
-			"acl" -> "1"
+			"acl" -> "gt.* legacy.forum.group"
 		).get().map { response =>
-			Try {
-				val user = response.json \ "user"
-				val acl = response.json \ "acl"
-				Some(User((user \ "id").as[Int], (user \ "name").as[String], (acl \ "legacy.forum.group").as[Int]))
-			}.getOrElse(None)
+			val active = (response.json \ "active").asOpt[Boolean].getOrElse(false)
+			if (active) {
+				Try {
+					val user = response.json \ "user"
+					val acl = response.json \ "acl"
+					require((acl \ "gt.access").as[Int] > 0)
+					Some(User((user \ "id").as[Int], (user \ "name").as[String], (acl \ "legacy.forum.group").as[Int]))
+				}.getOrElse(Some(null))
+			} else {
+				None
+			}
 		}.map {
 			case Some(user) if authorized(user) =>
 				socket ! SetUser(user, session)
