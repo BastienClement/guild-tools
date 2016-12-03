@@ -16,6 +16,8 @@ class GtApplication @Inject() (ws: WSClient, conf: Configuration)
                               (implicit val mat: Materializer, val env: Environment, ec: ExecutionContext)
 		extends Controller {
 	implicit val ac = GuildTools.system
+	private val oauthClient = GuildTools.conf.getString("oauth.client").get
+	private val oauthSecret = GuildTools.conf.getString("oauth.secret").get
 
 	def sanitizeSession(session: String) = session.replaceAll("[^a-zA-Z0-9\\-_\\.]", "")
 
@@ -33,9 +35,7 @@ class GtApplication @Inject() (ws: WSClient, conf: Configuration)
 		if (!req.session.get("state").contains(nonce) || req.getQueryString("code").isEmpty) {
 			Future.successful(Redirect("/unauthorized"))
 		} else {
-			val username = conf.getString("oauth.client").get
-			val password = conf.getString("oauth.secret").get
-			ws.url("https://auth.fromscratch.gg/oauth/token").withAuth(username, password, WSAuthScheme.BASIC).post(Map(
+			ws.url("https://auth.fromscratch.gg/oauth/token").withAuth(oauthClient, oauthSecret, WSAuthScheme.BASIC).post(Map(
 				"grant_type" -> Seq("authorization_code"),
 				"code" -> Seq(req.getQueryString("code").get)
 			)).map { response =>

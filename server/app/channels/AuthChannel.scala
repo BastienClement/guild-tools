@@ -7,6 +7,7 @@ import gtp3.Socket.{Opener, SetUser}
 import gtp3._
 import java.util.concurrent.atomic.AtomicInteger
 import models.User
+import play.api.libs.ws.WSAuthScheme
 import reactive._
 import scala.collection.mutable
 import scala.concurrent.Future
@@ -30,6 +31,9 @@ object AuthChannel extends ChannelValidator {
 }
 
 class AuthChannel(val socket: ActorRef, val opener: Opener) extends ChannelHandler {
+	private val oauthClient = GuildTools.conf.getString("oauth.client").get
+	private val oauthSecret = GuildTools.conf.getString("oauth.secret").get
+
 	// Count parallel requests
 	private val count = new AtomicInteger(0)
 
@@ -45,7 +49,7 @@ class AuthChannel(val socket: ActorRef, val opener: Opener) extends ChannelHandl
 	def authorized(user: User) = user != null && user.fs
 
 	request("auth") { session: String =>
-		GuildTools.ws.url("https://auth.fromscratch.gg/oauth/tokeninfo").withQueryString(
+		GuildTools.ws.url("https://auth.fromscratch.gg/oauth/tokeninfo").withAuth(oauthClient, oauthSecret, WSAuthScheme.BASIC).withQueryString(
 			"token" -> session,
 			"acl" -> "gt.* legacy.forum.group"
 		).get().map { response =>
