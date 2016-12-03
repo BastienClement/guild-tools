@@ -53,9 +53,10 @@ class AuthChannel(val socket: ActorRef, val opener: Opener) extends ChannelHandl
 			"token" -> session,
 			"acl" -> "gt.* legacy.forum.group"
 		).get().map { response =>
-			val active = (response.json \ "active").asOpt[Boolean].getOrElse(false)
-			if (active) {
+			val active = (response.json \ "active").asOpt[Boolean]
+			if (!active.exists(active => !active)) {
 				Try {
+					require((response.json \ "client").as[String] == oauthClient)
 					val user = response.json \ "user"
 					val acl = response.json \ "acl"
 					require((acl \ "gt.access").as[Int] > 0)
