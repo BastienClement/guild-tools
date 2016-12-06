@@ -46,7 +46,7 @@ object ComposerRoster extends Component[ComposerRoster](
 		def default = Filter(true, false, false, false)
 	}
 
-	val breakpoints = Seq(900, 890, 880, 870, 865, 860)
+	val breakpoints = Seq(905, 900, 895, 890, 885, 880, 875, 870, 860)
 	val ordering = Seq("Mains", "Casuals", "Veterans", "Guests").zipWithIndex.toMap
 
 	def compareToons(a: Toon, b: Toon): Boolean = {
@@ -102,6 +102,6 @@ object ComposerRoster extends Component[ComposerRoster](
 
 	def gotoProfile(profile: Int): Unit = Router.goto(s"/profile/$profile")
 	def ownerName(id: Int): String = roster.user(id).name
-	def openBnet(toon: Toon): Unit = dom.window.open(s"http://eu.battle.net/wow/en/character/${toon.server}/${toon.name}/advanced", "_blank")
+	def openBnet(toon: Toon): Unit = dom.window.open(s"http://eu.battle.net/wow/en/character/${ toon.server }/${ toon.name }/advanced", "_blank")
 	def pickup(id: Int, ev: MouseEvent): Unit = fire("pickup-toon", (id, ev, None))
 }
