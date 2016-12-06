@@ -57,6 +57,7 @@ class AuthChannel(val socket: ActorRef, val opener: Opener) extends ChannelHandl
 			if (!active.exists(active => !active)) {
 				Try {
 					require((response.json \ "client").as[String] == oauthClient)
+					require((response.json \ "secure").as[Boolean])
 					val user = response.json \ "user"
 					val acl = response.json \ "acl"
 					require((acl \ "gt.access").as[Int] > 0)
